@@ -14,7 +14,7 @@ export class MedicineController {
    */
   @Post('scan-qr')
   async scanQr(@Req() req: any, @Body() scanDto: ScanQrDto) {
-    const userId = req.user?.id || 'test-user-id';
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     return this.medicineService.scanQrCode(
       userId,
       scanDto.qrData,
@@ -29,7 +29,7 @@ export class MedicineController {
    */
   @Post('search')
   async searchMedicine(@Body() searchDto: SearchMedicineDto) {
-    return this.medicineService.searchMedicine(searchDto.keyword, searchDto.limit);
+    return this.medicineService.searchMedicine(searchDto.keyword);
   }
 
   /**
@@ -38,7 +38,7 @@ export class MedicineController {
    */
   @Post('add')
   async addMedicine(@Req() req: any, @Body() medicineData: any) {
-    const userId = req.user?.id || 'test-user-id';
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     return this.medicineService.addMedicineFromSearch(
       userId,
       medicineData.itemName,
@@ -56,7 +56,7 @@ export class MedicineController {
    */
   @Get('my-list')
   async getMyMedicines(@Req() req: any, @Query('active') active?: string) {
-    const userId = req.user?.id || 'test-user-id';
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     const activeOnly = active !== 'false';
     return this.medicineService.getMyMedicines(userId, activeOnly);
   }
@@ -79,7 +79,7 @@ export class MedicineController {
    */
   @Patch(':id')
   async updateMedicine(@Req() req: any, @Param('id') id: string, @Body() updates: any) {
-    const userId = req.user?.id || 'test-user-id';
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     return this.medicineService.updateMedicineRecord(userId, id, updates);
   }
 
@@ -89,7 +89,7 @@ export class MedicineController {
    */
   @Delete(':id')
   async deleteMedicine(@Req() req: any, @Param('id') id: string) {
-    const userId = req.user?.id || 'test-user-id';
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
     return this.medicineService.deleteMedicineRecord(userId, id);
   }
 }

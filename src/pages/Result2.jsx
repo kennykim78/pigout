@@ -77,9 +77,64 @@ const Result2 = () => {
     console.log('  detailedAnalysis:', detailedAnalysis);
     console.log('  detailedAnalysis?.cons:', detailedAnalysis?.cons);
     
+    const badPoints = [];
+    
+    // 1. AI가 판단한 약물 상호작용 경고 (AI 분석 결과 사용)
+    if (detailedAnalysis?.medicalAnalysis?.drug_food_interactions) {
+      const interactions = detailedAnalysis.medicalAnalysis.drug_food_interactions;
+      const dangerDrugs = interactions.filter(d => d.risk_level === 'danger');
+      const cautionDrugs = interactions.filter(d => d.risk_level === 'caution');
+      
+      if (dangerDrugs.length > 0) {
+        badPoints.push(`🚨 복용 중인 약물과의 위험한 상호작용:`);
+        dangerDrugs.forEach((drug, idx) => {
+          // AI가 분석한 매칭된 성분
+          const matchedComponents = drug.matched_components || [];
+          const componentInfo = matchedComponents.length > 0 ? ` [${matchedComponents.join(', ')}]` : '';
+          
+          badPoints.push(`\n${idx + 1}. ${drug.medicine_name}${componentInfo}`);
+          if (drug.interaction_description) {
+            badPoints.push(`   ⚠️ ${drug.interaction_description}`);
+          }
+          if (drug.evidence_from_public_data) {
+            badPoints.push(`   📌 ${drug.evidence_from_public_data}`);
+          }
+          if (drug.recommendation) {
+            badPoints.push(`   💡 ${drug.recommendation}`);
+          }
+        });
+        badPoints.push('');
+      }
+      
+      if (cautionDrugs.length > 0) {
+        badPoints.push(`⚡ 복용 중인 약물 주의사항:`);
+        cautionDrugs.forEach((drug, idx) => {
+          const matchedComponents = drug.matched_components || [];
+          const componentInfo = matchedComponents.length > 0 ? ` [${matchedComponents.join(', ')}]` : '';
+          
+          badPoints.push(`\n${idx + 1}. ${drug.medicine_name}${componentInfo}`);
+          if (drug.interaction_description) {
+            badPoints.push(`   → ${drug.interaction_description}`);
+          }
+          if (drug.recommendation) {
+            badPoints.push(`   💡 ${drug.recommendation}`);
+          }
+        });
+        badPoints.push('');
+      }
+    }
+    
+    // 2. AI가 분석한 일반 나쁜점 (finalAnalysis.badPoints)
     if (detailedAnalysis && detailedAnalysis.cons && Array.isArray(detailedAnalysis.cons) && detailedAnalysis.cons.length > 0) {
       console.log('✅ cons 배열 발견, 길이:', detailedAnalysis.cons.length);
-      return detailedAnalysis.cons.map((con, idx) => `${idx + 1}. ${con}`).join('\n\n');
+      const consStart = badPoints.length > 0 ? badPoints.length : 0;
+      detailedAnalysis.cons.forEach((con, idx) => {
+        badPoints.push(`${consStart + idx + 1}. ${con}`);
+      });
+    }
+    
+    if (badPoints.length > 0) {
+      return badPoints.join('\n');
     }
     
     console.log('⚠️ cons 배열 없음, 기본 텍스트 반환');
@@ -94,9 +149,34 @@ const Result2 = () => {
     console.log('  detailedAnalysis:', detailedAnalysis);
     console.log('  detailedAnalysis?.pros:', detailedAnalysis?.pros);
     
+    const goodPoints = [];
+    
+    // 1. 안전한 약물 상호작용 정보 (AI 분석 결과)
+    if (detailedAnalysis?.medicalAnalysis?.drug_food_interactions) {
+      const safeDrugs = detailedAnalysis.medicalAnalysis.drug_food_interactions
+        .filter(d => d.risk_level === 'safe');
+      
+      if (safeDrugs.length > 0) {
+        goodPoints.push('✅ 복용 중인 약물과 안전:');
+        safeDrugs.forEach((drug, idx) => {
+          const desc = drug.interaction_description || '특별한 상호작용 없음';
+          goodPoints.push(`${idx + 1}. ${drug.medicine_name} - ${desc}`);
+        });
+        goodPoints.push('');
+      }
+    }
+    
+    // 2. AI가 분석한 일반 좋은점 (finalAnalysis.goodPoints)
     if (detailedAnalysis && detailedAnalysis.pros && Array.isArray(detailedAnalysis.pros) && detailedAnalysis.pros.length > 0) {
       console.log('✅ pros 배열 발견, 길이:', detailedAnalysis.pros.length);
-      return detailedAnalysis.pros.map((pro, idx) => `${idx + 1}. ${pro}`).join('\n\n');
+      const prosStart = goodPoints.length > 0 ? goodPoints.length : 0;
+      detailedAnalysis.pros.forEach((pro, idx) => {
+        goodPoints.push(`${prosStart + idx + 1}. ${pro}`);
+      });
+    }
+    
+    if (goodPoints.length > 0) {
+      return goodPoints.join('\n');
     }
     
     console.log('⚠️ pros 배열 없음, 기본 텍스트 반환');

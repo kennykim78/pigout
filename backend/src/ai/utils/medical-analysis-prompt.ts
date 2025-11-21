@@ -89,6 +89,14 @@ export interface MedicalAnalysisOutput {
     interaction_mechanism: string;
     citation: string[];
   };
+  drug_food_interactions: Array<{
+    medicine_name: string;
+    risk_level: 'safe' | 'caution' | 'danger' | 'insufficient_data';
+    detected_patterns: string[];
+    warnings: string[];
+    recommendations: string[];
+    citation: string[];
+  }>;
   nutritional_risk: {
     risk_factors: string[];
     description: string;
@@ -171,6 +179,16 @@ ${ragData
     "interaction_mechanism": "상호작용 메커니즘 (출처 명시)",
     "citation": ["출처1", "출처2"]
   },
+  "drug_food_interactions": [
+    {
+      "medicine_name": "약물명",
+      "risk_level": "safe | caution | danger | insufficient_data",
+      "detected_patterns": ["alcohol", "timing" 등 감지된 패턴],
+      "warnings": ["경고사항1", "경고사항2"],
+      "recommendations": ["권장사항1", "권장사항2"],
+      "citation": ["식품의약품안전처 e약은요"]
+    }
+  ],
   "nutritional_risk": {
     "risk_factors": ["위험 요소1", "위험 요소2"],
     "description": "출처 기반 설명",
@@ -190,5 +208,8 @@ ${ragData
 - 모든 분석은 제공된 RAG 데이터와 출처에서만 근거를 추출하세요
 - 근거가 부족한 경우 "insufficient evidence"로 명시하세요
 - 절대 추론하거나 가정하지 마세요
+- drug_food_interactions 배열은 복용 중인 각 약물별로 분석하여 작성하세요
+- RAG 데이터의 drugInteractions에서 detectedPatterns, warnings, precautions를 활용하세요
+- 약물-음식 상호작용이 발견되면 반드시 구체적인 경고와 권장사항을 포함하세요
 `;
 }

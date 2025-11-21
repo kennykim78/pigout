@@ -154,9 +154,19 @@ const Result01 = () => {
         <div className="result01__info-section">
           <img src={imgworry} alt={foodName} className="result01__food-image"/>
           <div className="result01__info-card">
+            {/* AI 간략 분석 (1순위) - briefSummary 우선 사용 */}
             <p style={{ whiteSpace: 'pre-line' }}>
-              {analysis || '분석 결과를 불러오는 중입니다...'}
+              {detailedAnalysis?.briefSummary || analysis || '분석 결과를 불러오는 중입니다...'}
             </p>
+            
+            {/* 복용 중인 약 경고 (2순위) - AI가 판단한 위험도(danger/caution) 기반 */}
+            {detailedAnalysis?.medicalAnalysis?.drug_food_interactions?.some(d => d.risk_level === 'danger' || d.risk_level === 'caution') && (
+              <div style={{ marginTop: '16px', paddingTop: '16px', borderTop: '1px solid #e0e0e0' }}>
+                <p style={{ color: '#ff6b6b', fontSize: '14px', fontWeight: 'bold', margin: 0 }}>
+                  ⚠️ 복용 중인 약과 안 좋은 영향이 있을 수 있습니다.
+                </p>
+              </div>
+            )}
           </div>
           <button className="result01__detail-button" onClick={handleDetailClick}>
             자세히 보기

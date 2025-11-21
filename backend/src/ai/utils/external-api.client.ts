@@ -21,8 +21,9 @@ export class ExternalApiClient {
   /**
    * 식약처 의약품 개요정보 조회 (e약은요) - 성공한 API
    * @param medicineName 의약품명
+   * @param numOfRows 조회할 행 수 (기본 20)
    */
-  async getMedicineInfo(medicineName: string): Promise<any> {
+  async getMedicineInfo(medicineName: string, numOfRows: number = 20): Promise<any> {
     try {
       if (!this.SERVICE_KEY) {
         console.warn('[e약은요] MFDS_API_KEY 미설정 - Mock 데이터 사용');
@@ -36,7 +37,7 @@ export class ExternalApiClient {
         params: {
           serviceKey: this.SERVICE_KEY,
           itemName: medicineName,
-          numOfRows: 5,
+          numOfRows: numOfRows,
           pageNo: 1,
           type: 'json',
         },
@@ -64,6 +65,98 @@ export class ExternalApiClient {
   }
 
   /**
+   * 효능(질병)으로 약품 검색
+   * @param efficacy 효능/질병 키워드 (예: "두통", "감기", "혈압")
+   * @param numOfRows 검색 결과 수
+   */
+  async searchMedicineByEfficacy(efficacy: string, numOfRows: number = 20): Promise<any> {
+    try {
+      if (!this.SERVICE_KEY) {
+        console.warn('[e약은요] MFDS_API_KEY 미설정 - Mock 데이터 사용');
+        return [];
+      }
+      const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
+      
+      console.log(`[e약은요] 효능 검색: ${efficacy}`);
+      
+      const response = await axios.get(url, {
+        params: {
+          serviceKey: this.SERVICE_KEY,
+          efcyQesitm: efficacy,
+          numOfRows: numOfRows,
+          pageNo: 1,
+          type: 'json',
+        },
+        timeout: 15000,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
+        console.log(`[e약은요-효능] ${response.data.body.totalCount}건 검색됨`);
+        return response.data.body.items;
+      }
+
+      console.log(`[e약은요-효능] 검색 결과 없음`);
+      return [];
+    } catch (error) {
+      console.error('[e약은요-효능] API error:', error.message);
+      if (error.response) {
+        console.error('응답 상태:', error.response.status);
+        console.error('응답 데이터:', error.response.data);
+      }
+      return [];
+    }
+  }
+
+  /**
+   * 제조사로 약품 검색
+   * @param manufacturer 제조사명 (예: "한국유나이티드제약", "일동제약")
+   * @param numOfRows 검색 결과 수
+   */
+  async searchMedicineByManufacturer(manufacturer: string, numOfRows: number = 20): Promise<any> {
+    try {
+      if (!this.SERVICE_KEY) {
+        console.warn('[e약은요] MFDS_API_KEY 미설정 - Mock 데이터 사용');
+        return [];
+      }
+      const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
+      
+      console.log(`[e약은요] 제조사 검색: ${manufacturer}`);
+      
+      const response = await axios.get(url, {
+        params: {
+          serviceKey: this.SERVICE_KEY,
+          entpName: manufacturer,
+          numOfRows: numOfRows,
+          pageNo: 1,
+          type: 'json',
+        },
+        timeout: 15000,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
+        console.log(`[e약은요-제조사] ${response.data.body.totalCount}건 검색됨`);
+        return response.data.body.items;
+      }
+
+      console.log(`[e약은요-제조사] 검색 결과 없음`);
+      return [];
+    } catch (error) {
+      console.error('[e약은요-제조사] API error:', error.message);
+      if (error.response) {
+        console.error('응답 상태:', error.response.status);
+        console.error('응답 데이터:', error.response.data);
+      }
+      return [];
+    }
+  }
+
+  /**
    * 약물-음식 상호작용 분석
    * e약은요 API의 주의사항(atpnQesitm), 상호작용(intrcQesitm) 정보 활용
    * @param medicineName 약물명
@@ -71,8 +164,8 @@ export class ExternalApiClient {
    */
   async analyzeMedicineFoodInteraction(medicineName: string, foodName?: string): Promise<any> {
     try {
-      // 1. e약은요 API로 약물 정보 조회
-      const medicineInfo = await this.getMedicineInfo(medicineName);
+      // 1. e약은요 API로 약물 정보 조회 (최대 3개 결과)
+      const medicineInfo = await this.getMedicineInfo(medicineName, 3);
       
       if (!medicineInfo || medicineInfo.length === 0) {
         console.log(`[상호작용] ${medicineName} 정보 없음`);
@@ -94,36 +187,92 @@ export class ExternalApiClient {
       const warnings = medicine.atpnWarnQesitm || '';
       const interactions = medicine.intrcQesitm || '';
       const sideEffects = medicine.seQesitm || '';
+      const efficacy = medicine.efcyQesitm || '';
+      const usage = medicine.useMethodQesitm || '';
       
-      // 3. 음식 관련 키워드 검색
-      const foodKeywords = ['음주', '알코올', '음식', '식사', '공복', '식후', '우유', '커피', '자몽'];
-      const foodRelatedInfo = [];
+      // 3. 확장된 음식 관련 키워드 검색 (더 구체적)
+      const foodKeywordPatterns = {
+        alcohol: ['음주', '알코올', '술', '주류', '에탄올'],
+        timing: ['공복', '식후', '식전', '식사', '복용시간'],
+        dairy: ['우유', '유제품', '치즈', '요구르트', '칼슘'],
+        caffeine: ['커피', '카페인', '차', '홍차', '녹차', '에너지음료'],
+        citrus: ['자몽', '오렌지', '귤', '감귤', '레몬'],
+        vegetables: ['채소', '시금치', '양배추', '케일', '브로콜리', '비타민K'],
+        highSodium: ['소금', '나트륨', '짠', '염분'],
+        highPotassium: ['칼륨', '바나나', '감자', '토마토'],
+        highFat: ['지방', '기름진', '튀김', '고지방'],
+        other: ['음식', '식품', '섭취'],
+      };
       
-      const allText = `${precautions} ${warnings} ${interactions}`.toLowerCase();
+      const detectedPatterns: Record<string, string[]> = {};
+      const allText = `${precautions} ${warnings} ${interactions} ${usage}`.toLowerCase();
       
-      for (const keyword of foodKeywords) {
-        if (allText.includes(keyword)) {
-          foodRelatedInfo.push(keyword);
+      for (const [category, keywords] of Object.entries(foodKeywordPatterns) as [string, string[]][]) {
+        const matched = keywords.filter(keyword => allText.includes(keyword));
+        if (matched.length > 0) {
+          detectedPatterns[category] = matched;
         }
       }
       
-      console.log(`[상호작용] ${medicineName} - 음식 관련 키워드: ${foodRelatedInfo.join(', ')}`);
+      // 4. 특정 음식과의 상호작용 확인 (음식명이 제공된 경우)
+      let specificFoodInteraction = null;
+      if (foodName) {
+        const foodLower = foodName.toLowerCase();
+        specificFoodInteraction = {
+          hasMatch: false,
+          matchedKeywords: [],
+          risk: 'unknown',
+        };
+        
+        // 음식명과 패턴 매칭
+        for (const [category, keywords] of Object.entries(detectedPatterns)) {
+          for (const keyword of keywords) {
+            if (foodLower.includes(keyword) || allText.includes(foodLower)) {
+              specificFoodInteraction.hasMatch = true;
+              specificFoodInteraction.matchedKeywords.push({ category, keyword });
+            }
+          }
+        }
+      }
+      
+      // 5. 위험도 평가 개선
+      let riskLevel = 'safe';
+      const criticalWarnings = ['금기', '즉시', '중단', '위험', '심각', '응급', '반드시'];
+      const cautionWarnings = ['주의', '피하', '조심', '제한', '삼가'];
+      
+      if (criticalWarnings.some(w => warnings.includes(w) || precautions.includes(w))) {
+        riskLevel = 'danger';
+      } else if (cautionWarnings.some(w => warnings.includes(w) || precautions.includes(w))) {
+        riskLevel = 'caution';
+      } else if (Object.keys(detectedPatterns).length > 0) {
+        riskLevel = 'caution';
+      }
+      
+      console.log(`[상호작용] ${medicineName} - 패턴: ${Object.keys(detectedPatterns).join(', ')}, 위험도: ${riskLevel}`);
       
       return {
         medicine: medicine.itemName,
         manufacturer: medicine.entpName,
+        itemSeq: medicine.itemSeq,
         food: foodName || '일반 음식',
-        hasInteraction: foodRelatedInfo.length > 0,
-        riskLevel: warnings.includes('즉시') || warnings.includes('중단') ? 'danger' : 
-                   foodRelatedInfo.length > 0 ? 'caution' : 'safe',
+        hasInteraction: Object.keys(detectedPatterns).length > 0,
+        riskLevel,
+        detectedPatterns, // 카테고리별 매칭 키워드
+        specificFoodInteraction, // 특정 음식과의 상호작용
         precautions: precautions.split('\n').filter(p => p.trim()),
         warnings: warnings.split('\n').filter(w => w.trim()),
         interactions: interactions.split('\n').filter(i => i.trim()),
-        sideEffects: sideEffects.split('\n').filter(s => s.trim()).slice(0, 5), // 상위 5개만
-        foodRelatedKeywords: foodRelatedInfo,
-        efficacy: medicine.efcyQesitm || '정보 없음',
-        usage: medicine.useMethodQesitm || '정보 없음',
+        sideEffects: sideEffects.split('\n').filter(s => s.trim()).slice(0, 5),
+        efficacy: efficacy,
+        usage: usage,
         citation: ['식품의약품안전처 의약품개요정보(e약은요)'],
+        // 추가 분석 정보
+        analysisDetails: {
+          totalTextLength: allText.length,
+          hasWarnings: warnings.length > 0,
+          hasPrecautions: precautions.length > 0,
+          hasInteractions: interactions.length > 0,
+        },
       };
     } catch (error) {
       console.error('[상호작용] 분석 오류:', error.message);
@@ -133,6 +282,7 @@ export class ExternalApiClient {
         hasInteraction: false,
         riskLevel: 'error',
         description: '상호작용 분석 중 오류가 발생했습니다.',
+        error: error.message,
       };
     }
   }

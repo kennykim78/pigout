@@ -230,14 +230,38 @@ export class AiService {
 
       // 3. 약물-음식 상호작용 정보 조회 (e약은요 API 활용)
       const drugInteractions = [];
+      console.log('\n--- 약물-음식 상호작용 분석 (e약은요 API) ---');
       for (const medicine of medicines) {
         const interaction = await this.externalApiClient.analyzeMedicineFoodInteraction(
-          medicine.medicine_name,
+          medicine.name || medicine.medicine_name, // name 컬럼 사용
           foodName,
         );
         drugInteractions.push(interaction);
-        console.log(`상호작용 분석: ${medicine.medicine_name} - 위험도 ${interaction.riskLevel}`);
+        
+        console.log(`\n[${medicine.name || medicine.medicine_name}]`);
+        console.log(`  - 위험도: ${interaction.riskLevel}`);
+        console.log(`  - 상호작용 여부: ${interaction.hasInteraction ? '있음' : '없음'}`);
+        
+        if (interaction.detectedPatterns && Object.keys(interaction.detectedPatterns).length > 0) {
+          console.log(`  - 감지된 패턴:`);
+          for (const [category, keywords] of Object.entries(interaction.detectedPatterns)) {
+            console.log(`    • ${category}: ${(keywords as string[]).join(', ')}`);
+          }
+        }
+        
+        if (interaction.specificFoodInteraction?.hasMatch) {
+          console.log(`  - 특정 음식 상호작용: ${foodName}과 관련 키워드 발견`);
+          console.log(`    매칭: ${JSON.stringify(interaction.specificFoodInteraction.matchedKeywords)}`);
+        }
+        
+        if (interaction.warnings && interaction.warnings.length > 0) {
+          console.log(`  - 경고사항 ${interaction.warnings.length}개`);
+        }
+        if (interaction.precautions && interaction.precautions.length > 0) {
+          console.log(`  - 주의사항 ${interaction.precautions.length}개`);
+        }
       }
+      console.log('--- 상호작용 분석 완료 ---\n');
 
       // 4. 질병별 가이드라인 조회
       const diseaseGuidelines = [];
@@ -313,7 +337,43 @@ export class AiService {
   private formatAnalysisSummary(analysis: MedicalAnalysisOutput): string {
     const parts: string[] = [];
 
-    // 상호작용 평가
+    // 약물-음식 상호작용 (우선순위 높음)
+    if (analysis.drug_food_interactions && analysis.drug_food_interactions.length > 0) {
+      const dangerDrugs = analysis.drug_food_interactions.filter(d => d.risk_level === 'danger');
+      const cautionDrugs = analysis.drug_food_interactions.filter(d => d.risk_level === 'caution');
+      
+      if (dangerDrugs.length > 0) {
+        parts.push('🚨 약물 상호작용 경고:');
+        dangerDrugs.forEach(drug => {
+          parts.push(`\n⚠️ ${drug.medicine_name}:`);
+          if (drug.warnings && drug.warnings.length > 0) {
+            drug.warnings.slice(0, 2).forEach(warning => {
+              parts.push(`  • ${warning}`);
+            });
+          }
+          if (drug.recommendations && drug.recommendations.length > 0) {
+            parts.push(`  → ${drug.recommendations[0]}`);
+          }
+        });
+        parts.push('');
+      }
+      
+      if (cautionDrugs.length > 0) {
+        parts.push('⚡ 복용 중인 약물 주의사항:');
+        cautionDrugs.forEach(drug => {
+          parts.push(`\n• ${drug.medicine_name}:`);
+          if (drug.detected_patterns && drug.detected_patterns.length > 0) {
+            parts.push(`  패턴: ${drug.detected_patterns.join(', ')}`);
+          }
+          if (drug.recommendations && drug.recommendations.length > 0) {
+            parts.push(`  → ${drug.recommendations[0]}`);
+          }
+        });
+        parts.push('');
+      }
+    }
+
+    // 전반적 상호작용 평가
     if (analysis.interaction_assessment.level === 'danger') {
       parts.push(`⚠️ 주의: ${analysis.interaction_assessment.evidence_summary}`);
     } else if (analysis.interaction_assessment.level === 'caution') {
@@ -362,16 +422,17 @@ export class AiService {
         level: 'insufficient_data',
         evidence_summary: '충분한 데이터가 없어 정확한 분석이 어렵습니다.',
         detailed_analysis: 'RAG 데이터 수집 실패로 인해 상세 분석을 제공할 수 없습니다.',
-        interaction_mechanism: '데이터 없음',
-        citation: ['분석 실패'],
+        interaction_mechanism: '정보 없음',
+        citation: [],
       },
+      drug_food_interactions: [],
       nutritional_risk: {
         risk_factors: [],
-        description: '영양 정보를 가져올 수 없습니다.',
+        description: '영양 정보 분석 불가',
         citation: [],
       },
       disease_specific_notes: [],
-      final_score: 65, // 중립 점수
+      final_score: 65,
     };
   }
 

@@ -9,7 +9,10 @@ const Medicine = () => {
   const [qrInput, setQrInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState([]);
+  const [hasSearched, setHasSearched] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
+  const [currentPage, setCurrentPage] = useState(1);
+  const itemsPerPage = 20;
 
   useEffect(() => {
     loadMedicines();
@@ -53,13 +56,20 @@ const Medicine = () => {
     if (!searchKeyword.trim()) return;
 
     setLoading(true);
+    setHasSearched(true);
+    setCurrentPage(1);
     try {
+      console.log('[검색 시작] 키워드:', searchKeyword);
       const results = await searchMedicine(searchKeyword);
+      console.log('[검색 완료] 결과:', results);
+      console.log('[검색 완료] 결과 타입:', typeof results);
+      console.log('[검색 완료] 배열 여부:', Array.isArray(results));
       setSearchResults(results);
-      console.log('검색 결과:', results);
     } catch (error) {
       console.error('Search failed:', error);
+      console.error('Error details:', error.response?.data);
       setError('검색에 실패했습니다.');
+      setSearchResults([]);
     } finally {
       setLoading(false);
     }
@@ -143,7 +153,7 @@ const Medicine = () => {
             medicines.map((med) => (
               <div key={med.id} className="medicine__card">
                 <div className="medicine__card-header">
-                  <h3 className="medicine__card-title">{med.medicine_name}</h3>
+                  <h3 className="medicine__card-title">{med.name}</h3>
                   <button
                     className="medicine__delete-btn"
                     onClick={() => handleDeleteMedicine(med.id)}
@@ -151,6 +161,9 @@ const Medicine = () => {
                     🗑️
                   </button>
                 </div>
+                {med.drug_class && (
+                  <p className="medicine__card-info">제조사: {med.drug_class}</p>
+                )}
                 {med.dosage && (
                   <p className="medicine__card-info">복용량: {med.dosage}</p>
                 )}
@@ -200,14 +213,14 @@ const Medicine = () => {
           </section>
 
           <section className="medicine__section">
-            <h2 className="medicine__section-title">🔍 약품명 검색</h2>
-            <p className="medicine__section-desc">약품명을 검색하여 추가하세요</p>
+            <h2 className="medicine__section-title">🔍 약품명 또는 질병 검색</h2>
+            <p className="medicine__section-desc">약품명, 증상/질병, 제조사로 검색하세요 (예: 타이레놀, 두통, 감기, 일동제약)</p>
             
             <div className="medicine__search">
               <input
                 type="text"
                 className="medicine__search-input"
-                placeholder="약품명 입력 (예: 타이레놀)"
+                placeholder="약품명, 질병, 제조사 입력 (예: 타이레놀, 두통, 일동제약)"
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -224,30 +237,79 @@ const Medicine = () => {
             <div className="medicine__search-results">
               {searchResults.length > 0 ? (
                 <>
-                  <p className="medicine__results-count">검색 결과: {searchResults.length}건</p>
-                  {searchResults.map((result, index) => (
-                    <div key={result.itemSeq || index} className="medicine__result-card">
-                      <h4>{result.itemName}</h4>
-                      <p className="medicine__result-manufacturer">제조사: {result.entpName}</p>
-                      {result.efcyQesitm && (
-                        <p className="medicine__result-purpose">
-                          효능: {result.efcyQesitm.substring(0, 100)}{result.efcyQesitm.length > 100 ? '...' : ''}
-                        </p>
-                      )}
-                      <button
-                        className="medicine__result-add-btn"
-                        onClick={() => handleAddMedicine(result)}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? '추가 중...' : '추가'}
-                      </button>
-                    </div>
-                  ))}
+                  <p className="medicine__results-count">전체 검색 결과: {searchResults.length}건</p>
+                  <p className="medicine__results-info" style={{ fontSize: '12px', color: '#666', marginTop: '-8px', marginBottom: '12px' }}>
+                    💡 약품명, 효능(질병), 제조사로 검색된 결과입니다. 효능을 확인하고 선택하세요.
+                  </p>
+                  {(() => {
+                    const totalPages = Math.ceil(searchResults.length / itemsPerPage);
+                    const startIndex = (currentPage - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    const currentResults = searchResults.slice(startIndex, endIndex);
+                    
+                    return (
+                      <>
+                        {currentResults.map((result, index) => (
+                          <div key={result.itemSeq || index} className="medicine__result-card">
+                            <h4>{result.itemName}</h4>
+                            <p className="medicine__result-manufacturer">제조사: {result.entpName}</p>
+                            {result.efcyQesitm && (
+                              <div className="medicine__result-efficacy">
+                                <strong style={{ color: '#4CAF50' }}>효능/효과:</strong>
+                                <p style={{ marginTop: '4px', fontSize: '13px', lineHeight: '1.5' }}>
+                                  {result.efcyQesitm.length > 150 
+                                    ? `${result.efcyQesitm.substring(0, 150)}...` 
+                                    : result.efcyQesitm}
+                                </p>
+                              </div>
+                            )}
+                            <button
+                              className="medicine__result-add-btn"
+                              onClick={() => handleAddMedicine(result)}
+                              disabled={isLoading}
+                            >
+                              {isLoading ? '추가 중...' : '추가'}
+                            </button>
+                          </div>
+                        ))}
+                        
+                        {totalPages > 1 && (
+                          <div className="medicine__pagination">
+                            <button
+                              className="medicine__page-btn"
+                              onClick={() => setCurrentPage(prev => Math.max(prev - 1, 1))}
+                              disabled={currentPage === 1}
+                            >
+                              이전
+                            </button>
+                            <div className="medicine__page-numbers">
+                              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                <button
+                                  key={page}
+                                  className={`medicine__page-num ${currentPage === page ? 'medicine__page-num--active' : ''}`}
+                                  onClick={() => setCurrentPage(page)}
+                                >
+                                  {page}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              className="medicine__page-btn"
+                              onClick={() => setCurrentPage(prev => Math.min(prev + 1, totalPages))}
+                              disabled={currentPage === totalPages}
+                            >
+                              다음
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
                 </>
               ) : (
-                searchKeyword && !isLoading && (
+                hasSearched && !isLoading && (
                   <p className="medicine__no-results">
-                    검색 결과가 없습니다. 공공데이터 키 미설정 또는 잘못된 약품명일 수 있습니다.
+                    검색 결과가 없습니다. 다른 키워드로 시도해보세요.
                   </p>
                 )
               )}

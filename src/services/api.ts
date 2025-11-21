@@ -71,8 +71,16 @@ export const scanMedicineQR = async (qrData: string, dosage?: string, frequency?
 
 // 약품 검색
 export const searchMedicine = async (keyword: string, limit: number = 20) => {
-  const response = await apiClient.post('/medicine/search', { keyword, limit });
-  return response.data;
+  console.log('[API] searchMedicine 호출:', { keyword, limit });
+  try {
+    const response = await apiClient.post('/medicine/search', { keyword, limit });
+    console.log('[API] searchMedicine 응답:', response);
+    console.log('[API] searchMedicine 데이터:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[API] searchMedicine 에러:', error);
+    throw error;
+  }
 };
 
 // 내 약 목록 조회

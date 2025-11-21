@@ -242,4 +242,59 @@
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   font-size: 20px;
   color: rgb(153, 153, 153);
+}
+.medicine__pagination {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 20px;
+  padding: 20px 0;
+}
+.medicine__page-btn {
+  padding: 8px 16px;
+  background: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+  border: 2px solid rgb(153, 153, 153);
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.medicine__page-btn:hover:not(:disabled) {
+  background: rgb(255, 161, 0);
+  color: rgb(255, 255, 255);
+  border-color: rgb(255, 161, 0);
+}
+.medicine__page-btn:disabled {
+  opacity: 0.3;
+  cursor: not-allowed;
+}
+.medicine__page-numbers {
+  display: flex;
+  gap: 5px;
+}
+.medicine__page-num {
+  padding: 8px 12px;
+  background: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+  border: 2px solid rgb(153, 153, 153);
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.medicine__page-num--active {
+  background: rgb(255, 161, 0);
+  color: rgb(255, 255, 255);
+  border-color: rgb(255, 161, 0);
+  font-weight: 900;
+}
+.medicine__page-num:hover:not(.medicine__page-num--active) {
+  background: rgba(255, 161, 0, 0.1);
+  border-color: rgb(255, 161, 0);
 }/*# sourceMappingURL=Medicine.css.map */

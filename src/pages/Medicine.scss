@@ -287,4 +287,67 @@
     font-size: $font-size-medium;
     color: $color-gray;
   }
+
+  &__pagination {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-top: 20px;
+    padding: 20px 0;
+  }
+
+  &__page-btn {
+    padding: 8px 16px;
+    background: $color-white;
+    color: $color-black;
+    border: 2px solid $color-gray;
+    border-radius: $border-radius-sm;
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover:not(:disabled) {
+      background: $color-primary-orange;
+      color: $color-white;
+      border-color: $color-primary-orange;
+    }
+
+    &:disabled {
+      opacity: 0.3;
+      cursor: not-allowed;
+    }
+  }
+
+  &__page-numbers {
+    display: flex;
+    gap: 5px;
+  }
+
+  &__page-num {
+    padding: 8px 12px;
+    background: $color-white;
+    color: $color-black;
+    border: 2px solid $color-gray;
+    border-radius: $border-radius-sm;
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &--active {
+      background: $color-primary-orange;
+      color: $color-white;
+      border-color: $color-primary-orange;
+      font-weight: $font-weight-black;
+    }
+
+    &:hover:not(&--active) {
+      background: rgba($color-primary-orange, 0.1);
+      border-color: $color-primary-orange;
+    }
+  }
 }

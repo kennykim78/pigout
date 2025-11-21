@@ -7,11 +7,32 @@ export class SupabaseService {
   private supabase: SupabaseClient;
 
   constructor(private configService: ConfigService) {
-    const supabaseUrl = this.configService.get<string>('SUPABASE_URL');
-    const supabaseKey = this.configService.get<string>('SUPABASE_ANON_KEY');
+    const supabaseUrl = this.configService.get<string>('SUPABASE_URL') || process.env.SUPABASE_URL;
+    const supabaseKey = this.configService.get<string>('SUPABASE_ANON_KEY') || process.env.SUPABASE_ANON_KEY;
 
     if (!supabaseUrl || !supabaseKey) {
-      throw new Error('Supabase URL and Key must be provided');
+      // 보다 친절한 오류 메시지 + 가짜 클라이언트 생성 (기본 기능은 비활성)
+      console.warn('[Supabase] 환경변수 누락: SUPABASE_URL 또는 SUPABASE_ANON_KEY. Mock 클라이언트 사용');
+      // 간단한 mock 객체 (필요 메서드 최소 구현)
+      // 실제 호출 시 에러를 던져 문제를 빨리 발견하도록 함
+      this.supabase = {
+        from: () => ({
+          select: () => ({ data: null, error: new Error('Supabase 미설정') }),
+          insert: () => ({ data: null, error: new Error('Supabase 미설정') }),
+          update: () => ({ data: null, error: new Error('Supabase 미설정') }),
+          delete: () => ({ error: new Error('Supabase 미설정') }),
+          eq: () => ({ data: null, error: new Error('Supabase 미설정') }),
+          in: () => ({ data: null, error: new Error('Supabase 미설정') }),
+          order: () => ({ data: null, error: new Error('Supabase 미설정') }),
+        }),
+        storage: {
+          from: () => ({
+            upload: () => ({ data: null, error: new Error('Supabase 미설정') }),
+            getPublicUrl: () => ({ data: { publicUrl: '' } }),
+          }),
+        },
+      } as any;
+      return;
     }
 
     this.supabase = createClient(supabaseUrl, supabaseKey);

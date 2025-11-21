@@ -47,11 +47,10 @@ export class MedicineService {
       .from('medicine_records')
       .insert({
         user_id: userId,
-        medicine_id: medicineId,
-        medicine_name: parsed.medicineName,
+        name: parsed.medicineName,
         dosage: dosage || null,
         frequency: frequency || null,
-        qr_data: qrData,
+        qr_code_data: qrData,
         is_active: true,
       })
       .select()
@@ -67,31 +66,47 @@ export class MedicineService {
   }
 
   /**
-   * 약품명으로 검색 (e약은요 API 사용)
+   * 약품명, 효능(질병), 제조사로 검색 (e약은요 API 사용)
    */
-  async searchMedicine(keyword: string, limit: number = 20) {
+  async searchMedicine(keyword: string) {
     try {
       console.log(`[약품 검색] 키워드: ${keyword}`);
       
-      // e약은요 API로 검색
-      const apiResults = await this.externalApiClient.getMedicineInfo(keyword);
+      // limit을 충분히 크게 설정하여 모든 결과를 가져옴 (페이징은 프론트엔드에서 처리)
+      const apiLimit = 100;
       
-      if (!apiResults || apiResults.length === 0) {
+      // 1. 약품명으로 검색
+      const nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
+      
+      // 2. 효능(질병)으로도 검색
+      const efficacyResults = await this.externalApiClient.searchMedicineByEfficacy(keyword, apiLimit);
+      
+      // 3. 제조사로도 검색
+      const manufacturerResults = await this.externalApiClient.searchMedicineByManufacturer(keyword, apiLimit);
+      
+      // 4. 결과 병합 및 중복 제거 (itemSeq 기준)
+      const combinedResults = [...nameResults, ...efficacyResults, ...manufacturerResults];
+      const uniqueResults = Array.from(
+        new Map(combinedResults.map(item => [item.itemSeq, item])).values()
+      );
+      
+      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건, 중복제거 후: ${uniqueResults.length}건`);
+      
+      if (!uniqueResults || uniqueResults.length === 0) {
         console.log(`[약품 검색] API 결과 없음, DB 검색 시도`);
         // API 결과 없으면 로컬 DB 검색
         const { data, error } = await this.supabaseService
           .getClient()
           .from('medicine_list')
           .select('id, name, manufacturer, purpose, side_effects')
-          .ilike('name', `%${keyword}%`)
-          .limit(limit);
+          .ilike('name', `%${keyword}%`);
 
         if (error) throw error;
         return data || [];
       }
 
-      // API 결과를 프론트엔드 형식으로 변환
-      const results = apiResults.slice(0, limit).map((item: any) => ({
+      // API 결과를 프론트엔드 형식으로 변환 (limit 제한 없이 모든 결과 반환)
+      const results = uniqueResults.map((item: any) => ({
         itemSeq: item.itemSeq,
         itemName: item.itemName,
         entpName: item.entpName,
@@ -128,18 +143,20 @@ export class MedicineService {
 
     console.log(`[약 등록] ${itemName} (${entpName})`);
 
-    // 사용자 약 기록 저장
+    // 사용자 약 기록 저장 (현재 DB 스키마에 맞춤)
     const { data, error } = await client
       .from('medicine_records')
       .insert({
         user_id: userId,
-        medicine_id: null, // API 검색 결과는 medicine_list에 없을 수 있음
-        medicine_name: itemName,
-        manufacturer: entpName,
-        item_seq: itemSeq,
-        efficacy: efcyQesitm,
+        name: itemName,
+        drug_class: entpName, // 제조사 정보를 drug_class에 임시 저장
         dosage: dosage || null,
         frequency: frequency || null,
+        qr_code_data: JSON.stringify({
+          itemSeq: itemSeq,
+          efficacy: efcyQesitm,
+          manufacturer: entpName,
+        }),
         is_active: true,
       })
       .select()
@@ -164,7 +181,7 @@ export class MedicineService {
     let query = this.supabaseService
       .getClient()
       .from('medicine_records')
-      .select('*, medicine_list(*)')
+      .select('*')
       .eq('user_id', userId)
       .order('created_at', { ascending: false });
 

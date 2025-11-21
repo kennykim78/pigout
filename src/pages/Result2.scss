@@ -50,4 +50,139 @@
   &__recommendations { @include flex-column; gap: 20px; margin-bottom: 32px; padding: 0 9.5px; align-items: center;}
   &__recommendation-image { width: 100%; height: 100%; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); position: absolute; top: 0; left: 0; z-index: 1; }
   &__disclaimer { font-family: $font-family; font-size: $font-size-small; font-weight: $font-weight-regular; color: $color-black; text-align: center; line-height: 1.4; margin: 0; padding: 0 16px; }
+  
+  // 복용 중인 약 섹션
+  &__medicine-section {
+    max-width: 412px;
+    width: 100%;
+    margin: 30px auto 20px;
+    padding: 0 9.5px;
+  }
+  
+  &__medicine-title {
+    font-family: $font-family;
+    font-size: $font-size-xlarge;
+    font-weight: $font-weight-black;
+    color: $color-white;
+    margin: 0 0 20px 0;
+    text-align: center;
+    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+  }
+  
+  &__medicine-list {
+    display: flex;
+    flex-direction: column;
+    gap: 15px;
+  }
+  
+  &__medicine-card {
+    background: $color-white;
+    border-radius: $border-radius-md;
+    padding: 20px;
+    box-shadow: $shadow-default;
+    border-left: 5px solid;
+    
+    &--danger {
+      border-left-color: #ff4444;
+      background: linear-gradient(to right, rgba(255, 68, 68, 0.1) 0%, $color-white 10%);
+    }
+    
+    &--caution {
+      border-left-color: #ffaa00;
+      background: linear-gradient(to right, rgba(255, 170, 0, 0.1) 0%, $color-white 10%);
+    }
+    
+    &--safe {
+      border-left-color: #4CAF50;
+      background: linear-gradient(to right, rgba(76, 175, 80, 0.1) 0%, $color-white 10%);
+    }
+  }
+  
+  &__medicine-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 12px;
+  }
+  
+  &__medicine-name {
+    font-family: $font-family;
+    font-size: $font-size-large;
+    font-weight: $font-weight-black;
+    color: $color-black;
+    margin: 0;
+  }
+  
+  &__risk-badge {
+    padding: 6px 12px;
+    border-radius: $border-radius-sm;
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-semibold;
+    
+    &--danger {
+      background: #ff4444;
+      color: $color-white;
+    }
+    
+    &--caution {
+      background: #ffaa00;
+      color: $color-white;
+    }
+    
+    &--safe {
+      background: #4CAF50;
+      color: $color-white;
+    }
+  }
+  
+  &__medicine-detail {
+    margin-top: 10px;
+    padding-top: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.1);
+    
+    strong {
+      font-family: $font-family;
+      font-size: $font-size-base;
+      font-weight: $font-weight-semibold;
+      color: $color-black;
+      display: block;
+      margin-bottom: 6px;
+    }
+    
+    p {
+      font-family: $font-family;
+      font-size: $font-size-small;
+      font-weight: $font-weight-regular;
+      color: $color-gray;
+      margin: 0;
+      line-height: 1.5;
+    }
+    
+    ul {
+      margin: 0;
+      padding-left: 20px;
+      
+      li {
+        font-family: $font-family;
+        font-size: $font-size-small;
+        font-weight: $font-weight-regular;
+        color: $color-gray;
+        line-height: 1.6;
+        margin-bottom: 4px;
+      }
+    }
+    
+    &--warning {
+      strong {
+        color: #ff4444;
+      }
+    }
+    
+    &--recommendation {
+      strong {
+        color: #4CAF50;
+      }
+    }
+  }
 }

@@ -183,4 +183,114 @@
   line-height: 1.4;
   margin: 0;
   padding: 0 16px;
+}
+.result2__medicine-section {
+  max-width: 412px;
+  width: 100%;
+  margin: 30px auto 20px;
+  padding: 0 9.5px;
+}
+.result2__medicine-title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  color: rgb(255, 255, 255);
+  margin: 0 0 20px 0;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+.result2__medicine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.result2__medicine-card {
+  background: rgb(255, 255, 255);
+  border-radius: 30px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  border-left: 5px solid;
+}
+.result2__medicine-card--danger {
+  border-left-color: #ff4444;
+  background: linear-gradient(to right, rgba(255, 68, 68, 0.1) 0%, rgb(255, 255, 255) 10%);
+}
+.result2__medicine-card--caution {
+  border-left-color: #ffaa00;
+  background: linear-gradient(to right, rgba(255, 170, 0, 0.1) 0%, rgb(255, 255, 255) 10%);
+}
+.result2__medicine-card--safe {
+  border-left-color: #4CAF50;
+  background: linear-gradient(to right, rgba(76, 175, 80, 0.1) 0%, rgb(255, 255, 255) 10%);
+}
+.result2__medicine-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.result2__medicine-name {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0;
+}
+.result2__risk-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+.result2__risk-badge--danger {
+  background: #ff4444;
+  color: rgb(255, 255, 255);
+}
+.result2__risk-badge--caution {
+  background: #ffaa00;
+  color: rgb(255, 255, 255);
+}
+.result2__risk-badge--safe {
+  background: #4CAF50;
+  color: rgb(255, 255, 255);
+}
+.result2__medicine-detail {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+.result2__medicine-detail strong {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  display: block;
+  margin-bottom: 6px;
+}
+.result2__medicine-detail p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
+  margin: 0;
+  line-height: 1.5;
+}
+.result2__medicine-detail ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.result2__medicine-detail ul li {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+.result2__medicine-detail--warning strong {
+  color: #ff4444;
+}
+.result2__medicine-detail--recommendation strong {
+  color: #4CAF50;
 }/*# sourceMappingURL=Result2.css.map */
