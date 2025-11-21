@@ -1,0 +1,423 @@
+import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
+import { SupabaseService } from '../supabase/supabase.service';
+import { GeminiClient } from './utils/gemini.client';
+import { ScoreCalculator } from './utils/score-calculator';
+import { ExternalApiClient } from './utils/external-api.client';
+import { 
+  buildMedicalAnalysisPrompt, 
+  MedicalAnalysisInput,
+  MedicalAnalysisOutput 
+} from './utils/medical-analysis-prompt';
+import { AnalyzeImageDto } from './dtos/analyze-image.dto';
+import { AnalyzeTextDto } from './dtos/analyze-text.dto';
+
+@Injectable()
+export class AiService {
+  private geminiClient: GeminiClient;
+  private scoreCalculator: ScoreCalculator;
+  private externalApiClient: ExternalApiClient;
+
+  constructor(
+    private configService: ConfigService,
+    private supabaseService: SupabaseService,
+  ) {
+    const geminiApiKey = this.configService.get<string>('GEMINI_API_KEY');
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY is not configured');
+    }
+    this.geminiClient = new GeminiClient(geminiApiKey);
+    this.scoreCalculator = new ScoreCalculator();
+    this.externalApiClient = new ExternalApiClient();
+  }
+
+  /**
+   * 이미지 분석 기능
+   */
+  async analyzeImage(dto: AnalyzeImageDto) {
+    try {
+      // 1. Supabase Storage URL → base64 변환
+      const imageBase64 = await this.geminiClient.urlToBase64(dto.imagePath);
+
+      // 2. Gemini Vision API로 이미지 유효성 검증 및 분류
+      const visionResult = await this.geminiClient.analyzeImageForFood(
+        imageBase64,
+      );
+
+      // 3. 유효하지 않은 이미지 거부
+      if (!visionResult.isValid) {
+        throw new HttpException(
+          visionResult.rejectReason || '촬영하신 이미지가 음식이나, 약품, 건강보조제가 아닙니다.',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      const itemName = visionResult.itemName;
+      const confidence = visionResult.confidence;
+      const category = visionResult.category;
+
+      // 4. 약품/건강보조제인 경우 Medicine 모듈로 처리
+      if (category === 'medicine' || category === 'supplement') {
+        // TODO: Medicine 모듈 연동
+        console.log(`${category} detected: ${itemName}`);
+        // 일단은 분석 계속 진행
+      }
+
+      // 5. 영양 데이터 가져오기 (임시로 null)
+      const nutritionData = null; // TODO: Supabase nutrition DB 연동
+
+      // 6. 점수 계산
+      const score = this.scoreCalculator.calculateScore(
+        itemName,
+        dto.diseases,
+        nutritionData,
+      );
+
+      // 7. Gemini로 장단점 요약 생성
+      const analysis = await this.geminiClient.analyzeFoodSuitability(
+        itemName,
+        dto.diseases,
+        nutritionData,
+      );
+
+      // 8. Supabase DB에 저장
+      const supabase = this.supabaseService.getClient();
+      const { data: record, error } = await supabase
+        .from('food_records')
+        .insert({
+          user_id: dto.userId,
+          food_name: itemName,
+          image_path: dto.imagePath,
+          detected_label: itemName,
+          confidence: confidence,
+          score: score,
+          summary_json: JSON.stringify({
+            ...analysis,
+            category,
+          }),
+          diseases: dto.diseases,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw new HttpException(
+          'DB 저장 실패',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      // 9. 응답 반환
+      return {
+        foodName: itemName,
+        category,
+        confidence,
+        score,
+        pros: analysis.pros,
+        cons: analysis.cons,
+        summary: analysis.summary,
+        recordId: record.id,
+      };
+    } catch (error) {
+      console.error('Image analysis error:', error);
+      throw new HttpException(
+        error.message || '이미지 분석 중 오류가 발생했습니다',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * 텍스트/음성 기반 음식명 분석
+   */
+  async analyzeText(dto: AnalyzeTextDto) {
+    try {
+      // 1. Gemini로 음식명 추출
+      const foodName = await this.geminiClient.extractFoodNameFromText(
+        dto.textInput,
+      );
+
+      if (!foodName) {
+        throw new HttpException(
+          '텍스트에서 음식명을 추출할 수 없습니다',
+          HttpStatus.BAD_REQUEST,
+        );
+      }
+
+      // 2. 의학적 분석 수행 (RAG 기반)
+      const medicalAnalysis = await this.performMedicalAnalysis(
+        foodName,
+        dto.userId,
+        dto.diseases,
+      );
+
+      // 3. 점수는 의학적 분석 결과에서 가져오기
+      const score = medicalAnalysis.final_score;
+
+      // 4. 분석 내용 요약
+      const analysis = this.formatAnalysisSummary(medicalAnalysis);
+
+      // 5. Supabase DB에 저장
+      const supabase = this.supabaseService.getClient();
+      const { data: record, error } = await supabase
+        .from('food_records')
+        .insert({
+          user_id: dto.userId,
+          food_name: foodName,
+          image_path: null,
+          detected_label: foodName,
+          confidence: 1.0,
+          score: score,
+          summary_json: JSON.stringify(medicalAnalysis),
+          diseases: dto.diseases,
+        })
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase insert error:', error);
+        throw new HttpException(
+          'DB 저장 실패',
+          HttpStatus.INTERNAL_SERVER_ERROR,
+        );
+      }
+
+      // 6. 응답 반환
+      return {
+        foodName,
+        confidence: 1.0,
+        score,
+        analysis,
+        medicalAnalysis,
+        recordId: record.id,
+      };
+    } catch (error) {
+      console.error('Text analysis error:', error);
+      throw new HttpException(
+        error.message || '텍스트 분석 중 오류가 발생했습니다',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  /**
+   * RAG 기반 의학적 분석 수행
+   */
+  private async performMedicalAnalysis(
+    foodName: string,
+    userId: string,
+    diseases: string[] = [],
+  ): Promise<MedicalAnalysisOutput> {
+    try {
+      console.log(`\n=== 의학적 분석 시작: ${foodName} ===`);
+      
+      // 1. 사용자의 복용 약물 정보 조회
+      const medicines = await this.getUserMedicines(userId);
+      console.log(`복용 약물: ${medicines.length}개`);
+
+      // 2. 레시피DB에서 영양 정보 조회 (성공한 API)
+      const recipeData = await this.externalApiClient.getRecipeInfo(foodName);
+      let nutritionData = null;
+      
+      if (recipeData && recipeData.length > 0) {
+        nutritionData = this.externalApiClient.extractNutritionFromRecipe(recipeData[0]);
+        console.log(`레시피DB 영양 정보 획득: ${nutritionData?.foodName}`);
+        console.log(`- 칼로리: ${nutritionData?.calories}kcal, 나트륨: ${nutritionData?.sodium}mg`);
+      } else {
+        console.log('레시피DB에서 정보를 찾을 수 없음');
+      }
+
+      // 3. 약물-음식 상호작용 정보 조회 (e약은요 API 활용)
+      const drugInteractions = [];
+      for (const medicine of medicines) {
+        const interaction = await this.externalApiClient.analyzeMedicineFoodInteraction(
+          medicine.medicine_name,
+          foodName,
+        );
+        drugInteractions.push(interaction);
+        console.log(`상호작용 분석: ${medicine.medicine_name} - 위험도 ${interaction.riskLevel}`);
+      }
+
+      // 4. 질병별 가이드라인 조회
+      const diseaseGuidelines = [];
+      for (const disease of diseases) {
+        const guideline = await this.externalApiClient.getDiseaseGuideline(disease);
+        diseaseGuidelines.push(guideline);
+        console.log(`질병 가이드라인: ${disease}`);
+      }
+
+      // 5. RAG 데이터 구성
+      const ragData = {
+        drugInteractions,
+        recipeInfo: recipeData,
+        nutritionFacts: nutritionData ? [nutritionData] : [],
+        diseaseGuidelines,
+      };
+
+      // 6. 의학적 분석 프롬프트 생성
+      const analysisInput: MedicalAnalysisInput = {
+        foodName,
+        foodNutrition: nutritionData,
+        medicines: medicines.map(m => ({
+          name: m.medicine_name,
+          dosage: m.dosage,
+          frequency: m.frequency,
+        })),
+        diseases,
+        ragData,
+      };
+
+      const prompt = buildMedicalAnalysisPrompt(analysisInput);
+
+      // 7. Gemini Pro로 분석 수행
+      console.log('Gemini Pro 분석 요청...');
+      const analysisResult = await this.geminiClient.generateMedicalAnalysis(prompt);
+      console.log(`분석 완료 - 최종 점수: ${analysisResult.final_score}`);
+
+      return analysisResult;
+    } catch (error) {
+      console.error('Medical analysis error:', error);
+      // 분석 실패 시 기본 응답 반환
+      return this.getDefaultMedicalAnalysis(foodName, diseases);
+    }
+  }
+
+  /**
+   * 사용자의 복용 약물 정보 조회
+   */
+  private async getUserMedicines(userId: string): Promise<any[]> {
+    try {
+      const supabase = this.supabaseService.getClient();
+      const { data, error } = await supabase
+        .from('medicine_records')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+
+      if (error) {
+        console.error('Failed to fetch medicines:', error);
+        return [];
+      }
+
+      return data || [];
+    } catch (error) {
+      console.error('Get user medicines error:', error);
+      return [];
+    }
+  }
+
+  /**
+   * 의학적 분석 결과를 사용자 친화적 요약으로 변환
+   */
+  private formatAnalysisSummary(analysis: MedicalAnalysisOutput): string {
+    const parts: string[] = [];
+
+    // 상호작용 평가
+    if (analysis.interaction_assessment.level === 'danger') {
+      parts.push(`⚠️ 주의: ${analysis.interaction_assessment.evidence_summary}`);
+    } else if (analysis.interaction_assessment.level === 'caution') {
+      parts.push(`⚡ 주의사항: ${analysis.interaction_assessment.evidence_summary}`);
+    }
+
+    // 영양학적 위험
+    if (analysis.nutritional_risk.risk_factors.length > 0) {
+      parts.push(`\n영양학적 고려사항:\n${analysis.nutritional_risk.description}`);
+    }
+
+    // 질병별 노트
+    if (analysis.disease_specific_notes.length > 0) {
+      parts.push(`\n질병별 주의사항:`);
+      analysis.disease_specific_notes.forEach(note => {
+        parts.push(`• ${note.disease}: ${note.impact}`);
+      });
+    }
+
+    // 기본 메시지
+    if (parts.length === 0) {
+      if (analysis.final_score >= 85) {
+        parts.push('✅ 건강한 선택입니다!');
+      } else if (analysis.final_score >= 70) {
+        parts.push('👍 나쁘지 않은 선택이에요.');
+      } else {
+        parts.push('🤔 조금 주의가 필요한 음식이에요.');
+      }
+    }
+
+    return parts.join('\n');
+  }
+
+  /**
+   * 기본 의학적 분석 응답 (API 실패 시)
+   */
+  private getDefaultMedicalAnalysis(
+    foodName: string,
+    diseases: string[],
+  ): MedicalAnalysisOutput {
+    return {
+      food_name: foodName,
+      medicine_name: 'N/A',
+      disease_list: diseases,
+      interaction_assessment: {
+        level: 'insufficient_data',
+        evidence_summary: '충분한 데이터가 없어 정확한 분석이 어렵습니다.',
+        detailed_analysis: 'RAG 데이터 수집 실패로 인해 상세 분석을 제공할 수 없습니다.',
+        interaction_mechanism: '데이터 없음',
+        citation: ['분석 실패'],
+      },
+      nutritional_risk: {
+        risk_factors: [],
+        description: '영양 정보를 가져올 수 없습니다.',
+        citation: [],
+      },
+      disease_specific_notes: [],
+      final_score: 65, // 중립 점수
+    };
+  }
+
+  /**
+   * 상세 분석 생성
+   */
+  async getDetailedAnalysis(recordId: string) {
+    try {
+      // 1. food_records 조회
+      const supabase = this.supabaseService.getClient();
+      const { data: record, error } = await supabase
+        .from('food_records')
+        .select('*')
+        .eq('id', recordId)
+        .single();
+
+      if (error || !record) {
+        throw new HttpException('기록을 찾을 수 없습니다', HttpStatus.NOT_FOUND);
+      }
+
+      // 2. 영양 데이터 가져오기 (임시로 null)
+      const nutritionData = null; // TODO: Supabase nutrition DB 연동
+
+      // 3. Gemini 1.5 Pro로 상세 분석 생성
+      const detailedAnalysis =
+        await this.geminiClient.generateDetailedAnalysis(
+          record.food_name,
+          record.diseases || [],
+          nutritionData,
+        );
+
+      // 4. 상세 분석 결과를 DB에 업데이트 (선택사항)
+      await supabase
+        .from('food_records')
+        .update({
+          detailed_analysis_json: JSON.stringify(detailedAnalysis),
+        })
+        .eq('id', recordId);
+
+      return detailedAnalysis;
+    } catch (error) {
+      console.error('Detailed analysis error:', error);
+      throw new HttpException(
+        error.message || '상세 분석 중 오류가 발생했습니다',
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+}

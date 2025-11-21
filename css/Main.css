@@ -1,0 +1,187 @@
+.main {
+  width: 100%;
+  min-height: 100vh;
+  background-color: rgb(255, 223, 62);
+  padding: 70px 36px 20px;
+}
+.main__content {
+  max-width: 412px;
+  margin: 0 auto;
+}
+.main__title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 40px;
+}
+.main__action-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 24px;
+  margin-bottom: 60px;
+}
+.main__camera-circle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.main__camera-outer {
+  width: 319px;
+  height: 319px;
+  background-color: rgb(241, 84, 84);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.main__camera-inner {
+  width: 175px;
+  height: 175px;
+  background-color: rgb(255, 255, 255);
+  border-radius: 50%;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.main__pig-image {
+  position: absolute;
+  top: -83px;
+  width: 160px;
+  height: 160px;
+  background: linear-gradient(135deg, #ff6b9d 0%, #c44569 100%);
+  border-radius: 50%;
+}
+.main__camera-button {
+  width: 101px;
+  height: 101px;
+  background-color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+.main__camera-button:hover {
+  transform: scale(1.05);
+}
+.main__camera-button svg {
+  width: 33px;
+  height: 30px;
+}
+.main__camera-button span {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgb(255, 255, 255);
+}
+.main__divider {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  margin: 20px 0;
+}
+.main__voice-button {
+  width: 101px;
+  height: 101px;
+  background-color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s ease;
+}
+.main__voice-button:hover {
+  transform: scale(1.05);
+}
+.main__voice-button svg {
+  width: 22px;
+  height: 29px;
+}
+.main__voice-button span {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgb(255, 255, 255);
+}
+.main__input {
+  width: 340px;
+  height: 54px;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgb(0, 0, 0);
+  border-radius: 60px;
+  padding: 15px 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgb(153, 153, 153);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  outline: none;
+}
+.main__input::-moz-placeholder {
+  color: rgb(153, 153, 153);
+}
+.main__input::placeholder {
+  color: rgb(153, 153, 153);
+}
+.main__input:focus {
+  color: rgb(0, 0, 0);
+}
+.main__recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.main__recommendation-card {
+  width: 340px;
+  height: 150px;
+  position: relative;
+  border-radius: 20px;
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.main__recommendation-card:hover {
+  transform: translateY(-4px);
+}
+.main__recommendation-card h3 {
+  position: absolute;
+  bottom: 20px;
+  left: 0;
+  right: 0;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgb(255, 255, 255);
+  text-align: center;
+  margin: 0;
+  z-index: 2;
+}
+.main__recommendation-image {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}/*# sourceMappingURL=Main.css.map */

@@ -1,0 +1,245 @@
+.medicine {
+  min-height: 100vh;
+  background: rgb(255, 223, 62);
+  padding: 20px;
+}
+.medicine__header {
+  text-align: center;
+  margin-bottom: 30px;
+}
+.medicine__title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 40px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0 0 10px 0;
+}
+.medicine__subtitle {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  color: rgb(0, 0, 0);
+  opacity: 0.7;
+  margin: 0;
+}
+.medicine__tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.medicine__tab {
+  flex: 1;
+  padding: 15px;
+  background: rgb(255, 255, 255);
+  border: none;
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  color: rgb(153, 153, 153);
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.medicine__tab--active {
+  background: rgb(255, 161, 0);
+  color: rgb(255, 255, 255);
+  font-weight: 900;
+}
+.medicine__tab:hover:not(.medicine__tab--active) {
+  background: rgba(255, 255, 255, 0.8);
+}
+.medicine__list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.medicine__empty {
+  background: rgb(255, 255, 255);
+  border-radius: 30px;
+  padding: 60px 20px;
+  text-align: center;
+}
+.medicine__empty p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  color: rgb(153, 153, 153);
+  margin-bottom: 20px;
+}
+.medicine__add-btn, .medicine__submit-btn, .medicine__search-btn {
+  background: rgb(255, 161, 0);
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 20px;
+  padding: 15px 30px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.medicine__add-btn:hover, .medicine__submit-btn:hover, .medicine__search-btn:hover {
+  background: rgb(204, 128.8, 0);
+}
+.medicine__add-btn:disabled, .medicine__submit-btn:disabled, .medicine__search-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.medicine__card {
+  background: rgb(255, 255, 255);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.medicine__card-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+}
+.medicine__card-title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  margin: 0;
+}
+.medicine__delete-btn {
+  background: none;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 5px;
+  transition: transform 0.2s ease;
+}
+.medicine__delete-btn:hover {
+  transform: scale(1.2);
+}
+.medicine__card-info {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  color: rgb(0, 0, 0);
+  margin: 5px 0;
+}
+.medicine__card-date {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  color: rgb(153, 153, 153);
+  margin: 10px 0 0 0;
+}
+.medicine__add {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.medicine__section {
+  background: rgb(255, 255, 255);
+  border-radius: 30px;
+  padding: 25px;
+}
+.medicine__section-title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0 0 10px 0;
+}
+.medicine__section-desc {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  color: rgb(153, 153, 153);
+  margin: 0 0 20px 0;
+}
+.medicine__scan-btn {
+  width: 100%;
+  background: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 20px;
+  padding: 15px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.medicine__scan-btn:hover {
+  background: rgb(38.25, 38.25, 38.25);
+}
+.medicine__qr-input {
+  margin-top: 20px;
+}
+.medicine__textarea {
+  width: 100%;
+  padding: 15px;
+  border: 2px solid rgb(153, 153, 153);
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  resize: vertical;
+  margin-bottom: 15px;
+}
+.medicine__textarea:focus {
+  outline: none;
+  border-color: rgb(255, 161, 0);
+}
+.medicine__search {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.medicine__search-input {
+  flex: 1;
+  padding: 15px;
+  border: 2px solid rgb(153, 153, 153);
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+}
+.medicine__search-input:focus {
+  outline: none;
+  border-color: rgb(255, 161, 0);
+}
+.medicine__search-results {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.medicine__result-card {
+  border: 1px solid rgb(153, 153, 153);
+  border-radius: 20px;
+  padding: 15px;
+}
+.medicine__result-card h4 {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  margin: 0 0 8px 0;
+}
+.medicine__result-manufacturer, .medicine__result-purpose {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  color: rgb(153, 153, 153);
+  margin: 5px 0;
+}
+.medicine__result-add-btn {
+  margin-top: 10px;
+  background: rgb(255, 223, 62);
+  color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 20px;
+  padding: 8px 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.medicine__result-add-btn:hover {
+  background: rgb(255, 214.5440414508, 11);
+}
+.medicine__loading {
+  text-align: center;
+  padding: 40px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  color: rgb(153, 153, 153);
+}/*# sourceMappingURL=Medicine.css.map */

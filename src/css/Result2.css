@@ -1,0 +1,186 @@
+.result2 {
+  width: 100%;
+  min-height: 100vh;
+  background-color: rgb(255, 223, 62);
+}
+.result2__header {
+  background-color: rgba(0, 0, 0, 0.4);
+  padding: 50px 0;
+  text-align: center;
+  position: relative;
+  z-index: 5;
+  border-radius: 0 0 30px 30px;
+  overflow: hidden;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.result2__header-bg {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+.result2__header-bg--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
+}
+.result2__food-name {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 40px;
+  font-weight: 600;
+  color: rgb(255, 255, 255);
+  line-height: 1.4;
+  margin: 0;
+}
+.result2__sections {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+.result2__section {
+  padding: 100px 20px 40px;
+  border-radius: 0 0 30px 30px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  position: relative;
+  margin-top: -80px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.result2__section--bad {
+  background-color: rgb(241, 84, 84);
+}
+.result2__section--good {
+  background-color: rgb(255, 161, 0);
+  z-index: 3;
+}
+.result2__section-header {
+  max-width: 412px;
+  width: 100%;
+}
+.result2__title-group {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.result2__section-title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  color: rgb(255, 255, 255);
+  line-height: 1.4;
+  margin: 0;
+  flex: 1;
+}
+.result2__emoji {
+  font-size: 65px;
+  line-height: 1.4;
+  display: inline-block;
+}
+.result2__pig-icon {
+  width: 120px;
+  height: 120px;
+  flex-shrink: 0;
+}
+.result2__info-box {
+  background: rgb(255, 255, 255);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  min-height: 160px;
+  width: 100%;
+  max-width: 412px;
+  margin-top: -47px;
+}
+.result2__info-box p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: rgb(0, 0, 0);
+  line-height: 1.5;
+  margin: 0;
+}
+.result2__content {
+  padding: 40px 0 20px;
+  max-width: 412px;
+  margin: 0 auto;
+}
+.result2__tips-section {
+  margin-bottom: 34px;
+}
+.result2__tips-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 10px;
+}
+.result2__tips-title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 70px;
+  font-weight: 900;
+  color: rgb(255, 255, 255);
+  line-height: 1;
+  margin: 0;
+}
+.result2__pig-large {
+  width: 130px;
+  height: 130px;
+  flex: 0 0 130px;
+}
+.result2__tips-box {
+  background: rgb(255, 255, 255);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  min-height: 232px;
+  margin-top: -20px;
+}
+.result2__tips-box p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: rgb(0, 0, 0);
+  line-height: 1.5;
+  margin: 0;
+}
+.result2__source {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgb(0, 0, 0);
+  margin: 0 0 32px 18.5px;
+  line-height: 1.4;
+}
+.result2__recommendations {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+  margin-bottom: 32px;
+  padding: 0 9.5px;
+  align-items: center;
+}
+.result2__recommendation-image {
+  width: 100%;
+  height: 100%;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: 1;
+}
+.result2__disclaimer {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  line-height: 1.4;
+  margin: 0;
+  padding: 0 16px;
+}/*# sourceMappingURL=Result2.css.map */

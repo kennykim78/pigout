@@ -1,0 +1,165 @@
+@import '../styles/variables';
+
+.settings {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-bottom: 2rem;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    padding: 1rem;
+    background: rgba(255, 255, 255, 0.1);
+    backdrop-filter: blur(10px);
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  &__back-button {
+    background: none;
+    border: none;
+    color: white;
+    cursor: pointer;
+    padding: 0.5rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.1);
+    }
+
+    .material-symbols-rounded {
+      font-size: 1.5rem;
+    }
+  }
+
+  &__title {
+    flex: 1;
+    text-align: center;
+    color: white;
+    font-size: 1.25rem;
+    font-weight: 600;
+    margin: 0;
+    padding-right: 2.5rem; // 뒤로가기 버튼과 균형 맞추기
+  }
+
+  &__content {
+    padding: 1.5rem 1rem;
+    max-width: 600px;
+    margin: 0 auto;
+  }
+
+  &__section {
+    background: white;
+    border-radius: 1rem;
+    margin-bottom: 1rem;
+    overflow: hidden;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  }
+
+  &__menu-item {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    background: white;
+    border: none;
+    border-bottom: 1px solid #f0f0f0;
+    cursor: pointer;
+    transition: background 0.2s;
+
+    &:last-child {
+      border-bottom: none;
+    }
+
+    &:hover {
+      background: #f8f9fa;
+    }
+
+    &:active {
+      background: #e9ecef;
+    }
+
+    &--primary {
+      background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+      color: white;
+
+      &:hover {
+        background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+      }
+
+      .settings__menu-icon,
+      .material-symbols-rounded {
+        color: white;
+      }
+    }
+  }
+
+  &__menu-icon {
+    font-size: 1.5rem;
+    color: #667eea;
+  }
+
+  &__menu-text {
+    flex: 1;
+    text-align: left;
+    font-size: 1rem;
+    font-weight: 500;
+  }
+
+  &__info-item {
+    padding: 1rem 1.25rem;
+  }
+
+  &__info-header {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+  }
+
+  &__info-icon {
+    font-size: 1.5rem;
+    color: #667eea;
+  }
+
+  &__info-label {
+    font-size: 0.875rem;
+    color: #666;
+    font-weight: 500;
+  }
+
+  &__disease-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    padding-left: 2.25rem; // 아이콘 너비만큼
+  }
+
+  &__disease-tag {
+    display: inline-block;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    color: white;
+    border-radius: 1.5rem;
+    font-size: 0.875rem;
+    font-weight: 500;
+  }
+
+  &__disease-empty {
+    font-size: 0.875rem;
+    color: #999;
+    padding-left: 2.25rem;
+  }
+
+  &__version-text {
+    display: block;
+    font-size: 0.875rem;
+    color: #999;
+    padding-left: 2.25rem;
+  }
+}

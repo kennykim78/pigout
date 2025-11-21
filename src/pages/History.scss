@@ -1,0 +1,282 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.history {
+  min-height: 100vh;
+  background-color: $color-primary-yellow;
+  padding-bottom: 100px;
+
+  &__header {
+    max-width: 412px;
+    margin: 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 20px;
+    background-color: $color-primary-yellow;
+    position: sticky;
+    top: 0;
+    z-index: 10;
+  }
+
+  &__back-button,
+  &__view-toggle {
+    background-color: $color-black;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    font-size: 20px;
+    color: $color-white;
+
+    &:hover {
+      background-color: lighten($color-black, 10%);
+    }
+
+    &:active {
+      transform: scale(0.9);
+    }
+  }
+
+  &__title {
+    font-family: $font-family;
+    font-size: 24px;
+    font-weight: $font-weight-black;
+    color: $color-black;
+    margin: 0;
+  }
+
+  // Today View
+  &__today-view {
+    max-width: 412px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  &__date-header {
+    text-align: center;
+    margin-bottom: 24px;
+
+    h2 {
+      font-family: $font-family;
+      font-size: 28px;
+      font-weight: $font-weight-black;
+      color: $color-black;
+      margin: 0 0 8px 0;
+    }
+  }
+
+  &__weekday {
+    font-family: $font-family;
+    font-size: 14px;
+    font-weight: $font-weight-medium;
+    color: $color-gray;
+  }
+
+  &__records-list {
+    background-color: $color-white;
+    border: 2px solid $color-black;
+    border-radius: $border-radius-lg;
+    padding: 20px;
+    box-shadow: $shadow-default;
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__record-item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 16px;
+    background-color: $color-primary-yellow;
+    border: 2px solid $color-black;
+    border-radius: $border-radius-sm;
+    cursor: pointer;
+    transition: transform 0.2s ease;
+
+    &:hover {
+      transform: translateX(4px);
+    }
+  }
+
+  &__record-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  &__record-info {
+    flex: 1;
+  }
+
+  &__record-name {
+    font-family: $font-family;
+    font-size: 16px;
+    font-weight: $font-weight-semibold;
+    color: $color-black;
+    margin-bottom: 4px;
+  }
+
+  &__record-time {
+    font-family: $font-family;
+    font-size: 13px;
+    font-weight: $font-weight-regular;
+    color: $color-gray;
+  }
+
+  &__record-score {
+    font-family: $font-family;
+    font-size: 18px;
+    font-weight: $font-weight-black;
+    color: $color-black;
+    flex-shrink: 0;
+  }
+
+  // Calendar View
+  &__calendar-view {
+    max-width: 412px;
+    margin: 0 auto;
+    padding: 0 20px;
+  }
+
+  &__calendar-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 24px;
+  }
+
+  &__month-nav {
+    background-color: $color-black;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    font-size: 24px;
+    color: $color-white;
+    transition: all 0.2s ease;
+
+    &:hover {
+      background-color: lighten($color-black, 10%);
+    }
+
+    &:active {
+      transform: scale(0.9);
+    }
+  }
+
+  &__month-title {
+    font-family: $font-family;
+    font-size: 20px;
+    font-weight: $font-weight-black;
+    color: $color-black;
+    margin: 0;
+  }
+
+  &__calendar {
+    background-color: $color-white;
+    border: 2px solid $color-black;
+    border-radius: $border-radius-lg;
+    padding: 20px;
+    box-shadow: $shadow-default;
+  }
+
+  &__calendar-weekdays {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+    margin-bottom: 12px;
+  }
+
+  &__weekday-label {
+    font-family: $font-family;
+    font-size: 13px;
+    font-weight: $font-weight-semibold;
+    color: $color-gray;
+    text-align: center;
+    padding: 8px 0;
+  }
+
+  &__calendar-days {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 8px;
+  }
+
+  &__calendar-day {
+    aspect-ratio: 1;
+    border: 2px solid transparent;
+    border-radius: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 4px;
+    cursor: default;
+    position: relative;
+
+    &--empty {
+      visibility: hidden;
+    }
+
+    &--has-records {
+      background-color: $color-primary-yellow;
+      border-color: $color-black;
+      cursor: pointer;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+    }
+
+    &--today {
+      background-color: $color-black;
+
+      .history__day-number {
+        color: $color-white;
+      }
+
+      .history__day-count {
+        color: $color-primary-yellow;
+      }
+    }
+  }
+
+  &__day-number {
+    font-family: $font-family;
+    font-size: 16px;
+    font-weight: $font-weight-semibold;
+    color: $color-black;
+  }
+
+  &__day-count {
+    font-family: $font-family;
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+    color: $color-gray;
+    margin-top: 2px;
+  }
+
+  &__empty {
+    text-align: center;
+    padding: 60px 20px;
+
+    p {
+      font-family: $font-family;
+      font-size: 15px;
+      font-weight: $font-weight-regular;
+      color: $color-gray;
+      margin: 0;
+    }
+  }
+}

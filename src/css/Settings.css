@@ -1,0 +1,140 @@
+.settings {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  padding-bottom: 2rem;
+}
+.settings__header {
+  display: flex;
+  align-items: center;
+  padding: 1rem;
+  background: rgba(255, 255, 255, 0.1);
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.settings__back-button {
+  background: none;
+  border: none;
+  color: white;
+  cursor: pointer;
+  padding: 0.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: transform 0.2s;
+}
+.settings__back-button:hover {
+  transform: scale(1.1);
+}
+.settings__back-button .material-symbols-rounded {
+  font-size: 1.5rem;
+}
+.settings__title {
+  flex: 1;
+  text-align: center;
+  color: white;
+  font-size: 1.25rem;
+  font-weight: 600;
+  margin: 0;
+  padding-right: 2.5rem;
+}
+.settings__content {
+  padding: 1.5rem 1rem;
+  max-width: 600px;
+  margin: 0 auto;
+}
+.settings__section {
+  background: white;
+  border-radius: 1rem;
+  margin-bottom: 1rem;
+  overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+.settings__menu-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem 1.25rem;
+  background: white;
+  border: none;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.settings__menu-item:last-child {
+  border-bottom: none;
+}
+.settings__menu-item:hover {
+  background: #f8f9fa;
+}
+.settings__menu-item:active {
+  background: #e9ecef;
+}
+.settings__menu-item--primary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+}
+.settings__menu-item--primary:hover {
+  background: linear-gradient(135deg, #5568d3 0%, #65408b 100%);
+}
+.settings__menu-item--primary .settings__menu-icon,
+.settings__menu-item--primary .material-symbols-rounded {
+  color: white;
+}
+.settings__menu-icon {
+  font-size: 1.5rem;
+  color: #667eea;
+}
+.settings__menu-text {
+  flex: 1;
+  text-align: left;
+  font-size: 1rem;
+  font-weight: 500;
+}
+.settings__info-item {
+  padding: 1rem 1.25rem;
+}
+.settings__info-header {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 0.75rem;
+}
+.settings__info-icon {
+  font-size: 1.5rem;
+  color: #667eea;
+}
+.settings__info-label {
+  font-size: 0.875rem;
+  color: #666;
+  font-weight: 500;
+}
+.settings__disease-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.5rem;
+  padding-left: 2.25rem;
+}
+.settings__disease-tag {
+  display: inline-block;
+  padding: 0.5rem 1rem;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  color: white;
+  border-radius: 1.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+}
+.settings__disease-empty {
+  font-size: 0.875rem;
+  color: #999;
+  padding-left: 2.25rem;
+}
+.settings__version-text {
+  display: block;
+  font-size: 0.875rem;
+  color: #999;
+  padding-left: 2.25rem;
+}/*# sourceMappingURL=Settings.css.map */

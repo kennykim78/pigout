@@ -1,0 +1,53 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: $color-white;
+  box-shadow: 0 -2px 10px rgba(0, 0, 0, 0.1);
+  padding: 8px 0;
+  z-index: 1000;
+  height: 70px;
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    flex: 1;
+    text-decoration: none;
+    color: $color-gray;
+    transition: all 0.2s ease;
+    padding: 8px;
+
+    &:hover {
+      color: $color-black;
+    }
+
+    &--active {
+      color: $color-primary-orange;
+      
+      .bottom-nav__icon {
+        transform: scale(1.1);
+      }
+    }
+  }
+
+  &__icon {
+    font-size: 24px;
+    margin-bottom: 4px;
+    transition: transform 0.2s ease;
+  }
+
+  &__label {
+    font-family: $font-family;
+    font-size: 11px;
+    font-weight: $font-weight-medium;
+  }
+}

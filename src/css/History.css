@@ -1,0 +1,238 @@
+.history {
+  min-height: 100vh;
+  background-color: rgb(255, 223, 62);
+  padding-bottom: 100px;
+}
+.history__header {
+  max-width: 412px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: rgb(255, 223, 62);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.history__back-button, .history__view-toggle {
+  background-color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 20px;
+  color: rgb(255, 255, 255);
+}
+.history__back-button:hover, .history__view-toggle:hover {
+  background-color: rgb(25.5, 25.5, 25.5);
+}
+.history__back-button:active, .history__view-toggle:active {
+  transform: scale(0.9);
+}
+.history__title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0;
+}
+.history__today-view {
+  max-width: 412px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.history__date-header {
+  text-align: center;
+  margin-bottom: 24px;
+}
+.history__date-header h2 {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0 0 8px 0;
+}
+.history__weekday {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(153, 153, 153);
+}
+.history__records-list {
+  background-color: rgb(255, 255, 255);
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 60px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.history__record-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 16px;
+  background-color: rgb(255, 223, 62);
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 20px;
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.history__record-item:hover {
+  transform: translateX(4px);
+}
+.history__record-icon {
+  font-size: 32px;
+  flex-shrink: 0;
+}
+.history__record-info {
+  flex: 1;
+}
+.history__record-name {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  margin-bottom: 4px;
+}
+.history__record-time {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
+}
+.history__record-score {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  flex-shrink: 0;
+}
+.history__calendar-view {
+  max-width: 412px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.history__calendar-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.history__month-nav {
+  background-color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 24px;
+  color: rgb(255, 255, 255);
+  transition: all 0.2s ease;
+}
+.history__month-nav:hover {
+  background-color: rgb(25.5, 25.5, 25.5);
+}
+.history__month-nav:active {
+  transform: scale(0.9);
+}
+.history__month-title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0;
+}
+.history__calendar {
+  background-color: rgb(255, 255, 255);
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 60px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.history__calendar-weekdays {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.history__weekday-label {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 13px;
+  font-weight: 600;
+  color: rgb(153, 153, 153);
+  text-align: center;
+  padding: 8px 0;
+}
+.history__calendar-days {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 8px;
+}
+.history__calendar-day {
+  aspect-ratio: 1;
+  border: 2px solid transparent;
+  border-radius: 12px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 4px;
+  cursor: default;
+  position: relative;
+}
+.history__calendar-day--empty {
+  visibility: hidden;
+}
+.history__calendar-day--has-records {
+  background-color: rgb(255, 223, 62);
+  border-color: rgb(0, 0, 0);
+  cursor: pointer;
+  transition: transform 0.2s ease;
+}
+.history__calendar-day--has-records:hover {
+  transform: scale(1.05);
+}
+.history__calendar-day--today {
+  background-color: rgb(0, 0, 0);
+}
+.history__calendar-day--today .history__day-number {
+  color: rgb(255, 255, 255);
+}
+.history__calendar-day--today .history__day-count {
+  color: rgb(255, 223, 62);
+}
+.history__day-number {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+}
+.history__day-count {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 11px;
+  font-weight: 500;
+  color: rgb(153, 153, 153);
+  margin-top: 2px;
+}
+.history__empty {
+  text-align: center;
+  padding: 60px 20px;
+}
+.history__empty p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 15px;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
+  margin: 0;
+}/*# sourceMappingURL=History.css.map */

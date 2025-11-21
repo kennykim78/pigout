@@ -1,0 +1,170 @@
+.contact {
+  min-height: 100vh;
+  background-color: rgb(255, 223, 62);
+  padding-bottom: 100px;
+}
+.contact__header {
+  max-width: 412px;
+  margin: 0 auto;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px;
+  background-color: rgb(255, 223, 62);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+.contact__back-button {
+  background-color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 50%;
+  width: 40px;
+  height: 40px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  font-size: 20px;
+  color: rgb(255, 255, 255);
+}
+.contact__back-button:hover {
+  background-color: rgb(25.5, 25.5, 25.5);
+}
+.contact__back-button:active {
+  transform: scale(0.9);
+}
+.contact__title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0;
+}
+.contact__content {
+  max-width: 412px;
+  margin: 0 auto;
+  padding: 0 20px;
+}
+.contact__intro {
+  text-align: center;
+  margin-bottom: 32px;
+}
+.contact__intro h2 {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 28px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0 0 8px 0;
+}
+.contact__intro p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
+  margin: 0;
+}
+.contact__form {
+  background-color: rgb(255, 255, 255);
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 60px;
+  padding: 24px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  margin-bottom: 24px;
+}
+.contact__form-group {
+  margin-bottom: 20px;
+}
+.contact__form-group:last-of-type {
+  margin-bottom: 24px;
+}
+.contact__form-group label {
+  display: block;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  margin-bottom: 8px;
+}
+.contact__form-group input,
+.contact__form-group textarea {
+  width: 100%;
+  padding: 12px 16px;
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 12px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 400;
+  color: rgb(0, 0, 0);
+  background-color: rgb(255, 223, 62);
+  outline: none;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+.contact__form-group input:focus,
+.contact__form-group textarea:focus {
+  background-color: rgb(255, 231.4559585492, 113);
+}
+.contact__form-group input::-moz-placeholder, .contact__form-group textarea::-moz-placeholder {
+  color: rgb(153, 153, 153);
+}
+.contact__form-group input::placeholder,
+.contact__form-group textarea::placeholder {
+  color: rgb(153, 153, 153);
+}
+.contact__form-group textarea {
+  resize: vertical;
+  min-height: 120px;
+}
+.contact__submit-button {
+  width: 100%;
+  padding: 14px 24px;
+  background-color: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 30px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.contact__submit-button:hover {
+  background-color: rgb(25.5, 25.5, 25.5);
+}
+.contact__submit-button:active {
+  transform: scale(0.95);
+}
+.contact__info {
+  background-color: rgb(255, 255, 255);
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 60px;
+  padding: 24px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.contact__info h3 {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 18px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  margin: 0 0 16px 0;
+}
+.contact__info-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.contact__info-item:last-child {
+  margin-bottom: 0;
+}
+.contact__info-item span:first-child {
+  font-size: 20px;
+}
+.contact__info-item span:last-child {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(0, 0, 0);
+}/*# sourceMappingURL=Contact.css.map */

@@ -1,0 +1,200 @@
+import axios from 'axios';
+
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
+
+const apiClient = axios.create({
+  baseURL: API_BASE_URL,
+  headers: {
+    'Content-Type': 'application/json',
+  },
+});
+
+// ============================================
+// 음식 분석 API
+// ============================================
+
+// 음식 분석 (이미지 포함)
+export const analyzeFoodWithImage = async (foodName: string, imageFile: File) => {
+  // localStorage에서 선택된 질병 정보 가져오기
+  const savedDiseases = localStorage.getItem('selectedDiseases');
+  const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
+
+  const formData = new FormData();
+  formData.append('foodName', foodName);
+  formData.append('image', imageFile);
+  formData.append('diseases', JSON.stringify(diseases));
+
+  const response = await apiClient.post('/food/analyze', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  console.log('API 응답 (analyzeFoodWithImage):', response.data);
+  return response.data;
+};
+
+// 음식 분석 (텍스트만)
+export const analyzeFoodByText = async (foodName: string) => {
+  // localStorage에서 선택된 질병 정보 가져오기
+  const savedDiseases = localStorage.getItem('selectedDiseases');
+  const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
+
+  const response = await apiClient.post('/food/text-analyze', { 
+    foodName,
+    diseases 
+  });
+  
+  console.log('API 응답 (analyzeFoodByText):', response.data);
+  return response.data;
+};
+
+// 음식 분석 결과 조회
+export const getFoodAnalysis = async (id: string) => {
+  const response = await apiClient.get(`/food/${id}`);
+  return response.data;
+};
+
+// ============================================
+// 약 관리 API
+// ============================================
+
+// QR 코드 스캔
+export const scanMedicineQR = async (qrData: string, dosage?: string, frequency?: string) => {
+  const response = await apiClient.post('/medicine/scan-qr', {
+    qrData,
+    dosage,
+    frequency,
+  });
+  return response.data;
+};
+
+// 약품 검색
+export const searchMedicine = async (keyword: string, limit: number = 20) => {
+  const response = await apiClient.post('/medicine/search', { keyword, limit });
+  return response.data;
+};
+
+// 내 약 목록 조회
+export const getMyMedicines = async (activeOnly: boolean = true) => {
+  const response = await apiClient.get('/medicine/my-list', {
+    params: { active: activeOnly },
+  });
+  return response.data;
+};
+
+// 약-음식 상호작용 분석
+export const analyzeMedicineInteraction = async (medicineIds: string[], foodName: string) => {
+  const response = await apiClient.post('/medicine/analyze-interaction', {
+    medicineIds,
+    foodName,
+  });
+  return response.data;
+};
+
+// 약 기록 수정
+export const updateMedicine = async (id: string, updates: any) => {
+  const response = await apiClient.patch(`/medicine/${id}`, updates);
+  return response.data;
+};
+
+// 약 기록 삭제
+export const deleteMedicine = async (id: string) => {
+  const response = await apiClient.delete(`/medicine/${id}`);
+  return response.data;
+};
+
+// 검색한 약 직접 추가
+export const addMedicine = async (medicineData: {
+  itemName: string;
+  entpName: string;
+  itemSeq?: string;
+  efcyQesitm?: string;
+  dosage?: string;
+  frequency?: string;
+}) => {
+  const response = await apiClient.post('/medicine/add', medicineData);
+  return response.data;
+};
+
+// ============================================
+// 리워드 API
+// ============================================
+
+// 포인트 조회
+export const getRewardPoints = async () => {
+  const response = await apiClient.get('/reward/points');
+  return response.data;
+};
+
+// 교환 가능 상품 목록
+export const getRewardItems = async () => {
+  const response = await apiClient.get('/reward/items');
+  return response.data;
+};
+
+// 리워드 교환
+export const claimReward = async (rewardId: string) => {
+  const response = await apiClient.post('/reward/claim', { rewardId });
+  return response.data;
+};
+
+// 포인트 내역
+export const getRewardHistory = async (type?: string, limit: number = 50, offset: number = 0) => {
+  const response = await apiClient.get('/reward/history', {
+    params: { type, limit, offset },
+  });
+  return response.data;
+};
+
+// ============================================
+// 통계 API
+// ============================================
+
+// 일별 점수 조회
+export const getDailyScore = async (date?: string) => {
+  const response = await apiClient.get('/stats/daily', {
+    params: { date },
+  });
+  return response.data;
+};
+
+// 월별 통계 조회
+export const getMonthlyReport = async (year?: number, month?: number) => {
+  const response = await apiClient.get('/stats/monthly', {
+    params: { year, month },
+  });
+  return response.data;
+};
+
+// 전체 요약 통계
+export const getStatsSummary = async () => {
+  const response = await apiClient.get('/stats/summary');
+  return response.data;
+};
+
+// 일별 점수 재계산
+export const calculateDailyScore = async (date?: string) => {
+  const response = await apiClient.post('/stats/calculate-daily', null, {
+    params: { date },
+  });
+  return response.data;
+};
+
+// ============================================
+// AI 종합 분석 API (신규)
+// ============================================
+
+// 음식+약+영양제 종합 분석
+export const analyzeCombined = async (data: {
+  foodName: string;
+  medicines?: string[];
+  supplements?: string[];
+  diseases: string[];
+  imageUrl?: string;
+}) => {
+  const response = await apiClient.post('/ai/analyze-combined', data);
+  return response.data;
+};
+
+export default apiClient;

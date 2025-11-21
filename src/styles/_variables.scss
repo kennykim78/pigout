@@ -1,0 +1,44 @@
+// Colors
+$color-primary-yellow: rgb(255, 223, 62);
+$color-primary-red: rgb(241, 84, 84);
+$color-primary-orange: rgb(255, 161, 0);
+$color-black: rgb(0, 0, 0);
+$color-white: rgb(255, 255, 255);
+$color-gray: rgb(153, 153, 153);
+$color-black-overlay: rgba(0, 0, 0, 0.4);
+
+// Typography
+$font-family: 'Pretendard', -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+
+// Font Weights
+$font-weight-regular: 400;
+$font-weight-medium: 500;
+$font-weight-semibold: 600;
+$font-weight-black: 900;
+
+// Font Sizes
+$font-size-small: 12px;
+$font-size-base: 16px;
+$font-size-medium: 20px;
+$font-size-large: 24px;
+$font-size-xlarge: 30px;
+$font-size-xxlarge: 40px;
+$font-size-huge: 62px;
+$font-size-massive: 70px;
+$font-size-score: 96px;
+
+// Spacing
+$spacing-xs: 10px;
+$spacing-sm: 15px;
+$spacing-md: 20px;
+$spacing-lg: 30px;
+$spacing-xl: 36px;
+
+// Border Radius
+$border-radius-sm: 20px;
+$border-radius-md: 30px;
+$border-radius-lg: 60px;
+$border-radius-circle: 50%;
+
+// Shadows
+$shadow-default: 0 4px 4px rgba(0, 0, 0, 0.25);

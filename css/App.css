@@ -1,0 +1,35 @@
+.app {
+  min-height: 100vh;
+}
+.app__nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  z-index: 1000;
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+}
+.app__nav-link {
+  color: rgb(255, 255, 255);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.app__nav-link:hover {
+  background-color: rgb(255, 223, 62);
+  color: rgb(0, 0, 0);
+}
+.app__nav-link.active {
+  background-color: rgb(255, 223, 62);
+  color: rgb(0, 0, 0);
+}/*# sourceMappingURL=App.css.map */

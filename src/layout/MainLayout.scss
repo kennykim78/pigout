@@ -1,0 +1,13 @@
+@import '../styles/variables';
+
+.main-layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+
+  &__content {
+    flex: 1;
+    padding-bottom: 70px; // BottomNav 높이만큼 여백
+    overflow-y: auto;
+  }
+}

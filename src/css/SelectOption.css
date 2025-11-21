@@ -1,0 +1,168 @@
+.select-option {
+  width: 100%;
+  min-height: 100vh;
+  background-color: rgb(255, 223, 62);
+  position: relative;
+  overflow: hidden;
+}
+.select-option__background {
+  width: 100%;
+  min-height: 100vh;
+  position: relative;
+}
+.select-option__red-shape {
+  position: absolute;
+  top: 300px;
+  left: -30%;
+  width: 150vw;
+  height: 100px;
+  background-color: rgb(241, 84, 84);
+  transform: rotate(-30deg);
+  transform-origin: center;
+  z-index: 1;
+}
+.select-option__content {
+  position: relative;
+  z-index: 2;
+  padding: 70px 16px 20px;
+  max-width: 412px;
+  margin: 0 auto;
+}
+.select-option__title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  text-align: center;
+  line-height: 1.4;
+  margin-bottom: 20px;
+}
+.select-option__pig-section {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0;
+  margin-bottom: 40px;
+}
+.select-option__pig-image {
+  width: 160px;
+  height: 160px;
+}
+.select-option__error-message {
+  margin-top: 8px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(0, 0, 0);
+  text-align: center;
+}
+.select-option__input-wrapper {
+  margin-top: -30px;
+  width: 340px;
+  position: relative;
+}
+.select-option__input {
+  width: 100%;
+  height: 54px;
+  background-color: rgb(255, 255, 255);
+  border: 1px solid rgb(0, 0, 0);
+  border-radius: 60px;
+  padding: 15px 80px 15px 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgb(0, 0, 0);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  outline: none;
+}
+.select-option__input::-moz-placeholder {
+  color: rgb(153, 153, 153);
+}
+.select-option__input::placeholder {
+  color: rgb(153, 153, 153);
+}
+.select-option__input:focus {
+  color: rgb(0, 0, 0);
+}
+.select-option__add-button-inside {
+  position: absolute;
+  right: 8px;
+  top: 50%;
+  transform: translateY(-50%);
+  height: 38px;
+  padding: 0 20px;
+  background-color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 30px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgb(255, 255, 255);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.select-option__add-button-inside:hover:not(:disabled) {
+  background-color: rgb(25.5, 25.5, 25.5);
+}
+.select-option__add-button-inside:active:not(:disabled) {
+  transform: translateY(-50%) scale(0.95);
+}
+.select-option__add-button-inside:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.select-option__disease-grid {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 15px;
+  justify-content: center;
+  margin-bottom: 40px;
+  padding: 0;
+}
+.select-option__disease-button {
+  background-color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 60px;
+  padding: 15px 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgb(0, 0, 0);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+.select-option__disease-button:hover {
+  transform: translateY(-2px);
+}
+.select-option__disease-button:active {
+  transform: translateY(0);
+}
+.select-option__disease-button.selected {
+  background-color: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
+}
+.select-option__save-button {
+  width: 340px;
+  height: 54px;
+  background-color: rgb(0, 0, 0);
+  border: none;
+  border-radius: 60px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 20px;
+  font-weight: 500;
+  color: rgb(255, 255, 255);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  margin: 0 auto;
+  display: block;
+}
+.select-option__save-button:hover {
+  transform: translateY(-2px);
+}
+.select-option__save-button:active {
+  transform: translateY(0);
+}/*# sourceMappingURL=SelectOption.css.map */

@@ -1,0 +1,58 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.result01 {
+  width: 100%; min-height: 100vh; background-color: $color-primary-yellow;
+
+  &__header { background-color: $color-black; padding: 70px 0 40px; border-radius: 0 0 $border-radius-md $border-radius-md; position: relative; z-index: 1;
+    
+    &::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 400px;
+      background-color: rgba(0, 0, 0, 0.3);
+      z-index: 1;
+      border-radius: 0 0 $border-radius-md $border-radius-md;
+    }
+  }
+  &__food-name { font-family: $font-family; font-size: $font-size-xxlarge; font-weight: $font-weight-semibold; color: $color-white; text-align: center; line-height: 1.4; margin: 0 0 5px 0; position: relative; z-index: 2; }
+  &__question { font-family: $font-family; font-size: $font-size-large; font-weight: $font-weight-semibold; color: $color-white; text-align: center; margin: 0; position: relative; z-index: 2; }
+  &__content { padding: 40px 35px 20px; max-width: 412px; margin: 0 auto; position: relative; z-index: 2; }
+  &__header-bg { 
+    width: 100%; 
+    height: 400px; 
+    position: absolute; 
+    top: 0; 
+    left: 0; 
+    object-fit: cover; 
+    z-index: -1; 
+    border-radius: 0 0 $border-radius-md $border-radius-md;
+    
+    &--placeholder {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #000;
+    }
+  }
+  &__score-section { position: relative; @include flex-center; flex-direction: column; margin-bottom: 75px; }
+  &__score-outer { width: 319px; height: 319px; background-color: $color-primary-yellow; border-radius: 50%; @include flex-center; position: relative; }
+  &__score-inner { width: 259px; height: 259px; background-color: $color-primary-orange; border-radius: 50%; @include flex-center; box-shadow: $shadow-default; }
+  &__score-content { text-align: center; }
+  &__score-label { font-family: $font-family; font-size: $font-size-base; font-weight: $font-weight-medium; color: $color-white; margin: 0 0 8px 0; }
+  &__score-value { font-family: $font-family; font-size: $font-size-score; font-weight: $font-weight-medium; color: $color-white; line-height: 1.2; margin: 0 0 12px 0; }
+  &__score-comment { font-family: $font-family; font-size: $font-size-medium; font-weight: $font-weight-medium; color: $color-white; line-height: 1.2; margin: 0; }
+  &__food-image { width: 160px; height: 160px; position: absolute; top: -120px; left:50%; transform: translateX(-50%); z-index: -1;  }
+  &__info-section { @include flex-column; gap: 40px; margin-bottom: 40px; position: relative; z-index: 3;}
+  &__info-card {
+    @include card-base; min-height: 160px; width: 342px;
+
+    p { font-family: $font-family; font-size: $font-size-medium; font-weight: $font-weight-medium; color: $color-black; line-height: 1.5; margin: 0; }
+  }
+  &__detail-button { @include button-base; width: 342px; height: 54px; background-color: $color-black; color: $color-white; }
+  &__recommendations { @include flex-column; gap: 20px; }
+  
+}

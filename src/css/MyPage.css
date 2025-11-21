@@ -1,0 +1,211 @@
+.mypage {
+  min-height: 100vh;
+  background: linear-gradient(180deg, #FFFBEA 0%, #FFFFFF 40%);
+  padding: 20px;
+  padding-bottom: 100px;
+}
+.mypage__header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+.mypage__header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  color: #333;
+  margin: 0;
+}
+.mypage__header .settings-btn {
+  background: none;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  color: #666;
+  font-size: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.mypage__header .settings-btn:hover {
+  color: #333;
+}
+.mypage__profile-card {
+  background: white;
+  border-radius: 20px;
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: 0 2px 12px rgba(0, 0, 0, 0.08);
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.mypage__profile-card .profile-avatar {
+  width: 64px;
+  height: 64px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #FFDF3E 0%, #FFE666 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  color: #333;
+  font-weight: 700;
+  flex-shrink: 0;
+}
+.mypage__profile-card .profile-info {
+  flex: 1;
+}
+.mypage__profile-card .profile-info h2 {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 4px 0;
+}
+.mypage__profile-card .profile-info .email {
+  font-size: 14px;
+  color: #999;
+  margin: 0;
+}
+.mypage__profile-card .points-badge {
+  background: linear-gradient(135deg, #FFDF3E 0%, #FFE666 100%);
+  padding: 12px 20px;
+  border-radius: 12px;
+  text-align: center;
+  flex-shrink: 0;
+}
+.mypage__profile-card .points-badge .points-label {
+  font-size: 11px;
+  color: #666;
+  margin: 0;
+}
+.mypage__profile-card .points-badge .points-value {
+  font-size: 24px;
+  font-weight: 700;
+  color: #333;
+  margin: 4px 0 0 0;
+}
+.mypage__stats-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.mypage__stats-grid .stat-card {
+  background: white;
+  border-radius: 16px;
+  padding: 16px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.mypage__stats-grid .stat-card .stat-icon {
+  font-size: 28px;
+  color: #FFDF3E;
+  margin-bottom: 8px;
+}
+.mypage__stats-grid .stat-card .stat-value {
+  font-size: 20px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 4px 0;
+}
+.mypage__stats-grid .stat-card .stat-label {
+  font-size: 12px;
+  color: #999;
+  margin: 0;
+}
+.mypage__section {
+  background: white;
+  border-radius: 20px;
+  padding: 20px;
+  margin-bottom: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+}
+.mypage__section-title {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 16px 0;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.mypage__section-title .icon {
+  font-size: 20px;
+  color: #FFDF3E;
+}
+.mypage__diseases {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.mypage__diseases .disease-tag {
+  background: linear-gradient(135deg, rgba(255, 223, 62, 0.2) 0%, rgba(255, 230, 102, 0.2) 100%);
+  border: 1px solid rgba(255, 223, 62, 0.4);
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-size: 14px;
+  color: #666;
+  font-weight: 500;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.mypage__diseases .disease-tag .icon {
+  font-size: 16px;
+}
+.mypage__diseases .empty-state {
+  color: #999;
+  font-size: 14px;
+  text-align: center;
+  padding: 20px;
+  width: 100%;
+}
+.mypage__menu-list {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.mypage__menu-list .menu-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px;
+  background: none;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.2s;
+  text-align: left;
+  width: 100%;
+}
+.mypage__menu-list .menu-item:hover {
+  background: #f8f8f8;
+}
+.mypage__menu-list .menu-item .menu-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.mypage__menu-list .menu-item .menu-content .menu-icon {
+  font-size: 24px;
+  color: #666;
+}
+.mypage__menu-list .menu-item .menu-content .menu-text {
+  font-size: 15px;
+  color: #333;
+  font-weight: 500;
+}
+.mypage__menu-list .menu-item .menu-arrow {
+  font-size: 20px;
+  color: #ccc;
+}
+.mypage__loading, .mypage__error {
+  text-align: center;
+  padding: 40px 20px;
+  font-size: 16px;
+  color: #999;
+}
+.mypage__error {
+  color: #f44336;
+}/*# sourceMappingURL=MyPage.css.map */
