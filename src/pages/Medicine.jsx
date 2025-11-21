@@ -221,29 +221,37 @@ const Medicine = () => {
               </button>
             </div>
 
-            {searchResults.length > 0 && (
-              <div className="medicine__search-results">
-                <p className="medicine__results-count">검색 결과: {searchResults.length}건</p>
-                {searchResults.map((result, index) => (
-                  <div key={result.itemSeq || index} className="medicine__result-card">
-                    <h4>{result.itemName}</h4>
-                    <p className="medicine__result-manufacturer">제조사: {result.entpName}</p>
-                    {result.efcyQesitm && (
-                      <p className="medicine__result-purpose">
-                        효능: {result.efcyQesitm.substring(0, 100)}{result.efcyQesitm.length > 100 ? '...' : ''}
-                      </p>
-                    )}
-                    <button
-                      className="medicine__result-add-btn"
-                      onClick={() => handleAddMedicine(result)}
-                      disabled={isLoading}
-                    >
-                      {isLoading ? '추가 중...' : '추가'}
-                    </button>
-                  </div>
-                ))}
-              </div>
-            )}
+            <div className="medicine__search-results">
+              {searchResults.length > 0 ? (
+                <>
+                  <p className="medicine__results-count">검색 결과: {searchResults.length}건</p>
+                  {searchResults.map((result, index) => (
+                    <div key={result.itemSeq || index} className="medicine__result-card">
+                      <h4>{result.itemName}</h4>
+                      <p className="medicine__result-manufacturer">제조사: {result.entpName}</p>
+                      {result.efcyQesitm && (
+                        <p className="medicine__result-purpose">
+                          효능: {result.efcyQesitm.substring(0, 100)}{result.efcyQesitm.length > 100 ? '...' : ''}
+                        </p>
+                      )}
+                      <button
+                        className="medicine__result-add-btn"
+                        onClick={() => handleAddMedicine(result)}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? '추가 중...' : '추가'}
+                      </button>
+                    </div>
+                  ))}
+                </>
+              ) : (
+                searchKeyword && !isLoading && (
+                  <p className="medicine__no-results">
+                    검색 결과가 없습니다. 공공데이터 키 미설정 또는 잘못된 약품명일 수 있습니다.
+                  </p>
+                )
+              )}
+            </div>
           </section>
         </div>
       )}

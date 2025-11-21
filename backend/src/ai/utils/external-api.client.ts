@@ -11,7 +11,7 @@ import axios from 'axios';
 @Injectable()
 export class ExternalApiClient {
   // 환경변수에서 키/베이스 URL 로드 (없으면 빈 문자열)
-  private readonly SERVICE_KEY = process.env.MFDS_API_KEY || '';
+  private readonly SERVICE_KEY = process.env.MFDS_API_KEY || process.env.OPENDATA_MEDICINE_IDENTIFICATION_KEY || '';
   private readonly RECIPE_KEY = process.env.RECIPE_DB_API_KEY || '';
 
   // 베이스 URL 은 필요 시 환경변수로 override 가능
@@ -25,8 +25,8 @@ export class ExternalApiClient {
   async getMedicineInfo(medicineName: string): Promise<any> {
     try {
       if (!this.SERVICE_KEY) {
-        console.warn('[e약은요] MFDS_API_KEY 미설정 - 빈 결과 반환');
-        return [];
+        console.warn('[e약은요] MFDS_API_KEY 미설정 - Mock 데이터 사용');
+        return this.generateMockMedicines(medicineName);
       }
       const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
       
@@ -188,6 +188,51 @@ export class ExternalApiClient {
       }
       return [];
     }
+  }
+
+  /**
+   * 키 미설정 시 사용하는 간단 Mock 약품 데이터
+   */
+  private generateMockMedicines(keyword: string) {
+    const base = [
+      {
+        itemSeq: '0001',
+        itemName: '타이레놀 500mg',
+        entpName: '존슨앤드존슨',
+        efcyQesitm: '두통, 발열, 근육통 완화',
+        useMethodQesitm: '성인 1회 1정, 1일 최대 3회',
+        atpnWarnQesitm: '과다 복용 시 간 손상 위험',
+        atpnQesitm: '공복 복용 가능하나 식후 권장',
+        intrcQesitm: '다른 해열진통제와 병용 주의',
+        seQesitm: '드물게 피부 발진, 간기능 이상',
+        depositMethodQesitm: '실온 보관',
+      },
+      {
+        itemSeq: '0002',
+         itemName: '아스피린 100mg',
+        entpName: '바이엘',
+        efcyQesitm: '혈전 예방, 심혈관 질환 위험 감소',
+        useMethodQesitm: '성인 1일 1회 1정',
+        atpnWarnQesitm: '위궤양 환자 복용 주의',
+        atpnQesitm: '공복 복용 시 위장 장애 가능, 식후 복용 권장',
+        intrcQesitm: '항응고제와 병용 시 출혈 위험 증가',
+        seQesitm: '속쓰림, 위장 출혈 가능성',
+        depositMethodQesitm: '건냉한 곳 보관',
+      },
+      {
+        itemSeq: '0003',
+        itemName: '판콜A',
+        entpName: '동아제약',
+        efcyQesitm: '감기 증상(콧물, 재채기, 두통) 완화',
+        useMethodQesitm: '성인 1회 1포, 1일 3회 식후',
+        atpnWarnQesitm: '수면제와 병용 주의',
+        atpnQesitm: '졸음 유발 가능 운전 주의',
+        intrcQesitm: '다른 감기약과 병용 시 성분 중복 가능',
+        seQesitm: '졸림, 어지러움',
+        depositMethodQesitm: '습기 피하고 실온 보관',
+      },
+    ];
+    return base.filter(m => m.itemName.includes(keyword) || keyword === '*');
   }
 
   /**
