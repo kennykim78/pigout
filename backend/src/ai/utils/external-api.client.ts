@@ -10,15 +10,13 @@ import axios from 'axios';
 
 @Injectable()
 export class ExternalApiClient {
-  // 통합 공공데이터 서비스 키
-  private readonly SERVICE_KEY = 'cabe7a5f0fe9d0d13d6f2f61fa27635d52d2a38f85a8d6ab7d56a08c0666963c';
-  private readonly RECIPE_KEY = 'e2bed7f054fe4a38863f';
+  // 환경변수에서 키/베이스 URL 로드 (없으면 빈 문자열)
+  private readonly SERVICE_KEY = process.env.MFDS_API_KEY || '';
+  private readonly RECIPE_KEY = process.env.RECIPE_DB_API_KEY || '';
 
-  // 식약처 의약품 개방 API (성공)
-  private readonly MFDS_BASE_URL = 'https://apis.data.go.kr/1471000';
-
-  // 식품의약품안전처 레시피 DB (성공)
-  private readonly RECIPE_BASE_URL = 'http://openapi.foodsafetykorea.go.kr/api';
+  // 베이스 URL 은 필요 시 환경변수로 override 가능
+  private readonly MFDS_BASE_URL = process.env.MFDS_BASE_URL || 'https://apis.data.go.kr/1471000';
+  private readonly RECIPE_BASE_URL = process.env.RECIPE_DB_BASE_URL || 'http://openapi.foodsafetykorea.go.kr/api';
 
   /**
    * 식약처 의약품 개요정보 조회 (e약은요) - 성공한 API
@@ -26,6 +24,10 @@ export class ExternalApiClient {
    */
   async getMedicineInfo(medicineName: string): Promise<any> {
     try {
+      if (!this.SERVICE_KEY) {
+        console.warn('[e약은요] MFDS_API_KEY 미설정 - 빈 결과 반환');
+        return [];
+      }
       const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
       
       console.log(`[e약은요] 의약품 조회: ${medicineName}`);
@@ -142,6 +144,10 @@ export class ExternalApiClient {
    */
   async getRecipeInfo(foodName: string): Promise<any> {
     try {
+      if (!this.RECIPE_KEY) {
+        console.warn('[레시피DB] RECIPE_DB_API_KEY 미설정 - 빈 결과 반환');
+        return [];
+      }
       const url = `${this.RECIPE_BASE_URL}/${this.RECIPE_KEY}/COOKRCP01/json/1/10`;
       
       console.log(`[레시피DB] 조회: ${foodName}`);
