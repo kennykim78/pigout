@@ -256,21 +256,71 @@ export class FoodService {
       
       // 2단계: e약은요 API로 각 약물의 상세 정보 조회
       const drugDetailsPromises = (medicines || []).map(async (medicine: any) => {
-        const info = await this.externalApiClient.getMedicineInfo(medicine.name);
+        const [info, pillInfo, approvalInfo] = await Promise.all([
+          this.externalApiClient.getMedicineInfo(medicine.name, 5),
+          this.externalApiClient.getPillIdentificationInfo({ itemName: medicine.name, numOfRows: 3 }),
+          this.externalApiClient.getDrugApprovalInfo({ itemName: medicine.name, numOfRows: 3 }),
+        ]);
+
+        const publicData = Array.isArray(info) && info.length > 0 ? info[0] : null;
+        const pillData = Array.isArray(pillInfo) && pillInfo.length > 0 ? pillInfo[0] : null;
+        const approvalData = Array.isArray(approvalInfo) && approvalInfo.length > 0 ? approvalInfo[0] : null;
+
         return {
           name: medicine.name,
-          publicData: info && info.length > 0 ? info[0] : null
+          userMedicineId: medicine.id,
+          publicData,
+          pillIdentification: pillData,
+          productApproval: approvalData,
         };
       });
       
       const drugDetails = await Promise.all(drugDetailsPromises);
-      console.log(`\n[2단계] e약은요 API 조회 완료`);
+      console.log(`\n[2단계] 공공데이터 조회 완료 (e약은요 + 낱알식별 + 허가정보)`);
+
+      // 추가 식약처/심평원 데이터 로드 (식품영양, 건강기능식품, 질병 정보)
+      console.log(`\n[보강 데이터] 식품영양성분 / 건강기능식품 / 질병정보 조회 중...`);
+      const diseaseInfoPromises = (diseases || []).map((disease) =>
+        this.externalApiClient.getDiseaseNameCodeList({ keyword: disease, numOfRows: 5 })
+      );
+
+      const [nutritionRows, healthFoodRows, diseaseInfoRows] = await Promise.all([
+        this.externalApiClient.getFoodNutritionPublicData({ foodName, numOfRows: 5 }),
+        this.externalApiClient.getHealthFunctionalFoodList({ productName: foodName, numOfRows: 5 }),
+        Promise.all(diseaseInfoPromises),
+      ]);
+
+      const diseaseInfoDataset = (diseases || []).map((name, index) => ({
+        disease: name,
+        items: diseaseInfoRows[index] || [],
+      }));
+
+      const supplementalPublicData = {
+        nutrition: {
+          source: '식품의약품안전처 식품영양성분DB',
+          items: nutritionRows || [],
+        },
+        healthFunctionalFoods: {
+          source: '식품의약품안전처 건강기능식품정보',
+          items: healthFoodRows || [],
+        },
+        diseaseInfo: {
+          source: '건강보험심사평가원 질병정보서비스',
+          items: diseaseInfoDataset,
+        },
+      };
+
+      console.log('[보강 데이터] 결과:', {
+        nutritionCount: supplementalPublicData.nutrition.items?.length || 0,
+        healthFunctionalCount: supplementalPublicData.healthFunctionalFoods.items?.length || 0,
+        diseaseHitCount: diseaseInfoDataset.filter(entry => entry.items && entry.items.length > 0).length,
+      });
       
       // 3단계: Gemini AI로 음식 성분 분석
       const geminiClient = await this.getGeminiClient();
       
       console.log(`\n[3단계] AI가 음식 성분 분석 중...`);
-      const foodAnalysis = await geminiClient.analyzeFoodComponents(foodName, diseases);
+      const foodAnalysis = await geminiClient.analyzeFoodComponents(foodName, diseases, supplementalPublicData);
       console.log('AI 분석 완료:', {
         주요성분: foodAnalysis.components?.slice(0, 3),
         위험요소: Object.keys(foodAnalysis.riskFactors || {}).filter(k => foodAnalysis.riskFactors[k])
@@ -314,6 +364,25 @@ export class FoodService {
       const analysis = finalAnalysis.briefSummary || `${foodName}에 대한 분석 결과입니다.`;
       
       // 7단계: 상세 분석 데이터 구성
+      const dataSourceSet = new Set<string>([
+        'AI 종합 분석',
+        '식품의약품안전처 e약은요 API',
+        '식품의약품안전처 의약품 낱알식별 정보',
+        '식품의약품안전처 의약품 제품 허가정보',
+        'Gemini AI 분석',
+        '식품안전나라 조리식품 레시피DB',
+      ]);
+
+      if ((supplementalPublicData.nutrition.items || []).length) {
+        dataSourceSet.add('식품의약품안전처 식품영양성분DB');
+      }
+      if ((supplementalPublicData.healthFunctionalFoods.items || []).length) {
+        dataSourceSet.add('식품의약품안전처 건강기능식품정보');
+      }
+      if (diseaseInfoDataset.some(entry => entry.items && entry.items.length > 0)) {
+        dataSourceSet.add('건강보험심사평가원 질병정보서비스');
+      }
+
       const detailedAnalysis: any = {
         pros: finalAnalysis.goodPoints || [],
         cons: finalAnalysis.badPoints || [],
@@ -325,7 +394,8 @@ export class FoodService {
         foodComponents: foodAnalysis.components || [],
         riskFactors: foodAnalysis.riskFactors || {},
         riskFactorNotes: foodAnalysis.riskFactorNotes || {},
-        dataSources: ['AI 종합 분석', '식품의약품안전처 e약은요 API', 'Gemini AI 분석', '식품안전나라 조리식품 레시피DB']
+        publicDatasets: supplementalPublicData,
+        dataSources: Array.from(dataSourceSet)
       };
       
       console.log('\n[7단계] 최종 결과 정리 완료');

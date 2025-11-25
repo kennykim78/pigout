@@ -3,6 +3,7 @@ import { MedicineService } from './medicine.service';
 import { ScanQrDto } from './dtos/scan-qr.dto';
 import { SearchMedicineDto } from './dtos/search-medicine.dto';
 import { AnalyzeInteractionDto } from './dtos/analyze-interaction.dto';
+import { AnalyzeAllMedicinesDto } from './dtos/analyze-all-medicines.dto';
 
 @Controller('medicine')
 export class MedicineController {
@@ -71,6 +72,16 @@ export class MedicineController {
       analyzeDto.medicineIds,
       analyzeDto.foodName,
     );
+  }
+
+  /**
+   * POST /api/medicine/analyze-all
+   * 복용 중인 모든 약물 상관관계 종합 분석
+   */
+  @Post('analyze-all')
+  async analyzeAllMedicines(@Req() req: any, @Body() analyzeDto: AnalyzeAllMedicinesDto) {
+    const userId = req.user?.id || '00000000-0000-0000-0000-000000000000';
+    return this.medicineService.analyzeAllMedicineInteractions(userId);
   }
 
   /**

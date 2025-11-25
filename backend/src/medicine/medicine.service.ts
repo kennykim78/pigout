@@ -270,4 +270,80 @@ export class MedicineService {
 
     return { success: true };
   }
+
+  /**
+   * 복용 중인 모든 약물의 상관관계 종합 분석
+   */
+  async analyzeAllMedicineInteractions(userId: string) {
+    const client = this.supabaseService.getClient();
+
+    // 1단계: 복용 중인 모든 약물 조회
+    const { data: medicines } = await client
+      .from('medicine_records')
+      .select('*')
+      .eq('user_id', userId)
+      .eq('is_active', true);
+
+    if (!medicines || medicines.length === 0) {
+      throw new NotFoundException('복용 중인 약이 없습니다.');
+    }
+
+    console.log(`\n[약물 상관관계 분석] 복용 중인 약물: ${medicines.length}개`);
+
+    // 2단계: 각 약물의 공공데이터 조회
+    const drugDetailsPromises = medicines.map(async (medicine: any) => {
+      const [info, pillInfo, approvalInfo] = await Promise.all([
+        this.externalApiClient.getMedicineInfo(medicine.name, 5),
+        this.externalApiClient.getPillIdentificationInfo({ itemName: medicine.name, numOfRows: 3 }),
+        this.externalApiClient.getDrugApprovalInfo({ itemName: medicine.name, numOfRows: 3 }),
+      ]);
+
+      const publicData = Array.isArray(info) && info.length > 0 ? info[0] : null;
+      const pillData = Array.isArray(pillInfo) && pillInfo.length > 0 ? pillInfo[0] : null;
+      const approvalData = Array.isArray(approvalInfo) && approvalInfo.length > 0 ? approvalInfo[0] : null;
+
+      return {
+        name: medicine.name,
+        userMedicineId: medicine.id,
+        dosage: medicine.dosage,
+        frequency: medicine.frequency,
+        publicData,
+        pillIdentification: pillData,
+        productApproval: approvalData,
+      };
+    });
+
+    const drugDetails = await Promise.all(drugDetailsPromises);
+    console.log(`[약물 상관관계 분석] 공공데이터 조회 완료`);
+
+    // 3단계: AI로 약물 상호작용 분석
+    const { GeminiClient } = await import('../ai/utils/gemini.client');
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    if (!geminiApiKey) {
+      throw new Error('GEMINI_API_KEY가 설정되지 않았습니다.');
+    }
+
+    const geminiClient = new GeminiClient(geminiApiKey);
+
+    console.log(`[약물 상관관계 분석] AI 분석 시작...`);
+    const analysisResult = await geminiClient.analyzeAllDrugInteractions(drugDetails);
+
+    console.log(`[약물 상관관계 분석] 완료`);
+    console.log(`  - 위험한 조합: ${analysisResult.dangerousCombinations?.length || 0}개`);
+    console.log(`  - 주의 필요: ${analysisResult.cautionCombinations?.length || 0}개`);
+    console.log(`  - 긍정적 효과: ${analysisResult.synergisticEffects?.length || 0}개`);
+
+    return {
+      success: true,
+      totalMedicines: medicines.length,
+      medicines: medicines.map(m => ({ id: m.id, name: m.name, dosage: m.dosage, frequency: m.frequency })),
+      analysis: analysisResult,
+      dataSources: [
+        '식품의약품안전처 e약은요 API',
+        '식품의약품안전처 의약품 낱알식별 정보',
+        '식품의약품안전처 의약품 제품 허가정보',
+        'Gemini AI 분석',
+      ],
+    };
+  }
 }

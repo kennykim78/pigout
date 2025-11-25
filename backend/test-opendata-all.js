@@ -22,7 +22,7 @@ async function run(name, fn) {
 }
 
 async function testFoodNutrition() {
-  const url = 'https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq';
+  const url = 'https://apis.data.go.kr/1471000/FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02';
   const params = {
     serviceKey: SERVICE_KEY,
     pageNo: 1,
@@ -47,18 +47,20 @@ async function testFoodNutrition() {
 }
 
 async function testDiseaseInfo() {
-  const url = 'https://apis.data.go.kr/B551182/diseaseInfoService1/getDiseaseInfo';
+  const url = 'https://apis.data.go.kr/B551182/diseaseInfoService1/getDissNameCodeList1';
   const params = {
     serviceKey: SERVICE_KEY,
     pageNo: 1,
     numOfRows: 3,
-    sickNm: '감기',
+    sickNm: '고혈압',
+    medTpCd: 'O',
+    _type: 'json'
   };
   console.log('URL:', url);
   console.log('params:', params);
-  const res = await axios.get(url, { params, timeout: 10000, responseType: 'text' });
+  const res = await axios.get(url, { params, timeout: 10000 });
   console.log('status:', res.status);
-  console.log('body (xml length):', typeof res.data === 'string' ? res.data.length : 'not string');
+  console.dir(res.data, { depth: 4 });
 }
 
 async function testEasyDrugInfo() {
@@ -78,7 +80,7 @@ async function testEasyDrugInfo() {
 }
 
 async function testHtfsInfo() {
-  const url = 'https://apis.data.go.kr/1471000/HtfsInfoService03/getIndivFuncFoodList';
+  const url = 'https://apis.data.go.kr/1471000/HtfsInfoService03/getHtfsList01';
   const params = {
     serviceKey: SERVICE_KEY,
     pageNo: 1,
@@ -94,7 +96,7 @@ async function testHtfsInfo() {
 }
 
 async function testPillId() {
-  const url = 'https://apis.data.go.kr/1471000/MdcinGrnIdntfcInfoService03/getMdcinGrnIdntfcInfoList';
+  const url = 'https://apis.data.go.kr/1471000/MdcinGrnIdntfcInfoService03/getMdcinGrnIdntfcInfoList03';
   const params = {
     serviceKey: SERVICE_KEY,
     pageNo: 1,
@@ -110,7 +112,7 @@ async function testPillId() {
 }
 
 async function testDrugPermit() {
-  const url = 'https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq';
+  const url = 'https://apis.data.go.kr/1471000/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07';
   const params = {
     serviceKey: SERVICE_KEY,
     pageNo: 1,

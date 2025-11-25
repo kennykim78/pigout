@@ -1,6 +1,56 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 
+type PillIdentificationParams = {
+  itemName?: string;
+  itemSeq?: string;
+  entpName?: string;
+  color1?: string;
+  color2?: string;
+  shape?: string;
+  drugShape?: string;
+  printFront?: string;
+  printBack?: string;
+  pageNo?: number;
+  numOfRows?: number;
+};
+
+type DrugApprovalParams = {
+  itemName?: string;
+  itemSeq?: string;
+  entpName?: string;
+  permitNo?: string;
+  pageNo?: number;
+  numOfRows?: number;
+};
+
+type FoodNutritionParams = {
+  foodName?: string;
+  dbClass?: string;
+  researchYmd?: string;
+  updateDate?: string;
+  foodCategory1?: string;
+  foodCategory2?: string;
+  pageNo?: number;
+  numOfRows?: number;
+};
+
+type HealthFunctionalFoodParams = {
+  productName?: string;
+  rawMaterialName?: string;
+  companyName?: string;
+  pageNo?: number;
+  numOfRows?: number;
+};
+
+type DiseaseNameCodeParams = {
+  keyword?: string;
+  diseaseName?: string;
+  medTpCd?: string;
+  pageNo?: number;
+  numOfRows?: number;
+};
+
 /**
  * 외부 의약품/영양 데이터 API 클라이언트
  * - 약학정보원 (KPIS)
@@ -13,10 +63,109 @@ export class ExternalApiClient {
   // 환경변수에서 키/베이스 URL 로드 (없으면 빈 문자열)
   private readonly SERVICE_KEY = process.env.MFDS_API_KEY || process.env.OPENDATA_MEDICINE_IDENTIFICATION_KEY || '';
   private readonly RECIPE_KEY = process.env.RECIPE_DB_API_KEY || '';
+  private readonly HIRA_SERVICE_KEY = process.env.HIRA_API_KEY || process.env.HIRA_SERVICE_KEY || process.env.MFDS_API_KEY || '';
 
   // 베이스 URL 은 필요 시 환경변수로 override 가능
   private readonly MFDS_BASE_URL = process.env.MFDS_BASE_URL || 'https://apis.data.go.kr/1471000';
   private readonly RECIPE_BASE_URL = process.env.RECIPE_DB_BASE_URL || 'http://openapi.foodsafetykorea.go.kr/api';
+  private readonly HIRA_BASE_URL = process.env.HIRA_BASE_URL || 'https://apis.data.go.kr/B551182';
+
+  private buildMfdsParams(params: Record<string, any>) {
+    const merged = {
+      serviceKey: this.SERVICE_KEY,
+      _type: 'json',
+      type: 'json',
+      pageNo: 1,
+      numOfRows: 10,
+      ...params,
+    };
+    return Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== undefined && value !== null && value !== ''));
+  }
+
+  private async callMfdsApi(endpoint: string, params: Record<string, any>) {
+    if (!this.SERVICE_KEY) {
+      console.warn(`[MFDS] SERVICE_KEY 미설정 - ${endpoint} 호출 불가`);
+      return [];
+    }
+
+    const url = `${this.MFDS_BASE_URL}/${endpoint}`;
+    try {
+      const response = await axios.get(url, {
+        params: this.buildMfdsParams(params),
+        timeout: 15000,
+        headers: { Accept: 'application/json' },
+      });
+
+      const header = response.data?.header;
+      if (header?.resultCode !== '00') {
+        console.warn(`[MFDS] ${endpoint} resultCode=${header?.resultCode} message=${header?.resultMsg}`);
+        return [];
+      }
+
+      const items = response.data?.body?.items;
+      if (!items) return [];
+      if (Array.isArray(items)) return items;
+      if (Array.isArray(items.item)) return items.item;
+      if (items.item) return [items.item];
+      return Array.isArray(items?.items) ? items.items : [];
+    } catch (error) {
+      console.error(`[MFDS] ${endpoint} 호출 실패:`, error.message);
+      if (error.response) {
+        console.error('응답 상태:', error.response.status);
+        console.error('응답 데이터:', error.response.data);
+      }
+      return [];
+    }
+  }
+
+  private buildHiraParams(params: Record<string, any>) {
+    const merged = {
+      serviceKey: this.HIRA_SERVICE_KEY || this.SERVICE_KEY,
+      _type: 'json',
+      pageNo: 1,
+      numOfRows: 10,
+      ...params,
+    };
+    return Object.fromEntries(Object.entries(merged).filter(([, value]) => value !== undefined && value !== null && value !== ''));
+  }
+
+  private async callHiraApi(endpoint: string, params: Record<string, any>) {
+    const apiKey = this.HIRA_SERVICE_KEY || this.SERVICE_KEY;
+    if (!apiKey) {
+      console.warn(`[HIRA] SERVICE_KEY 미설정 - ${endpoint} 호출 불가`);
+      return [];
+    }
+
+    const url = `${this.HIRA_BASE_URL}/${endpoint}`;
+    try {
+      const response = await axios.get(url, {
+        params: this.buildHiraParams(params),
+        timeout: 15000,
+        headers: { Accept: 'application/json' },
+      });
+
+      const header = response.data?.response?.header;
+      if (header?.resultCode !== '00') {
+        console.warn(`[HIRA] ${endpoint} resultCode=${header?.resultCode} message=${header?.resultMsg}`);
+        return [];
+      }
+
+      const body = response.data?.response?.body;
+      const items = body?.items;
+      if (!items) return [];
+      if (Array.isArray(items)) return items;
+      if (Array.isArray(items.item)) return items.item;
+      if (items.item) return [items.item];
+      return [];
+    } catch (error) {
+      console.error(`[HIRA] ${endpoint} 호출 실패:`, error.message);
+      if (error.response) {
+        console.error('응답 상태:', error.response.status);
+        console.error('응답 데이터:', error.response.data);
+      }
+      return [];
+    }
+  }
 
   /**
    * 식약처 의약품 개요정보 조회 (e약은요) - 성공한 API
@@ -525,5 +674,78 @@ export class ExternalApiClient {
       carbohydrates: 0,
       citation: ['Mock Data - 해당 음식 정보 없음'],
     };
+  }
+
+  /**
+   * 의약품 낱알식별 정보 조회
+   */
+  async getPillIdentificationInfo(params: PillIdentificationParams = {}): Promise<any[]> {
+    return this.callMfdsApi('MdcinGrnIdntfcInfoService03/getMdcinGrnIdntfcInfoList03', {
+      item_name: params.itemName,
+      item_seq: params.itemSeq,
+      entp_name: params.entpName,
+      color_class1: params.color1,
+      color_class2: params.color2,
+      drug_shape: params.drugShape || params.shape,
+      print_front: params.printFront,
+      print_back: params.printBack,
+      pageNo: params.pageNo,
+      numOfRows: params.numOfRows,
+    });
+  }
+
+  /**
+   * 의약품 제품허가정보 조회
+   */
+  async getDrugApprovalInfo(params: DrugApprovalParams = {}): Promise<any[]> {
+    return this.callMfdsApi('DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07', {
+      item_name: params.itemName,
+      item_seq: params.itemSeq,
+      entp_name: params.entpName,
+      prduct_prmisn_no: params.permitNo,
+      pageNo: params.pageNo,
+      numOfRows: params.numOfRows,
+    });
+  }
+
+  /**
+   * 식품영양성분DB 조회
+   */
+  async getFoodNutritionPublicData(params: FoodNutritionParams = {}): Promise<any[]> {
+    return this.callMfdsApi('FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02', {
+      FOOD_NM_KR: params.foodName,
+      DB_CLASS_NM: params.dbClass,
+      RESEARCH_YMD: params.researchYmd,
+      UPDATE_DATE: params.updateDate,
+      FOOD_CAT1_NM: params.foodCategory1,
+      FOOD_CAT2_NM: params.foodCategory2,
+      pageNo: params.pageNo,
+      numOfRows: params.numOfRows,
+    });
+  }
+
+  /**
+   * 건강기능식품 목록 조회
+   */
+  async getHealthFunctionalFoodList(params: HealthFunctionalFoodParams = {}): Promise<any[]> {
+    return this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
+      prdlst_nm: params.productName,
+      rawmtrl_nm: params.rawMaterialName,
+      entrps: params.companyName,
+      pageNo: params.pageNo,
+      numOfRows: params.numOfRows,
+    });
+  }
+
+  /**
+   * 건강보험심사평가원 질병정보 조회
+   */
+  async getDiseaseNameCodeList(params: DiseaseNameCodeParams = {}): Promise<any[]> {
+    return this.callHiraApi('diseaseInfoService1/getDissNameCodeList1', {
+      sickNm: params.keyword || params.diseaseName,
+      medTpCd: params.medTpCd,
+      pageNo: params.pageNo,
+      numOfRows: params.numOfRows,
+    });
   }
 }

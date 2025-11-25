@@ -48,7 +48,7 @@ export class OpenDataService {
    */
   async getFoodNutritionInfo(foodName: string) {
     try {
-      const url = `${this.BASE_URLS.foodNutrition}/getFoodNtrCpntDbInq`;
+      const url = `${this.BASE_URLS.foodNutrition}/getFoodNtrCpntDbInq02`;
       
       console.log(`식품영양성분DB 조회: ${foodName}`);
       console.log(`API URL: ${url}`);

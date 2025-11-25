@@ -448,7 +448,12 @@ JSON 형식:
    */
   async analyzeFoodComponents(
     foodName: string,
-    diseases: string[]
+    diseases: string[],
+    publicDatasets?: {
+      nutrition?: any;
+      healthFunctionalFoods?: any;
+      diseaseInfo?: any;
+    }
   ): Promise<{
     components: Array<{ name: string; amount: string; description: string }>;
     riskFactors: {
@@ -465,15 +470,59 @@ JSON 형식:
       [key: string]: boolean | undefined;
     };
     nutritionSummary: string;
+    riskFactorNotes: Record<string, string>;
+    referenceData?: any;
   }> {
     try {
       const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
+      const nutritionDump = publicDatasets?.nutrition
+        ? JSON.stringify(publicDatasets.nutrition, null, 2)
+        : '데이터 없음';
+      const healthFoodDump = publicDatasets?.healthFunctionalFoods
+        ? JSON.stringify(publicDatasets.healthFunctionalFoods, null, 2)
+        : '데이터 없음';
+      const diseaseDump = publicDatasets?.diseaseInfo
+        ? JSON.stringify(publicDatasets.diseaseInfo, null, 2)
+        : '데이터 없음';
       
-      const prompt = `당신은 영양학 및 식품 성분 분석 전문가입니다.
+      const prompt = `# Role Definition
+당신은 20년 경력의 **'영양학 박사(Ph.D. in Nutrition Science)'**이자 **'식품 성분 분석 전문가'**입니다.
+당신의 목표는 음식의 성분을 단순히 나열하는 것이 아니라, **각 영양소가 사용자의 건강에 어떤 긍정적/부정적 영향을 미치는지 구체적으로 설명**하는 것입니다.
 
-음식: ${foodName}
-사용자 질병: ${diseaseList}
+---
 
+# Input Data Context
+**분석 대상 음식:** ${foodName}
+**사용자 질병:** ${diseaseList}
+
+**참고 가능한 공공데이터:**
+- 식품의약품안전처 식품영양성분DB: ${nutritionDump}
+- 식품의약품안전처 건강기능식품정보: ${healthFoodDump}
+- 건강보험심사평가원 질병정보서비스: ${diseaseDump}
+
+---
+
+# Analysis Logic (Chain of Thought)
+
+## Step 1. 성분 분석 (Component Analysis)
+음식의 주요 성분을 층위별로 분석하세요:
+- **단일 식품:** 영양소별로 분석 (예: 사과 → 식이섬유, 비타민C, 당류)
+- **복합 음식:** 파트별로 분석 (예: 피자 → [도우] 탄수화물, [소스] 토마토/나트륨, [토핑] 단백질/지방)
+- 공공데이터(식약처, USDA)에 기반하되, 없으면 일반적인 범위 제시
+
+## Step 2. 건강 영향 평가 (Health Impact)
+각 성분이 사용자의 질병에 미치는 영향을 구체적으로 설명:
+- ✅ **긍정적 영향:** 이 영양소가 질병 관리에 도움이 되는 이유
+- ⚠️ **부정적 영향:** 이 성분이 질병을 악화시킬 수 있는 메커니즘
+
+## Step 3. 위험 요소 탐지 (Risk Factor Detection)
+약물과 상호작용할 수 있는 성분을 찾아내세요:
+- 고나트륨, 고칼륨, 비타민K, 티라민, 자몽, 알코올 등
+- 각 위험 요소가 **왜 문제인지** 구체적인 근거 제시
+
+---
+
+# Output Format
 음식의 주요 성분을 자유롭게 분석하세요. 단일 식품이 아니더라도, "도우/소스/토핑"처럼 구성 요소를 층위별로 나누고 각 층위의 대표 성분을 찾아내세요. 식품의약품안전처, USDA, 식품영양성분표, 일반 레시피 등 공신력 있는 데이터에 기반해 추론하고, 정확한 수치가 없으면 일반적인 범위를 제시하세요.
 
 1. components (배열): 음식에 포함된 주요 성분 5~12개
@@ -540,7 +589,11 @@ JSON 형식으로만 응답:
         rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [ { text: prompt } ]);
       }
       
-      return this.extractJsonObject(rawText);
+      const parsed = this.extractJsonObject(rawText);
+      return {
+        ...parsed,
+        referenceData: publicDatasets,
+      };
     } catch (error) {
       console.error('AI 음식 성분 분석 실패:', error);
       throw new Error(`AI food component analysis failed: ${error.message}`);
@@ -665,49 +718,98 @@ JSON 형식으로만 응답:
   }> {
     try {
       const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
+      const drugList = interactionAnalysis?.interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
       
-      const prompt = `당신은 건강 관리 종합 전문가입니다.
+      const prompt = `# Role Definition
+당신은 20년 경력의 **'임상 약사(Clinical Pharmacist)'**이자 **'임상 영양학자(Clinical Nutritionist)'**입니다.
+당신의 목표는 사용자의 [질병], [복용 약물], [섭취 음식] 데이터를 바탕으로 **근거 중심(Evidence-based)**의 정밀 분석 리포트를 작성하는 것입니다.
+단순히 '위험하다/안전하다'를 넘어, **약물과 음식 성분 간의 생화학적 상호작용(Interaction)**을 구체적으로 설명해야 합니다.
 
-음식: ${foodName}
-사용자 질병: ${diseaseList}
+---
 
-음식 성분 분석:
+# Input Data Context
+다음은 대한민국 공공데이터포털(data.go.kr) API를 통해 수집된 실시간 데이터입니다.
+
+**사용자 프로필:**
+- 질병 목록: ${diseaseList}
+- 복용 약물: ${drugList}
+- 분석 음식: ${foodName}
+
+**음식 성분 분석 데이터:**
 ${JSON.stringify(foodAnalysis, null, 2)}
 
-약물-음식 상호작용 분석:
+**약물-음식 상호작용 분석 데이터:**
 ${JSON.stringify(interactionAnalysis, null, 2)}
 
-위 분석을 종합하여 다음을 제공하세요:
+---
 
-1. suitabilityScore (0-100): 적합도 점수
-   - 위험(danger) 약물 있으면: 0-40
-   - 주의(caution) 약물만 있으면: 40-70
-   - 안전(safe)하지만 질병 고려: 70-85
-   - 완전 안전: 85-100
+# Analysis Algorithm (Chain of Thought)
+답변 전 반드시 다음 단계로 사고하세요:
 
-2. briefSummary: Result01에 표시할 간략 요약 (200자 내외)
-   - 1) 분석한 음식에 대한 전체 AI 의견 요약 (100자)
-   - 2) 내 약과의 상관관계 한줄 평 (100자)
-   - 예시: "소주는 알코올 음료로 간 건강에 부담을 줄 수 있으며 칼로리가 높아 체중 관리에 주의가 필요합니다. 현재 복용 중인 타이레놀과 함께 섭취 시 간 손상 위험이 크게 증가하므로 절대 피해야 합니다."
+## Step 1. 데이터 팩트 체크
+- 약물 데이터에서 '주성분(Active Ingredient)'과 '금기사항' 추출
+- 음식 데이터에서 약물 대사에 영향을 줄 수 있는 '핵심 영양소' 추출 (칼륨, 비타민K, 티라민, 자몽의 푸라노쿠마린 등)
 
-3. goodPoints: 좋은 점 3~5개 (각 50자 이상)
-   - 음식 자체의 건강상 이점
-   - 질병에 도움이 되는 점
+## Step 2. '좋은 점(Good Points)' 발굴 알고리즘 ★매우 중요
+**약물과의 상관관계가 없더라도, 음식 자체가 가진 영양학적 장점을 반드시 찾아내세요.**
 
-4. badPoints: 나쁜 점 3~5개 (각 50자 이상)
-   - 음식 자체의 건강상 위험
-   - 질병에 악영향을 주는 점
+### 우선순위 1: 영양 가치 (Nutritional Benefits)
+- 음식 성분 분석 데이터에서 풍부한 영양소(단백질, 식이섬유, 비타민, 무기질) 찾기
+- 각 영양소가 **구체적으로 어떤 건강 효과**가 있는지 설명
+- 예: "식이섬유 8g이 포함되어 있어 장 건강과 혈당 조절에 도움이 됩니다"
 
-5. summary: 종합 평가 (100자 이상)
+### 우선순위 2: 질병 관리 (Disease Management)
+- 이 영양소가 사용자의 **질병에 긍정적인 영향**을 주는 부분 찾기
+- 예: "당뇨병 환자에게 식이섬유는 혈당 스파이크를 완화하는 데 필수적입니다"
 
-JSON 형식으로만 응답:
+### 우선순위 3: 약물 시너지 (Drug Synergy) - 선택사항
+- (해당사항이 있을 때만) 약물 흡수를 돕거나 부작용을 줄여주는 효과
+- 약물 관련 내용이 없으면 우선순위 1, 2만으로 충분함
+
+**작성 규칙:**
+- 최소 3개, 최대 5개의 좋은 점 찾기
+- 각 항목은 50자 이상으로 구체적으로 작성
+- "몸에 좋다", "영양가 있다" 같은 추상적 표현 금지
+- 반드시 **구체적인 영양소명 + 함량 + 건강 효과**를 포함할 것
+
+## Step 3. '나쁜 점(Bad Points)' 탐지 알고리즘
+1. **약효 감소/증가:** 음식이 약물 대사 효소(CYP450 등)를 억제하거나 촉진하는가?
+2. **질병 악화:** 음식의 특정 성분(나트륨, 당류, 포화지방)이 사용자의 기저 질환을 악화시키는가?
+
+## Step 4. 적합도 점수 산정
+- 위험(danger) 약물 있으면: 0-40점
+- 주의(caution) 약물만: 40-70점
+- 안전(safe)하지만 질병 고려: 70-85점
+- 완전 안전: 85-100점
+
+---
+
+# Output Format
+JSON 형식으로만 응답하세요:
+
 {
-  "suitabilityScore": 45,
-  "briefSummary": "식품의약품안전처 분석 결과, 소주는 알코올과 포도당이 고농도로 들어 있어 간 건강과 체중 관리에 부담이 큽니다. 식품의약품안전처 분석 결과, 현재 복용 중인 타이레놀과 병용하면 간 손상 위험이 급격히 증가하므로 같은 날 섭취를 삼가야 합니다.",
-  "goodPoints": ["식품의약품안전처 자료 기준, 적정량 섭취 시 일시적으로 체내 혈행을 촉진해 스트레스 해소에 도움이 될 수 있으나 이 효과는 매우 제한적입니다.", "..."],
-  "badPoints": ["소주의 고도 알코올은 간 해독 효소를 과도하게 소모해 만성 간질환이나 지방간이 있는 사람에게 즉각적인 염증 반응을 유발할 수 있습니다.", "타이레놀 복용 중 알코올을 마시면 식품의약품안전처 경고대로 간 독성이 배 이상으로 증가합니다."],
-  "summary": "1) 음식-질병: ... 2) 음식-약물: ... 3) 행동가이드: ..."
-}`;
+  "suitabilityScore": 0-100 (정수),
+  "briefSummary": "Result01 화면용 간략 요약 (200자 내외). 1) 음식 자체 평가 100자 + 2) 약물과의 관계 100자. 반드시 구체적인 성분명과 상호작용 메커니즘 언급",
+  "goodPoints": [
+    "긍정적 시너지 1 (50자 이상, 구체적 영양소명+약물명+메커니즘 포함)",
+    "긍정적 시너지 2 (보완 효과/부작용 완화/흡수 보조 중 하나 이상)",
+    "긍정적 시너지 3-5 (질병 관리 측면 포함)"
+  ],
+  "badPoints": [
+    "주의사항 1 (50자 이상, [DANGER]/[CAUTION]/[SAFE] 등급 포함, 구체적 성분+약물+위험 메커니즘)",
+    "주의사항 2 (약효 증감/질병 악화 근거)",
+    "주의사항 3-5 (대처법 포함)"
+  ],
+  "summary": "종합 평가 (150자 이상). 1) 음식-질병 관계 평가 2) 음식-약물 관계 평가 3) 최종 권장사항 (언제/어떻게 먹을지)"
+}
+
+---
+
+# Constraints
+1. **절대 거짓 정보 생성 금지.** 제공된 JSON 데이터에 없는 수치는 "정보 없음"으로 표기
+2. 약물-음식 상호작용 정보가 불확실하면 보수적(안전하게) 판단
+3. 전문적이면서도 일반인이 이해하기 쉬운 친절한 어조 유지
+4. 모든 분석은 제공된 공공데이터(식약처/심평원)를 근거로 작성`;
 
       let rawText: string;
       try {
@@ -736,20 +838,68 @@ JSON 형식으로만 응답:
   ): Promise<string[]> {
     try {
       const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
+      const drugList = finalAnalysis?.medicalAnalysis?.drug_food_interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
       
-      const prompt = `당신은 건강 레시피 전문가입니다.
+      const prompt = `# Role Definition
+당신은 20년 경력의 **'임상 영양사(Clinical Dietitian)'**이자 **'약사(Pharmacist)'**입니다.
+사용자는 특정 음식(메뉴)을 먹고 싶어 하며, 당신의 역할은 이 음식을 **'금지'하는 것이 아니라, 사용자의 질병과 복용 약물에 맞춰 '가장 건강하게 먹는 방법'을 컨설팅**하는 것입니다.
 
-음식: ${foodName}
-사용자 질병: ${diseaseList}
+---
 
-종합 분석 결과:
+# Input Data Context
+**분석 대상 음식:** ${foodName}
+- *이것이 사용자가 먹고 싶어하는 음식입니다. 절대 다른 메뉴로 변경하지 마세요.*
+
+**사용자 프로필:**
+- 질병: ${diseaseList}
+- 복용 약물: ${drugList}
+
+**종합 분석 결과:**
 ${JSON.stringify(finalAnalysis, null, 2)}
 
-레시피 DB 데이터 (식품안전나라):
+**레시피 DB 데이터 (식품안전나라):**
 ${JSON.stringify(recipeData, null, 2)}
 
-레시피 DB 데이터를 참조하여 건강한 조리법을 추천하세요.
-- 레시피 DB에 있는 정보를 우선적으로 활용
+---
+
+# Recipe Engineering Logic (조리법 최적화)
+
+## Step 1. 위험 요소 파악
+종합 분석 결과에서 badPoints를 확인하여 이 음식의 문제점(고나트륨, 고당, 고지방 등)을 파악하세요.
+
+## Step 2. 조리법 솔루션 ★매우 중요
+**사용자가 요청한 '${foodName}'을 기준으로 조리법을 수정하세요.**
+- ❌ 절대 샐러드나 죽 같은 다른 음식을 추천하지 마세요
+- ✅ 해당 음식을 만들 때 재료를 대체하거나 조리 방식을 바꿔 위험 요소를 제거하세요
+- *예시: "라면을 먹고 싶다" → "면을 한번 삶아 기름을 빼고, 스프는 절반만 넣으세요. 부족한 간은 마늘과 파로 채우세요."*
+
+## Step 3. 실용적인 팁 작성
+각 팁은 다음 3가지 카테고리로 분류하세요:
+1. **[재료 변경]** - 건강하지 않은 재료를 대체하는 방법
+2. **[조리법 변경]** - 튀김→굽기, 삶기 등 조리 방식 수정
+3. **[섭취 팁]** - 먹는 방법, 시간대, 함께 먹으면 좋은 것
+
+---
+
+# Output Format
+JSON 배열로 4-6개의 구체적인 팁을 반환하세요:
+
+[
+  "[재료 변경] 설탕 대신 알룰로스를 사용하여 당 수치를 낮추세요.",
+  "[조리법 변경] 튀기는 대신 에어프라이어를 사용해 트랜스지방을 90% 줄이세요.",
+  "[섭취 팁] 국물은 섭취하지 말고 건더기 위주로 드세요. 나트륨 섭취를 하루 권장량의 절반 이하로 줄일 수 있습니다.",
+  "[재료 변경] 라면 스프는 절반만 사용하고, 부족한 간은 마늘, 생강, 파로 보충하세요.",
+  "[섭취 팁] 약 복용 후 최소 2시간 뒤에 섭취하여 약물 흡수를 방해하지 않도록 하세요.",
+  "[조리법 변경] 면을 먼저 한번 삶아 기름기를 제거한 후 새 물에 다시 끓이세요."
+]
+
+---
+
+# Constraints
+1. **Don't change the menu:** 사용자가 요청한 ${foodName} 내에서 해결책을 찾으세요
+2. **Be Specific:** "적당히", "건강하게" 같은 추상적 표현 대신 "스프 절반만", "에어프라이어 180도 15분" 등 구체적으로 작성
+3. **Supportive Tone:** "절대 먹지 마세요" 대신 "이렇게 조리하면 더 건강하게 즐기실 수 있습니다" 같은 격려하는 어조 사용
+4. 레시피 DB에 있는 정보를 우선적으로 활용
 - DB에 없는 경우에만 일반적인 조리법 제안
 - 사용자 질병을 고려한 건강 레시피 4~6개
 
@@ -780,6 +930,130 @@ JSON 형식으로만 응답:
         '조리 시 염분과 당분을 적게 사용하세요',
         '채소를 많이 추가하면 더 건강해요'
       ];
+    }
+  }
+
+  /**
+   * 복용 중인 모든 약물 간 상호작용 종합 분석
+   */
+  async analyzeAllDrugInteractions(drugDetails: any[]): Promise<{
+    overallSafety: 'safe' | 'caution' | 'danger';
+    overallScore: number;
+    dangerousCombinations: Array<{
+      drug1: string;
+      drug2: string;
+      interaction: string;
+      recommendation: string;
+    }>;
+    cautionCombinations: Array<{
+      drug1: string;
+      drug2: string;
+      interaction: string;
+      recommendation: string;
+    }>;
+    synergisticEffects: Array<{
+      drugs: string[];
+      benefit: string;
+      description: string;
+    }>;
+    summary: string;
+    recommendations: string[];
+  }> {
+    try {
+      const drugNames = drugDetails.map(d => d.name).join(', ');
+      
+      const prompt = `# Role Definition
+당신은 20년 경력의 **'임상 약사(Clinical Pharmacist)'**입니다.
+사용자가 복용 중인 모든 약물의 상호작용을 종합적으로 분석하여, **동시 복용의 안전성**을 평가하는 것이 목표입니다.
+
+---
+
+# Input Data
+**복용 중인 약물 목록:** ${drugNames}
+
+**약물 상세 정보 (공공데이터):**
+${JSON.stringify(drugDetails, null, 2)}
+
+---
+
+# Analysis Logic
+
+## Step 1. 약물 간 상호작용 탐지
+각 약물 쌍을 분석하여:
+- **위험한 조합 (Dangerous):** 동시 복용 시 심각한 부작용 가능
+- **주의 필요 (Caution):** 복용 시간 조절 필요
+- **긍정적 효과 (Synergy):** 함께 복용 시 치료 효과 증대
+
+## Step 2. 전체 안전도 평가
+- **safe:** 모든 약물이 안전하게 병용 가능
+- **caution:** 일부 약물에서 주의 필요
+- **danger:** 위험한 조합 존재, 즉시 의사 상담 필요
+
+## Step 3. 종합 점수 산정 (0-100)
+- 90-100: 매우 안전
+- 70-89: 대체로 안전 (주의사항 준수)
+- 40-69: 주의 필요 (복용 시간 조절 등)
+- 0-39: 위험 (의사 상담 필수)
+
+---
+
+# Output Format
+JSON 형식으로만 응답:
+
+{
+  "overallSafety": "safe" | "caution" | "danger",
+  "overallScore": 85,
+  "dangerousCombinations": [
+    {
+      "drug1": "약물A",
+      "drug2": "약물B",
+      "interaction": "구체적인 상호작용 메커니즘 (100자 이상)",
+      "recommendation": "대처 방법 (예: 즉시 의사 상담, 복용 중단)"
+    }
+  ],
+  "cautionCombinations": [
+    {
+      "drug1": "약물C",
+      "drug2": "약물D",
+      "interaction": "상호작용 설명",
+      "recommendation": "복용 시간을 최소 2시간 간격으로 조절하세요"
+    }
+  ],
+  "synergisticEffects": [
+    {
+      "drugs": ["약물E", "약물F"],
+      "benefit": "혈압 조절 효과 증대",
+      "description": "두 약물의 시너지 효과 설명 (50자 이상)"
+    }
+  ],
+  "summary": "전체 약물 복용에 대한 종합 평가 (200자 이상). 안전성, 주의사항, 권장사항 포함",
+  "recommendations": [
+    "실용적인 복용 가이드 1 (예: 아침 식후 A약, 저녁 식후 B약)",
+    "실용적인 복용 가이드 2",
+    "실용적인 복용 가이드 3-5"
+  ]
+}
+
+---
+
+# Constraints
+1. 제공된 공공데이터(식약처 e약은요, 낱알식별, 허가정보)를 근거로 분석
+2. 상호작용 정보가 불확실하면 보수적으로 판단 (안전 우선)
+3. 전문적이면서도 이해하기 쉬운 설명`;
+
+      let rawText: string;
+      try {
+        const result = await this.proModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [ { text: prompt } ]);
+      }
+      
+      return this.extractJsonObject(rawText);
+    } catch (error) {
+      console.error('AI 약물 상호작용 분석 실패:', error);
+      throw new Error(`AI drug interaction analysis failed: ${error.message}`);
     }
   }
 }

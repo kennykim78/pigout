@@ -125,6 +125,12 @@ export const addMedicine = async (medicineData: {
   return response.data;
 };
 
+// 복용 중인 모든 약물 상관관계 종합 분석
+export const analyzeAllMedicines = async () => {
+  const response = await apiClient.post('/medicine/analyze-all');
+  return response.data;
+};
+
 // ============================================
 // 리워드 API
 // ============================================

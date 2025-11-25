@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMedicineStore } from '../store/medicineStore';
-import { getMyMedicines, scanMedicineQR, searchMedicine, deleteMedicine, addMedicine as addMedicineAPI } from '../services/api';
+import { getMyMedicines, scanMedicineQR, searchMedicine, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines } from '../services/api';
 import './Medicine.scss';
 
 const Medicine = () => {
@@ -13,6 +13,9 @@ const Medicine = () => {
   const [activeTab, setActiveTab] = useState('list');
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
+  const [showAnalysis, setShowAnalysis] = useState(false);
+  const [analysisResult, setAnalysisResult] = useState(null);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   useEffect(() => {
     loadMedicines();
@@ -110,9 +113,54 @@ const Medicine = () => {
       await deleteMedicine(id);
       removeFromStore(id);
       alert('삭제되었습니다.');
+      
+      // 삭제 후 분석 결과 초기화
+      if (analysisResult) {
+        setAnalysisResult(null);
+        setShowAnalysis(false);
+      }
     } catch (error) {
       console.error('Delete failed:', error);
       alert('삭제에 실패했습니다.');
+    }
+  };
+
+  const handleAnalyzeAll = async () => {
+    if (medicines.length === 0) {
+      alert('복용 중인 약이 없습니다. 먼저 약을 추가해주세요.');
+      return;
+    }
+
+    setIsAnalyzing(true);
+    try {
+      console.log('[약물 상관관계 분석] 시작...');
+      const result = await analyzeAllMedicines();
+      console.log('[약물 상관관계 분석] 완료:', result);
+      setAnalysisResult(result);
+      setShowAnalysis(true);
+    } catch (error) {
+      console.error('Analysis failed:', error);
+      alert(error.response?.data?.message || '분석에 실패했습니다.');
+    } finally {
+      setIsAnalyzing(false);
+    }
+  };
+
+  const getSafetyBadgeClass = (safety) => {
+    switch (safety) {
+      case 'safe': return 'medicine__safety-badge--safe';
+      case 'caution': return 'medicine__safety-badge--caution';
+      case 'danger': return 'medicine__safety-badge--danger';
+      default: return '';
+    }
+  };
+
+  const getSafetyText = (safety) => {
+    switch (safety) {
+      case 'safe': return '✅ 안전';
+      case 'caution': return '⚠️ 주의 필요';
+      case 'danger': return '🚨 위험';
+      default: return '';
     }
   };
 
@@ -150,31 +198,148 @@ const Medicine = () => {
               </button>
             </div>
           ) : (
-            medicines.map((med) => (
-              <div key={med.id} className="medicine__card">
-                <div className="medicine__card-header">
-                  <h3 className="medicine__card-title">{med.name}</h3>
-                  <button
-                    className="medicine__delete-btn"
-                    onClick={() => handleDeleteMedicine(med.id)}
-                  >
-                    🗑️
-                  </button>
-                </div>
-                {med.drug_class && (
-                  <p className="medicine__card-info">제조사: {med.drug_class}</p>
-                )}
-                {med.dosage && (
-                  <p className="medicine__card-info">복용량: {med.dosage}</p>
-                )}
-                {med.frequency && (
-                  <p className="medicine__card-info">복용 빈도: {med.frequency}</p>
-                )}
-                <p className="medicine__card-date">
-                  등록일: {new Date(med.created_at).toLocaleDateString()}
+            <>
+              <div className="medicine__analyze-section">
+                <button
+                  className="medicine__analyze-all-btn"
+                  onClick={handleAnalyzeAll}
+                  disabled={isAnalyzing}
+                >
+                  {isAnalyzing ? '🔄 분석 중...' : '🔬 내 약 종합 분석하기'}
+                </button>
+                <p className="medicine__analyze-desc">
+                  복용 중인 모든 약물의 상호작용을 AI가 분석합니다
                 </p>
               </div>
-            ))
+
+              {showAnalysis && analysisResult && (
+                <div className="medicine__analysis-modal">
+                  <div className="medicine__analysis-content">
+                    <div className="medicine__analysis-header">
+                      <h2>💊 내 약 종합 분석 결과</h2>
+                      <button
+                        className="medicine__close-btn"
+                        onClick={() => setShowAnalysis(false)}
+                      >
+                        ✕
+                      </button>
+                    </div>
+
+                    <div className="medicine__analysis-body">
+                      {/* 전체 안전도 */}
+                      <div className="medicine__overall-safety">
+                        <div className={`medicine__safety-badge ${getSafetyBadgeClass(analysisResult.analysis.overallSafety)}`}>
+                          {getSafetyText(analysisResult.analysis.overallSafety)}
+                        </div>
+                        <div className="medicine__safety-score">
+                          안전도 점수: <strong>{analysisResult.analysis.overallScore}</strong>/100
+                        </div>
+                      </div>
+
+                      {/* 종합 평가 */}
+                      <div className="medicine__summary-section">
+                        <h3>📋 종합 평가</h3>
+                        <p className="medicine__summary-text">{analysisResult.analysis.summary}</p>
+                      </div>
+
+                      {/* 위험한 조합 */}
+                      {analysisResult.analysis.dangerousCombinations && analysisResult.analysis.dangerousCombinations.length > 0 && (
+                        <div className="medicine__danger-section">
+                          <h3>🚨 위험한 조합 ({analysisResult.analysis.dangerousCombinations.length}개)</h3>
+                          {analysisResult.analysis.dangerousCombinations.map((combo, idx) => (
+                            <div key={idx} className="medicine__interaction-card medicine__interaction-card--danger">
+                              <h4>{combo.drug1} ⚡ {combo.drug2}</h4>
+                              <p className="medicine__interaction-desc">{combo.interaction}</p>
+                              <div className="medicine__recommendation">
+                                💡 <strong>권장사항:</strong> {combo.recommendation}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* 주의 필요 조합 */}
+                      {analysisResult.analysis.cautionCombinations && analysisResult.analysis.cautionCombinations.length > 0 && (
+                        <div className="medicine__caution-section">
+                          <h3>⚠️ 주의 필요 ({analysisResult.analysis.cautionCombinations.length}개)</h3>
+                          {analysisResult.analysis.cautionCombinations.map((combo, idx) => (
+                            <div key={idx} className="medicine__interaction-card medicine__interaction-card--caution">
+                              <h4>{combo.drug1} + {combo.drug2}</h4>
+                              <p className="medicine__interaction-desc">{combo.interaction}</p>
+                              <div className="medicine__recommendation">
+                                💡 <strong>권장사항:</strong> {combo.recommendation}
+                              </div>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* 긍정적 효과 */}
+                      {analysisResult.analysis.synergisticEffects && analysisResult.analysis.synergisticEffects.length > 0 && (
+                        <div className="medicine__synergy-section">
+                          <h3>✨ 긍정적 효과 ({analysisResult.analysis.synergisticEffects.length}개)</h3>
+                          {analysisResult.analysis.synergisticEffects.map((effect, idx) => (
+                            <div key={idx} className="medicine__interaction-card medicine__interaction-card--safe">
+                              <h4>{effect.drugs.join(' + ')}</h4>
+                              <p className="medicine__benefit">💚 {effect.benefit}</p>
+                              <p className="medicine__interaction-desc">{effect.description}</p>
+                            </div>
+                          ))}
+                        </div>
+                      )}
+
+                      {/* 복용 가이드 */}
+                      {analysisResult.analysis.recommendations && analysisResult.analysis.recommendations.length > 0 && (
+                        <div className="medicine__guide-section">
+                          <h3>📌 복용 가이드</h3>
+                          <ul className="medicine__recommendations">
+                            {analysisResult.analysis.recommendations.map((rec, idx) => (
+                              <li key={idx}>{rec}</li>
+                            ))}
+                          </ul>
+                        </div>
+                      )}
+
+                      {/* 데이터 출처 */}
+                      <div className="medicine__data-sources">
+                        <h4>📊 데이터 출처</h4>
+                        <ul>
+                          {analysisResult.dataSources.map((source, idx) => (
+                            <li key={idx}>{source}</li>
+                          ))}
+                        </ul>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
+              {medicines.map((med) => (
+                <div key={med.id} className="medicine__card">
+                  <div className="medicine__card-header">
+                    <h3 className="medicine__card-title">{med.name}</h3>
+                    <button
+                      className="medicine__delete-btn"
+                      onClick={() => handleDeleteMedicine(med.id)}
+                    >
+                      🗑️
+                    </button>
+                  </div>
+                  {med.drug_class && (
+                    <p className="medicine__card-info">제조사: {med.drug_class}</p>
+                  )}
+                  {med.dosage && (
+                    <p className="medicine__card-info">복용량: {med.dosage}</p>
+                  )}
+                  {med.frequency && (
+                    <p className="medicine__card-info">복용 빈도: {med.frequency}</p>
+                  )}
+                  <p className="medicine__card-date">
+                    등록일: {new Date(med.created_at).toLocaleDateString()}
+                  </p>
+                </div>
+              ))}
+            </>
           )}
         </div>
       )}
