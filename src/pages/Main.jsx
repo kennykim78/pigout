@@ -5,7 +5,7 @@ import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { analyzeFoodWithImage, analyzeFoodByText } from '../services/api';
+import { analyzeFoodWithImage, analyzeFoodByText, simpleAnalyzeFoodByText } from '../services/api';
 
 const Main = () => {
   const fileInputRef = useRef(null);
@@ -14,6 +14,7 @@ const Main = () => {
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [loadingStage, setLoadingStage] = useState(null); // 'quick' | 'simple'
   const navigate = useNavigate();
 
   const handleCameraClick = () => {
@@ -25,6 +26,7 @@ const Main = () => {
     if (file) {
       console.log('선택된 파일:', file);
       setIsLoading(true);
+      setLoadingStage('quick');
       
       try {
         // 이미지 크기 조정 (50KB 이하로)
@@ -76,6 +78,7 @@ const Main = () => {
         setVoiceText('이 음식');
       } finally {
         setIsLoading(false);
+        setLoadingStage(null);
       }
       
       // AI 분석 완료 후 미리보기 URL 생성 (팝업 표시)
@@ -202,21 +205,18 @@ const Main = () => {
     console.log('저장된 질병 정보:', savedDiseases);
 
     setIsLoading(true);
+    setLoadingStage(selectedImage ? 'simple' : 'simple');
     try {
       let result;
       
-      if (selectedImage && voiceText.trim()) {
-        // 이미지와 텍스트 모두 있는 경우
-        console.log('이미지+텍스트 분석 시작:', voiceText);
-        result = await analyzeFoodWithImage(voiceText.trim(), selectedImage);
-      } else if (selectedImage) {
-        // 이미지만 있는 경우 - AI가 이미지에서 제품명 추출 (빈 문자열 전송)
-        console.log('이미지 분석 시작 (AI가 음식명 추출)');
-        result = await analyzeFoodWithImage('', selectedImage);
+      if (selectedImage) {
+        // 이미지가 있는 경우: 업로드 + 간단 분석 (이미지 엔드포인트 자체가 경량 분석)
+        console.log('[단계2] 간단 분석 (이미지 포함) 시작:', voiceText);
+        result = await analyzeFoodWithImage(voiceText.trim() || '');
       } else {
-        // 텍스트만 있는 경우
-        console.log('텍스트 분석 시작:', voiceText);
-        result = await analyzeFoodByText(voiceText.trim());
+        // 텍스트만: 경량 텍스트 분석 사용
+        console.log('[단계2] 간단 텍스트 분석 시작:', voiceText);
+        result = await simpleAnalyzeFoodByText(voiceText.trim());
       }
 
       console.log('분석 결과:', result);
@@ -294,6 +294,7 @@ const Main = () => {
       }
     } finally {
       setIsLoading(false);
+      setLoadingStage(null);
     }
   };
 
@@ -360,14 +361,54 @@ const Main = () => {
             </div>
           )}
 
-          {/* 로딩 표시 */}
-          {isLoading && (
-            <div className="main__loading-message">
-              <p>🔍 AI가 이미지를 분석하고 있습니다...</p>
-            </div>
-          )}
-
         </div>
+
+        {/* 단계별 로딩 오버레이 */}
+        {isLoading && (
+          <div className="main__loading-overlay">
+            <div className="main__loading-modal">
+              <div className="main__loading-content">
+                <div className="main__loading-pig-animation">
+                  <img src={imgphoto} alt="Loading" className="main__loading-pig" />
+                  <div className="main__loading-spinner"></div>
+                </div>
+                <div className="main__loading-text">
+                  {loadingStage === 'quick' && (
+                    <>
+                      <h2>이미지에서 음식명 인식 중...</h2>
+                      <div className="main__loading-steps">
+                        <p className="main__loading-step">🖼️ 이미지 품질 점검</p>
+                        <p className="main__loading-step">🔤 텍스트/라벨 추출</p>
+                        <p className="main__loading-step">🍽️ 음식/제품 식별</p>
+                      </div>
+                    </>
+                  )}
+                  {loadingStage === 'simple' && (
+                    <>
+                      <h2>기본 영양·적합도 분석 중...</h2>
+                      <div className="main__loading-steps">
+                        <p className="main__loading-step">📊 공공 영양 데이터 수집</p>
+                        <p className="main__loading-step">🤖 AI 간단 요약 생성</p>
+                        <p className="main__loading-step">✅ 저장 준비</p>
+                      </div>
+                    </>
+                  )}
+                  {!loadingStage && (
+                    <>
+                      <h2>처리 중...</h2>
+                    </>
+                  )}
+                </div>
+                <div className="main__ad-container">
+                  <div className="main__ad-placeholder">
+                    <p className="main__ad-label">광고 영역</p>
+                    <p className="main__ad-desc">앱 출시 시 여기에 광고 표시</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         {/* 이미지 미리보기 풀 레이어 팝업 - 로딩 중이 아닐 때만 표시 */}
         {previewUrl && !isLoading && (

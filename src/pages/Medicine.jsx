@@ -1,11 +1,13 @@
 import { useState, useEffect } from 'react';
 import { useMedicineStore } from '../store/medicineStore';
 import { getMyMedicines, scanMedicineQR, searchMedicine, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines } from '../services/api';
+import { Scanner } from '@yudiel/react-qr-scanner';
 import './Medicine.scss';
 
 const Medicine = () => {
   const { medicines, setMedicines, addMedicine: addToStore, deleteMedicine: removeFromStore, isLoading, setLoading, setError } = useMedicineStore();
   const [showQrScanner, setShowQrScanner] = useState(false);
+  const [scanMode, setScanMode] = useState('manual'); // 'camera' or 'manual'
   const [qrInput, setQrInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -34,24 +36,33 @@ const Medicine = () => {
     }
   };
 
-  const handleQrScan = async () => {
-    if (!qrInput.trim()) {
+  const handleQrScan = async (qrData) => {
+    const data = qrData || qrInput;
+    if (!data.trim()) {
       alert('QR 데이터를 입력하세요.');
       return;
     }
 
     setLoading(true);
     try {
-      const result = await scanMedicineQR(qrInput);
+      const result = await scanMedicineQR(data);
       addToStore(result.medicineRecord);
       setQrInput('');
       setShowQrScanner(false);
+      setScanMode('manual');
       alert(`${result.parsedInfo.medicineName} 추가 완료!`);
+      await loadMedicines();
     } catch (error) {
       console.error('QR scan failed:', error);
       alert(error.response?.data?.message || 'QR 스캔에 실패했습니다.');
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCameraScan = (result) => {
+    if (result && result[0]?.rawValue) {
+      handleQrScan(result[0].rawValue);
     }
   };
 
@@ -350,14 +361,58 @@ const Medicine = () => {
             <h2 className="medicine__section-title">📱 QR 코드 스캔</h2>
             <p className="medicine__section-desc">약 포장의 QR 코드를 스캔하세요</p>
             
-            <button
-              className="medicine__scan-btn"
-              onClick={() => setShowQrScanner(!showQrScanner)}
-            >
-              {showQrScanner ? 'QR 입력 닫기' : 'QR 데이터 입력'}
-            </button>
+            <div className="medicine__qr-mode-buttons">
+              <button
+                className="medicine__scan-btn"
+                onClick={() => {
+                  setShowQrScanner(true);
+                  setScanMode('camera');
+                }}
+              >
+                📷 카메라로 스캔하기
+              </button>
+              <button
+                className="medicine__scan-btn medicine__scan-btn--secondary"
+                onClick={() => {
+                  setShowQrScanner(!showQrScanner);
+                  setScanMode('manual');
+                }}
+              >
+                {showQrScanner && scanMode === 'manual' ? '✕ 입력 닫기' : '⌨️ 직접 입력하기'}
+              </button>
+            </div>
 
-            {showQrScanner && (
+            {showQrScanner && scanMode === 'camera' && (
+              <div className="medicine__camera-scanner">
+                <div className="medicine__scanner-container">
+                  <Scanner
+                    onScan={handleCameraScan}
+                    onError={(error) => console.error('Scanner error:', error)}
+                    constraints={{
+                      facingMode: 'environment'
+                    }}
+                    styles={{
+                      container: {
+                        width: '100%',
+                        maxWidth: '500px',
+                        margin: '0 auto'
+                      }
+                    }}
+                  />
+                </div>
+                <button
+                  className="medicine__close-scanner-btn"
+                  onClick={() => {
+                    setShowQrScanner(false);
+                    setScanMode('manual');
+                  }}
+                >
+                  ✕ 스캔 닫기
+                </button>
+              </div>
+            )}
+
+            {showQrScanner && scanMode === 'manual' && (
               <div className="medicine__qr-input">
                 <textarea
                   className="medicine__textarea"
@@ -368,7 +423,7 @@ const Medicine = () => {
                 />
                 <button
                   className="medicine__submit-btn"
-                  onClick={handleQrScan}
+                  onClick={() => handleQrScan()}
                   disabled={isLoading}
                 >
                   {isLoading ? '처리 중...' : '추가하기'}

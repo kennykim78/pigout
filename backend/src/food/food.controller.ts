@@ -31,6 +31,15 @@ export class FoodController {
     return this.foodService.analyzeFoodByText(foodName, diseases || []);
   }
 
+  // 경량 텍스트 분석 (빠른 저장용 - 영양/간단 요약만)
+  @Post('simple-text-analyze')
+  async simpleTextAnalyze(
+    @Body('foodName') foodName: string,
+    @Body('diseases') diseases?: string[],
+  ) {
+    return this.foodService.simpleAnalyzeFoodByText(foodName, diseases || []);
+  }
+
   @Post('quick-analyze')
   async quickAnalyze(@Body('imageBase64') imageBase64: string) {
     return this.foodService.quickAnalyzeImage(imageBase64);

@@ -49,6 +49,14 @@ export const analyzeFoodByText = async (foodName: string) => {
   return response.data;
 };
 
+// 경량 텍스트 음식 분석 (빠른 저장용)
+export const simpleAnalyzeFoodByText = async (foodName: string) => {
+  const savedDiseases = localStorage.getItem('selectedDiseases');
+  const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
+  const response = await apiClient.post('/food/simple-text-analyze', { foodName, diseases });
+  return response.data;
+};
+
 // 음식 분석 결과 조회
 export const getFoodAnalysis = async (id: string) => {
   const response = await apiClient.get(`/food/${id}`);

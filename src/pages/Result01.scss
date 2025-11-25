@@ -55,4 +55,16 @@
   &__detail-button { @include button-base; width: 342px; height: 54px; background-color: $color-black; color: $color-white; }
   &__recommendations { @include flex-column; gap: 20px; }
   
+  // Full analysis overlay styles
+  &__full-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:2000; animation: fadeIn 0.3s ease; }
+  &__full-modal { background: linear-gradient(135deg,#fff8e1 0%,#ffe0b2 100%); border-radius: $border-radius-lg; padding:36px 28px; width:90%; max-width:480px; box-shadow:0 8px 32px rgba(0,0,0,0.4); text-align:center; }
+  &__full-title { font-family:$font-family; font-size:$font-size-xlarge; font-weight:$font-weight-black; margin:0 0 24px 0; color:$color-black; animation:pulse 2s ease-in-out infinite; }
+  &__full-steps { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
+  &__full-step { font-family:$font-family; font-size:$font-size-small; font-weight:$font-weight-medium; color:$color-black; background:rgba(255,255,255,0.7); padding:10px 16px; border-radius:$border-radius-sm; opacity:.5; transition:all .3s ease; &.active { opacity:1; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,0.05); } }
+  &__full-spinner { width:70px; height:70px; border:5px solid rgba($color-primary-red,0.2); border-top:5px solid $color-primary-red; border-radius:50%; margin:0 auto 24px auto; animation:spin 1s linear infinite; }
+  &__full-tip { font-family:$font-family; font-size:$font-size-small; color:$color-gray; margin:0; }
 }
+
+@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
+@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.7; } }
+@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }

@@ -193,6 +193,56 @@
     &:hover {
       background: lighten($color-black, 15%);
     }
+
+    &--secondary {
+      background: $color-gray;
+      margin-top: 10px;
+
+      &:hover {
+        background: darken($color-gray, 10%);
+      }
+    }
+  }
+
+  &__qr-mode-buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin-bottom: 20px;
+  }
+
+  &__camera-scanner {
+    background: $color-white;
+    border-radius: $border-radius-md;
+    padding: 20px;
+    margin-top: 20px;
+  }
+
+  &__scanner-container {
+    width: 100%;
+    max-width: 500px;
+    margin: 0 auto 20px auto;
+    border-radius: $border-radius-md;
+    overflow: hidden;
+    box-shadow: $shadow-default;
+  }
+
+  &__close-scanner-btn {
+    width: 100%;
+    background: $color-primary-orange;
+    color: $color-white;
+    border: none;
+    border-radius: $border-radius-sm;
+    padding: 12px;
+    font-family: $font-family;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover {
+      background: darken($color-primary-orange, 10%);
+    }
   }
 
   &__qr-input {

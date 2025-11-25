@@ -233,6 +233,148 @@
     }
   }
 
+  // 전체 화면 로딩 레이어 팝업
+  &__loading-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 9999;
+    animation: fadeIn 0.3s ease;
+  }
+
+  &__loading-modal {
+    background: linear-gradient(135deg, #fff9e6 0%, #ffe4b3 100%);
+    border-radius: $border-radius-lg;
+    padding: 40px 30px;
+    max-width: 500px;
+    width: 90%;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.4s ease;
+  }
+
+  &__loading-content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 30px;
+  }
+
+  &__loading-pig-animation {
+    position: relative;
+    width: 150px;
+    height: 150px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  &__loading-pig {
+    width: 120px;
+    height: 120px;
+    animation: bounce 1.5s ease-in-out infinite;
+    position: relative;
+    z-index: 2;
+  }
+
+  &__loading-spinner {
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    border: 4px solid rgba($color-primary-orange, 0.2);
+    border-top: 4px solid $color-primary-orange;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+    z-index: 1;
+  }
+
+  &__loading-text {
+    text-align: center;
+
+    h2 {
+      font-family: $font-family;
+      font-size: $font-size-xlarge;
+      font-weight: $font-weight-black;
+      color: $color-black;
+      margin: 0 0 20px 0;
+      animation: pulse 2s ease-in-out infinite;
+    }
+  }
+
+  &__loading-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__loading-step {
+    font-family: $font-family;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $color-black;
+    margin: 0;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.7);
+    border-radius: $border-radius-sm;
+    animation: slideInLeft 0.5s ease forwards;
+    opacity: 0;
+
+    &:nth-child(1) {
+      animation-delay: 0.2s;
+    }
+
+    &:nth-child(2) {
+      animation-delay: 0.4s;
+    }
+
+    &:nth-child(3) {
+      animation-delay: 0.6s;
+    }
+  }
+
+  // 광고 영역
+  &__ad-container {
+    width: 100%;
+    padding: 20px;
+    background: $color-white;
+    border-radius: $border-radius-md;
+    box-shadow: $shadow-default;
+  }
+
+  &__ad-placeholder {
+    min-height: 100px;
+    border: 2px dashed $color-gray;
+    border-radius: $border-radius-sm;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 20px;
+    background: rgba($color-gray, 0.05);
+  }
+
+  &__ad-label {
+    font-family: $font-family;
+    font-size: $font-size-medium;
+    font-weight: $font-weight-semibold;
+    color: $color-gray;
+    margin: 0;
+  }
+
+  &__ad-desc {
+    font-family: $font-family;
+    font-size: $font-size-small;
+    color: $color-gray;
+    margin: 0;
+    opacity: 0.8;
+  }
+
   &__recommendations { 
     @include flex-column; 
     gap: 20px; 
@@ -258,5 +400,43 @@
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-20px);
+  }
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+
+@keyframes slideInLeft {
+  from {
+    opacity: 0;
+    transform: translateX(-20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
   }
 }

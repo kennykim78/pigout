@@ -440,6 +440,72 @@ export class FoodService {
     }
   }
 
+  // 경량 텍스트 분석: 약물/상호작용/레시피 생략, 공공데이터 + 간단 적합도만
+  async simpleAnalyzeFoodByText(foodName: string, diseases: string[] = []) {
+    try {
+      console.log('=== 경량 텍스트 분석 시작 (simple) ===');
+      console.log('음식명:', foodName);
+      console.log('질병 정보:', diseases);
+
+      // 공공데이터 조회 (영양 중심)
+      const publicData = await this.openDataService.getComprehensiveFoodData(foodName);
+      console.log('[simple] 공공데이터 조회 완료');
+
+      // Gemini 간단 적합도 분석 (Flash 모델 사용 메서드)
+      const geminiClient = await this.getGeminiClient();
+      const simpleAnalysis = await geminiClient.analyzeFoodSuitability(
+        foodName,
+        diseases,
+        publicData.nutrition.data,
+        publicData
+      );
+      console.log('[simple] Gemini 간단 분석 완료');
+
+      const score = simpleAnalysis.suitabilityScore || 60;
+      const diseaseNote = diseases.length > 0 ? `\n\n선택한 질병(${diseases.join(', ')})을 고려한 간단 분석입니다.` : '';
+      const analysis = `${simpleAnalysis.summary || foodName + ' 기본 영양 분석'}${diseaseNote}`;
+
+      const lightweightDetails = {
+        pros: simpleAnalysis.pros || [],
+        cons: simpleAnalysis.cons || [],
+        summary: simpleAnalysis.summary || analysis,
+        cookingTips: simpleAnalysis.cookingTips || [],
+        dataSources: simpleAnalysis.dataSources || publicData.dataSources || [],
+        // 경량 분석임을 표시
+        mode: 'simple',
+      };
+
+      const result = await this.supabaseService.saveFoodAnalysis({
+        foodName,
+        score,
+        analysis,
+        diseases,
+      });
+
+      const responseData = {
+        id: result[0].id,
+        foodName: result[0].food_name,
+        score: result[0].score,
+        analysis: result[0].analysis,
+        detailedAnalysis: lightweightDetails,
+        createdAt: result[0].created_at,
+      };
+
+      console.log('=== 경량 텍스트 분석 완료 (simple) ===');
+      return {
+        success: true,
+        data: responseData,
+        message: '간단 분석이 완료되었습니다.',
+      };
+    } catch (error) {
+      console.error('simpleAnalyzeFoodByText 오류:', error);
+      throw new HttpException(
+        error.message || '간단 음식 분석 중 오류가 발생했습니다.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
   async getFoodAnalysis(id: string) {
     const data = await this.supabaseService.getFoodAnalysis(id);
     return {

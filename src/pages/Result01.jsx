@@ -5,6 +5,7 @@ import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { analyzeFoodByText } from '../services/api';
 
 const imgsorce = 'https://img.bizthenaum.co.kr/data/img/1000000869/ori/1000000869_11.jpg';
 
@@ -79,31 +80,41 @@ const Result01 = () => {
     return '피하시는게\n좋겠어요';
   };
 
-  const handleDetailClick = () => {
-    console.log('=== 자세히보기 버튼 클릭 ===');
-    console.log('detailedAnalysis state:', detailedAnalysis);
-    console.log('location.state.detailedAnalysis:', location.state?.detailedAnalysis);
-    console.log('전달할 데이터:', {
-      foodName,
-      foodImage: location.state?.foodImage,
-      imageUrl: foodImage,
-      score,
-      analysis,
-      detailedAnalysis: location.state?.detailedAnalysis || detailedAnalysis,
-      analysisId,
-    });
-    
-    navigate('/result2', {
-      state: {
-        foodName,
-        foodImage: location.state?.foodImage,
-        imageUrl: foodImage,
-        score,
-        analysis,
-        detailedAnalysis: location.state?.detailedAnalysis || detailedAnalysis,
-        analysisId,
-      },
-    });
+  const [isFullLoading, setIsFullLoading] = useState(false);
+  const [fullStage, setFullStage] = useState(null); // 'collect' | 'interactions' | 'final'
+
+  const handleDetailClick = async () => {
+    if (isFullLoading) return;
+    setIsFullLoading(true);
+    try {
+      console.log('[FULL] 상세 분석 요청 시작:', foodName);
+      setFullStage('collect');
+      const fullResult = await analyzeFoodByText(foodName);
+      setFullStage('final');
+      console.log('[FULL] 상세 분석 완료:', fullResult);
+
+      const fullDetailed = fullResult.data?.detailedAnalysis || fullResult.data?.analysis || {};
+      const fullScore = fullResult.data?.score || score;
+      const fullAnalysis = fullResult.data?.analysis || analysis;
+
+      navigate('/result2', {
+        state: {
+          foodName,
+          foodImage: location.state?.foodImage,
+          imageUrl: foodImage,
+          score: fullScore,
+          analysis: fullAnalysis,
+          detailedAnalysis: fullDetailed,
+          analysisId: fullResult.data?.id || analysisId,
+        },
+      });
+    } catch (error) {
+      console.error('[FULL] 상세 분석 중 오류:', error);
+      alert('상세 분석 중 오류가 발생했습니다. 다시 시도해주세요.');
+    } finally {
+      setIsFullLoading(false);
+      setFullStage(null);
+    }
   };
 
   // 데이터가 없으면 로딩 또는 안내 표시
@@ -137,6 +148,20 @@ const Result01 = () => {
       </div>
 
       <div className="result01__content">
+        {isFullLoading && (
+          <div className="result01__full-overlay">
+            <div className="result01__full-modal">
+              <h2 className="result01__full-title">전체 심층 분석 중...</h2>
+              <div className="result01__full-steps">
+                <p className={`result01__full-step ${fullStage === 'collect' ? 'active' : ''}`}>📑 공공데이터 & 약물 정보 수집</p>
+                <p className={`result01__full-step ${fullStage === 'interactions' ? 'active' : ''}`}>🔬 성분·약물 상호작용 연산</p>
+                <p className={`result01__full-step ${fullStage === 'final' ? 'active' : ''}`}>🧠 AI 종합 정리 + 레시피</p>
+              </div>
+              <div className="result01__full-spinner"></div>
+              <p className="result01__full-tip">잠시만 기다려주세요. 한 번만 수행되며 이후 재사용됩니다.</p>
+            </div>
+          </div>
+        )}
         <div className="result01__score-section">
           <div className="result01__score-outer">
             <div className="result01__score-inner">
@@ -159,8 +184,8 @@ const Result01 = () => {
               {detailedAnalysis?.briefSummary || analysis || '분석 결과를 불러오는 중입니다...'}
             </p>
           </div>
-          <button className="result01__detail-button" onClick={handleDetailClick}>
-            자세히 보기
+          <button className="result01__detail-button" onClick={handleDetailClick} disabled={isFullLoading}>
+            {isFullLoading ? '상세 분석 중...' : '자세히 보기'}
           </button>
         </div>
 

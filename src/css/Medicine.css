@@ -165,6 +165,49 @@
 .medicine__scan-btn:hover {
   background: rgb(38.25, 38.25, 38.25);
 }
+.medicine__scan-btn--secondary {
+  background: rgb(153, 153, 153);
+  margin-top: 10px;
+}
+.medicine__scan-btn--secondary:hover {
+  background: rgb(127.5, 127.5, 127.5);
+}
+.medicine__qr-mode-buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.medicine__camera-scanner {
+  background: rgb(255, 255, 255);
+  border-radius: 30px;
+  padding: 20px;
+  margin-top: 20px;
+}
+.medicine__scanner-container {
+  width: 100%;
+  max-width: 500px;
+  margin: 0 auto 20px auto;
+  border-radius: 30px;
+  overflow: hidden;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.medicine__close-scanner-btn {
+  width: 100%;
+  background: rgb(255, 161, 0);
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 20px;
+  padding: 12px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+.medicine__close-scanner-btn:hover {
+  background: rgb(204, 128.8, 0);
+}
 .medicine__qr-input {
   margin-top: 20px;
 }
