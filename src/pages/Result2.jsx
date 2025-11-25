@@ -208,6 +208,57 @@ const Result2 = () => {
     return 'AI 분석 결과 / 식품의약품안전처 영양성분 DB';
   };
 
+  const riskFactorLabels = {
+    alcohol: '알코올',
+    highSodium: '고나트륨',
+    highPotassium: '고칼륨',
+    caffeine: '카페인',
+    citrus: '감귤류',
+    grapefruit: '자몽',
+    dairy: '유제품',
+    highFat: '고지방',
+    vitaminK: '비타민K',
+    tyramine: '티라민',
+  };
+
+  const formatRiskFactorKey = (key) => {
+    if (riskFactorLabels[key]) return riskFactorLabels[key];
+    return key
+      .replace(/([A-Z])/g, ' $1')
+      .replace(/^./, (char) => char.toUpperCase())
+      .trim();
+  };
+
+  const getRiskFactorEntries = () => {
+    if (!detailedAnalysis?.riskFactorNotes) return [];
+    const riskFactors = detailedAnalysis.riskFactors || {};
+    return Object.entries(detailedAnalysis.riskFactorNotes)
+      .filter(([, note]) => note && note.trim())
+      .map(([key, note]) => ({
+        key,
+        label: formatRiskFactorKey(key),
+        note: note.trim(),
+        active: riskFactors[key] !== false,
+      }))
+      .sort((a, b) => {
+        if (a.active === b.active) {
+          return a.label.localeCompare(b.label, 'ko');
+        }
+        return a.active ? -1 : 1;
+      });
+  };
+
+  const getSummaryParagraphs = () => {
+    const summaryText = detailedAnalysis?.summary || analysis || '';
+    return summaryText
+      .split(/\n{2,}/)
+      .map((paragraph) => paragraph.trim())
+      .filter(Boolean);
+  };
+
+  const riskFactorEntries = getRiskFactorEntries();
+  const summaryParagraphs = getSummaryParagraphs();
+
   return (
     <div className="result2">
       <div className="result2__header">
@@ -256,6 +307,42 @@ const Result2 = () => {
       </div>
 
       <div className="result2__content">
+        {riskFactorEntries.length > 0 && (
+          <div className="result2__risk-section">
+            <div className="result2__risk-header">
+              <div>
+                <p className="result2__risk-kicker">식품의약품안전처 분석 기반</p>
+                <h3>위험 성분 & 근거</h3>
+              </div>
+            </div>
+            <ul className="result2__risk-list">
+              {riskFactorEntries.map((entry) => (
+                <li
+                  key={entry.key}
+                  className={`result2__risk-item ${entry.active ? 'result2__risk-item--active' : 'result2__risk-item--inactive'}`}
+                >
+                  <div className="result2__risk-item-title">
+                    <span>{entry.label}</span>
+                    <span className={`result2__risk-chip ${entry.active ? 'result2__risk-chip--active' : ''}`}>
+                      {entry.active ? '검출됨' : '가능성 낮음'}
+                    </span>
+                  </div>
+                  <p>{entry.note}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {summaryParagraphs.length > 0 && (
+          <div className="result2__summary-section">
+            <p className="result2__summary-kicker">AI 종합 리포트</p>
+            {summaryParagraphs.map((paragraph, idx) => (
+              <p key={`summary-${idx}`}>{paragraph}</p>
+            ))}
+          </div>
+        )}
+
         <div className="result2__tips-section">
           <div className="result2__tips-header">
             <h2 className="result2__tips-title">
@@ -271,7 +358,7 @@ const Result2 = () => {
         </div>
 
         <p className="result2__source">
-          출처 : AI 분석 결과 / 식품의약품안전처 영양성분 DB
+          출처 : {getDataSources()}
         </p>
 
         <div className="result2__recommendations">

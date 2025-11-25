@@ -37,6 +37,93 @@
     p { font-family: $font-family; font-size: $font-size-medium; font-weight: $font-weight-regular; color: $color-black; line-height: 1.5; margin: 0; }
   }
   &__content { padding: 40px 0 20px; max-width: 412px; margin: 0 auto; }
+  &__risk-section {
+    @include card-base;
+    margin-bottom: 24px;
+    padding: 24px;
+    h3 {
+      font-family: $font-family;
+      font-size: $font-size-large;
+      font-weight: $font-weight-black;
+      margin: 4px 0 0;
+      color: $color-black;
+    }
+  }
+  &__risk-header { display: flex; align-items: flex-start; justify-content: space-between; }
+  &__risk-kicker {
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-semibold;
+    color: $color-primary-red;
+    margin: 0;
+  }
+  &__risk-list {
+    list-style: none;
+    padding: 0;
+    margin: 16px 0 0;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+  &__risk-item {
+    border-radius: $border-radius-md;
+    padding: 16px;
+    background: $color-white;
+    box-shadow: $shadow-default;
+    p {
+      font-family: $font-family;
+      font-size: $font-size-small;
+      line-height: 1.5;
+      color: $color-gray;
+      margin: 8px 0 0;
+    }
+    &--inactive {
+      opacity: 0.8;
+      background: lighten($color-white, 2%);
+    }
+  }
+  &__risk-item-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-family: $font-family;
+    font-size: $font-size-base;
+    font-weight: $font-weight-black;
+    color: $color-black;
+  }
+  &__risk-chip {
+    padding: 4px 10px;
+    border-radius: 999px;
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-semibold;
+    color: $color-gray;
+    background: rgba(0, 0, 0, 0.08);
+    &--active {
+      background: rgba(255, 107, 107, 0.2);
+      color: #ff3b3b;
+    }
+  }
+  &__summary-section {
+    @include card-base;
+    margin-bottom: 24px;
+    padding: 24px;
+    p {
+      font-family: $font-family;
+      font-size: $font-size-small;
+      line-height: 1.6;
+      color: $color-black;
+      margin: 0 0 12px;
+      &:last-child { margin-bottom: 0; }
+    }
+  }
+  &__summary-kicker {
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-semibold;
+    color: $color-primary-orange;
+    margin: 0 0 12px;
+  }
   &__tips-section { margin-bottom: 34px; }
   &__tips-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
   &__tips-title { font-family: $font-family; font-size: $font-size-massive; font-weight: $font-weight-black; color: $color-white; line-height: 1; margin: 0; }

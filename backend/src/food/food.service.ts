@@ -324,6 +324,7 @@ export class FoodService {
         },
         foodComponents: foodAnalysis.components || [],
         riskFactors: foodAnalysis.riskFactors || {},
+        riskFactorNotes: foodAnalysis.riskFactorNotes || {},
         dataSources: ['AI 종합 분석', '식품의약품안전처 e약은요 API', 'Gemini AI 분석', '식품안전나라 조리식품 레시피DB']
       };
       
