@@ -71,118 +71,119 @@ const Result2 = () => {
     }
   }, [location.state]);
 
-  // 분석 내용을 좋은점/나쁜점/조리법으로 분리
+  // 안좋은점 구성
   const getBadPoints = () => {
     console.log('🔴 getBadPoints 호출');
     console.log('  detailedAnalysis:', detailedAnalysis);
-    console.log('  detailedAnalysis?.cons:', detailedAnalysis?.cons);
     
-    const badPoints = [];
+    const sections = [];
     
-    // 1. AI가 판단한 약물 상호작용 경고 (AI 분석 결과 사용)
+    // 1. AI가 분석한 음식과 질병의 안좋은점 (badPoints)
+    if (detailedAnalysis?.badPoints && Array.isArray(detailedAnalysis.badPoints) && detailedAnalysis.badPoints.length > 0) {
+      sections.push('【 음식과 질병의 안좋은 점 】');
+      detailedAnalysis.badPoints.forEach((point, idx) => {
+        sections.push(`${idx + 1}. ${point}`);
+      });
+      sections.push('');
+    }
+    
+    // 2. 복용중인 약과의 상관관계 (음식 중심, 약 자체 설명 제외)
     if (detailedAnalysis?.medicalAnalysis?.drug_food_interactions) {
       const interactions = detailedAnalysis.medicalAnalysis.drug_food_interactions;
       const dangerDrugs = interactions.filter(d => d.risk_level === 'danger');
       const cautionDrugs = interactions.filter(d => d.risk_level === 'caution');
       
-      if (dangerDrugs.length > 0) {
-        badPoints.push(`🚨 복용 중인 약물과의 위험한 상호작용:`);
-        dangerDrugs.forEach((drug, idx) => {
-          // AI가 분석한 매칭된 성분
-          const matchedComponents = drug.matched_components || [];
-          const componentInfo = matchedComponents.length > 0 ? ` [${matchedComponents.join(', ')}]` : '';
-          
-          badPoints.push(`\n${idx + 1}. ${drug.medicine_name}${componentInfo}`);
-          if (drug.interaction_description) {
-            badPoints.push(`   ⚠️ ${drug.interaction_description}`);
-          }
-          if (drug.evidence_from_public_data) {
-            badPoints.push(`   📌 ${drug.evidence_from_public_data}`);
-          }
-          if (drug.recommendation) {
-            badPoints.push(`   💡 ${drug.recommendation}`);
-          }
-        });
-        badPoints.push('');
-      }
-      
-      if (cautionDrugs.length > 0) {
-        badPoints.push(`⚡ 복용 중인 약물 주의사항:`);
-        cautionDrugs.forEach((drug, idx) => {
-          const matchedComponents = drug.matched_components || [];
-          const componentInfo = matchedComponents.length > 0 ? ` [${matchedComponents.join(', ')}]` : '';
-          
-          badPoints.push(`\n${idx + 1}. ${drug.medicine_name}${componentInfo}`);
-          if (drug.interaction_description) {
-            badPoints.push(`   → ${drug.interaction_description}`);
-          }
-          if (drug.recommendation) {
-            badPoints.push(`   💡 ${drug.recommendation}`);
-          }
-        });
-        badPoints.push('');
+      if (dangerDrugs.length > 0 || cautionDrugs.length > 0) {
+        sections.push('【 복용중인 약과의 상관관계 】');
+        
+        if (dangerDrugs.length > 0) {
+          sections.push('🚨 위험 (절대 주의):');
+          dangerDrugs.forEach((drug, idx) => {
+            const components = drug.matched_components?.join(', ') || '';
+            sections.push(`\n${idx + 1}. ${drug.medicine_name}${components ? ` [${components}]` : ''}`);
+            if (drug.interaction_description) {
+              sections.push(`   ${drug.interaction_description}`);
+            }
+            if (drug.recommendation) {
+              sections.push(`   💡 ${drug.recommendation}`);
+            }
+          });
+          sections.push('');
+        }
+        
+        if (cautionDrugs.length > 0) {
+          sections.push('⚠️ 주의:');
+          cautionDrugs.forEach((drug, idx) => {
+            const components = drug.matched_components?.join(', ') || '';
+            sections.push(`\n${idx + 1}. ${drug.medicine_name}${components ? ` [${components}]` : ''}`);
+            if (drug.interaction_description) {
+              sections.push(`   ${drug.interaction_description}`);
+            }
+            if (drug.recommendation) {
+              sections.push(`   💡 ${drug.recommendation}`);
+            }
+          });
+          sections.push('');
+        }
       }
     }
     
-    // 2. AI가 분석한 일반 나쁜점 (finalAnalysis.badPoints)
-    if (detailedAnalysis && detailedAnalysis.cons && Array.isArray(detailedAnalysis.cons) && detailedAnalysis.cons.length > 0) {
-      console.log('✅ cons 배열 발견, 길이:', detailedAnalysis.cons.length);
-      const consStart = badPoints.length > 0 ? badPoints.length : 0;
-      detailedAnalysis.cons.forEach((con, idx) => {
-        badPoints.push(`${consStart + idx + 1}. ${con}`);
-      });
+    // 3. AI 분석과 약 상관관계 합한 총평
+    if (detailedAnalysis?.summary) {
+      sections.push('【 종합 평가 】');
+      sections.push(detailedAnalysis.summary);
     }
     
-    if (badPoints.length > 0) {
-      return badPoints.join('\n');
+    if (sections.length > 0) {
+      return sections.join('\n');
     }
     
-    console.log('⚠️ cons 배열 없음, 기본 텍스트 반환');
-    if (score < 70) {
-      return `${foodName}은(는) 주의가 필요한 음식입니다.\n\n${analysis}`;
-    }
-    return '특별히 주의할 점은 없습니다.';
+    return '특별히 주의할 점은 발견되지 않았습니다.';
   };
 
+  // 좋은점 구성
   const getGoodPoints = () => {
     console.log('🟢 getGoodPoints 호출');
     console.log('  detailedAnalysis:', detailedAnalysis);
-    console.log('  detailedAnalysis?.pros:', detailedAnalysis?.pros);
     
-    const goodPoints = [];
+    const sections = [];
     
-    // 1. 안전한 약물 상호작용 정보 (AI 분석 결과)
+    // 1. AI가 분석한 음식과 질병의 좋은점 (goodPoints)
+    if (detailedAnalysis?.goodPoints && Array.isArray(detailedAnalysis.goodPoints) && detailedAnalysis.goodPoints.length > 0) {
+      sections.push('【 음식과 질병의 좋은 점 】');
+      detailedAnalysis.goodPoints.forEach((point, idx) => {
+        sections.push(`${idx + 1}. ${point}`);
+      });
+      sections.push('');
+    }
+    
+    // 2. 복용중인 약과의 시너지 효과
     if (detailedAnalysis?.medicalAnalysis?.drug_food_interactions) {
       const safeDrugs = detailedAnalysis.medicalAnalysis.drug_food_interactions
-        .filter(d => d.risk_level === 'safe');
+        .filter(d => d.risk_level === 'safe' && d.interaction_description);
       
       if (safeDrugs.length > 0) {
-        goodPoints.push('✅ 복용 중인 약물과 안전:');
+        sections.push('【 복용중인 약과의 시너지 효과 】');
         safeDrugs.forEach((drug, idx) => {
-          const desc = drug.interaction_description || '특별한 상호작용 없음';
-          goodPoints.push(`${idx + 1}. ${drug.medicine_name} - ${desc}`);
+          sections.push(`${idx + 1}. ${drug.medicine_name}`);
+          if (drug.interaction_description) {
+            sections.push(`   ${drug.interaction_description}`);
+          }
         });
-        goodPoints.push('');
+        sections.push('');
       }
     }
     
-    // 2. AI가 분석한 일반 좋은점 (finalAnalysis.goodPoints)
-    if (detailedAnalysis && detailedAnalysis.pros && Array.isArray(detailedAnalysis.pros) && detailedAnalysis.pros.length > 0) {
-      console.log('✅ pros 배열 발견, 길이:', detailedAnalysis.pros.length);
-      const prosStart = goodPoints.length > 0 ? goodPoints.length : 0;
-      detailedAnalysis.pros.forEach((pro, idx) => {
-        goodPoints.push(`${prosStart + idx + 1}. ${pro}`);
-      });
+    // 3. 상위 두가지 합한 총평
+    if (detailedAnalysis?.summary && score >= 70) {
+      sections.push('【 종합 평가 】');
+      sections.push(`이 음식은 전반적으로 건강에 도움이 되며, 복용중인 약과도 큰 문제가 없습니다. ${detailedAnalysis.summary}`);
     }
     
-    if (goodPoints.length > 0) {
-      return goodPoints.join('\n');
+    if (sections.length > 0) {
+      return sections.join('\n');
     }
     
-    console.log('⚠️ pros 배열 없음, 기본 텍스트 반환');
-    if (score >= 70) {
-      return `${foodName}은(는) 건강에 좋은 선택입니다.\n\n${analysis}`;
-    }
     return '균형 잡힌 식단의 일부로 적당히 섭취하세요.';
   };
 
