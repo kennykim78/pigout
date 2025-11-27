@@ -5,7 +5,7 @@ import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { simpleAnalyzeFoodWithImage, simpleAnalyzeFoodByText } from '../services/api';
+import { simpleAnalyzeFoodWithImage, simpleAnalyzeFoodByText, API_BASE_URL } from '../services/api';
 
 const Main = () => {
   const fileInputRef = useRef(null);
@@ -44,7 +44,7 @@ const Main = () => {
         
         console.log('AI로 음식명 추출 시작...');
         // AI로 음식명 추출 (간단한 분석)
-        const response = await fetch('http://localhost:3001/api/food/quick-analyze', {
+        const response = await fetch(`${API_BASE_URL}/food/quick-analyze`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({ imageBase64: base64Image.split(',')[1] })
