@@ -440,41 +440,68 @@ export class FoodService {
     }
   }
 
-  // 경량 텍스트 분석: 약물/상호작용/레시피 생략, 공공데이터 + 간단 적합도만
+  // 경량 텍스트 분석: 공공데이터 없이 순수 AI 지식만으로 빠른 분석
   async simpleAnalyzeFoodByText(foodName: string, diseases: string[] = []) {
     try {
-      console.log('=== 경량 텍스트 분석 시작 (simple) ===');
+      console.log('=== 순수 AI 빠른 분석 시작 ===');
       console.log('음식명:', foodName);
       console.log('질병 정보:', diseases);
 
-      // 공공데이터 조회 (영양 중심)
-      const publicData = await this.openDataService.getComprehensiveFoodData(foodName);
-      console.log('[simple] 공공데이터 조회 완료');
+      // 고정된 사용자 ID (실제로는 인증에서 가져와야 함)
+      const userId = '00000000-0000-0000-0000-000000000000';
+      
+      // 사용자 복용 약물 목록 조회 (간단히 이름만)
+      const supabase = this.supabaseService.getClient();
+      const { data: medicines } = await supabase
+        .from('medicine_records')
+        .select('name')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+      
+      const medicineNames = (medicines || []).map((m: any) => m.name);
+      console.log('[순수AI] 복용 약물:', medicineNames);
 
-      // Gemini 간단 적합도 분석 (Flash 모델 사용 메서드)
+      // Gemini AI로 순수 지식 기반 빠른 분석 (공공데이터 조회 없음!)
       const geminiClient = await this.getGeminiClient();
-      const simpleAnalysis = await geminiClient.analyzeFoodSuitability(
+      const aiAnalysis = await geminiClient.quickAIAnalysis(
         foodName,
         diseases,
-        publicData.nutrition.data,
-        publicData
+        medicineNames
       );
-      console.log('[simple] Gemini 간단 분석 완료');
+      console.log('[순수AI] Gemini 분석 완료');
 
-      const score = simpleAnalysis.suitabilityScore || 60;
-      const diseaseNote = diseases.length > 0 ? `\n\n선택한 질병(${diseases.join(', ')})을 고려한 간단 분석입니다.` : '';
-      const analysis = `${simpleAnalysis.summary || foodName + ' 기본 영양 분석'}${diseaseNote}`;
+      const score = aiAnalysis.suitabilityScore || 60;
+      
+      // 종합 분석 텍스트 생성 (pros, cons 포함)
+      const prosText = (aiAnalysis.pros || []).length > 0 
+        ? `\n\n✅ 좋은 점:\n${aiAnalysis.pros.map((p: string) => `• ${p}`).join('\n')}`
+        : '';
+      const consText = (aiAnalysis.cons || []).length > 0
+        ? `\n\n⚠️ 주의할 점:\n${aiAnalysis.cons.map((c: string) => `• ${c}`).join('\n')}`
+        : '';
+      const warningsText = (aiAnalysis.warnings || []).length > 0
+        ? `\n\n🚨 경고:\n${aiAnalysis.warnings.map((w: string) => `• ${w}`).join('\n')}`
+        : '';
+      const expertText = aiAnalysis.expertAdvice 
+        ? `\n\n💊 전문가 조언:\n${aiAnalysis.expertAdvice}`
+        : '';
+      
+      const analysis = `${aiAnalysis.summary || foodName + ' 분석 결과'}${prosText}${consText}${warningsText}${expertText}`;
 
+      // 경량 결과 구성 (공공데이터 출처 없음)
       const lightweightDetails = {
-        pros: simpleAnalysis.pros || [],
-        cons: simpleAnalysis.cons || [],
-        summary: simpleAnalysis.summary || analysis,
-        cookingTips: simpleAnalysis.cookingTips || [],
-        dataSources: simpleAnalysis.dataSources || publicData.dataSources || [],
-        // 경량 분석임을 표시
-        mode: 'simple',
+        pros: aiAnalysis.pros || [],
+        cons: aiAnalysis.cons || [],
+        summary: aiAnalysis.summary || analysis,
+        cookingTips: aiAnalysis.cookingTips || [],
+        warnings: aiAnalysis.warnings || [],
+        expertAdvice: aiAnalysis.expertAdvice || '',
+        // 공공데이터 미사용 표시
+        dataSources: ['AI 전문가 분석 (Gemini)'],
+        mode: 'quick-ai',
       };
 
+      // DB 저장
       const result = await this.supabaseService.saveFoodAnalysis({
         foodName,
         score,
@@ -491,16 +518,150 @@ export class FoodService {
         createdAt: result[0].created_at,
       };
 
-      console.log('=== 경량 텍스트 분석 완료 (simple) ===');
+      console.log('=== 순수 AI 빠른 분석 완료 ===');
       return {
         success: true,
         data: responseData,
-        message: '간단 분석이 완료되었습니다.',
+        message: 'AI 빠른 분석이 완료되었습니다.',
       };
     } catch (error) {
       console.error('simpleAnalyzeFoodByText 오류:', error);
       throw new HttpException(
-        error.message || '간단 음식 분석 중 오류가 발생했습니다.',
+        error.message || '빠른 음식 분석 중 오류가 발생했습니다.',
+        HttpStatus.INTERNAL_SERVER_ERROR,
+      );
+    }
+  }
+
+  // 이미지 포함 빠른 AI 분석 (공공데이터 없음) - Result01용
+  async simpleAnalyzeFood(foodName: string, image?: Express.Multer.File, diseases: string[] = []) {
+    try {
+      console.log('=== 이미지 포함 빠른 AI 분석 시작 ===');
+      let imageUrl = null;
+      let actualFoodName = foodName;
+
+      // 이미지가 있으면 업로드 및 음식명 추출만
+      if (image) {
+        try {
+          const fileExtension = image.originalname.split('.').pop() || 'jpg';
+          const safeFileName = `${Date.now()}-${Math.random().toString(36).substring(7)}.${fileExtension}`;
+          const uploadResult = await this.supabaseService.uploadImage(
+            image.buffer,
+            safeFileName,
+          );
+          imageUrl = uploadResult.publicUrl;
+          console.log('[simpleAnalyze] 이미지 업로드 성공:', imageUrl);
+
+          // AI로 음식명만 추출 (빠르게)
+          const imageBase64 = image.buffer.toString('base64');
+          const geminiClient = await this.getGeminiClient();
+          const visionResult = await geminiClient.analyzeImageForFood(imageBase64);
+          
+          if (!visionResult.isValid) {
+            throw new HttpException(
+              visionResult.rejectReason || '촬영하신 이미지가 음식이나, 약품, 건강보조제가 아닙니다.',
+              HttpStatus.BAD_REQUEST,
+            );
+          }
+          
+          // foodName이 비어있으면 AI 추출 사용, 아니면 사용자 입력 우선
+          if (!foodName || foodName.trim() === '') {
+            actualFoodName = visionResult.itemName;
+          }
+          console.log('[simpleAnalyze] 최종 음식명:', actualFoodName);
+        } catch (uploadError) {
+          if (uploadError instanceof HttpException) {
+            throw uploadError;
+          }
+          console.warn('[simpleAnalyze] 이미지 처리 실패 (계속 진행):', uploadError.message);
+        }
+      }
+
+      console.log('[simpleAnalyze] 음식명:', actualFoodName);
+      console.log('[simpleAnalyze] 질병:', diseases);
+
+      // 사용자 복용 약물 목록 조회
+      const userId = '00000000-0000-0000-0000-000000000000';
+      const supabase = this.supabaseService.getClient();
+      const { data: medicines } = await supabase
+        .from('medicine_records')
+        .select('name')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+      
+      const medicineNames = (medicines || []).map((m: any) => m.name);
+      console.log('[simpleAnalyze] 복용 약물:', medicineNames);
+
+      // 순수 AI 분석 (공공데이터 조회 없음!)
+      const geminiClient = await this.getGeminiClient();
+      const aiAnalysis = await geminiClient.quickAIAnalysis(
+        actualFoodName,
+        diseases,
+        medicineNames
+      );
+      console.log('[simpleAnalyze] AI 분석 완료');
+
+      const score = aiAnalysis.suitabilityScore || 60;
+      
+      // 종합 분석 텍스트 생성 (pros, cons 포함)
+      const prosText = (aiAnalysis.pros || []).length > 0 
+        ? `\n\n✅ 좋은 점:\n${aiAnalysis.pros.map((p: string) => `• ${p}`).join('\n')}`
+        : '';
+      const consText = (aiAnalysis.cons || []).length > 0
+        ? `\n\n⚠️ 주의할 점:\n${aiAnalysis.cons.map((c: string) => `• ${c}`).join('\n')}`
+        : '';
+      const warningsText = (aiAnalysis.warnings || []).length > 0
+        ? `\n\n🚨 경고:\n${aiAnalysis.warnings.map((w: string) => `• ${w}`).join('\n')}`
+        : '';
+      const expertText = aiAnalysis.expertAdvice 
+        ? `\n\n💊 전문가 조언:\n${aiAnalysis.expertAdvice}`
+        : '';
+      
+      const analysis = `${aiAnalysis.summary || actualFoodName + ' 분석 결과'}${prosText}${consText}${warningsText}${expertText}`;
+
+      const lightweightDetails = {
+        pros: aiAnalysis.pros || [],
+        cons: aiAnalysis.cons || [],
+        summary: aiAnalysis.summary || analysis,
+        cookingTips: aiAnalysis.cookingTips || [],
+        warnings: aiAnalysis.warnings || [],
+        expertAdvice: aiAnalysis.expertAdvice || '',
+        dataSources: ['AI 전문가 분석 (Gemini)'],
+        mode: 'quick-ai',
+      };
+
+      // DB 저장
+      const result = await this.supabaseService.saveFoodAnalysis({
+        foodName: actualFoodName,
+        imageUrl,
+        score,
+        analysis,
+        diseases,
+      });
+
+      const responseData = {
+        id: result[0].id,
+        foodName: result[0].food_name,
+        imageUrl: result[0].image_url,
+        score: result[0].score,
+        analysis: result[0].analysis,
+        detailedAnalysis: lightweightDetails,
+        createdAt: result[0].created_at,
+      };
+
+      console.log('=== 이미지 포함 빠른 AI 분석 완료 ===');
+      return {
+        success: true,
+        data: responseData,
+        message: 'AI 빠른 분석이 완료되었습니다.',
+      };
+    } catch (error) {
+      console.error('simpleAnalyzeFood 오류:', error);
+      if (error instanceof HttpException) {
+        throw error;
+      }
+      throw new HttpException(
+        error.message || '빠른 음식 분석 중 오류가 발생했습니다.',
         HttpStatus.INTERNAL_SERVER_ERROR,
       );
     }

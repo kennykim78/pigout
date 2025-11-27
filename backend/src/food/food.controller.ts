@@ -6,6 +6,7 @@ import { FoodService } from './food.service';
 export class FoodController {
   constructor(private readonly foodService: FoodService) {}
 
+  // 전체 분석 (공공데이터 포함) - 자세히 보기용
   @Post('analyze')
   @UseInterceptors(FileInterceptor('image'))
   async analyzeFood(
@@ -23,6 +24,7 @@ export class FoodController {
     return this.foodService.getFoodAnalysis(id);
   }
 
+  // 전체 텍스트 분석 (공공데이터 포함) - 자세히 보기용
   @Post('text-analyze')
   async analyzeFoodByText(
     @Body('foodName') foodName: string,
@@ -31,13 +33,25 @@ export class FoodController {
     return this.foodService.analyzeFoodByText(foodName, diseases || []);
   }
 
-  // 경량 텍스트 분석 (빠른 저장용 - 영양/간단 요약만)
+  // 빠른 AI 분석 (공공데이터 없음) - Result01용
   @Post('simple-text-analyze')
   async simpleTextAnalyze(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases?: string[],
   ) {
     return this.foodService.simpleAnalyzeFoodByText(foodName, diseases || []);
+  }
+
+  // 빠른 이미지+AI 분석 (공공데이터 없음) - Result01용
+  @Post('simple-analyze')
+  @UseInterceptors(FileInterceptor('image'))
+  async simpleAnalyzeFood(
+    @Body('foodName') foodName: string,
+    @Body('diseases') diseases: string,
+    @UploadedFile() image?: Express.Multer.File,
+  ) {
+    const diseasesArray = diseases ? JSON.parse(diseases) : [];
+    return this.foodService.simpleAnalyzeFood(foodName, image, diseasesArray);
   }
 
   @Post('quick-analyze')

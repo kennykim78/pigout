@@ -13,9 +13,8 @@ const apiClient = axios.create({
 // 음식 분석 API
 // ============================================
 
-// 음식 분석 (이미지 포함)
+// 전체 분석 (이미지 포함, 공공데이터 포함) - 자세히 보기용
 export const analyzeFoodWithImage = async (foodName: string, imageFile: File) => {
-  // localStorage에서 선택된 질병 정보 가져오기
   const savedDiseases = localStorage.getItem('selectedDiseases');
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
 
@@ -34,9 +33,8 @@ export const analyzeFoodWithImage = async (foodName: string, imageFile: File) =>
   return response.data;
 };
 
-// 음식 분석 (텍스트만)
+// 전체 분석 (텍스트만, 공공데이터 포함) - 자세히 보기용
 export const analyzeFoodByText = async (foodName: string) => {
-  // localStorage에서 선택된 질병 정보 가져오기
   const savedDiseases = localStorage.getItem('selectedDiseases');
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
 
@@ -49,11 +47,32 @@ export const analyzeFoodByText = async (foodName: string) => {
   return response.data;
 };
 
-// 경량 텍스트 음식 분석 (빠른 저장용)
+// 빠른 AI 분석 (텍스트만, 공공데이터 없음) - Result01용
 export const simpleAnalyzeFoodByText = async (foodName: string) => {
   const savedDiseases = localStorage.getItem('selectedDiseases');
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
   const response = await apiClient.post('/food/simple-text-analyze', { foodName, diseases });
+  console.log('API 응답 (simpleAnalyzeFoodByText):', response.data);
+  return response.data;
+};
+
+// 빠른 AI 분석 (이미지 포함, 공공데이터 없음) - Result01용
+export const simpleAnalyzeFoodWithImage = async (foodName: string, imageFile: File) => {
+  const savedDiseases = localStorage.getItem('selectedDiseases');
+  const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
+
+  const formData = new FormData();
+  formData.append('foodName', foodName);
+  formData.append('image', imageFile);
+  formData.append('diseases', JSON.stringify(diseases));
+
+  const response = await apiClient.post('/food/simple-analyze', formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  });
+
+  console.log('API 응답 (simpleAnalyzeFoodWithImage):', response.data);
   return response.data;
 };
 
