@@ -1,5 +1,6 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
+import { canUseApi, recordApiUsage } from '../../utils/api-usage-monitor';
 
 type PillIdentificationParams = {
   itemName?: string;
@@ -169,11 +170,18 @@ export class ExternalApiClient {
 
   /**
    * 식약처 의약품 개요정보 조회 (e약은요) - 성공한 API
+   * API 사용량 모니터링 적용
    * @param medicineName 의약품명
    * @param numOfRows 조회할 행 수 (기본 20)
    */
   async getMedicineInfo(medicineName: string, numOfRows: number = 20): Promise<any> {
     try {
+      // API 사용량 체크 - 한도 초과 시 빈 배열 반환 (AI가 대체)
+      if (!canUseApi('eDrugApi')) {
+        console.log(`[e약은요] 일일 한도 초과 - AI 분석으로 대체`);
+        return [];
+      }
+      
       if (!this.SERVICE_KEY) {
         console.warn('[e약은요] MFDS_API_KEY 미설정 - Mock 데이터 사용');
         return this.generateMockMedicines(medicineName);
@@ -197,6 +205,8 @@ export class ExternalApiClient {
       });
 
       if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
+        // API 호출 성공 시 사용량 기록
+        recordApiUsage('eDrugApi', 1);
         console.log(`[e약은요] ${response.data.body.totalCount}건 검색됨`);
         return response.data.body.items;
       }
@@ -439,10 +449,17 @@ export class ExternalApiClient {
   /**
    * 조리식품 레시피 정보 조회 (COOKRCP01) - 성공한 API
    * 영양성분 정보(칼로리, 나트륨, 탄수화물, 단백질, 지방) 포함
+   * API 사용량 모니터링 적용
    * @param foodName 음식명
    */
   async getRecipeInfo(foodName: string): Promise<any> {
     try {
+      // API 사용량 체크 - 한도 초과 시 빈 배열 반환 (AI가 대체)
+      if (!canUseApi('recipeApi')) {
+        console.log(`[레시피DB] 일일 한도 초과 - AI 분석으로 대체`);
+        return [];
+      }
+      
       if (!this.RECIPE_KEY) {
         console.warn('[레시피DB] RECIPE_DB_API_KEY 미설정 - 빈 결과 반환');
         return [];
@@ -459,6 +476,9 @@ export class ExternalApiClient {
       });
 
       if (response.data?.COOKRCP01?.RESULT?.CODE === 'INFO-000') {
+        // API 호출 성공 시 사용량 기록
+        recordApiUsage('recipeApi', 1);
+        
         const allRecipes = response.data.COOKRCP01.row || [];
         
         // 음식명으로 필터링

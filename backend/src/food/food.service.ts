@@ -254,67 +254,49 @@ export class FoodService {
       
       console.log(`\n[1단계] 복용 약물: ${medicines?.length || 0}개`);
       
-      // 2단계: e약은요 API로 각 약물의 상세 정보 조회
+      // 2단계: e약은요 API로 각 약물의 상세 정보 조회 (핵심 API만 사용)
+      // - 낱알식별, 허가정보 API 제거 (중복 + API 사용량 절약)
+      // - e약은요에 주의사항, 상호작용, 효능 모두 포함됨
       const drugDetailsPromises = (medicines || []).map(async (medicine: any) => {
-        const [info, pillInfo, approvalInfo] = await Promise.all([
-          this.externalApiClient.getMedicineInfo(medicine.name, 5),
-          this.externalApiClient.getPillIdentificationInfo({ itemName: medicine.name, numOfRows: 3 }),
-          this.externalApiClient.getDrugApprovalInfo({ itemName: medicine.name, numOfRows: 3 }),
-        ]);
+        try {
+          const info = await this.externalApiClient.getMedicineInfo(medicine.name, 3);
+          const publicData = Array.isArray(info) && info.length > 0 ? info[0] : null;
 
-        const publicData = Array.isArray(info) && info.length > 0 ? info[0] : null;
-        const pillData = Array.isArray(pillInfo) && pillInfo.length > 0 ? pillInfo[0] : null;
-        const approvalData = Array.isArray(approvalInfo) && approvalInfo.length > 0 ? approvalInfo[0] : null;
-
-        return {
-          name: medicine.name,
-          userMedicineId: medicine.id,
-          publicData,
-          pillIdentification: pillData,
-          productApproval: approvalData,
-        };
+          return {
+            name: medicine.name,
+            userMedicineId: medicine.id,
+            publicData,
+            // API 소진 시 AI가 대체할 수 있도록 플래그 추가
+            dataSource: publicData ? 'e약은요' : 'AI분석필요',
+          };
+        } catch (error) {
+          console.warn(`[e약은요] ${medicine.name} 조회 실패, AI가 대체 분석:`, error.message);
+          return {
+            name: medicine.name,
+            userMedicineId: medicine.id,
+            publicData: null,
+            dataSource: 'AI분석필요',
+          };
+        }
       });
       
       const drugDetails = await Promise.all(drugDetailsPromises);
-      console.log(`\n[2단계] 공공데이터 조회 완료 (e약은요 + 낱알식별 + 허가정보)`);
+      const apiSuccessCount = drugDetails.filter(d => d.dataSource === 'e약은요').length;
+      const aiNeededCount = drugDetails.filter(d => d.dataSource === 'AI분석필요').length;
+      console.log(`\n[2단계] 약물 정보 조회 완료 (e약은요: ${apiSuccessCount}개, AI대체필요: ${aiNeededCount}개)`);
 
-      // 추가 식약처/심평원 데이터 로드 (식품영양, 건강기능식품, 질병 정보)
-      console.log(`\n[보강 데이터] 식품영양성분 / 건강기능식품 / 질병정보 조회 중...`);
-      const diseaseInfoPromises = (diseases || []).map((disease) =>
-        this.externalApiClient.getDiseaseNameCodeList({ keyword: disease, numOfRows: 5 })
-      );
-
-      const [nutritionRows, healthFoodRows, diseaseInfoRows] = await Promise.all([
-        this.externalApiClient.getFoodNutritionPublicData({ foodName, numOfRows: 5 }),
-        this.externalApiClient.getHealthFunctionalFoodList({ productName: foodName, numOfRows: 5 }),
-        Promise.all(diseaseInfoPromises),
-      ]);
-
-      const diseaseInfoDataset = (diseases || []).map((name, index) => ({
-        disease: name,
-        items: diseaseInfoRows[index] || [],
-      }));
-
+      // [API 최적화] 식품영양/건강기능식품/질병정보 API 제거
+      // - 사유: API 사용량 절약 (무료 1,000건 제한)
+      // - 대안: AI가 일반 지식으로 분석 (Gemini가 영양정보 충분히 알고 있음)
+      // - e약은요 API만 유지 (약물 상호작용은 정확한 데이터 필요)
+      console.log(`\n[보강 데이터] API 미호출 - AI 지식 기반 분석으로 대체`);
+      
+      // AI에게 전달할 컨텍스트 (API 대신 빈 데이터)
       const supplementalPublicData = {
-        nutrition: {
-          source: '식품의약품안전처 식품영양성분DB',
-          items: nutritionRows || [],
-        },
-        healthFunctionalFoods: {
-          source: '식품의약품안전처 건강기능식품정보',
-          items: healthFoodRows || [],
-        },
-        diseaseInfo: {
-          source: '건강보험심사평가원 질병정보서비스',
-          items: diseaseInfoDataset,
-        },
+        nutrition: { source: 'AI 지식 기반', items: [] },
+        healthFunctionalFoods: { source: 'AI 지식 기반', items: [] },
+        diseaseInfo: { source: 'AI 지식 기반', items: [] },
       };
-
-      console.log('[보강 데이터] 결과:', {
-        nutritionCount: supplementalPublicData.nutrition.items?.length || 0,
-        healthFunctionalCount: supplementalPublicData.healthFunctionalFoods.items?.length || 0,
-        diseaseHitCount: diseaseInfoDataset.filter(entry => entry.items && entry.items.length > 0).length,
-      });
       
       // 3단계: Gemini AI로 음식 성분 분석
       const geminiClient = await this.getGeminiClient();
@@ -365,22 +347,19 @@ export class FoodService {
       
       // 7단계: 상세 분석 데이터 구성
       const dataSourceSet = new Set<string>([
-        'AI 종합 분석',
-        '식품의약품안전처 e약은요 API',
-        '식품의약품안전처 의약품 낱알식별 정보',
-        '식품의약품안전처 의약품 제품 허가정보',
+      // 7단계: 데이터 소스 정리 (사용한 API만 표시)
+      const dataSourceSet = new Set<string>([
         'Gemini AI 분석',
-        '식품안전나라 조리식품 레시피DB',
       ]);
-
-      if ((supplementalPublicData.nutrition.items || []).length) {
-        dataSourceSet.add('식품의약품안전처 식품영양성분DB');
+      
+      // e약은요 API 성공한 경우만 출처 추가
+      if (apiSuccessCount > 0) {
+        dataSourceSet.add('식품의약품안전처 e약은요 API');
       }
-      if ((supplementalPublicData.healthFunctionalFoods.items || []).length) {
-        dataSourceSet.add('식품의약품안전처 건강기능식품정보');
-      }
-      if (diseaseInfoDataset.some(entry => entry.items && entry.items.length > 0)) {
-        dataSourceSet.add('건강보험심사평가원 질병정보서비스');
+      
+      // 레시피 데이터 사용한 경우
+      if (healthyRecipes && healthyRecipes.length > 0) {
+        dataSourceSet.add('식품안전나라 조리식품 레시피DB');
       }
 
       const detailedAnalysis: any = {
@@ -395,7 +374,11 @@ export class FoodService {
         riskFactors: foodAnalysis.riskFactors || {},
         riskFactorNotes: foodAnalysis.riskFactorNotes || {},
         publicDatasets: supplementalPublicData,
-        dataSources: Array.from(dataSourceSet)
+        dataSources: Array.from(dataSourceSet),
+        // API 사용 현황 추가
+        apiUsage: {
+          eDrugApi: { used: apiSuccessCount, aiReplaced: aiNeededCount },
+        }
       };
       
       console.log('\n[7단계] 최종 결과 정리 완료');
