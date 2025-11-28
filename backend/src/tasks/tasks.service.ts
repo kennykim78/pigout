@@ -29,15 +29,16 @@ export class TasksService {
   }
 
   /**
-   * 매주 일요일 새벽 4시에 만료된 캐시 정리
+   * 매월 1일 새벽 4시 (한국 시간 기준)에 만료된 캐시 정리
    * UTC 기준으로 19시 = KST 04시
+   * 사전 캐싱(03시) 완료 후 1시간 뒤 실행
    */
-  @Cron('0 19 * * 0', {
+  @Cron('0 19 1 * *', {
     name: 'cleanup-cache',
     timeZone: 'UTC',
   })
   async handleCleanupCron() {
-    this.logger.log('🧹 [스케줄러] 만료된 캐시 정리 시작');
+    this.logger.log('🧹 [스케줄러] 월간 만료 캐시 정리 시작 (매월 1일 KST 04:00)');
     
     try {
       const client = this.supabaseService.getClient();
