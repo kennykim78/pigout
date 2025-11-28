@@ -14,6 +14,7 @@ const apiClient = axios.create({
 apiClient.interceptors.request.use((config) => {
   const deviceId = getDeviceId();
   config.headers['X-Device-Id'] = deviceId;
+  console.log('[API Request]', config.method?.toUpperCase(), config.url, '| Device ID:', deviceId);
   return config;
 });
 

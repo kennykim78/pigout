@@ -26,11 +26,22 @@ const Main = () => {
   useEffect(() => {
     const checkMedicines = async () => {
       try {
+        const deviceId = localStorage.getItem('pigout_device_id');
+        console.log('[Main] 현재 Device ID:', deviceId);
+        
         const medicines = await getMyMedicines(true);
         console.log('[Main] 복용 중인 약 목록:', medicines);
+        console.log('[Main] 약 개수:', Array.isArray(medicines) ? medicines.length : 0);
+        
+        // 약 이름 목록 출력
+        if (Array.isArray(medicines) && medicines.length > 0) {
+          console.log('[Main] 약 이름들:', medicines.map(m => m.name || m.itemName).join(', '));
+        }
+        
         setSavedMedicinesCount(Array.isArray(medicines) ? medicines.length : 0);
       } catch (error) {
         console.error('[Main] 약 목록 조회 실패:', error);
+        console.error('[Main] 에러 상세:', error.response?.data || error.message);
         setSavedMedicinesCount(0);
       }
     };
