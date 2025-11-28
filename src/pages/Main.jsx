@@ -5,9 +5,9 @@ import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import NoMedicineAlertModal from '../components/NoMedicineAlertModal';
 import ImageSourceModal from '../components/ImageSourceModal';
-import { useRef, useState } from 'react';
+import { useRef, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { simpleAnalyzeFoodWithImage, simpleAnalyzeFoodByText, API_BASE_URL } from '../services/api';
+import { simpleAnalyzeFoodWithImage, simpleAnalyzeFoodByText, getMyMedicines, API_BASE_URL } from '../services/api';
 
 const Main = () => {
   const cameraInputRef = useRef(null);
@@ -19,7 +19,23 @@ const Main = () => {
   const [isLoading, setIsLoading] = useState(false);
   const [showNoMedicineModal, setShowNoMedicineModal] = useState(false);
   const [showImageSourceModal, setShowImageSourceModal] = useState(false);
+  const [savedMedicinesCount, setSavedMedicinesCount] = useState(0);
   const navigate = useNavigate();
+
+  // 페이지 로드 시 복용 중인 약 개수 확인
+  useEffect(() => {
+    const checkMedicines = async () => {
+      try {
+        const medicines = await getMyMedicines(true);
+        console.log('[Main] 복용 중인 약 목록:', medicines);
+        setSavedMedicinesCount(Array.isArray(medicines) ? medicines.length : 0);
+      } catch (error) {
+        console.error('[Main] 약 목록 조회 실패:', error);
+        setSavedMedicinesCount(0);
+      }
+    };
+    checkMedicines();
+  }, []);
 
   const handleCameraClick = () => {
     setShowImageSourceModal(true);
@@ -207,14 +223,7 @@ const Main = () => {
 
   // 복용 중인 약이 있는지 확인하는 함수
   const hasSavedMedicines = () => {
-    const savedMedicines = localStorage.getItem('medicines');
-    if (!savedMedicines) return false;
-    try {
-      const medicines = JSON.parse(savedMedicines);
-      return Array.isArray(medicines) && medicines.length > 0;
-    } catch {
-      return false;
-    }
+    return savedMedicinesCount > 0;
   };
 
   const handleSaveClick = async () => {

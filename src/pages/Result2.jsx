@@ -212,7 +212,17 @@ const Result2 = () => {
     
     if (detailedAnalysis && detailedAnalysis.cookingTips && Array.isArray(detailedAnalysis.cookingTips) && detailedAnalysis.cookingTips.length > 0) {
       console.log('✅ cookingTips 배열 발견, 길이:', detailedAnalysis.cookingTips.length);
-      return detailedAnalysis.cookingTips.map((tip, idx) => `${idx + 1}. ${tip}`).join('\n\n');
+      
+      return detailedAnalysis.cookingTips.map((tipItem, idx) => {
+        // tipItem이 객체인 경우 (category, tip 구조)
+        if (typeof tipItem === 'object' && tipItem !== null) {
+          const category = tipItem.category || '';
+          const tipText = tipItem.tip || '';
+          return `${idx + 1}. ${category ? category + ' ' : ''}${tipText}`;
+        }
+        // tipItem이 문자열인 경우
+        return `${idx + 1}. ${tipItem}`;
+      }).join('\n\n');
     }
     
     console.log('⚠️ cookingTips 배열 없음, 기본 텍스트 반환');
@@ -288,7 +298,6 @@ const Result2 = () => {
           <img src={foodImage} alt={foodName} className="result2__header-bg"/>
         ) : (
           <div className="result2__header-bg result2__header-bg--placeholder" style={{ backgroundColor: '#000' }}>
-            <span style={{ color: '#fff', fontSize: '18px' }}>{foodName}</span>
           </div>
         )}
       </div>
