@@ -5,13 +5,14 @@ import imgcook from '../assets/images/img_cook.png';
 import img_travel from '../assets/images/img_travel.png';
 import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 
 const imgsorce = 'https://img.bizthenaum.co.kr/data/img/1000000869/ori/1000000869_11.jpg';
 
 const Result2 = () => {
   const location = useLocation();
+  const navigate = useNavigate();
   const [foodName, setFoodName] = useState('김치찌개');
   const [foodImage, setFoodImage] = useState(null);
   const [analysis, setAnalysis] = useState('');
@@ -279,6 +280,9 @@ const Result2 = () => {
   return (
     <div className="result2">
       <div className="result2__header">
+        <button className="result2__back-btn" onClick={() => navigate(-1)}>
+          <span className="material-symbols-rounded">arrow_back</span>
+        </button>
         <h1 className="result2__food-name">[ {foodName} ]</h1>
         {foodImage ? (
           <img src={foodImage} alt={foodName} className="result2__header-bg"/>

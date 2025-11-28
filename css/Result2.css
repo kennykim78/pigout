@@ -3,10 +3,56 @@
   min-height: 100vh;
   background-color: rgb(255, 223, 62);
 }
+.result2__back-btn {
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  z-index: 10;
+  background: transparent;
+  border: none;
+  padding: 8px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+.result2__back-btn .material-symbols-rounded {
+  font-size: 28px;
+  color: rgb(255, 255, 255);
+}
+.result2__back-btn:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+.result2__back-btn:active {
+  background-color: rgba(255, 255, 255, 0.3);
+}
 .result2__header {
   background-color: rgba(0, 0, 0, 0.4);
-  padding: 52px 112px 52px;
+  padding: 50px 0;
   text-align: center;
+  position: relative;
+  z-index: 5;
+  border-radius: 0 0 30px 30px;
+  overflow: hidden;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.result2__header-bg {
+  width: 100%;
+  height: 100%;
+  -o-object-fit: cover;
+     object-fit: cover;
+  position: absolute;
+  top: 0;
+  left: 0;
+  z-index: -1;
+}
+.result2__header-bg--placeholder {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background-color: #000;
 }
 .result2__food-name {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
@@ -22,24 +68,31 @@
   gap: 0;
 }
 .result2__section {
-  padding: 93px 36px;
+  padding: 100px 20px 40px;
   border-radius: 0 0 30px 30px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  position: relative;
+  margin-top: -80px;
+  z-index: 4;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 }
 .result2__section--bad {
   background-color: rgb(241, 84, 84);
 }
 .result2__section--good {
   background-color: rgb(255, 161, 0);
+  z-index: 3;
 }
 .result2__section-header {
-  margin-bottom: 20px;
+  max-width: 412px;
+  width: 100%;
 }
 .result2__title-group {
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  margin-bottom: 20px;
 }
 .result2__section-title {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
@@ -58,14 +111,7 @@
 .result2__pig-icon {
   width: 120px;
   height: 120px;
-  border-radius: 50%;
   flex-shrink: 0;
-}
-.result2__pig-icon--sad {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-}
-.result2__pig-icon--happy {
-  background: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
 }
 .result2__info-box {
   background: rgb(255, 255, 255);
@@ -73,7 +119,9 @@
   padding: 20px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
   min-height: 160px;
-  width: 340px;
+  width: 100%;
+  max-width: 412px;
+  margin-top: -47px;
 }
 .result2__info-box p {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
@@ -84,9 +132,108 @@
   margin: 0;
 }
 .result2__content {
-  padding: 40px 16.5px 20px;
+  padding: 40px 0 20px;
   max-width: 412px;
   margin: 0 auto;
+}
+.result2__risk-section {
+  background: rgb(255, 255, 255);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  margin-bottom: 24px;
+  padding: 24px;
+}
+.result2__risk-section h3 {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  margin: 4px 0 0;
+  color: rgb(0, 0, 0);
+}
+.result2__risk-header {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+.result2__risk-kicker {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(241, 84, 84);
+  margin: 0;
+}
+.result2__risk-list {
+  list-style: none;
+  padding: 0;
+  margin: 16px 0 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.result2__risk-item {
+  border-radius: 30px;
+  padding: 16px;
+  background: rgb(255, 255, 255);
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+}
+.result2__risk-item p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.5;
+  color: rgb(153, 153, 153);
+  margin: 8px 0 0;
+}
+.result2__risk-item--inactive {
+  opacity: 0.8;
+  background: white;
+}
+.result2__risk-item-title {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+}
+.result2__risk-chip {
+  padding: 4px 10px;
+  border-radius: 999px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(153, 153, 153);
+  background: rgba(0, 0, 0, 0.08);
+}
+.result2__risk-chip--active {
+  background: rgba(255, 107, 107, 0.2);
+  color: #ff3b3b;
+}
+.result2__summary-section {
+  background: rgb(255, 255, 255);
+  border-radius: 20px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  margin-bottom: 24px;
+  padding: 24px;
+}
+.result2__summary-section p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  line-height: 1.6;
+  color: rgb(0, 0, 0);
+  margin: 0 0 12px;
+}
+.result2__summary-section p:last-child {
+  margin-bottom: 0;
+}
+.result2__summary-kicker {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+  color: rgb(255, 161, 0);
+  margin: 0 0 12px;
 }
 .result2__tips-section {
   margin-bottom: 34px;
@@ -99,18 +246,16 @@
 }
 .result2__tips-title {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 76px;
+  font-size: 70px;
   font-weight: 900;
   color: rgb(255, 255, 255);
   line-height: 1;
   margin: 0;
 }
 .result2__pig-large {
-  width: 132px;
-  height: 132px;
-  background: linear-gradient(135deg, #fa709a 0%, #fee140 100%);
-  border-radius: 50%;
-  flex-shrink: 0;
+  width: 130px;
+  height: 130px;
+  flex: 0 0 130px;
 }
 .result2__tips-box {
   background: rgb(255, 255, 255);
@@ -118,8 +263,7 @@
   padding: 20px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
   min-height: 232px;
-  width: 342px;
-  margin: 0 auto;
+  margin-top: -20px;
 }
 .result2__tips-box p {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
@@ -143,31 +287,7 @@
   gap: 20px;
   margin-bottom: 32px;
   padding: 0 9.5px;
-}
-.result2__recommendation-card {
-  width: 340px;
-  height: 150px;
-  position: relative;
-  border-radius: 20px;
-  overflow: hidden;
-  cursor: pointer;
-  transition: transform 0.2s ease;
-}
-.result2__recommendation-card:hover {
-  transform: translateY(-4px);
-}
-.result2__recommendation-card h3 {
-  position: absolute;
-  bottom: 20px;
-  left: 0;
-  right: 0;
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 24px;
-  font-weight: 600;
-  color: rgb(255, 255, 255);
-  text-align: center;
-  margin: 0;
-  z-index: 2;
+  align-items: center;
 }
 .result2__recommendation-image {
   width: 100%;
@@ -187,4 +307,114 @@
   line-height: 1.4;
   margin: 0;
   padding: 0 16px;
+}
+.result2__medicine-section {
+  max-width: 412px;
+  width: 100%;
+  margin: 30px auto 20px;
+  padding: 0 9.5px;
+}
+.result2__medicine-title {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 30px;
+  font-weight: 900;
+  color: rgb(255, 255, 255);
+  margin: 0 0 20px 0;
+  text-align: center;
+  text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
+}
+.result2__medicine-list {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+.result2__medicine-card {
+  background: rgb(255, 255, 255);
+  border-radius: 30px;
+  padding: 20px;
+  box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  border-left: 5px solid;
+}
+.result2__medicine-card--danger {
+  border-left-color: #ff4444;
+  background: linear-gradient(to right, rgba(255, 68, 68, 0.1) 0%, rgb(255, 255, 255) 10%);
+}
+.result2__medicine-card--caution {
+  border-left-color: #ffaa00;
+  background: linear-gradient(to right, rgba(255, 170, 0, 0.1) 0%, rgb(255, 255, 255) 10%);
+}
+.result2__medicine-card--safe {
+  border-left-color: #4CAF50;
+  background: linear-gradient(to right, rgba(76, 175, 80, 0.1) 0%, rgb(255, 255, 255) 10%);
+}
+.result2__medicine-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+.result2__medicine-name {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 24px;
+  font-weight: 900;
+  color: rgb(0, 0, 0);
+  margin: 0;
+}
+.result2__risk-badge {
+  padding: 6px 12px;
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 600;
+}
+.result2__risk-badge--danger {
+  background: #ff4444;
+  color: rgb(255, 255, 255);
+}
+.result2__risk-badge--caution {
+  background: #ffaa00;
+  color: rgb(255, 255, 255);
+}
+.result2__risk-badge--safe {
+  background: #4CAF50;
+  color: rgb(255, 255, 255);
+}
+.result2__medicine-detail {
+  margin-top: 10px;
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+}
+.result2__medicine-detail strong {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  display: block;
+  margin-bottom: 6px;
+}
+.result2__medicine-detail p {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
+  margin: 0;
+  line-height: 1.5;
+}
+.result2__medicine-detail ul {
+  margin: 0;
+  padding-left: 20px;
+}
+.result2__medicine-detail ul li {
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  color: rgb(153, 153, 153);
+  line-height: 1.6;
+  margin-bottom: 4px;
+}
+.result2__medicine-detail--warning strong {
+  color: #ff4444;
+}
+.result2__medicine-detail--recommendation strong {
+  color: #4CAF50;
 }/*# sourceMappingURL=Result2.css.map */

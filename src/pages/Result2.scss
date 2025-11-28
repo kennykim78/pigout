@@ -4,6 +4,35 @@
 .result2 {
   width: 100%; min-height: 100vh; background-color: $color-primary-yellow;
 
+  &__back-btn {
+    position: absolute;
+    top: 20px;
+    left: 20px;
+    z-index: 10;
+    background: transparent;
+    border: none;
+    padding: 8px;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: background-color 0.2s ease;
+
+    .material-symbols-rounded {
+      font-size: 28px;
+      color: $color-white;
+    }
+
+    &:hover {
+      background-color: rgba(255, 255, 255, 0.2);
+    }
+
+    &:active {
+      background-color: rgba(255, 255, 255, 0.3);
+    }
+  }
+
   &__header { background-color: $color-black-overlay; padding: 50px 0; text-align: center; position: relative; z-index: 5; border-radius: 0 0 $border-radius-md $border-radius-md; overflow: hidden; box-shadow: $shadow-default;
   }
   &__header-bg { 

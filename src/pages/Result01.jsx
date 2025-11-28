@@ -136,6 +136,9 @@ const Result01 = () => {
   return (
     <div className="result01">
       <div className="result01__header">
+        <button className="result01__back-btn" onClick={() => navigate(-1)}>
+          <span className="material-symbols-rounded">arrow_back</span>
+        </button>
         <h1 className="result01__food-name">[ {foodName || '음식'} ]</h1>
         <p className="result01__question">드시고 싶은가유?</p>
         {foodImage ? (
