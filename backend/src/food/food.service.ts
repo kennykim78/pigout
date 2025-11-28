@@ -486,7 +486,7 @@ export class FoodService {
   async simpleAnalyzeFoodByText(foodName: string, diseases: string[] = [], deviceId?: string) {
     try {
       console.log('=== 순수 AI 빠른 분석 시작 ===');
-      console.log('음식명:', foodName);
+      console.log('음식명 (원본):', foodName);
       console.log('질병 정보:', diseases);
 
       // 기기 ID로 사용자 ID 조회 (없으면 기본값 사용)
@@ -513,9 +513,63 @@ export class FoodService {
       console.log('[순수AI] 복용 약물:', medicineNames);
 
       // ================================================================
-      // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인
+      // 1단계: 규칙 기반 분석 시도 (AI 호출 없음!)
       // ================================================================
-      const cacheKey = this.supabaseService.generateCacheKey(foodName, diseases, medicineNames);
+      if (canUseRuleBasedAnalysis(foodName)) {
+        const ruleResult = getRuleBasedAnalysis(foodName, diseases, medicineNames);
+        if (ruleResult) {
+          console.log(`[규칙기반] ✅ "${foodName}" 규칙 기반 분석 완료 (AI 비용: $0)`);
+          
+          // DB에 저장 (사용자 히스토리용)
+          const result = await this.supabaseService.saveFoodAnalysis({
+            foodName,
+            score: ruleResult.score,
+            analysis: ruleResult.analysis,
+            diseases,
+            userId,
+            detailedAnalysis: JSON.stringify(ruleResult.detailedAnalysis),
+          });
+
+          return {
+            success: true,
+            data: {
+              id: result[0].id,
+              foodName: result[0].food_name,
+              score: result[0].score,
+              analysis: result[0].analysis,
+              detailedAnalysis: ruleResult.detailedAnalysis,
+              createdAt: result[0].created_at,
+            },
+            message: 'AI 빠른 분석이 완료되었습니다. (규칙 기반)',
+            analysisMode: 'rule-based',
+          };
+        }
+      }
+      console.log('[규칙기반] 해당 음식 없음, AI 분석 진행...');
+      // ================================================================
+
+      // ================================================================
+      // 2단계: 음식명 정규화 (캐시 히트율 향상)
+      // ================================================================
+      const geminiClient = await this.getGeminiClient();
+      const normalized = await geminiClient.normalizeFoodName(foodName);
+      const normalizedFoodName = normalized.normalized;
+      console.log(`[정규화] "${foodName}" → "${normalizedFoodName}" (신뢰도: ${normalized.confidence})`);
+      // ================================================================
+
+      // ================================================================
+      // 3단계: 캐시 체크 (정규화된 음식명으로)
+      // ================================================================
+      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames);
+        .eq('is_active', true);
+      
+      const medicineNames = (medicines || []).map((m: any) => m.name);
+      console.log('[순수AI] 복용 약물:', medicineNames);
+
+      // ================================================================
+      // 캐시 체크: 정규화된 음식명으로 캐시 조회
+      // ================================================================
+      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames);
       console.log(`[Cache] 캐시 키: ${cacheKey.substring(0, 16)}...`);
       
       const cachedResult = await this.supabaseService.getCachedAnalysis(cacheKey);
@@ -523,8 +577,9 @@ export class FoodService {
         console.log(`[Cache] ✅ 캐시 히트! 기존 분석 결과 사용 (히트 횟수: ${cachedResult.hit_count})`);
         
         // 캐시된 결과로 응답 구성 (새로운 food_analysis 레코드 생성)
+        // 원본 음식명으로 저장 (사용자 히스토리용)
         const result = await this.supabaseService.saveFoodAnalysis({
-          foodName: cachedResult.food_name,
+          foodName: foodName, // 원본 음식명 저장
           score: cachedResult.score,
           analysis: cachedResult.analysis,
           diseases,
@@ -533,13 +588,14 @@ export class FoodService {
 
         const responseData = {
           id: result[0].id,
-          foodName: result[0].food_name,
+          foodName: foodName, // 사용자에게는 원본 음식명 표시
           score: result[0].score,
           analysis: result[0].analysis,
           detailedAnalysis: {
             ...cachedResult.detailed_analysis,
             cached: true,
             cacheHitCount: cachedResult.hit_count,
+            normalizedFrom: normalizedFoodName !== foodName ? normalizedFoodName : undefined,
           },
           createdAt: result[0].created_at,
         };
@@ -556,7 +612,6 @@ export class FoodService {
       // ================================================================
 
       // Gemini AI로 순수 지식 기반 빠른 분석 (공공데이터 조회 없음!)
-      const geminiClient = await this.getGeminiClient();
       const aiAnalysis = await geminiClient.quickAIAnalysis(
         foodName,
         diseases,
@@ -588,11 +643,11 @@ export class FoodService {
       };
 
       // ================================================================
-      // 캐시 저장: 다음 동일 요청을 위해 결과 캐싱
+      // 캐시 저장: 정규화된 음식명으로 저장 (캐시 히트율 향상)
       // ================================================================
       await this.supabaseService.saveCachedAnalysis({
         cacheKey,
-        foodName,
+        foodName: normalizedFoodName, // 정규화된 음식명으로 캐시 저장
         diseases,
         medicines: medicineNames,
         score,

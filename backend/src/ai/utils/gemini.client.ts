@@ -1288,5 +1288,59 @@ JSON 형식으로만 응답:
       throw new Error(`AI drug interaction analysis failed: ${error.message}`);
     }
   }
+
+  /**
+   * 음식명 정규화: 유사 음식을 대표 음식명으로 변환
+   * 예: "불고기정식" → "불고기", "김치찌개(돼지고기)" → "김치찌개"
+   */
+  async normalizeFoodName(foodName: string): Promise<{
+    normalized: string;
+    original: string;
+    confidence: number;
+  }> {
+    try {
+      const prompt = `당신은 음식명 정규화 전문가입니다.
+입력된 음식명을 대표 음식명(기본형)으로 변환하세요.
+
+규칙:
+1. 조리법, 세트명, 부가 설명 제거: "불고기정식" → "불고기"
+2. 괄호 안 내용 제거: "김치찌개(돼지고기)" → "김치찌개"
+3. 브랜드명 제거: "맥도날드 빅맥" → "빅맥"
+4. 수량/크기 제거: "대짜 떡볶이" → "떡볶이"
+5. 단, 고유 음식명은 유지: "부대찌개" → "부대찌개" (부대 제거 X)
+
+입력: "${foodName}"
+
+JSON 형식으로만 응답:
+{
+  "normalized": "정규화된 음식명",
+  "original": "${foodName}",
+  "confidence": 0.0-1.0
+}`;
+
+      let rawText: string;
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [{ text: prompt }]);
+      }
+
+      const parsed = this.extractJsonObject(rawText);
+      return {
+        normalized: parsed.normalized || foodName,
+        original: foodName,
+        confidence: parsed.confidence || 0.8,
+      };
+    } catch (error) {
+      console.warn('[정규화] 실패, 원본 사용:', error.message);
+      return {
+        normalized: foodName,
+        original: foodName,
+        confidence: 1.0,
+      };
+    }
+  }
 }
 

@@ -1,7 +1,8 @@
-import { Controller, Post, Get, Body, Param, Headers, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Headers, UseInterceptors, UploadedFile, Query } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FoodService } from './food.service';
 import { SupabaseService } from '../supabase/supabase.service';
+import { generatePrewarmCombinations, getPrewarmStats } from './prewarm-data';
 
 @Controller('food')
 export class FoodController {
