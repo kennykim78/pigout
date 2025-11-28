@@ -328,7 +328,7 @@ JSON 형식으로만 응답:
 
   /**
    * 공공데이터 없이 순수 AI 지식만으로 빠른 분석 수행
-   * 20년 이상 경력의 약사/건강검진 전문가 관점으로 사실 기반 분석
+   * Result01용 - 간략한 정보만 제공 (각 항목 1줄씩)
    */
   async quickAIAnalysis(
     foodName: string,
@@ -336,11 +336,10 @@ JSON 형식으로만 응답:
     medicines: string[] = [],
   ): Promise<{
     suitabilityScore: number;
-    pros: string[];
-    cons: string[];
+    pros: string;
+    cons: string;
     summary: string;
-    cookingTips: string[];
-    warnings: string[];
+    warnings: string;
     expertAdvice: string;
   }> {
     const maxRetries = 2;
@@ -351,58 +350,35 @@ JSON 형식으로만 응답:
         const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
         const medicineList = medicines.length > 0 ? medicines.join(', ') : '없음';
 
-        const prompt = `당신은 20년 이상 경력의 약사이자 건강검진 전문의입니다.
-환자가 다음 정보를 제공했습니다. 오직 검증된 의학적 사실만을 기반으로 분석하세요.
-거짓이나 추측 없이 사실만 말씀해주세요.
+        const prompt = `당신은 20년 경력의 약사이자 건강검진 전문의입니다.
+빠르고 간결하게 분석해주세요.
 
 【환자 정보】
-- 음식/건강식품: ${foodName}
-- 보유 질병: ${diseaseList}
-- 복용 중인 약: ${medicineList}
+- 음식: ${foodName}
+- 질병: ${diseaseList}
+- 복용 약: ${medicineList}
 
-【분석 요청】
-전문가로서 다음 항목을 분석해주세요:
+【요청】
+각 항목을 정확히 1줄(50자 이내)로 작성하세요. 길게 쓰지 마세요.
 
-1. suitabilityScore (0-100): 환자 상태를 고려한 섭취 적합도
-   - 90-100: 매우 적합 (적극 권장)
-   - 70-89: 적합 (일반적으로 괜찮음)
-   - 50-69: 주의 필요 (소량 또는 조건부 섭취)
-   - 30-49: 비권장 (가급적 피할 것)
-   - 0-29: 위험 (섭취 금지)
+JSON 형식:
+{
+  "suitabilityScore": 0-100 정수,
+  "pros": "장점 1줄 (50자 이내)",
+  "cons": "주의사항 1줄 (50자 이내)",
+  "summary": "한줄 요약 (50자 이내)",
+  "warnings": "경고 1줄 (50자 이내, 없으면 빈 문자열)",
+  "expertAdvice": "전문가 조언 1줄 (50자 이내)"
+}
 
-2. pros (배열): 이 음식의 건강상 이점 3~4가지
-   - 의학적으로 입증된 효능만 언급
-   - 해당 질병에 도움이 되는 점 포함
-
-3. cons (배열): 주의사항 및 단점 3~4가지
-   - 해당 질병이나 약물과의 상호작용 고려
-   - 과다 섭취 시 문제점
-
-4. summary (문자열): 한 줄 종합 평가 (50자 내외)
-
-5. cookingTips (배열): 건강하게 섭취하는 방법 2~3가지
-   - 해당 질병 관리에 적합한 조리법/섭취법
-
-6. warnings (배열): 반드시 알아야 할 경고사항 1~2가지
-   - 약물 상호작용 주의사항
-   - 특정 질병에서의 위험성
-
-7. expertAdvice (문자열): 전문가 한마디 (친근하고 따뜻한 어조로 2~3문장)
-
-【중요】
-- 오직 의학적으로 검증된 사실만 작성하세요
-- 불확실한 정보는 "~일 수 있습니다" 형태로 표현하세요
-- 개인차가 있을 수 있음을 인지하세요
-
-JSON 형식으로만 응답:
+예시:
 {
   "suitabilityScore": 75,
-  "pros": ["의학적 이점1...", "이점2...", "이점3..."],
-  "cons": ["주의사항1...", "단점2...", "주의사항3..."],
-  "summary": "한 줄 종합 평가...",
-  "cookingTips": ["섭취 팁1...", "섭취 팁2..."],
-  "warnings": ["경고사항1...", "경고사항2..."],
-  "expertAdvice": "전문가로서 따뜻한 조언..."
+  "pros": "단백질이 풍부하여 근육 유지에 도움됩니다",
+  "cons": "나트륨이 높아 혈압 관리가 필요합니다",
+  "summary": "적당량 섭취 시 건강에 좋은 음식입니다",
+  "warnings": "고혈압 환자는 국물 섭취를 줄이세요",
+  "expertAdvice": "채소와 함께 드시면 더욱 균형잡힌 식사가 됩니다"
 }`;
 
         let rawText: string;
@@ -433,17 +409,11 @@ JSON 형식으로만 응답:
     console.warn('quickAIAnalysis 실패, 기본값 반환');
     return {
       suitabilityScore: 60,
-      pros: [
-        `${foodName}은(는) 일반적으로 영양가 있는 식품입니다.`,
-        '적절한 양을 섭취하면 건강에 도움이 될 수 있습니다.'
-      ],
-      cons: diseases.length > 0
-        ? [`${diseases.join(', ')} 질환이 있으시면 섭취량 조절이 필요합니다.`]
-        : ['과다 섭취는 피하시는 것이 좋습니다.'],
-      summary: `${foodName}은(는) 적당량 섭취를 권장합니다.`,
-      cookingTips: ['신선한 상태로 섭취하세요.', '조리 시 염분을 줄이세요.'],
-      warnings: ['개인 건강 상태에 따라 섭취량을 조절하세요.'],
-      expertAdvice: '전문의와 상담 후 섭취하시면 더욱 안전합니다. 건강한 식습관을 유지하세요!'
+      pros: `${foodName}은(는) 적절히 섭취하면 영양을 공급합니다`,
+      cons: '과다 섭취는 피하시는 것이 좋습니다',
+      summary: `${foodName}은(는) 적당량 섭취를 권장합니다`,
+      warnings: diseases.length > 0 ? `${diseases[0]} 환자는 섭취량 조절이 필요합니다` : '',
+      expertAdvice: '균형 잡힌 식단의 일부로 섭취하세요'
     };
   }
 

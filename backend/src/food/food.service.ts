@@ -472,29 +472,21 @@ export class FoodService {
 
       const score = aiAnalysis.suitabilityScore || 60;
       
-      // 종합 분석 텍스트 생성 (pros, cons 포함)
-      const prosText = (aiAnalysis.pros || []).length > 0 
-        ? `\n\n✅ 좋은 점:\n${aiAnalysis.pros.map((p: string) => `• ${p}`).join('\n')}`
-        : '';
-      const consText = (aiAnalysis.cons || []).length > 0
-        ? `\n\n⚠️ 주의할 점:\n${aiAnalysis.cons.map((c: string) => `• ${c}`).join('\n')}`
-        : '';
-      const warningsText = (aiAnalysis.warnings || []).length > 0
-        ? `\n\n🚨 경고:\n${aiAnalysis.warnings.map((w: string) => `• ${w}`).join('\n')}`
-        : '';
-      const expertText = aiAnalysis.expertAdvice 
-        ? `\n\n💊 전문가 조언:\n${aiAnalysis.expertAdvice}`
-        : '';
+      // 간결한 분석 텍스트 생성 (각 항목 1줄씩)
+      const parts = [aiAnalysis.summary || `${foodName} 분석 결과`];
+      if (aiAnalysis.pros) parts.push(`✅ ${aiAnalysis.pros}`);
+      if (aiAnalysis.cons) parts.push(`⚠️ ${aiAnalysis.cons}`);
+      if (aiAnalysis.warnings) parts.push(`🚨 ${aiAnalysis.warnings}`);
+      if (aiAnalysis.expertAdvice) parts.push(`💊 ${aiAnalysis.expertAdvice}`);
       
-      const analysis = `${aiAnalysis.summary || foodName + ' 분석 결과'}${prosText}${consText}${warningsText}${expertText}`;
+      const analysis = parts.join('\n');
 
       // 경량 결과 구성 (공공데이터 출처 없음)
       const lightweightDetails = {
-        pros: aiAnalysis.pros || [],
-        cons: aiAnalysis.cons || [],
+        pros: aiAnalysis.pros || '',
+        cons: aiAnalysis.cons || '',
         summary: aiAnalysis.summary || analysis,
-        cookingTips: aiAnalysis.cookingTips || [],
-        warnings: aiAnalysis.warnings || [],
+        warnings: aiAnalysis.warnings || '',
         expertAdvice: aiAnalysis.expertAdvice || '',
         // 공공데이터 미사용 표시
         dataSources: ['AI 전문가 분석 (Gemini)'],
@@ -603,28 +595,20 @@ export class FoodService {
 
       const score = aiAnalysis.suitabilityScore || 60;
       
-      // 종합 분석 텍스트 생성 (pros, cons 포함)
-      const prosText = (aiAnalysis.pros || []).length > 0 
-        ? `\n\n✅ 좋은 점:\n${aiAnalysis.pros.map((p: string) => `• ${p}`).join('\n')}`
-        : '';
-      const consText = (aiAnalysis.cons || []).length > 0
-        ? `\n\n⚠️ 주의할 점:\n${aiAnalysis.cons.map((c: string) => `• ${c}`).join('\n')}`
-        : '';
-      const warningsText = (aiAnalysis.warnings || []).length > 0
-        ? `\n\n🚨 경고:\n${aiAnalysis.warnings.map((w: string) => `• ${w}`).join('\n')}`
-        : '';
-      const expertText = aiAnalysis.expertAdvice 
-        ? `\n\n💊 전문가 조언:\n${aiAnalysis.expertAdvice}`
-        : '';
+      // 간결한 분석 텍스트 생성 (각 항목 1줄씩)
+      const parts = [aiAnalysis.summary || `${actualFoodName} 분석 결과`];
+      if (aiAnalysis.pros) parts.push(`✅ ${aiAnalysis.pros}`);
+      if (aiAnalysis.cons) parts.push(`⚠️ ${aiAnalysis.cons}`);
+      if (aiAnalysis.warnings) parts.push(`🚨 ${aiAnalysis.warnings}`);
+      if (aiAnalysis.expertAdvice) parts.push(`💊 ${aiAnalysis.expertAdvice}`);
       
-      const analysis = `${aiAnalysis.summary || actualFoodName + ' 분석 결과'}${prosText}${consText}${warningsText}${expertText}`;
+      const analysis = parts.join('\n');
 
       const lightweightDetails = {
-        pros: aiAnalysis.pros || [],
-        cons: aiAnalysis.cons || [],
+        pros: aiAnalysis.pros || '',
+        cons: aiAnalysis.cons || '',
         summary: aiAnalysis.summary || analysis,
-        cookingTips: aiAnalysis.cookingTips || [],
-        warnings: aiAnalysis.warnings || [],
+        warnings: aiAnalysis.warnings || '',
         expertAdvice: aiAnalysis.expertAdvice || '',
         dataSources: ['AI 전문가 분석 (Gemini)'],
         mode: 'quick-ai',
