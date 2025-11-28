@@ -1,7 +1,7 @@
 import './History.scss';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { getMonthlyReport } from '../services/api';
+import { getMonthlyReport, getAnalysisHistory } from '../services/api';
 
 const History = () => {
   const navigate = useNavigate();
@@ -10,6 +10,7 @@ const History = () => {
   const [todayRecords, setTodayRecords] = useState([]);
   const [monthlyData, setMonthlyData] = useState({});
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [isLoading, setIsLoading] = useState(false);
   
   useEffect(() => {
     loadTodayRecords();
@@ -21,14 +22,42 @@ const History = () => {
     }
   }, [viewMode, currentMonth]);
 
-  const loadTodayRecords = () => {
-    // TODO: API에서 실제 데이터 가져오기
-    const mockRecords = [
-      { id: 1, foodName: '김치찌개', score: 75, time: '12:30', imageUrl: null },
-      { id: 2, foodName: '비빔밥', score: 85, time: '18:20', imageUrl: null },
-      { id: 3, foodName: '삼겹살', score: 60, time: '19:15', imageUrl: null },
-    ];
-    setTodayRecords(mockRecords);
+  const loadTodayRecords = async () => {
+    setIsLoading(true);
+    try {
+      // API에서 분석 히스토리 가져오기
+      const response = await getAnalysisHistory(50, 0);
+      console.log('[History] API 응답:', response);
+      
+      const allRecords = response.data || [];
+      
+      // 선택된 날짜의 기록만 필터링
+      const selectedDateStr = formatDate(selectedDate);
+      const filteredRecords = allRecords.filter(record => {
+        const recordDate = new Date(record.created_at).toISOString().split('T')[0];
+        return recordDate === selectedDateStr;
+      });
+      
+      // 데이터 포맷 변환
+      const formattedRecords = filteredRecords.map(record => ({
+        id: record.id,
+        foodName: record.food_name,
+        score: record.score,
+        time: new Date(record.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+        imageUrl: record.image_url,
+        analysis: record.analysis,
+        diseases: record.diseases,
+        createdAt: record.created_at,
+      }));
+      
+      console.log('[History] 오늘 기록:', formattedRecords);
+      setTodayRecords(formattedRecords);
+    } catch (error) {
+      console.error('[History] 데이터 로드 실패:', error);
+      setTodayRecords([]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const loadMonthlyData = async () => {
@@ -60,11 +89,17 @@ const History = () => {
   };
 
   const handleItemClick = (item) => {
+    // 이전 검색 결과를 그대로 전달하여 Result01에서 바로 표시
     navigate('/result01', {
       state: {
         foodName: item.foodName,
         score: item.score,
-        analysisId: item.id
+        analysis: item.analysis,
+        analysisId: item.id,
+        imageUrl: item.imageUrl,
+        diseases: item.diseases,
+        createdAt: item.createdAt,
+        fromHistory: true, // 히스토리에서 온 것임을 표시
       }
     });
   };
@@ -137,24 +172,34 @@ const History = () => {
           </div>
 
           <div className="history__records-list">
-            {todayRecords.length > 0 ? (
+            {isLoading ? (
+              <div className="history__loading">
+                <p>로딩 중...</p>
+              </div>
+            ) : todayRecords.length > 0 ? (
               todayRecords.map((item) => (
                 <div 
                   key={item.id} 
                   className="history__record-item"
                   onClick={() => handleItemClick(item)}
                 >
-                  <div className="history__record-icon">🍽️</div>
+                  <div className="history__record-icon">
+                    {item.imageUrl ? (
+                      <img src={item.imageUrl} alt={item.foodName} className="history__record-thumbnail" />
+                    ) : '🍽️'}
+                  </div>
                   <div className="history__record-info">
                     <div className="history__record-name">{item.foodName}</div>
                     <div className="history__record-time">{item.time}</div>
                   </div>
-                  <div className="history__record-score">{item.score}점</div>
+                  <div className={`history__record-score ${item.score >= 70 ? 'history__record-score--good' : item.score >= 40 ? 'history__record-score--warning' : 'history__record-score--bad'}`}>
+                    {item.score}점
+                  </div>
                 </div>
               ))
             ) : (
               <div className="history__empty">
-                <p>오늘 기록이 없습니다</p>
+                <p>이 날짜에 기록이 없습니다</p>
               </div>
             )}
           </div>

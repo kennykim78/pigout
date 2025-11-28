@@ -135,6 +135,43 @@
     font-weight: $font-weight-black;
     color: $color-black;
     flex-shrink: 0;
+    padding: 4px 12px;
+    border-radius: 20px;
+    
+    &--good {
+      background-color: #4CAF50;
+      color: white;
+    }
+    
+    &--warning {
+      background-color: #FF9800;
+      color: white;
+    }
+    
+    &--bad {
+      background-color: #F44336;
+      color: white;
+    }
+  }
+
+  &__record-thumbnail {
+    width: 40px;
+    height: 40px;
+    border-radius: 8px;
+    object-fit: cover;
+  }
+
+  &__loading {
+    text-align: center;
+    padding: 60px 20px;
+
+    p {
+      font-family: $font-family;
+      font-size: 15px;
+      font-weight: $font-weight-regular;
+      color: $color-gray;
+      margin: 0;
+    }
   }
 
   // Calendar View
