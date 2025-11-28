@@ -392,9 +392,17 @@ export class FoodService {
       }
 
       const detailedAnalysis: any = {
+        // 새로운 형식: 좋은점, 주의점, 경고, 전문가조언, 종합분석
+        goodPoints: finalAnalysis.goodPoints || [],           // ✅ 좋은 점
+        badPoints: finalAnalysis.badPoints || [],             // ⚠️ 주의할 점
+        warnings: finalAnalysis.warnings || [],               // 🚨 경고
+        expertAdvice: finalAnalysis.expertAdvice || '',       // 💊 AI 전문가 조언
+        summary: finalAnalysis.summary || analysis,           // 🔬 최종 종합 분석
+        
+        // 기존 호환성 유지
         pros: finalAnalysis.goodPoints || [],
         cons: finalAnalysis.badPoints || [],
-        summary: finalAnalysis.summary || analysis,
+        
         cookingTips: healthyRecipes || [],
         medicalAnalysis: {
           drug_food_interactions: interactionAnalysis.interactions || []
