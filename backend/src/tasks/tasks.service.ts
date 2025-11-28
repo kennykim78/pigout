@@ -15,15 +15,16 @@ export class TasksService {
   ) {}
 
   /**
-   * 매일 새벽 3시 (한국 시간 기준)에 인기 음식 사전 캐싱 실행
+   * 매월 1일 새벽 3시 (한국 시간 기준)에 인기 음식 사전 캐싱 실행
    * UTC 기준으로 18시 = KST 03시
+   * Cron: 분 시 일 월 요일 → 0 18 1 * * = 매월 1일 18:00 UTC (KST 03:00)
    */
-  @Cron('0 18 * * *', {
+  @Cron('0 18 1 * *', {
     name: 'prewarm-cache',
     timeZone: 'UTC',
   })
   async handlePrewarmCron() {
-    this.logger.log('🚀 [스케줄러] 인기 음식 사전 캐싱 시작 (KST 03:00)');
+    this.logger.log('🚀 [스케줄러] 월간 인기 음식 사전 캐싱 시작 (매월 1일 KST 03:00)');
     await this.runPrewarm();
   }
 
