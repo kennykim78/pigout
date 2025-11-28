@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useRewardStore } from '../store/rewardStore';
-import { getRewardPoints, getStatsSummary, getMonthlyReport } from '../services/api';
+import { getRewardPoints, getStatsSummary, getAnalysisHistory, getMyMedicines } from '../services/api';
 import './MyPage.scss';
 
 const MyPage = () => {
@@ -15,6 +15,7 @@ const MyPage = () => {
     recentDays: 0,
   });
   const [diseases, setDiseases] = useState([]);
+  const [medicines, setMedicines] = useState([]);
   const [loading, setLoading] = useState(true);
   const [recentRecords, setRecentRecords] = useState([]);
 
@@ -37,25 +38,33 @@ const MyPage = () => {
         updateDiseases(parsedDiseases);
       }
       
-      // API에서 통계 데이터 로드
-      const [pointsData, statsData] = await Promise.all([
-        getRewardPoints(),
-        getStatsSummary(),
+      // API에서 데이터 로드
+      const [pointsData, statsData, historyData, medicineData] = await Promise.all([
+        getRewardPoints().catch(() => ({ currentPoints: 0 })),
+        getStatsSummary().catch(() => ({ totalRecords: 0, avgScore30Days: 0, recentDays: 0 })),
+        getAnalysisHistory(5, 0).catch(() => ({ data: [] })),
+        getMyMedicines(true).catch(() => []),
       ]);
       
       console.log('포인트 데이터:', pointsData);
       console.log('통계 데이터:', statsData);
+      console.log('히스토리 데이터:', historyData);
+      console.log('복용약 데이터:', medicineData);
       
       useRewardStore.getState().setPoints(pointsData);
       setStats(statsData);
+      setMedicines(Array.isArray(medicineData) ? medicineData : (medicineData?.data || []));
       
-      // 최근 기록 3개 로드 (임시 데이터)
-      // TODO: API에서 실제 데이터 가져오기
-      setRecentRecords([
-        { id: 1, foodName: '김치찌개', score: 75, date: '2025-11-17', time: '12:30' },
-        { id: 2, foodName: '비빔밥', score: 85, date: '2025-11-16', time: '18:20' },
-        { id: 3, foodName: '삼겹살', score: 60, date: '2025-11-15', time: '19:15' },
-      ]);
+      // 최근 기록 포맷팅
+      const records = historyData?.data || [];
+      const formattedRecords = records.slice(0, 5).map(record => ({
+        id: record.id,
+        foodName: record.food_name,
+        score: record.score,
+        time: new Date(record.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+        date: new Date(record.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
+      }));
+      setRecentRecords(formattedRecords);
     } catch (error) {
       console.error('Failed to load data:', error);
     } finally {
@@ -70,10 +79,17 @@ const MyPage = () => {
     }
   };
 
+  const getScoreColor = (score) => {
+    if (score >= 70) return 'good';
+    if (score >= 40) return 'warning';
+    return 'bad';
+  };
+
   if (loading) {
     return (
       <div className="mypage">
         <div className="mypage__loading">
+          <div className="mypage__loading-spinner"></div>
           <p>로딩중...</p>
         </div>
       </div>
@@ -84,103 +100,143 @@ const MyPage = () => {
     <div className="mypage">
       {/* 헤더 */}
       <header className="mypage__header">
+        <button className="mypage__back-btn" onClick={() => navigate(-1)}>
+          <span className="material-symbols-rounded">arrow_back</span>
+        </button>
         <h1 className="mypage__title">마이페이지</h1>
+        <button className="mypage__settings-btn" onClick={() => navigate('/settings')}>
+          <span className="material-symbols-rounded">settings</span>
+        </button>
       </header>
 
       {/* 프로필 카드 */}
       <section className="mypage__profile-card">
-        <div className="mypage__profile-icon">🐷</div>
+        <div className="mypage__profile-avatar">🐷</div>
         <div className="mypage__profile-info">
           <h2 className="mypage__profile-name">{user?.full_name || '먹어도돼지 사용자'}</h2>
-          <p className="mypage__profile-email">{user?.username || 'user@pigout.com'}</p>
+          <p className="mypage__profile-id">ID: {user?.username || localStorage.getItem('pigout_device_id')?.substring(0, 8) || 'guest'}</p>
         </div>
-      </section>
-
-      {/* 포인트 카드 */}
-      <section className="mypage__points-card">
-        <div className="mypage__points-label">
+        <div className="mypage__points-badge" onClick={() => navigate('/reward')}>
           <span className="mypage__points-icon">💰</span>
-          <span>보유 포인트</span>
-        </div>
-        <div className="mypage__points-value">{currentPoints.toLocaleString()}P</div>
-      </section>
-
-      {/* 건강 통계 */}
-      <section className="mypage__stats-section">
-        <h2 className="mypage__section-title">나의 건강 기록</h2>
-        <div className="mypage__stats-grid">
-          <div className="mypage__stat-item">
-            <div className="mypage__stat-value">{stats.totalRecords}</div>
-            <div className="mypage__stat-label">총 기록</div>
-          </div>
-          <div className="mypage__stat-item">
-            <div className="mypage__stat-value">{stats.avgScore30Days}</div>
-            <div className="mypage__stat-label">평균 점수</div>
-          </div>
-          <div className="mypage__stat-item">
-            <div className="mypage__stat-value">{stats.recentDays}</div>
-            <div className="mypage__stat-label">활동 일수</div>
-          </div>
+          <span className="mypage__points-value">{currentPoints.toLocaleString()}P</span>
         </div>
       </section>
 
-      {/* 질병 정보 */}
-      <section className="mypage__diseases-section">
-        <div className="mypage__diseases-header">
-          <h2 className="mypage__section-title">나의 건강 정보</h2>
-          <button
-            className="mypage__edit-button"
-            onClick={() => navigate('/select')}
-          >
+      {/* 통계 카드 */}
+      <section className="mypage__stats-card">
+        <div className="mypage__stat-item">
+          <div className="mypage__stat-icon">📊</div>
+          <div className="mypage__stat-value">{stats.totalRecords || 0}</div>
+          <div className="mypage__stat-label">총 기록</div>
+        </div>
+        <div className="mypage__stat-divider"></div>
+        <div className="mypage__stat-item">
+          <div className="mypage__stat-icon">⭐</div>
+          <div className="mypage__stat-value">{stats.avgScore30Days || 0}</div>
+          <div className="mypage__stat-label">평균 점수</div>
+        </div>
+        <div className="mypage__stat-divider"></div>
+        <div className="mypage__stat-item">
+          <div className="mypage__stat-icon">🔥</div>
+          <div className="mypage__stat-value">{stats.recentDays || 0}</div>
+          <div className="mypage__stat-label">활동 일수</div>
+        </div>
+      </section>
+
+      {/* 건강 정보 (질병) */}
+      <section className="mypage__section">
+        <div className="mypage__section-header">
+          <h2 className="mypage__section-title">
+            <span className="mypage__section-icon">🏥</span>
+            나의 건강 정보
+          </h2>
+          <button className="mypage__edit-btn" onClick={() => navigate('/selectoption')}>
             수정
           </button>
         </div>
-        <div className="mypage__diseases-list">
+        <div className="mypage__disease-list">
           {diseases && diseases.length > 0 ? (
             diseases.map((disease, index) => (
-              <div key={index} className="mypage__disease-tag">
-                {disease}
-              </div>
+              <span key={index} className="mypage__disease-tag">{disease}</span>
             ))
           ) : (
-            <div className="mypage__diseases-empty">
-              <p>등록된 질병 정보가 없습니다.</p>
-              <button
-                className="mypage__add-disease-button"
-                onClick={() => navigate('/select')}
-              >
-                질병 정보 등록하기
+            <div className="mypage__empty-state">
+              <p>등록된 질병 정보가 없습니다</p>
+              <button className="mypage__add-btn" onClick={() => navigate('/selectoption')}>
+                + 건강 정보 등록
               </button>
             </div>
           )}
         </div>
       </section>
 
-      {/* 최근 내역 */}
-      <section className="mypage__recent-section">
-        <div className="mypage__recent-header">
-          <h2 className="mypage__section-title">최근 내역</h2>
-          <button
-            className="mypage__more-button"
-            onClick={() => navigate('/history')}
-          >
+      {/* 복용 중인 약 */}
+      <section className="mypage__section">
+        <div className="mypage__section-header">
+          <h2 className="mypage__section-title">
+            <span className="mypage__section-icon">💊</span>
+            복용 중인 약
+          </h2>
+          <button className="mypage__more-btn" onClick={() => navigate('/medicine')}>
+            더보기 ›
+          </button>
+        </div>
+        <div className="mypage__medicine-list">
+          {medicines && medicines.length > 0 ? (
+            medicines.slice(0, 4).map((medicine, index) => (
+              <div key={medicine.id || index} className="mypage__medicine-item">
+                <div className="mypage__medicine-icon">💊</div>
+                <div className="mypage__medicine-info">
+                  <div className="mypage__medicine-name">{medicine.name || medicine.item_name}</div>
+                  <div className="mypage__medicine-dosage">
+                    {medicine.dosage && `${medicine.dosage}`}
+                    {medicine.frequency && ` · ${medicine.frequency}`}
+                  </div>
+                </div>
+              </div>
+            ))
+          ) : (
+            <div className="mypage__empty-state">
+              <p>등록된 복용약이 없습니다</p>
+              <button className="mypage__add-btn" onClick={() => navigate('/medicine')}>
+                + 복용약 등록
+              </button>
+            </div>
+          )}
+          {medicines && medicines.length > 4 && (
+            <div className="mypage__medicine-more">
+              +{medicines.length - 4}개 더 보기
+            </div>
+          )}
+        </div>
+      </section>
+
+      {/* 최근 분석 내역 */}
+      <section className="mypage__section">
+        <div className="mypage__section-header">
+          <h2 className="mypage__section-title">
+            <span className="mypage__section-icon">🍽️</span>
+            최근 분석 내역
+          </h2>
+          <button className="mypage__more-btn" onClick={() => navigate('/history')}>
             더보기 ›
           </button>
         </div>
         <div className="mypage__recent-list">
           {recentRecords.length > 0 ? (
             recentRecords.map((record) => (
-              <div key={record.id} className="mypage__recent-item">
-                <div className="mypage__recent-icon">🍽️</div>
+              <div key={record.id} className="mypage__recent-item" onClick={() => navigate('/result01', { state: { foodName: record.foodName, score: record.score, analysisId: record.id } })}>
                 <div className="mypage__recent-info">
                   <div className="mypage__recent-name">{record.foodName}</div>
-                  <div className="mypage__recent-time">{record.time}</div>
+                  <div className="mypage__recent-time">{record.date} {record.time}</div>
                 </div>
-                <div className="mypage__recent-score">{record.score}점</div>
+                <div className={`mypage__recent-score mypage__recent-score--${getScoreColor(record.score)}`}>
+                  {record.score}점
+                </div>
               </div>
             ))
           ) : (
-            <div className="mypage__recent-empty">
+            <div className="mypage__empty-state">
               <p>최근 기록이 없습니다</p>
             </div>
           )}
@@ -189,16 +245,24 @@ const MyPage = () => {
 
       {/* 메뉴 */}
       <section className="mypage__menu-section">
-        <button className="mypage__menu-button" onClick={() => navigate('/medicine')}>
-          <span className="mypage__menu-text">💊 복용 중인 약</span>
+        <button className="mypage__menu-item" onClick={() => navigate('/history')}>
+          <span className="mypage__menu-icon">📅</span>
+          <span className="mypage__menu-text">히스토리</span>
           <span className="mypage__menu-arrow">›</span>
         </button>
-        <button className="mypage__menu-button" onClick={() => navigate('/contact')}>
-          <span className="mypage__menu-text">📧 Contact Us</span>
+        <button className="mypage__menu-item" onClick={() => navigate('/reward')}>
+          <span className="mypage__menu-icon">🎁</span>
+          <span className="mypage__menu-text">리워드</span>
           <span className="mypage__menu-arrow">›</span>
         </button>
-        <button className="mypage__menu-button mypage__menu-button--logout" onClick={handleLogout}>
-          <span className="mypage__menu-text">🚪 로그아웃</span>
+        <button className="mypage__menu-item" onClick={() => navigate('/contact')}>
+          <span className="mypage__menu-icon">📧</span>
+          <span className="mypage__menu-text">Contact Us</span>
+          <span className="mypage__menu-arrow">›</span>
+        </button>
+        <button className="mypage__menu-item mypage__menu-item--logout" onClick={handleLogout}>
+          <span className="mypage__menu-icon">🚪</span>
+          <span className="mypage__menu-text">로그아웃</span>
           <span className="mypage__menu-arrow">›</span>
         </button>
       </section>
