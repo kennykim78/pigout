@@ -48,6 +48,7 @@ const History = () => {
         analysis: record.analysis,
         diseases: record.diseases,
         createdAt: record.created_at,
+        detailedAnalysis: record.detailed_analysis, // 캐시에서 가져온 상세 분석
       }));
       
       console.log('[History] 오늘 기록:', formattedRecords);
@@ -99,6 +100,7 @@ const History = () => {
         imageUrl: item.imageUrl,
         diseases: item.diseases,
         createdAt: item.createdAt,
+        detailedAnalysis: item.detailedAnalysis, // 캐시에서 가져온 상세 분석
         fromHistory: true, // 히스토리에서 온 것임을 표시
       }
     });

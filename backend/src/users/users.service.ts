@@ -207,7 +207,7 @@ export class UsersService {
   }
 
   /**
-   * 사용자 분석 히스토리 조회
+   * 사용자 분석 히스토리 조회 (캐시에서 상세 분석도 가져옴)
    */
   async getAnalysisHistory(userId: string, limit: number = 20, offset: number = 0) {
     const client = this.supabaseService.getClient();
@@ -223,7 +223,32 @@ export class UsersService {
       throw error;
     }
 
-    return data || [];
+    // 각 분석 결과에 대해 캐시에서 상세 분석 정보 가져오기
+    const resultsWithDetails = await Promise.all(
+      (data || []).map(async (item: any) => {
+        // 캐시 키 생성 (음식명 + 질병 + 빈 약물 - 히스토리에는 약물 정보가 없음)
+        const cacheKey = this.supabaseService.generateCacheKey(
+          item.food_name || '',
+          item.diseases || [],
+          [] // 히스토리 조회 시에는 약물 정보 없이 기본 캐시 조회
+        );
+
+        // 캐시에서 상세 분석 조회 (히트 카운트 증가 없이)
+        const { data: cacheData } = await client
+          .from('analysis_cache')
+          .select('detailed_analysis')
+          .eq('food_name', item.food_name)
+          .limit(1)
+          .single();
+
+        return {
+          ...item,
+          detailed_analysis: cacheData?.detailed_analysis || null,
+        };
+      })
+    );
+
+    return resultsWithDetails;
   }
 
   /**

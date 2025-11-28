@@ -1,10 +1,14 @@
 import { Controller, Post, Get, Body, Param, Headers, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FoodService } from './food.service';
+import { SupabaseService } from '../supabase/supabase.service';
 
 @Controller('food')
 export class FoodController {
-  constructor(private readonly foodService: FoodService) {}
+  constructor(
+    private readonly foodService: FoodService,
+    private readonly supabaseService: SupabaseService,
+  ) {}
 
   // 전체 분석 (공공데이터 포함) - 자세히 보기용
   @Post('analyze')
@@ -61,5 +65,16 @@ export class FoodController {
   @Post('quick-analyze')
   async quickAnalyze(@Body('imageBase64') imageBase64: string) {
     return this.foodService.quickAnalyzeImage(imageBase64);
+  }
+
+  // 캐시 통계 조회 (비용 절감 효과 확인용)
+  @Get('cache/stats')
+  async getCacheStats() {
+    const stats = await this.supabaseService.getCacheStatistics();
+    return {
+      success: true,
+      data: stats,
+      message: '캐시 통계 조회 완료',
+    };
   }
 }
