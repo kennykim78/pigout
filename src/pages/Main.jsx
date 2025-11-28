@@ -258,6 +258,12 @@ const Main = () => {
     // 저장된 질병 정보 확인
     const savedDiseases = localStorage.getItem('selectedDiseases');
     console.log('저장된 질병 정보:', savedDiseases);
+    
+    // 분석 전 약 정보 확인 로그
+    console.log('====== 분석 시작 ======');
+    const deviceId = localStorage.getItem('pigout_device_id');
+    console.log('[분석] Device ID:', deviceId);
+    console.log('[분석] 저장된 약 개수:', savedMedicinesCount);
 
     setIsLoading(true);
     try {
@@ -280,6 +286,13 @@ const Main = () => {
 
       console.log('분석 결과:', result);
       console.log('result.data:', result.data);
+      
+      // 약물 상호작용 정보 확인
+      console.log('====== 약물 상호작용 정보 확인 ======');
+      console.log('medicineInteractions:', result.data?.medicineInteractions);
+      console.log('analysis.medicineWarnings:', result.data?.analysis?.medicineWarnings);
+      console.log('detailedAnalysis.interactions:', result.data?.detailedAnalysis?.interactions);
+      
       console.log('result.data?.foodName:', result.data?.foodName);
       console.log('result.data?.score:', result.data?.score);
       console.log('result.data?.analysis:', result.data?.analysis);
