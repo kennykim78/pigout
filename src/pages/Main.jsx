@@ -3,21 +3,36 @@ import imgphoto from '../assets/images/img_photo.png';
 import img_travel from '../assets/images/img_travel.png';
 import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
+import NoMedicineAlertModal from '../components/NoMedicineAlertModal';
+import ImageSourceModal from '../components/ImageSourceModal';
 import { useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { simpleAnalyzeFoodWithImage, simpleAnalyzeFoodByText, API_BASE_URL } from '../services/api';
 
 const Main = () => {
-  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
+  const galleryInputRef = useRef(null);
   const [isListening, setIsListening] = useState(false);
   const [voiceText, setVoiceText] = useState('');
   const [selectedImage, setSelectedImage] = useState(null);
   const [previewUrl, setPreviewUrl] = useState(null);
   const [isLoading, setIsLoading] = useState(false);
+  const [showNoMedicineModal, setShowNoMedicineModal] = useState(false);
+  const [showImageSourceModal, setShowImageSourceModal] = useState(false);
   const navigate = useNavigate();
 
   const handleCameraClick = () => {
-    fileInputRef.current?.click();
+    setShowImageSourceModal(true);
+  };
+
+  const handleSelectCamera = () => {
+    setShowImageSourceModal(false);
+    cameraInputRef.current?.click();
+  };
+
+  const handleSelectGallery = () => {
+    setShowImageSourceModal(false);
+    galleryInputRef.current?.click();
   };
 
   const handleFileChange = async (e) => {
@@ -60,9 +75,8 @@ const Main = () => {
             console.warn('이미지 유효성 검증 실패:', data.message);
             alert(data.message || '유효한 음식 이미지가 아닙니다.');
             setSelectedImage(null);
-            if (fileInputRef.current) {
-              fileInputRef.current.value = '';
-            }
+            if (cameraInputRef.current) cameraInputRef.current.value = '';
+            if (galleryInputRef.current) galleryInputRef.current.value = '';
             return;
           }
         } else {
@@ -191,12 +205,36 @@ const Main = () => {
     recognition.start();
   };
 
+  // 복용 중인 약이 있는지 확인하는 함수
+  const hasSavedMedicines = () => {
+    const savedMedicines = localStorage.getItem('medicines');
+    if (!savedMedicines) return false;
+    try {
+      const medicines = JSON.parse(savedMedicines);
+      return Array.isArray(medicines) && medicines.length > 0;
+    } catch {
+      return false;
+    }
+  };
+
   const handleSaveClick = async () => {
     if (!voiceText.trim() && !selectedImage) {
       alert('음식 이름을 입력하거나 사진을 선택해주세요.');
       return;
     }
 
+    // 복용 중인 약이 없으면 알럿 표시
+    if (!hasSavedMedicines()) {
+      setShowNoMedicineModal(true);
+      return;
+    }
+
+    // 약이 있으면 바로 분석 시작
+    await startAnalysis();
+  };
+
+  // 분석 시작 함수 (모달에서도 호출)
+  const startAnalysis = async () => {
     // 저장된 질병 정보 확인
     const savedDiseases = localStorage.getItem('selectedDiseases');
     console.log('저장된 질병 정보:', savedDiseases);
@@ -287,15 +325,26 @@ const Main = () => {
         // 이미지 초기화
         setSelectedImage(null);
         setPreviewUrl(null);
-        if (fileInputRef.current) {
-          fileInputRef.current.value = '';
-        }
+        if (cameraInputRef.current) cameraInputRef.current.value = '';
+        if (galleryInputRef.current) galleryInputRef.current.value = '';
       } else {
         alert(`분석 오류: ${errorMessage}\n\n다시 시도해주세요.`);
       }
     } finally {
       setIsLoading(false);
     }
+  };
+
+  // 모달에서 분석 시작 클릭
+  const handleStartAnalysisFromModal = async () => {
+    setShowNoMedicineModal(false);
+    await startAnalysis();
+  };
+
+  // 모달에서 약 등록 클릭
+  const handleRegisterMedicine = () => {
+    setShowNoMedicineModal(false);
+    navigate('/medicine');
   };
 
   return (
@@ -316,11 +365,20 @@ const Main = () => {
                   </span>
                   <span>촬영</span>
                 </button>
+                {/* 카메라 촬영용 input */}
                 <input
-                  ref={fileInputRef}
+                  ref={cameraInputRef}
                   type="file"
                   accept="image/*"
                   capture="environment"
+                  style={{ display: 'none' }}
+                  onChange={handleFileChange}
+                />
+                {/* 갤러리 선택용 input (capture 속성 없음) */}
+                <input
+                  ref={galleryInputRef}
+                  type="file"
+                  accept="image/*"
                   style={{ display: 'none' }}
                   onChange={handleFileChange}
                 />
@@ -403,9 +461,8 @@ const Main = () => {
                 onClick={() => {
                   setSelectedImage(null);
                   setPreviewUrl(null);
-                  if (fileInputRef.current) {
-                    fileInputRef.current.value = '';
-                  }
+                  if (cameraInputRef.current) cameraInputRef.current.value = '';
+                  if (galleryInputRef.current) galleryInputRef.current.value = '';
                 }}
               >
                 <span className="material-symbols-rounded">close</span>
@@ -426,9 +483,8 @@ const Main = () => {
                     onClick={() => {
                       setSelectedImage(null);
                       setPreviewUrl(null);
-                      if (fileInputRef.current) {
-                        fileInputRef.current.value = '';
-                      }
+                      if (cameraInputRef.current) cameraInputRef.current.value = '';
+                      if (galleryInputRef.current) galleryInputRef.current.value = '';
                     }}
                   >
                     아니오
@@ -444,6 +500,21 @@ const Main = () => {
             </div>
           </div>
         )}
+
+        {/* 복용 중인 약 없음 알럿 모달 */}
+        <NoMedicineAlertModal
+          isOpen={showNoMedicineModal}
+          onStartAnalysis={handleStartAnalysisFromModal}
+          onRegisterMedicine={handleRegisterMedicine}
+        />
+
+        {/* 이미지 소스 선택 모달 */}
+        <ImageSourceModal
+          isOpen={showImageSourceModal}
+          onClose={() => setShowImageSourceModal(false)}
+          onSelectCamera={handleSelectCamera}
+          onSelectGallery={handleSelectGallery}
+        />
 
         <div className="main__recommendations">
           <RecommendationCard 

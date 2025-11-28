@@ -1,0 +1,83 @@
+.image-source-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: rgba(0, 0, 0, 0.5);
+}
+.image-source-modal__content {
+  background: rgb(255, 255, 255);
+  border-radius: 20px 20px 0 0;
+  padding: 24px 20px;
+  width: 100%;
+  max-width: 500px;
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+  from {
+    transform: translateY(100%);
+  }
+  to {
+    transform: translateY(0);
+  }
+}
+.image-source-modal__title {
+  font-size: 18px;
+  font-weight: 600;
+  text-align: center;
+  margin-bottom: 20px;
+  color: rgb(0, 0, 0);
+}
+.image-source-modal__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.image-source-modal__button {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px 20px;
+  background: rgb(153, 153, 153);
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+}
+.image-source-modal__button:hover {
+  background: rgb(140.25, 140.25, 140.25);
+}
+.image-source-modal__button:active {
+  transform: scale(0.98);
+}
+.image-source-modal__button .material-symbols-rounded {
+  font-size: 28px;
+  color: rgb(255, 161, 0);
+}
+.image-source-modal__button span:last-child {
+  font-size: 16px;
+  font-weight: 500;
+  color: rgb(0, 0, 0);
+}
+.image-source-modal__cancel {
+  width: 100%;
+  margin-top: 16px;
+  padding: 16px;
+  background: transparent;
+  border: none;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  color: #888;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.image-source-modal__cancel:hover {
+  background: rgb(153, 153, 153);
+}/*# sourceMappingURL=ImageSourceModal.css.map */

@@ -6,6 +6,7 @@
  */
 
 const DEVICE_ID_KEY = 'pigout_device_id';
+const ONBOARDING_COMPLETE_KEY = 'pigout_onboarding_complete';
 
 /**
  * UUID v4 생성
@@ -56,8 +57,52 @@ export function hasDeviceId(): boolean {
   return !!localStorage.getItem(DEVICE_ID_KEY);
 }
 
+/**
+ * 온보딩 완료 여부 확인
+ */
+export function isOnboardingComplete(): boolean {
+  return localStorage.getItem(ONBOARDING_COMPLETE_KEY) === 'true';
+}
+
+/**
+ * 온보딩 완료 설정
+ */
+export function setOnboardingComplete(): void {
+  localStorage.setItem(ONBOARDING_COMPLETE_KEY, 'true');
+  console.log('[Onboarding] 온보딩 완료 설정');
+}
+
+/**
+ * 온보딩 초기화 (테스트용)
+ */
+export function resetOnboarding(): void {
+  localStorage.removeItem(ONBOARDING_COMPLETE_KEY);
+  localStorage.removeItem('selectedDiseases');
+  console.log('[Onboarding] 온보딩 초기화');
+}
+
+/**
+ * 선택된 질병 가져오기
+ */
+export function getSelectedDiseases(): string[] {
+  const saved = localStorage.getItem('selectedDiseases');
+  return saved ? JSON.parse(saved) : [];
+}
+
+/**
+ * 선택된 질병 저장하기
+ */
+export function saveSelectedDiseases(diseases: string[]): void {
+  localStorage.setItem('selectedDiseases', JSON.stringify(diseases));
+}
+
 export default {
   getDeviceId,
   resetDeviceId,
   hasDeviceId,
+  isOnboardingComplete,
+  setOnboardingComplete,
+  resetOnboarding,
+  getSelectedDiseases,
+  saveSelectedDiseases,
 };

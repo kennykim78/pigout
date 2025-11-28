@@ -1,0 +1,109 @@
+.medicine-alert-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  &__overlay {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.6);
+  }
+
+  &__content {
+    position: relative;
+    background: white;
+    border-radius: 24px;
+    padding: 32px 24px;
+    width: 90%;
+    max-width: 320px;
+    text-align: center;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+    animation: slideUp 0.3s ease-out;
+  }
+
+  @keyframes slideUp {
+    from {
+      opacity: 0;
+      transform: translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
+  }
+
+  &__image {
+    width: 100px;
+    height: auto;
+    margin-bottom: 16px;
+  }
+
+  &__title {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a1a;
+    margin-bottom: 12px;
+    line-height: 1.4;
+  }
+
+  &__description {
+    font-size: 14px;
+    color: #666;
+    line-height: 1.6;
+    margin-bottom: 24px;
+
+    strong {
+      color: #e53935;
+      font-weight: 600;
+    }
+  }
+
+  &__buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__button {
+    width: 100%;
+    padding: 14px 20px;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    border: none;
+
+    &--yes {
+      background: linear-gradient(135deg, #e53935, #c62828);
+      color: white;
+
+      &:hover {
+        background: linear-gradient(135deg, #c62828, #b71c1c);
+        transform: translateY(-2px);
+      }
+
+      &:active {
+        transform: translateY(0);
+      }
+    }
+
+    &--no {
+      background: #f5f5f5;
+      color: #666;
+
+      &:hover {
+        background: #e0e0e0;
+      }
+    }
+  }
+}

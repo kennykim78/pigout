@@ -2,6 +2,8 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SelectOption.scss';
 import img_dental from '../assets/images/img_dental.png';
+import MedicineAlertModal from '../components/MedicineAlertModal';
+import { setOnboardingComplete, saveSelectedDiseases } from '../utils/deviceId';
 
 const diseases = [
   '탈모', '당뇨', '고혈압', '고지혈증', '통풍', '감기', '비염',
@@ -14,6 +16,7 @@ const SelectOption = () => {
   const [customDisease, setCustomDisease] = useState('');
   const [allDiseases, setAllDiseases] = useState(diseases);
   const [validationError, setValidationError] = useState('');
+  const [showMedicineModal, setShowMedicineModal] = useState(false);
   
   const isValidDisease = (text) => {
     // 2글자 이상
@@ -84,13 +87,22 @@ const SelectOption = () => {
     }
     
     // 선택된 질병 저장 (localStorage)
-    localStorage.setItem('selectedDiseases', JSON.stringify(selectedDiseases));
+    saveSelectedDiseases(selectedDiseases);
     console.log('질병 정보 저장됨:', selectedDiseases);
     
-    // 저장 확인 메시지
-    alert(`선택한 질병이 저장되었습니다.\n${selectedDiseases.join(', ')}`);
-    
-    // Main 페이지로 이동
+    // 약 추가 팝업 표시
+    setShowMedicineModal(true);
+  };
+
+  const handleMedicineYes = () => {
+    setShowMedicineModal(false);
+    setOnboardingComplete(true);
+    navigate('/medicine');
+  };
+
+  const handleMedicineNo = () => {
+    setShowMedicineModal(false);
+    setOnboardingComplete(true);
     navigate('/main');
   };
 
@@ -150,6 +162,12 @@ const SelectOption = () => {
           </button>
         </div>
       </div>
+
+      <MedicineAlertModal
+        isOpen={showMedicineModal}
+        onYes={handleMedicineYes}
+        onNo={handleMedicineNo}
+      />
     </div>
   );
 };

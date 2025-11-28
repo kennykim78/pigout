@@ -18,6 +18,11 @@ const Medicine = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // QR 스캔 결과 상태
+  const [scannedMedicine, setScannedMedicine] = useState(null);
+  const [isProcessingQR, setIsProcessingQR] = useState(false);
+  const [qrScanError, setQrScanError] = useState('');
 
   useEffect(() => {
     loadMedicines();
@@ -50,6 +55,7 @@ const Medicine = () => {
       setQrInput('');
       setShowQrScanner(false);
       setScanMode('manual');
+      setScannedMedicine(null);
       alert(`${result.parsedInfo.medicineName} 추가 완료!`);
       await loadMedicines();
     } catch (error) {
@@ -60,10 +66,72 @@ const Medicine = () => {
     }
   };
 
-  const handleCameraScan = (result) => {
-    if (result && result[0]?.rawValue) {
-      handleQrScan(result[0].rawValue);
+  // 카메라로 QR 인식 시 호출
+  const handleCameraScan = async (result) => {
+    if (result && result[0]?.rawValue && !isProcessingQR) {
+      const qrData = result[0].rawValue;
+      console.log('[QR 인식됨]', qrData);
+      
+      setIsProcessingQR(true);
+      setQrScanError('');
+      
+      try {
+        // QR 데이터로 약 정보 조회
+        const scanResult = await scanMedicineQR(qrData);
+        console.log('[QR 스캔 결과]', scanResult);
+        
+        // 스캔된 약 정보 저장 (등록 확인용)
+        setScannedMedicine({
+          qrData,
+          parsedInfo: scanResult.parsedInfo,
+          medicineRecord: scanResult.medicineRecord
+        });
+      } catch (error) {
+        console.error('QR 처리 실패:', error);
+        setQrScanError(error.response?.data?.message || 'QR 코드를 인식할 수 없습니다. 다시 시도해주세요.');
+        setIsProcessingQR(false);
+      }
     }
+  };
+
+  // QR 스캔 결과에서 약 등록
+  const handleAddScannedMedicine = async () => {
+    if (!scannedMedicine) return;
+    
+    setLoading(true);
+    try {
+      addToStore(scannedMedicine.medicineRecord);
+      alert(`${scannedMedicine.parsedInfo.medicineName} 추가 완료!`);
+      await loadMedicines();
+      
+      // 초기화
+      setScannedMedicine(null);
+      setShowQrScanner(false);
+      setScanMode('manual');
+      setIsProcessingQR(false);
+      setActiveTab('list');
+    } catch (error) {
+      console.error('약 추가 실패:', error);
+      alert('약 추가에 실패했습니다.');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  // QR 스캐너 닫기
+  const handleCloseQrScanner = () => {
+    setShowQrScanner(false);
+    setScanMode('manual');
+    setScannedMedicine(null);
+    setIsProcessingQR(false);
+    setQrScanError('');
+  };
+
+  // 다시 스캔하기
+  const handleRescan = () => {
+    setScannedMedicine(null);
+    setIsProcessingQR(false);
+    setQrScanError('');
   };
 
   const handleSearch = async () => {
@@ -383,32 +451,106 @@ const Medicine = () => {
             </div>
 
             {showQrScanner && scanMode === 'camera' && (
-              <div className="medicine__camera-scanner">
-                <div className="medicine__scanner-container">
-                  <Scanner
-                    onScan={handleCameraScan}
-                    onError={(error) => console.error('Scanner error:', error)}
-                    constraints={{
-                      facingMode: 'environment'
-                    }}
-                    styles={{
-                      container: {
-                        width: '100%',
-                        maxWidth: '500px',
-                        margin: '0 auto'
-                      }
-                    }}
-                  />
+              <div className="medicine__qr-fullscreen">
+                <div className="medicine__qr-header">
+                  <h2>QR 코드 스캔</h2>
+                  <button
+                    className="medicine__qr-close-btn"
+                    onClick={handleCloseQrScanner}
+                  >
+                    <span className="material-symbols-rounded">close</span>
+                  </button>
                 </div>
-                <button
-                  className="medicine__close-scanner-btn"
-                  onClick={() => {
-                    setShowQrScanner(false);
-                    setScanMode('manual');
-                  }}
-                >
-                  ✕ 스캔 닫기
-                </button>
+
+                {!scannedMedicine && !qrScanError && (
+                  <>
+                    <div className="medicine__qr-scanner-area">
+                      <Scanner
+                        onScan={handleCameraScan}
+                        onError={(error) => {
+                          console.error('Scanner error:', error);
+                          setQrScanError('카메라를 사용할 수 없습니다.');
+                        }}
+                        constraints={{
+                          facingMode: 'environment'
+                        }}
+                        styles={{
+                          container: {
+                            width: '100%',
+                            height: '100%',
+                          },
+                          video: {
+                            width: '100%',
+                            height: '100%',
+                            objectFit: 'cover'
+                          }
+                        }}
+                      />
+                      <div className="medicine__qr-overlay">
+                        <div className="medicine__qr-frame">
+                          <div className="medicine__qr-corner medicine__qr-corner--tl"></div>
+                          <div className="medicine__qr-corner medicine__qr-corner--tr"></div>
+                          <div className="medicine__qr-corner medicine__qr-corner--bl"></div>
+                          <div className="medicine__qr-corner medicine__qr-corner--br"></div>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="medicine__qr-guide">
+                      <p>약 포장의 QR 코드를 프레임 안에 맞춰주세요</p>
+                      {isProcessingQR && <p className="medicine__qr-processing">🔄 인식 중...</p>}
+                    </div>
+                  </>
+                )}
+
+                {qrScanError && (
+                  <div className="medicine__qr-error">
+                    <div className="medicine__qr-error-icon">❌</div>
+                    <p>{qrScanError}</p>
+                    <button
+                      className="medicine__qr-retry-btn"
+                      onClick={handleRescan}
+                    >
+                      다시 스캔하기
+                    </button>
+                  </div>
+                )}
+
+                {scannedMedicine && (
+                  <div className="medicine__qr-result">
+                    <div className="medicine__qr-result-icon">✅</div>
+                    <h3>약 정보를 찾았습니다!</h3>
+                    
+                    <div className="medicine__qr-result-card">
+                      <h4>{scannedMedicine.parsedInfo.medicineName}</h4>
+                      {scannedMedicine.parsedInfo.companyName && (
+                        <p className="medicine__qr-result-company">
+                          제조사: {scannedMedicine.parsedInfo.companyName}
+                        </p>
+                      )}
+                      {scannedMedicine.parsedInfo.productCode && (
+                        <p className="medicine__qr-result-code">
+                          품목코드: {scannedMedicine.parsedInfo.productCode}
+                        </p>
+                      )}
+                    </div>
+
+                    <div className="medicine__qr-result-buttons">
+                      <button
+                        className="medicine__qr-rescan-btn"
+                        onClick={handleRescan}
+                      >
+                        다시 스캔
+                      </button>
+                      <button
+                        className="medicine__qr-add-btn"
+                        onClick={handleAddScannedMedicine}
+                        disabled={isLoading}
+                      >
+                        {isLoading ? '등록 중...' : '약 등록하기'}
+                      </button>
+                    </div>
+                  </div>
+                )}
               </div>
             )}
 

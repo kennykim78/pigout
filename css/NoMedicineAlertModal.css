@@ -1,0 +1,81 @@
+.no-medicine-alert-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.no-medicine-alert-modal__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+}
+.no-medicine-alert-modal__content {
+  position: relative;
+  background: rgb(255, 255, 255);
+  border-radius: 20px;
+  padding: 30px 25px;
+  max-width: 320px;
+  width: 90%;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.no-medicine-alert-modal__image {
+  width: 100px;
+  height: auto;
+  margin-bottom: 20px;
+}
+.no-medicine-alert-modal__message {
+  font-size: 15px;
+  color: rgb(0, 0, 0);
+  line-height: 1.6;
+  margin-bottom: 25px;
+  font-weight: 500;
+}
+.no-medicine-alert-modal__buttons {
+  display: flex;
+  gap: 12px;
+  justify-content: center;
+}
+.no-medicine-alert-modal__button {
+  flex: 1;
+  padding: 14px 20px;
+  border-radius: 25px;
+  font-size: 15px;
+  font-weight: 600;
+  border: none;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.no-medicine-alert-modal__button--register {
+  background: rgb(153, 153, 153);
+  color: rgb(0, 0, 0);
+}
+.no-medicine-alert-modal__button--register:hover {
+  background: rgb(127.5, 127.5, 127.5);
+}
+.no-medicine-alert-modal__button--start {
+  background: rgb(255, 161, 0);
+  color: rgb(255, 255, 255);
+}
+.no-medicine-alert-modal__button--start:hover {
+  background: rgb(204, 128.8, 0);
+}/*# sourceMappingURL=NoMedicineAlertModal.css.map */

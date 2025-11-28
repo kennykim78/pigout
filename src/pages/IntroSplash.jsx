@@ -2,14 +2,24 @@ import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './IntroSplash.scss';
 import imgMain from '../assets/images/img_main.png';
+import { isOnboardingComplete } from '../utils/deviceId';
 
 const IntroSplash = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
     const timer = setTimeout(() => {
-      navigate('/select');
-    }, 5000);
+      // 온보딩 완료 여부 확인
+      if (isOnboardingComplete()) {
+        // 이미 온보딩 완료 → 바로 메인으로
+        console.log('[IntroSplash] 온보딩 완료됨 → Main 이동');
+        navigate('/main');
+      } else {
+        // 처음 접속 → 질병 선택 페이지로
+        console.log('[IntroSplash] 첫 접속 → SelectOption 이동');
+        navigate('/select');
+      }
+    }, 3000); // 3초로 단축
 
     return () => clearTimeout(timer);
   }, [navigate]);
