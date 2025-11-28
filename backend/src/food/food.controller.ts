@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Param, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Headers, UseInterceptors, UploadedFile } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FoodService } from './food.service';
 
@@ -12,6 +12,7 @@ export class FoodController {
   async analyzeFood(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases: string,
+    @Headers('x-device-id') deviceId: string,
     @UploadedFile() image?: Express.Multer.File,
   ) {
     // diseases가 JSON 문자열로 전달되므로 파싱
@@ -29,8 +30,9 @@ export class FoodController {
   async analyzeFoodByText(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases?: string[],
+    @Headers('x-device-id') deviceId?: string,
   ) {
-    return this.foodService.analyzeFoodByText(foodName, diseases || []);
+    return this.foodService.analyzeFoodByText(foodName, diseases || [], deviceId);
   }
 
   // 빠른 AI 분석 (공공데이터 없음) - Result01용
@@ -38,8 +40,9 @@ export class FoodController {
   async simpleTextAnalyze(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases?: string[],
+    @Headers('x-device-id') deviceId?: string,
   ) {
-    return this.foodService.simpleAnalyzeFoodByText(foodName, diseases || []);
+    return this.foodService.simpleAnalyzeFoodByText(foodName, diseases || [], deviceId);
   }
 
   // 빠른 이미지+AI 분석 (공공데이터 없음) - Result01용
@@ -48,10 +51,11 @@ export class FoodController {
   async simpleAnalyzeFood(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases: string,
+    @Headers('x-device-id') deviceId: string,
     @UploadedFile() image?: Express.Multer.File,
   ) {
     const diseasesArray = diseases ? JSON.parse(diseases) : [];
-    return this.foodService.simpleAnalyzeFood(foodName, image, diseasesArray);
+    return this.foodService.simpleAnalyzeFood(foodName, image, diseasesArray, deviceId);
   }
 
   @Post('quick-analyze')

@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { getDeviceId } from '../utils/deviceId';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -8,6 +9,52 @@ const apiClient = axios.create({
     'Content-Type': 'application/json',
   },
 });
+
+// 모든 요청에 Device ID 헤더 추가
+apiClient.interceptors.request.use((config) => {
+  const deviceId = getDeviceId();
+  config.headers['X-Device-Id'] = deviceId;
+  return config;
+});
+
+// ============================================
+// 사용자/기기 관리 API
+// ============================================
+
+// 기기 등록 또는 조회 (첫 접속 시 자동 호출)
+export const registerDevice = async () => {
+  const deviceId = getDeviceId();
+  const response = await apiClient.post('/users/register-device', { deviceId });
+  return response.data;
+};
+
+// 현재 기기의 사용자 정보 조회
+export const getCurrentUser = async () => {
+  const response = await apiClient.get('/users/me');
+  return response.data;
+};
+
+// 사용자 프로필 업데이트 (닉네임 등)
+export const updateUserProfile = async (profile: { nickname?: string; diseases?: string[] }) => {
+  const response = await apiClient.patch('/users/me', profile);
+  return response.data;
+};
+
+// 분석 히스토리 조회
+export const getAnalysisHistory = async (limit: number = 20, offset: number = 0) => {
+  const response = await apiClient.get('/users/history', {
+    params: { limit, offset },
+  });
+  return response.data;
+};
+
+// 사용자 약물 기록 조회
+export const getUserMedicines = async (activeOnly: boolean = true) => {
+  const response = await apiClient.get('/users/medicines', {
+    params: { activeOnly },
+  });
+  return response.data;
+};
 
 // ============================================
 // 음식 분석 API

@@ -3,6 +3,7 @@ import { SupabaseService } from '../supabase/supabase.service';
 import { AiService } from '../ai/ai.service';
 import { OpenDataService } from '../opendata/opendata.service';
 import { ExternalApiClient } from '../ai/utils/external-api.client';
+import { UsersService } from '../users/users.service';
 
 @Injectable()
 export class FoodService {
@@ -13,6 +14,7 @@ export class FoodService {
     private readonly aiService: AiService,
     private readonly openDataService: OpenDataService,
     private readonly externalApiClient: ExternalApiClient,
+    private readonly usersService: UsersService,
   ) {}
 
   private async getGeminiClient() {
@@ -234,15 +236,28 @@ export class FoodService {
     }
   }
 
-  async analyzeFoodByText(foodName: string, diseases: string[] = []) {
+  async analyzeFoodByText(foodName: string, diseases: string[] = [], deviceId?: string) {
     try {
       // 텍스트만으로 분석 - 질병 정보 포함
       console.log('=== 음식 분석 시작 ===');
       console.log('음식명:', foodName);
       console.log('질병 정보:', diseases);
+      console.log('기기 ID:', deviceId);
       
-      // 고정된 사용자 ID (실제로는 인증에서 가져와야 함)
-      const userId = '00000000-0000-0000-0000-000000000000';
+      // 기기 ID로 사용자 ID 조회 (없으면 기본값 사용)
+      let userId = '00000000-0000-0000-0000-000000000000';
+      if (deviceId) {
+        const foundUserId = await this.usersService.getUserIdByDeviceId(deviceId);
+        if (foundUserId) {
+          userId = foundUserId;
+          console.log('사용자 ID:', userId);
+        } else {
+          // 기기 등록되지 않은 경우 자동 등록
+          const newUser = await this.usersService.findOrCreateByDeviceId(deviceId);
+          userId = newUser.id;
+          console.log('새 사용자 자동 등록:', userId);
+        }
+      }
       
       // 1단계: 사용자 약물 정보 조회
       const supabase = this.supabaseService.getClient();
@@ -429,13 +444,14 @@ export class FoodService {
       console.log('약물 상호작용:', detailedAnalysis.medicalAnalysis.drug_food_interactions.length, '개');
       console.log('=== 음식 분석 완료 ===\n');
 
-      console.log('DB 저장 데이터:', { foodName, score, analysis: analysis.substring(0, 50) + '...' });
+      console.log('DB 저장 데이터:', { foodName, score, analysis: analysis.substring(0, 50) + '...', userId });
 
       const result = await this.supabaseService.saveFoodAnalysis({
         foodName,
         score,
         analysis,
         diseases,
+        userId,
         // detailedAnalysis: detailedAnalysis ? JSON.stringify(detailedAnalysis) : null, // TODO: 컬럼 추가 후 활성화
       });
 
@@ -467,14 +483,23 @@ export class FoodService {
   }
 
   // 경량 텍스트 분석: 공공데이터 없이 순수 AI 지식만으로 빠른 분석
-  async simpleAnalyzeFoodByText(foodName: string, diseases: string[] = []) {
+  async simpleAnalyzeFoodByText(foodName: string, diseases: string[] = [], deviceId?: string) {
     try {
       console.log('=== 순수 AI 빠른 분석 시작 ===');
       console.log('음식명:', foodName);
       console.log('질병 정보:', diseases);
 
-      // 고정된 사용자 ID (실제로는 인증에서 가져와야 함)
-      const userId = '00000000-0000-0000-0000-000000000000';
+      // 기기 ID로 사용자 ID 조회 (없으면 기본값 사용)
+      let userId = '00000000-0000-0000-0000-000000000000';
+      if (deviceId) {
+        const foundUserId = await this.usersService.getUserIdByDeviceId(deviceId);
+        if (foundUserId) {
+          userId = foundUserId;
+        } else {
+          const newUser = await this.usersService.findOrCreateByDeviceId(deviceId);
+          userId = newUser.id;
+        }
+      }
       
       // 사용자 복용 약물 목록 조회 (간단히 이름만)
       const supabase = this.supabaseService.getClient();
@@ -525,6 +550,7 @@ export class FoodService {
         score,
         analysis,
         diseases,
+        userId,
       });
 
       const responseData = {
@@ -552,7 +578,7 @@ export class FoodService {
   }
 
   // 이미지 포함 빠른 AI 분석 (공공데이터 없음) - Result01용
-  async simpleAnalyzeFood(foodName: string, image?: Express.Multer.File, diseases: string[] = []) {
+  async simpleAnalyzeFood(foodName: string, image?: Express.Multer.File, diseases: string[] = [], deviceId?: string) {
     try {
       console.log('=== 이미지 포함 빠른 AI 분석 시작 ===');
       let imageUrl = null;
@@ -598,8 +624,17 @@ export class FoodService {
       console.log('[simpleAnalyze] 음식명:', actualFoodName);
       console.log('[simpleAnalyze] 질병:', diseases);
 
-      // 사용자 복용 약물 목록 조회
-      const userId = '00000000-0000-0000-0000-000000000000';
+      // 기기 ID로 사용자 ID 조회 (없으면 기본값 사용)
+      let userId = '00000000-0000-0000-0000-000000000000';
+      if (deviceId) {
+        const foundUserId = await this.usersService.getUserIdByDeviceId(deviceId);
+        if (foundUserId) {
+          userId = foundUserId;
+        } else {
+          const newUser = await this.usersService.findOrCreateByDeviceId(deviceId);
+          userId = newUser.id;
+        }
+      }
       const supabase = this.supabaseService.getClient();
       const { data: medicines } = await supabase
         .from('medicine_records')
@@ -647,6 +682,7 @@ export class FoodService {
         score,
         analysis,
         diseases,
+        userId,
       });
 
       const responseData = {

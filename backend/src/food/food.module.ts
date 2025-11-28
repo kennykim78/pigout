@@ -5,9 +5,10 @@ import { SupabaseModule } from '../supabase/supabase.module';
 import { AiModule } from '../ai/ai.module';
 import { OpenDataModule } from '../opendata/opendata.module';
 import { ExternalApiClient } from '../ai/utils/external-api.client';
+import { UsersModule } from '../users/users.module';
 
 @Module({
-  imports: [SupabaseModule, AiModule, OpenDataModule],
+  imports: [SupabaseModule, AiModule, OpenDataModule, UsersModule],
   controllers: [FoodController],
   providers: [FoodService, ExternalApiClient],
   exports: [FoodService],

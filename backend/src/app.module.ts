@@ -7,6 +7,7 @@ import { RewardModule } from './reward/reward.module';
 import { MedicineModule } from './medicine/medicine.module';
 import { StatsModule } from './stats/stats.module';
 import { OpenDataModule } from './opendata/opendata.module';
+import { UsersModule } from './users/users.module';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { OpenDataModule } from './opendata/opendata.module';
     }),
     SupabaseModule,
     OpenDataModule,
+    UsersModule,
     FoodModule,
     AiModule,
     RewardModule,

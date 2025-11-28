@@ -50,6 +50,7 @@ export class SupabaseService {
     analysis?: string;
     diseases?: string[];
     detailedAnalysis?: string;
+    userId?: string;
   }) {
     // camelCase를 snake_case로 변환
     const dbData: any = {
@@ -59,6 +60,11 @@ export class SupabaseService {
       analysis: data.analysis,
       diseases: data.diseases || [], // 질병 정보 추가
     };
+    
+    // userId가 있으면 추가
+    if (data.userId) {
+      dbData.user_id = data.userId;
+    }
     
     // detailedAnalysis가 있으면 추가 (선택적)
     if (data.detailedAnalysis) {
