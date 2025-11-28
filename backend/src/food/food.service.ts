@@ -285,18 +285,39 @@ export class FoodService {
       const aiNeededCount = drugDetails.filter(d => d.dataSource === 'AI분석필요').length;
       console.log(`\n[2단계] 약물 정보 조회 완료 (e약은요: ${apiSuccessCount}개, AI대체필요: ${aiNeededCount}개)`);
 
-      // [API 최적화] 식품영양/건강기능식품/질병정보 API 제거
-      // - 사유: API 사용량 절약 (무료 1,000건 제한)
-      // - 대안: AI가 일반 지식으로 분석 (Gemini가 영양정보 충분히 알고 있음)
-      // - e약은요 API만 유지 (약물 상호작용은 정확한 데이터 필요)
-      console.log(`\n[보강 데이터] API 미호출 - AI 지식 기반 분석으로 대체`);
+      // 보강 데이터: 식품영양성분 + 건강기능식품 API 조회
+      // - 식품영양성분: 정확한 영양소 수치 확인
+      // - 건강기능식품: 건강기능식품 검색 시 활용
+      console.log(`\n[보강 데이터] 식품영양성분 / 건강기능식품 API 조회 중...`);
       
-      // AI에게 전달할 컨텍스트 (API 대신 빈 데이터)
+      let nutritionRows = [];
+      let healthFoodRows = [];
+      
+      try {
+        [nutritionRows, healthFoodRows] = await Promise.all([
+          this.externalApiClient.getFoodNutritionPublicData({ foodName, numOfRows: 5 }),
+          this.externalApiClient.getHealthFunctionalFoodList({ productName: foodName, numOfRows: 5 }),
+        ]);
+      } catch (apiError) {
+        console.warn('[보강 데이터] API 조회 실패, AI가 대체:', apiError.message);
+      }
+      
       const supplementalPublicData = {
-        nutrition: { source: 'AI 지식 기반', items: [] },
-        healthFunctionalFoods: { source: 'AI 지식 기반', items: [] },
+        nutrition: {
+          source: nutritionRows?.length > 0 ? '식품의약품안전처 식품영양성분DB' : 'AI 지식 기반',
+          items: nutritionRows || [],
+        },
+        healthFunctionalFoods: {
+          source: healthFoodRows?.length > 0 ? '식품의약품안전처 건강기능식품정보' : 'AI 지식 기반',
+          items: healthFoodRows || [],
+        },
         diseaseInfo: { source: 'AI 지식 기반', items: [] },
       };
+      
+      console.log('[보강 데이터] 결과:', {
+        nutritionCount: nutritionRows?.length || 0,
+        healthFoodCount: healthFoodRows?.length || 0,
+      });
       
       // 3단계: Gemini AI로 음식 성분 분석
       const geminiClient = await this.getGeminiClient();
@@ -345,8 +366,6 @@ export class FoodService {
       const score = finalAnalysis.suitabilityScore || 50;
       const analysis = finalAnalysis.briefSummary || `${foodName}에 대한 분석 결과입니다.`;
       
-      // 7단계: 상세 분석 데이터 구성
-      const dataSourceSet = new Set<string>([
       // 7단계: 데이터 소스 정리 (사용한 API만 표시)
       const dataSourceSet = new Set<string>([
         'Gemini AI 분석',
@@ -355,6 +374,16 @@ export class FoodService {
       // e약은요 API 성공한 경우만 출처 추가
       if (apiSuccessCount > 0) {
         dataSourceSet.add('식품의약품안전처 e약은요 API');
+      }
+      
+      // 식품영양성분 API 사용한 경우
+      if (nutritionRows && nutritionRows.length > 0) {
+        dataSourceSet.add('식품의약품안전처 식품영양성분DB');
+      }
+      
+      // 건강기능식품 API 사용한 경우
+      if (healthFoodRows && healthFoodRows.length > 0) {
+        dataSourceSet.add('식품의약품안전처 건강기능식품정보');
       }
       
       // 레시피 데이터 사용한 경우
@@ -378,6 +407,9 @@ export class FoodService {
         // API 사용 현황 추가
         apiUsage: {
           eDrugApi: { used: apiSuccessCount, aiReplaced: aiNeededCount },
+          nutritionApi: { used: nutritionRows?.length > 0 ? 1 : 0 },
+          healthFoodApi: { used: healthFoodRows?.length > 0 ? 1 : 0 },
+          recipeApi: { used: recipeData?.length > 0 ? 1 : 0 },
         }
       };
       

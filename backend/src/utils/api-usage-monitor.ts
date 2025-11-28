@@ -13,6 +13,8 @@ interface ApiUsageRecord {
 interface ApiUsageStats {
   eDrugApi: ApiUsageRecord;
   recipeApi: ApiUsageRecord;
+  nutritionApi: ApiUsageRecord;
+  healthFoodApi: ApiUsageRecord;
 }
 
 // 메모리 기반 사용량 추적 (서버 재시작 시 리셋)
@@ -20,12 +22,16 @@ interface ApiUsageStats {
 let apiUsageStats: ApiUsageStats = {
   eDrugApi: { count: 0, lastReset: new Date().toISOString().split('T')[0] },
   recipeApi: { count: 0, lastReset: new Date().toISOString().split('T')[0] },
+  nutritionApi: { count: 0, lastReset: new Date().toISOString().split('T')[0] },
+  healthFoodApi: { count: 0, lastReset: new Date().toISOString().split('T')[0] },
 };
 
-// 일일 한도 설정 (무료 플랜 기준)
+// 일일 한도 설정 (10,000건 기준, 여유분 500건)
 const API_DAILY_LIMITS = {
-  eDrugApi: 900,    // e약은요 API (1,000건 중 여유분 100건)
-  recipeApi: 900,   // 레시피 API (1,000건 중 여유분 100건)
+  eDrugApi: 9500,       // e약은요 API
+  recipeApi: 9500,      // 레시피 API
+  nutritionApi: 9500,   // 식품영양성분 API
+  healthFoodApi: 9500,  // 건강기능식품 API
 };
 
 /**
@@ -102,6 +108,8 @@ export function resetApiUsage(apiName?: keyof ApiUsageStats): void {
     apiUsageStats = {
       eDrugApi: { count: 0, lastReset: today },
       recipeApi: { count: 0, lastReset: today },
+      nutritionApi: { count: 0, lastReset: today },
+      healthFoodApi: { count: 0, lastReset: today },
     };
     console.log(`[API모니터] 전체 API 카운터 리셋 완료`);
   }

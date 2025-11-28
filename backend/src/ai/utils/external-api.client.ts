@@ -730,9 +730,16 @@ export class ExternalApiClient {
 
   /**
    * 식품영양성분DB 조회
+   * API 사용량 모니터링 적용
    */
   async getFoodNutritionPublicData(params: FoodNutritionParams = {}): Promise<any[]> {
-    return this.callMfdsApi('FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02', {
+    // API 사용량 체크
+    if (!canUseApi('nutritionApi')) {
+      console.log(`[식품영양성분] 일일 한도 초과 - AI 분석으로 대체`);
+      return [];
+    }
+    
+    const result = await this.callMfdsApi('FoodNtrCpntDbInfo02/getFoodNtrCpntDbInq02', {
       FOOD_NM_KR: params.foodName,
       DB_CLASS_NM: params.dbClass,
       RESEARCH_YMD: params.researchYmd,
@@ -742,19 +749,36 @@ export class ExternalApiClient {
       pageNo: params.pageNo,
       numOfRows: params.numOfRows,
     });
+    
+    if (result && result.length > 0) {
+      recordApiUsage('nutritionApi', 1);
+    }
+    return result;
   }
 
   /**
    * 건강기능식품 목록 조회
+   * API 사용량 모니터링 적용
    */
   async getHealthFunctionalFoodList(params: HealthFunctionalFoodParams = {}): Promise<any[]> {
-    return this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
+    // API 사용량 체크
+    if (!canUseApi('healthFoodApi')) {
+      console.log(`[건강기능식품] 일일 한도 초과 - AI 분석으로 대체`);
+      return [];
+    }
+    
+    const result = await this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
       prdlst_nm: params.productName,
       rawmtrl_nm: params.rawMaterialName,
       entrps: params.companyName,
       pageNo: params.pageNo,
       numOfRows: params.numOfRows,
     });
+    
+    if (result && result.length > 0) {
+      recordApiUsage('healthFoodApi', 1);
+    }
+    return result;
   }
 
   /**
