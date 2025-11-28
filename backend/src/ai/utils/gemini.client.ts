@@ -1028,6 +1028,144 @@ JSON 형식으로만 응답:
   }
 
   /**
+   * [5단계 최적화] 최종 분석 + 건강 레시피를 하나의 AI 호출로 통합
+   * 기존: generateFinalAnalysis (Gemini Pro) + generateHealthyRecipes (Gemini Flash) = 2회 호출
+   * 최적화: 하나의 Gemini Pro 호출로 통합 → 약 5-7초 절약
+   */
+  async generateFinalAnalysisWithRecipes(
+    foodName: string,
+    foodAnalysis: any,
+    interactionAnalysis: any,
+    diseases: string[],
+    recipeData: any
+  ): Promise<{
+    finalAnalysis: {
+      suitabilityScore: number;
+      briefSummary: string;
+      goodPoints: string[];
+      badPoints: string[];
+      warnings: string[];
+      expertAdvice: string;
+      summary: string;
+    };
+    healthyRecipes: string[];
+  }> {
+    try {
+      const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
+      const drugList = interactionAnalysis?.interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
+      
+      const prompt = `# Role Definition
+당신은 20년 경력의 **'임상 약사(Clinical Pharmacist)'**이자 **'임상 영양학자(Clinical Nutritionist)'**입니다.
+
+---
+
+# Input Data Context
+**사용자 프로필:**
+- 질병 목록: ${diseaseList}
+- 복용 약물: ${drugList}
+- 분석 음식: ${foodName}
+
+**음식 성분 분석 데이터:**
+${JSON.stringify(foodAnalysis, null, 2)}
+
+**약물-음식 상호작용 분석 데이터:**
+${JSON.stringify(interactionAnalysis, null, 2)}
+
+**레시피 DB 데이터 (식품안전나라):**
+${JSON.stringify(recipeData?.slice(0, 3), null, 2)}
+
+---
+
+# Output Requirements (2가지를 한번에 생성)
+
+## Part 1: 최종 종합 분석
+1. **suitabilityScore** (0-100): 적합도 점수
+   - danger 약물 있으면: 0-40점
+   - caution 약물만: 40-70점
+   - safe하지만 질병 고려: 70-85점
+   - 완전 안전: 85-100점
+
+2. **goodPoints** (배열 3-5개): ✅ 좋은 점 (각 50자 이상)
+3. **badPoints** (배열 2-4개): ⚠️ 주의할 점 (각 50자 이상)
+4. **warnings** (배열 0-3개): 🚨 경고 (위험한 상호작용만)
+5. **expertAdvice** (문자열): 💊 AI 전문가 조언 (100자 이상, 친근한 어조)
+6. **briefSummary** (문자열): 간략 요약 (200자 내외)
+7. **summary** (문자열): 🔬 최종 종합 분석 (200자 이상)
+
+## Part 2: 건강 레시피 팁
+**healthyRecipes** (배열 4-6개): ${foodName}을 건강하게 조리/섭취하는 방법
+- ❌ 절대 다른 음식 추천 금지! ${foodName} 자체를 어떻게 먹을지만 답변
+- ✅ [재료 변경], [조리법 변경], [섭취 팁] 카테고리로 구체적 작성
+
+---
+
+# JSON Output Format
+{
+  "finalAnalysis": {
+    "suitabilityScore": 75,
+    "goodPoints": ["✅ 단백질이 풍부하여...", "✅ 비타민B군이...", "✅ ..."],
+    "badPoints": ["⚠️ 나트륨 함량이...", "⚠️ ..."],
+    "warnings": ["🚨 [DANGER] 와파린 복용 중이라면..."],
+    "expertAdvice": "💊 이 음식은 영양가가 높지만...",
+    "briefSummary": "영양가 높은 음식이지만...",
+    "summary": "🔬 [최종 종합 분석] 이 음식은..."
+  },
+  "healthyRecipes": [
+    "[재료 변경] 소금 대신 저염간장을 사용하세요",
+    "[조리법 변경] 튀기지 말고 에어프라이어로 조리하세요",
+    "[섭취 팁] 국물보다 건더기 위주로 드세요",
+    "[섭취 팁] 약 복용 2시간 후에 드시는 것이 좋습니다"
+  ]
+}`;
+
+      let rawText: string;
+      try {
+        const result = await this.proModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [ { text: prompt } ]);
+      }
+      
+      const parsed = this.extractJsonObject(rawText);
+      
+      // 기본값 설정
+      const finalAnalysis = parsed.finalAnalysis || {};
+      if (!finalAnalysis.warnings) finalAnalysis.warnings = [];
+      if (!finalAnalysis.expertAdvice) {
+        finalAnalysis.expertAdvice = '균형 잡힌 식단의 일부로 적당량 섭취하시면 건강에 도움이 됩니다.';
+      }
+      
+      const healthyRecipes = parsed.healthyRecipes || [
+        '신선한 재료를 사용하세요',
+        '조리 시 염분과 당분을 적게 사용하세요',
+        '채소를 많이 추가하면 더 건강해요'
+      ];
+      
+      return { finalAnalysis, healthyRecipes };
+    } catch (error) {
+      console.error('AI 통합 분석 실패:', error);
+      // 폴백: 기본값 반환
+      return {
+        finalAnalysis: {
+          suitabilityScore: 50,
+          briefSummary: `${foodName}에 대한 분석 결과입니다.`,
+          goodPoints: ['균형 잡힌 영양소를 제공합니다'],
+          badPoints: ['과다 섭취 시 주의가 필요합니다'],
+          warnings: [],
+          expertAdvice: '적당량 섭취하시면 건강에 도움이 됩니다.',
+          summary: `${foodName}은(는) 균형있게 섭취하시면 좋습니다.`,
+        },
+        healthyRecipes: [
+          '신선한 재료를 사용하세요',
+          '조리 시 염분과 당분을 적게 사용하세요',
+          '채소를 많이 추가하면 더 건강해요'
+        ],
+      };
+    }
+  }
+
+  /**
    * 복용 중인 모든 약물 간 상호작용 종합 분석
    */
   async analyzeAllDrugInteractions(drugDetails: any[]): Promise<{

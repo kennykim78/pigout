@@ -319,17 +319,25 @@ export class FoodService {
         healthFoodCount: healthFoodRows?.length || 0,
       });
       
-      // 3단계: Gemini AI로 음식 성분 분석
+      // 3단계 + 4단계 + 레시피 조회: 병렬 실행으로 속도 최적화
       const geminiClient = await this.getGeminiClient();
       
-      console.log(`\n[3단계] AI가 음식 성분 분석 중...`);
-      const foodAnalysis = await geminiClient.analyzeFoodComponents(foodName, diseases, supplementalPublicData);
-      console.log('AI 분석 완료:', {
+      console.log(`\n[3-4단계] AI 분석 + 레시피 조회 병렬 실행 중...`);
+      
+      // 3단계: 음식 성분 분석 (Promise)
+      const foodAnalysisPromise = geminiClient.analyzeFoodComponents(foodName, diseases, supplementalPublicData);
+      
+      // 레시피 DB 조회 (Promise) - 미리 시작
+      const recipeDataPromise = this.externalApiClient.getRecipeInfo(foodName);
+      
+      // 3단계 완료 대기 (4단계에 필요)
+      const foodAnalysis = await foodAnalysisPromise;
+      console.log('[3단계] 음식 성분 분석 완료:', {
         주요성분: foodAnalysis.components?.slice(0, 3),
         위험요소: Object.keys(foodAnalysis.riskFactors || {}).filter(k => foodAnalysis.riskFactors[k])
       });
       
-      // 4단계: AI가 음식 성분과 약물 공공데이터를 비교 분석하여 상호작용 판단
+      // 4단계: 약물-음식 상호작용 분석 (3단계 결과 필요)
       console.log(`\n[4단계] AI가 약물-음식 상호작용 분석 중...`);
       const interactionAnalysis = await geminiClient.analyzeDrugFoodInteractions(
         foodName,
@@ -338,29 +346,24 @@ export class FoodService {
         diseases
       );
       
-      console.log('상호작용 분석 완료:', {
+      console.log('[4단계] 상호작용 분석 완료:', {
         위험약물: interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'danger').length,
         주의약물: interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'caution').length,
         안전약물: interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'safe').length
       });
       
-      // 5단계: AI가 최종 종합 분석
-      console.log(`\n[5단계] AI가 최종 분석 재정리 중...`);
-      const finalAnalysis = await geminiClient.generateFinalAnalysis(
+      // 레시피 데이터 완료 대기 (병렬 실행됨)
+      const recipeData = await recipeDataPromise;
+      console.log(`[레시피] 조회 완료: ${recipeData?.length || 0}개`);
+      
+      // 5단계: AI가 최종 종합 분석 + 레시피 팁 통합 (하나의 AI 호출로 통합)
+      console.log(`\n[5단계] AI가 최종 분석 + 레시피 팁 통합 생성 중...`);
+      const { finalAnalysis, healthyRecipes } = await geminiClient.generateFinalAnalysisWithRecipes(
         foodName,
         foodAnalysis,
         interactionAnalysis,
-        diseases
-      );
-      
-      // 6단계: 레시피 DB 참조하여 건강 레시피 재정리
-      console.log(`\n[6단계] 레시피 DB 조회 중...`);
-      const recipeData = await this.externalApiClient.getRecipeInfo(foodName);
-      const healthyRecipes = await geminiClient.generateHealthyRecipes(
-        foodName,
-        finalAnalysis,
-        recipeData,
-        diseases
+        diseases,
+        recipeData
       );
       
       const score = finalAnalysis.suitabilityScore || 50;
@@ -421,7 +424,7 @@ export class FoodService {
         }
       };
       
-      console.log('\n[7단계] 최종 결과 정리 완료');
+      console.log('\n[6단계] 최종 결과 정리 완료');
       console.log('점수:', score);
       console.log('약물 상호작용:', detailedAnalysis.medicalAnalysis.drug_food_interactions.length, '개');
       console.log('=== 음식 분석 완료 ===\n');
