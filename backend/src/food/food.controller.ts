@@ -2,7 +2,7 @@ import { Controller, Post, Get, Body, Param, Headers, UseInterceptors, UploadedF
 import { FileInterceptor } from '@nestjs/platform-express';
 import { FoodService } from './food.service';
 import { SupabaseService } from '../supabase/supabase.service';
-import { generatePrewarmCombinations, getPrewarmStats } from './prewarm-data';
+import { getPrewarmStats } from './prewarm-data';
 
 @Controller('food')
 export class FoodController {
@@ -76,6 +76,17 @@ export class FoodController {
       success: true,
       data: stats,
       message: '캐시 통계 조회 완료',
+    };
+  }
+
+  // 사전 캐싱 통계 조회
+  @Get('prewarm/stats')
+  async getPrewarmStatistics() {
+    const stats = getPrewarmStats();
+    return {
+      success: true,
+      data: stats,
+      message: '사전 캐싱 예정 조합 통계',
     };
   }
 }
