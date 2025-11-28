@@ -4,6 +4,7 @@ import { AiService } from '../ai/ai.service';
 import { OpenDataService } from '../opendata/opendata.service';
 import { ExternalApiClient } from '../ai/utils/external-api.client';
 import { UsersService } from '../users/users.service';
+import { canUseRuleBasedAnalysis, getRuleBasedAnalysis } from './food-rules';
 
 @Injectable()
 export class FoodService {
@@ -334,8 +335,138 @@ export class FoodService {
         healthFoodCount: healthFoodRows?.length || 0,
       });
       
-      // 3단계 + 4단계 + 레시피 조회: 병렬 실행으로 속도 최적화
       const geminiClient = await this.getGeminiClient();
+      const medicineNames = (medicines || []).map((m: any) => m.name);
+      
+      // ================================================================
+      // 2단계 캐시 시스템: 음식+질병 캐시 + 약물 상호작용 분리 분석
+      // ================================================================
+      const baseCacheKey = this.supabaseService.generateCacheKey(foodName, diseases, []);
+      console.log(`[2단계 캐시] 기본 캐시 키: ${baseCacheKey.substring(0, 16)}... (약물 제외)`);
+      
+      const baseCache = await this.supabaseService.getCachedAnalysis(baseCacheKey);
+      
+      if (baseCache) {
+        console.log(`[2단계 캐시] ✅ 1단계 캐시 히트! (음식+질병 분석)`);
+        
+        // 약물이 없으면 캐시 결과 그대로 반환
+        if (!medicines || medicines.length === 0) {
+          console.log('[2단계 캐시] 약물 없음 → 캐시 결과 그대로 사용');
+          
+          const result = await this.supabaseService.saveFoodAnalysis({
+            foodName,
+            score: baseCache.score,
+            analysis: baseCache.analysis,
+            diseases,
+            userId,
+            detailedAnalysis: JSON.stringify(baseCache.detailed_analysis),
+          });
+
+          return {
+            success: true,
+            data: {
+              id: result[0].id,
+              foodName: result[0].food_name,
+              score: result[0].score,
+              analysis: result[0].analysis,
+              detailedAnalysis: {
+                ...baseCache.detailed_analysis,
+                cached: true,
+                cacheHitCount: baseCache.hit_count,
+                analysisMode: 'two-stage-cache',
+              },
+              createdAt: result[0].created_at,
+            },
+            message: '음식 분석이 완료되었습니다. (캐시)',
+            cached: true,
+          };
+        }
+        
+        // 약물이 있으면 2단계: 약물 상호작용만 AI 분석 (AI 호출 50% 절감!)
+        console.log(`[2단계 캐시] 약물 ${medicines.length}개 → 약물 상호작용만 추가 분석`);
+        
+        // 캐시된 음식 분석 결과 사용
+        const cachedFoodAnalysis = {
+          components: baseCache.detailed_analysis?.foodComponents || [],
+          riskFactors: baseCache.detailed_analysis?.riskFactors || {},
+          riskFactorNotes: baseCache.detailed_analysis?.riskFactorNotes || {},
+        };
+        
+        // 약물 상호작용만 AI 분석 (1회 호출)
+        console.log('[2단계 캐시] 약물-음식 상호작용 분석 중...');
+        const interactionAnalysis = await geminiClient.analyzeDrugFoodInteractions(
+          foodName,
+          cachedFoodAnalysis,
+          drugDetails,
+          diseases
+        );
+        console.log('[2단계 캐시] 약물 상호작용 분석 완료');
+        
+        // 캐시된 분석 + 약물 상호작용 결합
+        const mergedDetailedAnalysis = {
+          ...baseCache.detailed_analysis,
+          // 약물 상호작용 추가
+          medicalAnalysis: {
+            drug_food_interactions: interactionAnalysis.interactions || []
+          },
+          // 데이터 소스 업데이트
+          dataSources: [
+            ...(baseCache.detailed_analysis?.dataSources || ['Gemini AI 분석']),
+            apiSuccessCount > 0 ? '식품의약품안전처 e약은요 API' : null,
+          ].filter(Boolean),
+          // 분석 모드 표시
+          cached: true,
+          cacheHitCount: baseCache.hit_count,
+          analysisMode: 'two-stage-cache',
+          drugAnalysisAdded: true,
+        };
+        
+        // 점수 조정: 약물 상호작용에 따라 조정
+        const dangerCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'danger').length || 0;
+        const cautionCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'caution').length || 0;
+        let adjustedScore = baseCache.score;
+        if (dangerCount > 0) {
+          adjustedScore = Math.max(10, baseCache.score - dangerCount * 20);
+        } else if (cautionCount > 0) {
+          adjustedScore = Math.max(30, baseCache.score - cautionCount * 10);
+        }
+        console.log(`[2단계 캐시] 점수 조정: ${baseCache.score} → ${adjustedScore} (위험:${dangerCount}, 주의:${cautionCount})`);
+        
+        // 분석 텍스트 업데이트
+        let updatedAnalysis = baseCache.analysis;
+        if (dangerCount > 0 || cautionCount > 0) {
+          updatedAnalysis = `${baseCache.analysis}\n\n⚠️ 약물 상호작용: 위험 ${dangerCount}개, 주의 ${cautionCount}개`;
+        }
+        
+        const result = await this.supabaseService.saveFoodAnalysis({
+          foodName,
+          score: adjustedScore,
+          analysis: updatedAnalysis,
+          diseases,
+          userId,
+          detailedAnalysis: JSON.stringify(mergedDetailedAnalysis),
+        });
+
+        return {
+          success: true,
+          data: {
+            id: result[0].id,
+            foodName: result[0].food_name,
+            score: result[0].score,
+            analysis: result[0].analysis,
+            detailedAnalysis: mergedDetailedAnalysis,
+            createdAt: result[0].created_at,
+          },
+          message: '음식 분석이 완료되었습니다. (2단계 캐시)',
+          cached: true,
+          twoStageCache: true,
+        };
+      }
+      
+      console.log('[2단계 캐시] 캐시 미스 → 전체 AI 분석 수행...');
+      // ================================================================
+      
+      // 3단계 + 4단계 + 레시피 조회: 병렬 실행으로 속도 최적화
       
       console.log(`\n[3-4단계] AI 분석 + 레시피 조회 병렬 실행 중...`);
       
@@ -443,6 +574,28 @@ export class FoodService {
       console.log('점수:', score);
       console.log('약물 상호작용:', detailedAnalysis.medicalAnalysis.drug_food_interactions.length, '개');
       console.log('=== 음식 분석 완료 ===\n');
+
+      // ================================================================
+      // 캐시 저장: 음식+질병만으로 저장 (약물 제외 - 2단계 캐시 활용률 향상)
+      // 약물 상호작용 정보는 캐시에서 제외 (2단계에서 별도 분석)
+      // ================================================================
+      const baseCacheDetailedAnalysis = {
+        ...detailedAnalysis,
+        medicalAnalysis: { drug_food_interactions: [] }, // 약물 상호작용 제외
+      };
+      
+      await this.supabaseService.saveCachedAnalysis({
+        cacheKey: baseCacheKey,
+        foodName,
+        diseases,
+        medicines: [], // 약물 제외하여 저장
+        score, // 약물 영향 없는 기본 점수
+        analysis,
+        detailedAnalysis: baseCacheDetailedAnalysis,
+        analysisMode: 'full-analysis',
+      });
+      console.log(`[2단계 캐시] 기본 분석 캐시 저장 완료 (약물 제외)`);
+      // ================================================================
 
       console.log('DB 저장 데이터:', { foodName, score, analysis: analysis.substring(0, 50) + '...', userId });
 
@@ -558,21 +711,13 @@ export class FoodService {
       // ================================================================
 
       // ================================================================
-      // 3단계: 캐시 체크 (정규화된 음식명으로)
+      // 3단계: 캐시 체크 (음식+질병만으로 캐시 조회 - 약물 제외!)
+      // Result01은 약물 상세 분석이 필요 없으므로 사전 캐싱 100% 활용
       // ================================================================
-      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames);
-        .eq('is_active', true);
+      const baseCacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, []);
+      console.log(`[Cache] 기본 캐시 키: ${baseCacheKey.substring(0, 16)}... (약물 제외)`);
       
-      const medicineNames = (medicines || []).map((m: any) => m.name);
-      console.log('[순수AI] 복용 약물:', medicineNames);
-
-      // ================================================================
-      // 캐시 체크: 정규화된 음식명으로 캐시 조회
-      // ================================================================
-      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames);
-      console.log(`[Cache] 캐시 키: ${cacheKey.substring(0, 16)}...`);
-      
-      const cachedResult = await this.supabaseService.getCachedAnalysis(cacheKey);
+      const cachedResult = await this.supabaseService.getCachedAnalysis(baseCacheKey);
       if (cachedResult) {
         console.log(`[Cache] ✅ 캐시 히트! 기존 분석 결과 사용 (히트 횟수: ${cachedResult.hit_count})`);
         
@@ -643,13 +788,13 @@ export class FoodService {
       };
 
       // ================================================================
-      // 캐시 저장: 정규화된 음식명으로 저장 (캐시 히트율 향상)
+      // 캐시 저장: 음식+질병만으로 저장 (약물 제외 - 사전 캐싱 활용률 향상)
       // ================================================================
       await this.supabaseService.saveCachedAnalysis({
-        cacheKey,
+        cacheKey: baseCacheKey,
         foodName: normalizedFoodName, // 정규화된 음식명으로 캐시 저장
         diseases,
-        medicines: medicineNames,
+        medicines: [], // 약물 제외하여 저장
         score,
         analysis,
         detailedAnalysis: lightweightDetails,
@@ -759,12 +904,13 @@ export class FoodService {
       console.log('[simpleAnalyze] 복용 약물:', medicineNames);
 
       // ================================================================
-      // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인
+      // 캐시 체크: 음식+질병만으로 캐시 조회 (약물 제외 - 사전 캐싱 활용!)
+      // Result01은 약물 상세 분석이 필요 없으므로 사전 캐싱 100% 활용
       // ================================================================
-      const cacheKey = this.supabaseService.generateCacheKey(actualFoodName, diseases, medicineNames);
-      console.log(`[Cache] 캐시 키: ${cacheKey.substring(0, 16)}...`);
+      const baseCacheKey = this.supabaseService.generateCacheKey(actualFoodName, diseases, []);
+      console.log(`[Cache] 기본 캐시 키: ${baseCacheKey.substring(0, 16)}... (약물 제외)`);
       
-      const cachedResult = await this.supabaseService.getCachedAnalysis(cacheKey);
+      const cachedResult = await this.supabaseService.getCachedAnalysis(baseCacheKey);
       if (cachedResult) {
         console.log(`[Cache] ✅ 캐시 히트! 기존 분석 결과 사용 (히트 횟수: ${cachedResult.hit_count})`);
         
@@ -834,17 +980,17 @@ export class FoodService {
       };
 
       // ================================================================
-      // 캐시 저장: 다음 동일 요청을 위해 결과 캐싱
+      // 캐시 저장: 음식+질병만으로 저장 (약물 제외 - 사전 캐싱 활용률 향상)
       // ================================================================
       await this.supabaseService.saveCachedAnalysis({
-        cacheKey,
+        cacheKey: baseCacheKey,
         foodName: actualFoodName,
         diseases,
-        medicines: medicineNames,
+        medicines: [], // 약물 제외하여 저장
         score,
         analysis,
         detailedAnalysis: lightweightDetails,
-        analysisMode: 'quick-ai',
+        analysisMode: 'quick-ai-image',
       });
       // ================================================================
 
