@@ -82,7 +82,6 @@ FROM analysis_cache;
 CREATE OR REPLACE VIEW popular_food_analysis AS
 SELECT 
   food_name,
-  array_agg(DISTINCT unnest(diseases)) as common_diseases,
   SUM(hit_count) as total_hits,
   COUNT(*) as variation_count,
   MAX(created_at) as last_analyzed

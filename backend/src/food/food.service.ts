@@ -194,7 +194,7 @@ export class FoodService {
         score,
         analysis,
         diseases,
-        // detailedAnalysis: detailedAnalysis ? JSON.stringify(detailedAnalysis) : null, // TODO: 컬럼 추가 후 활성화
+        detailedAnalysis: detailedAnalysis ? JSON.stringify(detailedAnalysis) : null,
       });
 
       console.log('DB 저장 완료:', result[0]);
@@ -452,7 +452,7 @@ export class FoodService {
         analysis,
         diseases,
         userId,
-        // detailedAnalysis: detailedAnalysis ? JSON.stringify(detailedAnalysis) : null, // TODO: 컬럼 추가 후 활성화
+        detailedAnalysis: detailedAnalysis ? JSON.stringify(detailedAnalysis) : null,
       });
 
       console.log('DB 저장 완료:', result[0]);
