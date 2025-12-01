@@ -293,6 +293,51 @@ export class FoodService {
       
       console.log(`\n[1단계] 복용 약물: ${medicines?.length || 0}개`);
       
+      // ================================================================
+      // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인 (Result02)
+      // ================================================================
+      const medicineNames = (medicines || []).map((m: any) => m.name);
+      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames);
+      console.log(`[Cache-Result02] 캐시 키: ${cacheKey.substring(0, 16)}...`);
+      
+      const cachedResult = await this.supabaseService.getCachedAnalysis(cacheKey);
+      if (cachedResult) {
+        console.log(`[Cache-Result02] ✅ 캐시 히트! 기존 분석 결과 사용 (히트 횟수: ${cachedResult.hit_count})`);
+        
+        // 캐시된 결과로 응답 구성 (새로운 food_analysis 레코드 생성)
+        const result = await this.supabaseService.saveFoodAnalysis({
+          foodName: cachedResult.food_name,
+          score: cachedResult.score,
+          analysis: cachedResult.analysis,
+          diseases,
+          userId,
+          analysisMode: 'full', // Result02는 full 모드
+        });
+
+        const responseData = {
+          id: result[0].id,
+          foodName: result[0].food_name,
+          score: result[0].score,
+          analysis: result[0].analysis,
+          detailedAnalysis: {
+            ...cachedResult.detailed_analysis,
+            cached: true,
+            cacheHitCount: cachedResult.hit_count,
+          },
+          createdAt: result[0].created_at,
+        };
+
+        return {
+          success: true,
+          data: responseData,
+          message: '상세 분석이 완료되었습니다. (캐시)',
+          cached: true,
+        };
+      }
+      
+      console.log('[Cache-Result02] 캐시 미스. 새로운 상세 분석 수행...');
+      // ================================================================
+      
       // 2단계: e약은요 API로 각 약물의 상세 정보 조회 (핵심 API만 사용)
       // - 낱알식별, 허가정보 API 제거 (중복 + API 사용량 절약)
       // - e약은요에 주의사항, 상호작용, 효능 모두 포함됨
@@ -488,6 +533,25 @@ export class FoodService {
       });
 
       console.log('DB 저장 완료:', result[0]);
+
+      // ================================================================
+      // 캐시 저장: 다음 동일 요청을 위해 Result02 결과 캐싱
+      // ================================================================
+      try {
+        await this.supabaseService.saveCachedAnalysis({
+          cacheKey,
+          foodName,
+          score,
+          analysis,
+          detailedAnalysis,
+          diseases,
+          medicines: medicineNames,
+        });
+        console.log('[Cache-Result02] 캐시 저장 완료');
+      } catch (cacheError) {
+        console.warn('[Cache-Result02] 캐시 저장 실패 (분석은 성공):', cacheError.message);
+      }
+      // ================================================================
 
       // 응답 데이터를 camelCase로 변환
       const responseData = {

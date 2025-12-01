@@ -1,9 +1,10 @@
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './SelectOption.scss';
 import img_dental from '../assets/images/img_dental.png';
 import MedicineAlertModal from '../components/MedicineAlertModal';
 import { setOnboardingComplete, saveSelectedDiseases } from '../utils/deviceId';
+import { getMyMedicines } from '../services/api';
 
 const diseases = [
   '탈모', '당뇨', '고혈압', '고지혈증', '통풍', '감기', '비염',
@@ -17,6 +18,23 @@ const SelectOption = () => {
   const [allDiseases, setAllDiseases] = useState(diseases);
   const [validationError, setValidationError] = useState('');
   const [showMedicineModal, setShowMedicineModal] = useState(false);
+  const [savedMedicinesCount, setSavedMedicinesCount] = useState(0);
+
+  // 페이지 로드 시 복용 중인 약 개수 확인
+  useEffect(() => {
+    const checkMedicines = async () => {
+      try {
+        const medicines = await getMyMedicines(true);
+        console.log('[SelectOption] 복용 중인 약 목록:', medicines);
+        console.log('[SelectOption] 약 개수:', Array.isArray(medicines) ? medicines.length : 0);
+        setSavedMedicinesCount(Array.isArray(medicines) ? medicines.length : 0);
+      } catch (error) {
+        console.error('[SelectOption] 약 목록 조회 실패:', error);
+        setSavedMedicinesCount(0);
+      }
+    };
+    checkMedicines();
+  }, []);
   
   const isValidDisease = (text) => {
     // 2글자 이상
@@ -90,8 +108,14 @@ const SelectOption = () => {
     saveSelectedDiseases(selectedDiseases);
     console.log('질병 정보 저장됨:', selectedDiseases);
     
-    // 약 추가 팝업 표시
-    setShowMedicineModal(true);
+    // 복용 중인 약이 없을 때만 약 추가 팝업 표시
+    if (savedMedicinesCount === 0) {
+      setShowMedicineModal(true);
+    } else {
+      // 이미 약이 등록되어 있으면 바로 메인으로 이동
+      setOnboardingComplete(true);
+      navigate('/main');
+    }
   };
 
   const handleMedicineYes = () => {
