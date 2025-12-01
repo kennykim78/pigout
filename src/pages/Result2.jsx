@@ -352,7 +352,7 @@ const Result2 = () => {
       {/* 주요 분석 내용 */}
       <div className="result2__main-content">
         {/* 좋은 점 */}
-        {detailedAnalysis?.goodPoints && detailedAnalysis.goodPoints.length > 0 && (
+        {detailedAnalysis?.goodPoints && Array.isArray(detailedAnalysis.goodPoints) && detailedAnalysis.goodPoints.length > 0 && (
           <div className="result2__analysis-section result2__analysis-section--good">
             <h3 className="result2__analysis-title">
               <span className="result2__analysis-icon">✅</span>
@@ -367,7 +367,7 @@ const Result2 = () => {
         )}
 
         {/* 주의할 점 */}
-        {detailedAnalysis?.badPoints && detailedAnalysis.badPoints.length > 0 && (
+        {detailedAnalysis?.badPoints && Array.isArray(detailedAnalysis.badPoints) && detailedAnalysis.badPoints.length > 0 && (
           <div className="result2__analysis-section result2__analysis-section--bad">
             <h3 className="result2__analysis-title">
               <span className="result2__analysis-icon">⚠️</span>
@@ -382,7 +382,7 @@ const Result2 = () => {
         )}
 
         {/* 경고 사항 */}
-        {detailedAnalysis?.warnings && detailedAnalysis.warnings.length > 0 && (
+        {detailedAnalysis?.warnings && Array.isArray(detailedAnalysis.warnings) && detailedAnalysis.warnings.length > 0 && (
           <div className="result2__analysis-section result2__analysis-section--warning">
             <h3 className="result2__analysis-title">
               <span className="result2__analysis-icon">🚨</span>
@@ -410,7 +410,7 @@ const Result2 = () => {
         )}
 
         {/* 건강 조리법 */}
-        {detailedAnalysis?.cookingTips && detailedAnalysis.cookingTips.length > 0 && (
+        {detailedAnalysis?.cookingTips && Array.isArray(detailedAnalysis.cookingTips) && detailedAnalysis.cookingTips.length > 0 && (
           <div className="result2__tips-section">
             <div className="result2__tips-header">
               <h3 className="result2__tips-title">
