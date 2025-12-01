@@ -304,27 +304,19 @@ export class FoodService {
       if (cachedResult) {
         console.log(`[Cache-Result02] ✅ 캐시 히트! 기존 분석 결과 사용 (히트 횟수: ${cachedResult.hit_count})`);
         
-        // 캐시된 결과로 응답 구성 (새로운 food_analysis 레코드 생성)
-        const result = await this.supabaseService.saveFoodAnalysis({
+        // Result02는 히스토리에 저장하지 않음 (Result01 레코드만 유지)
+        // 캐시 데이터를 직접 반환
+        const responseData = {
+          id: cachedResult.id || 'cached',
           foodName: cachedResult.food_name,
           score: cachedResult.score,
           analysis: cachedResult.analysis,
-          diseases,
-          userId,
-          analysisMode: 'full', // Result02는 full 모드
-        });
-
-        const responseData = {
-          id: result[0].id,
-          foodName: result[0].food_name,
-          score: result[0].score,
-          analysis: result[0].analysis,
           detailedAnalysis: {
             ...cachedResult.detailed_analysis,
             cached: true,
             cacheHitCount: cachedResult.hit_count,
           },
-          createdAt: result[0].created_at,
+          createdAt: cachedResult.created_at || new Date().toISOString(),
         };
 
         return {
@@ -520,19 +512,8 @@ export class FoodService {
       console.log('약물 상호작용:', detailedAnalysis.medicalAnalysis.drug_food_interactions.length, '개');
       console.log('=== 음식 분석 완료 ===\n');
 
-      console.log('DB 저장 데이터:', { foodName, score, analysis: analysis.substring(0, 50) + '...', userId });
-
-      const result = await this.supabaseService.saveFoodAnalysis({
-        foodName,
-        score,
-        analysis,
-        diseases,
-        userId,
-        detailedAnalysis: detailedAnalysis ? JSON.stringify(detailedAnalysis) : null,
-        analysisMode: 'full', // Result2 전체 분석 표시
-      });
-
-      console.log('DB 저장 완료:', result[0]);
+      // Result02는 히스토리에 저장하지 않음 (캐시만 저장)
+      console.log('[Result02] 히스토리 저장 건너뜀 (Result01 레코드만 유지)');
 
       // ================================================================
       // 캐시 저장: 다음 동일 요청을 위해 Result02 결과 캐싱
@@ -553,15 +534,15 @@ export class FoodService {
       }
       // ================================================================
 
-      // 응답 데이터를 camelCase로 변환
+      // 응답 데이터를 camelCase로 변환 (DB 저장 없이 직접 반환)
       const responseData = {
-        id: result[0].id,
-        foodName: result[0].food_name,
-        imageUrl: result[0].image_url,
-        score: result[0].score,
-        analysis: result[0].analysis,
+        id: 'result02-' + Date.now(), // 임시 ID (히스토리 미저장)
+        foodName: foodName,
+        imageUrl: null,
+        score: score,
+        analysis: analysis,
         detailedAnalysis: detailedAnalysis, // 메모리에서만 전달
-        createdAt: result[0].created_at,
+        createdAt: new Date().toISOString(),
       };
 
       return {
