@@ -162,8 +162,7 @@ export class SupabaseService {
           last_hit_at: new Date().toISOString()
         })
         .eq('id', data.id)
-        .then(() => console.log(`[Cache] 히트: ${data.food_name} (${data.hit_count + 1}회)`))
-        .catch(err => console.warn('[Cache] 히트 카운트 업데이트 실패:', err));
+        .then(() => console.log(`[Cache] 히트: ${data.food_name} (${data.hit_count + 1}회)`));
 
       return data;
     } catch (error) {
