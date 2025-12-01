@@ -259,8 +259,32 @@ export class FoodService {
         }
       }
       
-      // 1단계: 사용자 약물 정보 조회
+      // ================================================================
+      // 🆕 점수 통일: Result01에서 이미 분석한 점수가 있으면 재사용
+      // ================================================================
+      const { normalizeFoodName } = require('./food-rules');
+      const normalizedFoodName = normalizeFoodName(foodName);
+      
+      // 같은 음식+질병 조합으로 Result01 분석 기록 조회
       const supabase = this.supabaseService.getClient();
+      const { data: existingResult01 } = await supabase
+        .from('food_analysis')
+        .select('score')
+        .eq('food_name', normalizedFoodName)
+        .eq('user_id', userId)
+        .eq('analysis_mode', 'quick')
+        .contains('diseases', diseases)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+      
+      const baseScoreFromResult01 = existingResult01?.score;
+      if (baseScoreFromResult01) {
+        console.log(`[점수 통일] Result01 점수 재사용: ${baseScoreFromResult01}점`);
+      }
+      // ================================================================
+      
+      // 1단계: 사용자 약물 정보 조회
       const { data: medicines } = await supabase
         .from('medicine_records')
         .select('*')
@@ -381,7 +405,14 @@ export class FoodService {
         recipeData
       );
       
-      const score = finalAnalysis.suitabilityScore || 50;
+      // 🆕 점수 통일: Result01 점수가 있으면 사용, 없으면 AI 점수 사용
+      const score = baseScoreFromResult01 || finalAnalysis.suitabilityScore || 50;
+      if (baseScoreFromResult01) {
+        console.log(`[점수 통일] Result01 점수 적용: ${score}점`);
+      } else {
+        console.log(`[점수 생성] AI 분석 점수 사용: ${score}점`);
+      }
+      
       const analysis = finalAnalysis.briefSummary || `${foodName}에 대한 분석 결과입니다.`;
       
       // 7단계: 데이터 소스 정리 (사용한 API만 표시)
@@ -453,6 +484,7 @@ export class FoodService {
         diseases,
         userId,
         detailedAnalysis: detailedAnalysis ? JSON.stringify(detailedAnalysis) : null,
+        analysisMode: 'full', // Result2 전체 분석 표시
       });
 
       console.log('DB 저장 완료:', result[0]);
@@ -557,6 +589,7 @@ export class FoodService {
           analysis,
           diseases,
           userId,
+          analysisMode: 'quick', // Result01 빠른 분석
         });
 
         const responseData = {
@@ -913,9 +946,28 @@ export class FoodService {
 
   async getFoodAnalysis(id: string) {
     const data = await this.supabaseService.getFoodAnalysis(id);
+    
+    // detailedAnalysis가 문자열이면 JSON 파싱
+    if (data && data.detailed_analysis && typeof data.detailed_analysis === 'string') {
+      try {
+        data.detailed_analysis = JSON.parse(data.detailed_analysis);
+      } catch (e) {
+        console.warn('detailedAnalysis 파싱 실패:', e.message);
+      }
+    }
+    
     return {
       success: true,
-      data,
+      data: {
+        id: data.id,
+        foodName: data.food_name,
+        imageUrl: data.image_url,
+        score: data.score,
+        analysis: data.analysis,
+        detailedAnalysis: data.detailed_analysis,
+        createdAt: data.created_at,
+        analysisMode: data.analysis_mode || 'full',
+      },
     };
   }
 

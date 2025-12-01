@@ -639,4 +639,3082 @@
       "빈혈": { "scoreModifier": -20, "risk": "warning", "reason": "타닌이 철분과 결합하여 흡수를 강력히 방해" }
     }
   }
+,  "잡곡밥": {
+    "baseScore": 90,
+    "summary": "백미에 콩, 팥, 수수, 조 등 다양한 곡물을 섞어 지은 밥으로 영양 균형이 우수합니다. 각 곡물의 장점을 고루 섭취할 수 있어 한국인의 건강식으로 꼽힙니다.",
+    "pros": "다양한 영양소 섭취, 항산화 성분(안토시아닌), 혈당 조절, 포만감 유지, 변비 예방",
+    "cons": "소화가 어려울 수 있음, 조리 시간 김, 신장 환자에게 고위험(칼륨/인)",
+    "expertAdvice": "소화가 잘 안 된다면 잡곡 비율을 30% 이하로 줄이고 충분히 불려서 조리하세요.",
+    "nutrients": {
+      "calories": "120kcal/100g",
+      "protein": "4g",
+      "carbs": "25g",
+      "fat": "1g",
+      "fiber": "4g",
+      "sodium": "2mg",
+      "potassium": "150mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "복합 탄수화물과 섬유질이 혈당 스파이크를 막아줍니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨이 나트륨 배출을 돕습니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "섬유질이 콜레스테롤 흡수를 저해합니다." },
+      "신장질환": { "scoreModifier": -25, "risk": "warning", "reason": "잡곡의 높은 칼륨과 인은 신장에 부담을 줍니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "일반적인 섭취량으로는 안전합니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "양질의 식물성 단백질 공급원입니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "항산화 성분이 심혈관 건강을 돕습니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "거친 식감이 위벽을 자극할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "엽산과 철분이 백미보다 풍부합니다." }
+    }
+  },
+  "김밥": {
+    "baseScore": 65,
+    "summary": "밥과 채소, 단백질을 김으로 말아 만든 간편식이지만, 밥의 양이 많고 속재료의 염분이 높아 주의가 필요합니다.",
+    "pros": "간편한 섭취, 탄단지 균형 가능, 채소 섭취, 맛의 조화",
+    "cons": "높은 나트륨(단무지/햄), 밥 과다 섭취, 고지방(참기름/마요네즈)",
+    "expertAdvice": "밥 양을 줄이고 계란과 채소를 듬뿍 넣은 '키토 김밥' 스타일을 추천합니다.",
+    "nutrients": {
+      "calories": "160kcal/100g",
+      "protein": "5g",
+      "carbs": "28g",
+      "fat": "4g",
+      "fiber": "2g",
+      "sodium": "400mg",
+      "potassium": "100mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "압축된 밥 양이 많아 탄수화물 과다 섭취 위험이 있습니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "단무지와 햄의 나트륨 함량이 높습니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "탄수화물과 지방의 조합이 중성지방을 높일 수 있습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨 함량이 높아 부종 우려가 있습니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "특이 위험 없습니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "무난한 식사입니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "나트륨 과다 섭취 주의가 필요합니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "찬 밥과 김은 소화가 잘 안 될 수 있습니다." },
+      "갑상선질환": { "scoreModifier": -5, "risk": "caution", "reason": "김의 요오드 함량이 높아 갑상선 항진증 환자는 주의하세요." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "시금치와 계란이 철분 보충에 도움을 줍니다." }
+    }
+  },
+  "비빔밥": {
+    "baseScore": 85,
+    "summary": "다양한 나물과 밥을 비벼 먹는 균형 잡힌 식사입니다. 채소 섭취량이 많아 건강하지만 고추장의 나트륨과 당분을 조절해야 합니다.",
+    "pros": "풍부한 채소, 섬유질, 비타민/미네랄, 커스터마이징 가능",
+    "cons": "고추장의 나트륨/당분, 참기름의 칼로리, 과식 유발",
+    "expertAdvice": "고추장은 반만 넣고 밥 대신 나물을 더 넣어 드시는 것이 가장 건강합니다.",
+    "nutrients": {
+      "calories": "140kcal/100g",
+      "protein": "5g",
+      "carbs": "22g",
+      "fat": "4g",
+      "fiber": "3.5g",
+      "sodium": "350mg",
+      "potassium": "200mg",
+      "sugar": "3g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "나물의 섬유질이 혈당 상승을 완화해 줍니다." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "고추장과 나물 간으로 인해 나트륨이 많을 수 있습니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "채소의 섬유질이 콜레스테롤 배출을 돕습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "많은 채소로 인해 칼륨 섭취량이 높을 수 있습니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "채소 위주의 식단은 통풍 관리에 좋습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "다양한 영양소가 대사를 돕습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "채소 섭취는 심혈관 질환 예방에 핵심입니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "매운 고추장과 거친 나물이 위를 자극할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "균형 잡힌 식사로 좋습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "소고기와 채소의 철분이 도움됩니다." }
+    }
+  },
+  "볶음밥": {
+    "baseScore": 55,
+    "summary": "밥을 기름에 볶은 요리로 고소하지만 지방과 탄수화물 함량이 높습니다. 채소나 단백질보다 밥의 비중이 높은 경우가 많습니다.",
+    "pros": "높은 기호성, 자투리 채소 활용 가능",
+    "cons": "높은 지방(기름), 탄수화물 위주, 산화된 기름, 칼로리 과다",
+    "expertAdvice": "기름 사용을 줄이고 밥 양을 반으로 줄인 뒤 채소와 닭가슴살을 채워 넣으세요.",
+    "nutrients": {
+      "calories": "180kcal/100g",
+      "protein": "4g",
+      "carbs": "28g",
+      "fat": "7g",
+      "fiber": "1g",
+      "sodium": "300mg",
+      "potassium": "80mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "기름진 탄수화물은 인슐린 저항성을 높입니다." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "조미료 사용으로 나트륨이 높을 수 있습니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "warning", "reason": "볶는 과정에서 사용된 기름이 중성지방을 높입니다." },
+      "신장질환": { "scoreModifier": 0, "risk": "safe", "reason": "단백질/칼륨 함량은 보통 수준입니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "재료에 따라 다르나 대체로 무난합니다." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "기름진 음식은 지방간에 좋지 않습니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "고칼로리 고지방식은 혈관 건강에 해롭습니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "기름기로 인해 소화가 느리고 속쓰림을 유발할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분이 부족하기 쉽습니다." }
+    }
+  },
+  "김치볶음밥": {
+    "baseScore": 50,
+    "summary": "김치와 밥을 기름에 볶은 요리로 나트륨 함량이 매우 높습니다. 맵고 짠 맛이 식욕을 자극해 과식을 유발하기 쉽습니다.",
+    "pros": "입맛 돋움, 김치의 유산균(가열 시 사멸하나 사균체 효과 존재)",
+    "cons": "매우 높은 나트륨, 자극적임, 고칼로리, 영양 불균형",
+    "expertAdvice": "계란이나 샐러드를 곁들여 나트륨 배출을 돕고 단백질을 보충하세요.",
+    "nutrients": {
+      "calories": "170kcal/100g",
+      "protein": "4.5g",
+      "carbs": "27g",
+      "fat": "6g",
+      "fiber": "2g",
+      "sodium": "600mg",
+      "potassium": "150mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "warning", "reason": "맵고 짠 양념은 혈당 관리를 어렵게 합니다." },
+      "고혈압": { "scoreModifier": -25, "risk": "warning", "reason": "나트륨 폭탄 수준으로 혈압 환자는 피해야 합니다." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "기름진 탄수화물 식사입니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "높은 염분은 신장에 치명적입니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "통풍 자체에는 큰 영향 없으나 비만 주의가 필요합니다." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "자극적인 맛이 간 피로도를 높일 수 있습니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "warning", "reason": "고염분은 심부전 증상을 악화시킬 수 있습니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "맵고 짜고 기름져 위염을 악화시킵니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양 불균형 우려가 있습니다." }
+    }
+  },
+  "호박죽": {
+    "baseScore": 70,
+    "summary": "단호박이나 늙은 호박으로 만든 부드러운 죽입니다. 붓기 제거에 좋지만 찹쌀과 설탕으로 인해 당분이 높을 수 있습니다.",
+    "pros": "붓기 완화, 베타카로틴(항산화), 소화 용이, 눈 건강",
+    "cons": "높은 당분(설탕 첨가 시), 혈당 상승 빠름, 단백질 부족",
+    "expertAdvice": "설탕 대신 소금으로 간을 하고 팥을 넣어 드시면 더욱 건강합니다.",
+    "nutrients": {
+      "calories": "80kcal/100g",
+      "protein": "1.5g",
+      "carbs": "18g",
+      "fat": "0.2g",
+      "fiber": "1.5g",
+      "sodium": "200mg",
+      "potassium": "250mg",
+      "sugar": "10g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "당도가 높고 흡수가 빨라 혈당 주의가 필요합니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨이 혈압 조절에 도움을 줍니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "항산화 성분이 혈관 건강을 돕습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "칼륨 함량이 높아 섭취량 조절이 필요합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "이뇨 작용으로 요산 배출을 돕습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "간 세포 보호 효과가 있습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "붓기를 빼주어 심장 부담을 덜어줍니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "부드럽고 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "안전합니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분이 부족합니다." }
+    }
+  },
+  "전복죽": {
+    "baseScore": 85,
+    "summary": "전복을 넣어 끓인 보양식으로 타우린과 미네랄이 풍부합니다. 소화가 잘 되고 영양가가 높아 회복식으로 훌륭합니다.",
+    "pros": "원기 회복, 간 기능 개선(타우린), 고단백, 소화 용이",
+    "cons": "높은 나트륨(간 맞춤), 높은 탄수화물 비중, 가격이 비쌈",
+    "expertAdvice": "내장(게우)을 함께 넣어야 전복의 영양을 제대로 섭취할 수 있습니다.",
+    "nutrients": {
+      "calories": "90kcal/100g",
+      "protein": "4g",
+      "carbs": "16g",
+      "fat": "1g",
+      "fiber": "0.5g",
+      "sodium": "350mg",
+      "potassium": "120mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "죽 형태라 혈당을 빨리 올리므로 양 조절이 필요합니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "타우린은 좋으나 간을 싱겁게 해야 합니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "타우린이 콜레스테롤 수치를 낮춰줍니다." },
+      "신장질환": { "scoreModifier": 0, "risk": "safe", "reason": "단백질 급원으로 무난하나 나트륨 주의하세요." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "전복의 퓨린 함량으로 급성기엔 주의가 필요합니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간 해독을 돕는 타우린이 풍부합니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "심장 기능을 강화하는 성분이 있습니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "소화 흡수가 매우 뛰어납니다." },
+      "갑상선질환": { "scoreModifier": 5, "risk": "safe", "reason": "요오드와 미네랄이 도움을 줍니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "비타민 B12와 철분이 도움됩니다." }
+    }
+  },
+  "삼계죽": {
+    "baseScore": 80,
+    "summary": "닭고기와 찹쌀, 인삼 등을 넣고 끓인 보양죽입니다. 단백질이 풍부하고 소화가 잘 되어 기력 회복에 좋습니다.",
+    "pros": "고단백, 기력 회복, 따뜻한 성질, 소화 용이",
+    "cons": "높은 열량, 나트륨(소금 간), 혈당 상승 속도 빠름",
+    "expertAdvice": "닭껍질을 제거하고 끓이면 지방 섭취를 줄일 수 있습니다.",
+    "nutrients": {
+      "calories": "100kcal/100g",
+      "protein": "6g",
+      "carbs": "15g",
+      "fat": "2g",
+      "fiber": "0.5g",
+      "sodium": "300mg",
+      "potassium": "150mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "찹쌀죽은 혈당 지수가 매우 높습니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "소금 간만 주의하면 좋은 단백질원입니다." },
+      "고지혈증": { "scoreModifier": 0, "risk": "safe", "reason": "닭껍질을 제거하면 안전합니다." },
+      "신장질환": { "scoreModifier": 0, "risk": "safe", "reason": "적당량의 단백질 섭취에 좋습니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "고기 국물에 퓨린이 녹아있을 수 있습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "양질의 단백질이 간 재생을 돕습니다." },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "기름기 제거 시 심장에 부담 없습니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "속을 따뜻하게 하고 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "단백질이 철분 흡수를 돕습니다." }
+    }
+  },
+  "김치찌개": {
+    "baseScore": 60,
+    "summary": "한국인의 소울푸드지만, 나트륨 함량이 매우 높고 국물 위주의 식사는 위장에 부담을 줍니다. 돼지고기를 넣어 단백질을 보충하기도 합니다.",
+    "pros": "입맛 돋움, 단백질(고기/두부), 발효 식품의 이점",
+    "cons": "매우 높은 나트륨, 맵고 자극적, 국물 과다 섭취, 위장 자극",
+    "expertAdvice": "국물은 남기고 건더기 위주로 드시는 습관이 필수적입니다.",
+    "nutrients": {
+      "calories": "60kcal/100g",
+      "protein": "4g",
+      "carbs": "4g",
+      "fat": "3g",
+      "fiber": "1.5g",
+      "sodium": "500mg",
+      "potassium": "200mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -5, "risk": "caution", "reason": "나트륨이 많아 합병증 위험을 높일 수 있습니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "국물의 나트륨은 혈압 상승의 주범입니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "지방이 많은 돼지고기를 사용할 경우 주의가 필요합니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "높은 염분은 신장 기능을 악화시킵니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "고기 육수에는 퓨린이 녹아있을 수 있습니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "너무 맵지 않게 드시면 무방합니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "고나트륨은 심장 부담을 가중시킵니다." },
+      "위장질환": { "scoreModifier": -25, "risk": "warning", "reason": "맵고 짠 국물은 위 점막을 자극해 위염을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "큰 영향 없습니다." }
+    }
+  },
+  "된장찌개": {
+    "baseScore": 75,
+    "summary": "콩 발효 식품인 된장을 베이스로 채소와 두부를 넣어 끓인 건강한 찌개입니다. 항암 효과가 있으나 역시 나트륨이 문제입니다.",
+    "pros": "항암 효과(이소플라본), 단백질(두부), 다양한 채소, 소화 촉진",
+    "cons": "높은 나트륨, 국물 섭취 과다",
+    "expertAdvice": "저염 된장을 사용하고 채소를 많이 넣어 칼륨으로 나트륨 배출을 도우세요.",
+    "nutrients": {
+      "calories": "50kcal/100g",
+      "protein": "3.5g",
+      "carbs": "5g",
+      "fat": "1.5g",
+      "fiber": "1.5g",
+      "sodium": "450mg",
+      "potassium": "180mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "콩의 성분이 인슐린 저항성 개선에 도움을 줄 수 있습니다." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "된장의 염분이 혈압에 좋지 않습니다. 싱겁게 드세요." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "레시틴과 사포닌이 콜레스테롤 저하를 돕습니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "염분과 콩의 인/칼륨 함량이 부담될 수 있습니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "식물성 단백질 위주라 비교적 안전합니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "된장의 성분이 간 해독을 돕고 암을 예방합니다." },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "나트륨만 조절하면 콩의 이점이 큽니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "소화가 잘 되고 속을 편안하게 합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "두부와 조개가 철분 보충에 도움을 줍니다." }
+    }
+  },
+  "순두부찌개": {
+    "baseScore": 70,
+    "summary": "부드러운 순두부를 주재료로 하여 소화가 매우 잘 되고 단백질 흡수율이 높습니다. 고추기름을 많이 쓰면 지방 함량이 높아집니다.",
+    "pros": "고단백, 소화 흡수 용이, 부드러운 식감, 식물성 지방",
+    "cons": "고추기름(지방), 높은 나트륨, 자극적인 맛",
+    "expertAdvice": "계란을 하나 넣어 단백질 균형을 맞추고, 맑게 끓여 드시는 것이 더 좋습니다.",
+    "nutrients": {
+      "calories": "80kcal/100g",
+      "protein": "5g",
+      "carbs": "3g",
+      "fat": "5g",
+      "fiber": "0.5g",
+      "sodium": "400mg",
+      "potassium": "130mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "순두부는 혈당을 거의 올리지 않는 좋은 식품입니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "찌개 양념의 나트륨이 문제입니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "고추기름을 많이 사용하면 지방 섭취가 늘어납니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨과 단백질 대사 산물을 고려해야 합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "안전한 단백질원입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "부드러운 단백질이 간세포 재생을 돕습니다." },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "기름기만 적다면 좋은 식사입니다." },
+      "위장질환": { "scoreModifier": 0, "risk": "safe", "reason": "두부는 좋으나 매운 양념은 위를 자극합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "바지락 등이 철분을 공급합니다." }
+    }
+  },
+  "부대찌개": {
+    "baseScore": 30,
+    "summary": "햄, 소시지, 라면 사리 등 가공육과 정제 탄수화물이 주를 이루는 고칼로리, 고나트륨 음식입니다. 맛은 좋지만 건강상 이점은 적습니다.",
+    "pros": "높은 포만감, 스트레스 해소(맛)",
+    "cons": "가공육(발암물질/첨가물), 폭발적인 나트륨, 포화지방, 정제 탄수화물",
+    "expertAdvice": "섭취 횟수를 줄이고, 드실 때는 햄과 국물 섭취를 최소화하며 채소를 많이 드세요.",
+    "nutrients": {
+      "calories": "120kcal/100g",
+      "protein": "5g",
+      "carbs": "10g",
+      "fat": "7g",
+      "fiber": "1g",
+      "sodium": "700mg",
+      "potassium": "150mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "라면 사리와 고지방 가공육은 최악의 조합입니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "나트륨 함량이 극도로 높아 혈압에 치명적입니다." },
+      "고지혈증": { "scoreModifier": -30, "risk": "warning", "reason": "가공육의 포화지방이 콜레스테롤을 급격히 높입니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "인, 칼륨, 나트륨 모두 높아 신장에 매우 해롭습니다." },
+      "통풍": { "scoreModifier": -20, "risk": "warning", "reason": "육류 가공품과 고기 육수는 요산 수치를 높입니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "첨가물과 고지방이 간 해독 부담을 줍니다." },
+      "심장질환": { "scoreModifier": -30, "risk": "warning", "reason": "혈관을 막는 주범인 포화지방과 나트륨 덩어리입니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "자극적이고 기름져 소화 불량을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양 가치가 낮습니다." }
+    }
+  },
+  "청국장찌개": {
+    "baseScore": 88,
+    "summary": "발효된 콩의 영양이 살아있는 최고의 건강식 중 하나입니다. 혈전 용해 효소가 풍부하지만 냄새와 나트륨이 단점일 수 있습니다.",
+    "pros": "혈전 용해, 항암 효과, 변비 예방, 소화 촉진, 고단백",
+    "cons": "높은 나트륨, 특유의 냄새",
+    "expertAdvice": "짜지 않게 끓여 콩알을 많이 드시는 것이 핵심입니다.",
+    "nutrients": {
+      "calories": "60kcal/100g",
+      "protein": "5g",
+      "carbs": "5g",
+      "fat": "2g",
+      "fiber": "3g",
+      "sodium": "400mg",
+      "potassium": "200mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "섬유질과 콩 단백질이 혈당 조절을 돕습니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "나트륨만 주의하면 발효 콩 성분이 혈압을 낮춥니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "레시틴과 사포닌이 혈관 청소부 역할을 합니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "칼륨과 인이 많아 섭취량 제한이 필요합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "일반적인 콩 요리는 통풍에 안전합니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간 세포 재생과 해독 작용이 탁월합니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "혈전 용해 효소가 심장병 예방에 도움을 줍니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "유익균이 장 건강을 개선하고 변비를 막습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 풍부합니다." }
+    }
+  },
+  "삼계탕": {
+    "baseScore": 75,
+    "summary": "닭 한 마리를 통째로 끓여 단백질 보충에 탁월한 보양식입니다. 하지만 국물의 나트륨과 지방, 찹쌀의 탄수화물을 고려해야 합니다.",
+    "pros": "고단백, 원기 회복, 몸을 따뜻하게 함, 면역력 증진",
+    "cons": "높은 칼로리, 높은 지방(껍질), 국물의 나트륨",
+    "expertAdvice": "국물과 껍질을 먹지 않으면 훌륭한 고단백 저지방 식사가 됩니다.",
+    "nutrients": {
+      "calories": "110kcal/100g",
+      "protein": "9g",
+      "carbs": "5g",
+      "fat": "6g",
+      "fiber": "0.5g",
+      "sodium": "250mg",
+      "potassium": "150mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -5, "risk": "caution", "reason": "찹쌀과 과식을 주의해야 합니다. 고기 위주로 드세요." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "국물에 녹아나온 소금을 주의하세요." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "닭껍질의 지방이 콜레스테롤을 높일 수 있습니다." },
+      "신장질환": { "scoreModifier": 0, "risk": "safe", "reason": "고단백이므로 하루 섭취량 내에서 조절하세요." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "오래 끓인 고기 국물은 퓨린이 높습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "양질의 단백질은 간 건강에 필수입니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "기름기를 제거하고 드세요." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "따뜻하고 소화가 잘 되는 단백질입니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "동물성 단백질이 철분 흡수를 돕습니다." }
+    }
+  },
+  "갈비탕": {
+    "baseScore": 70,
+    "summary": "소갈비의 깊은 맛이 우러난 든든한 국물 요리입니다. 필수 아미노산이 풍부하지만 기름기와 나트륨이 많습니다.",
+    "pros": "고단백, 철분 풍부, 필수 아미노산, 기력 보충",
+    "cons": "높은 포화지방, 높은 나트륨, 퓨린 함량 높음",
+    "expertAdvice": "식혀서 굳은 기름을 걷어내고 드시면 지방 섭취를 크게 줄일 수 있습니다.",
+    "nutrients": {
+      "calories": "90kcal/100g",
+      "protein": "6g",
+      "carbs": "1g",
+      "fat": "6g",
+      "fiber": "0g",
+      "sodium": "350mg",
+      "potassium": "100mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 0, "risk": "safe", "reason": "당면을 제외하면 혈당에 큰 영향은 없습니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "국물의 염도가 높습니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "warning", "reason": "갈비의 포화지방이 혈관 건강에 좋지 않습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨과 단백질 과다 섭취 주의가 필요합니다." },
+      "통풍": { "scoreModifier": -20, "risk": "warning", "reason": "고기 국물은 퓨린 함량이 매우 높아 통풍 환자에게 위험합니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "단백질 공급원으로 좋습니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "포화지방과 염분이 심장 부담을 줍니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "푹 끓여 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "소고기의 헴철은 빈혈 예방에 탁월합니다." }
+    }
+  },
+  "설렁탕": {
+    "baseScore": 72,
+    "summary": "사골과 고기를 오래 고아 만든 국물 요리로 칼슘과 단백질이 풍부합니다. 소금 간을 직접 하므로 나트륨 조절이 가능합니다.",
+    "pros": "단백질, 칼슘, 콜라겐(피부/관절), 소화 용이",
+    "cons": "국물 과다 섭취 시 나트륨/지방, 소면(탄수화물)",
+    "expertAdvice": "소금을 적게 넣고 김치 국물을 넣지 않아야 저염식을 실천할 수 있습니다.",
+    "nutrients": {
+      "calories": "75kcal/100g",
+      "protein": "5g",
+      "carbs": "2g",
+      "fat": "4g",
+      "fiber": "0g",
+      "sodium": "150mg",
+      "potassium": "50mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "소면을 빼고 드시면 혈당 관리에 좋습니다." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "슴슴하게 드시면 괜찮으나 김치와 함께 먹으면 나트륨이 늡니다." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "동물성 지방이 녹아있어 주의가 필요합니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "사골 국물의 인 함량이 높아 과다 섭취는 피하세요." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "진한 고기 국물은 요산 수치를 높입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "영양 공급원으로 무난합니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "지방 섭취를 주의하세요." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "자극이 없고 부드러워 환자식으로 좋습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분과 단백질이 풍부합니다." }
+    }
+  },
+  "육개장": {
+    "baseScore": 65,
+    "summary": "소고기와 대파, 나물을 듬뿍 넣고 맵게 끓인 요리입니다. 채소가 많아 좋지만 기름지고 자극적이며 나트륨이 높습니다.",
+    "pros": "풍부한 채소(대파/고사리), 단백질, 얼큰한 맛",
+    "cons": "고추기름(지방), 높은 나트륨, 위장 자극",
+    "expertAdvice": "건더기 위주로 드시고 국물은 반 이상 남기세요.",
+    "nutrients": {
+      "calories": "85kcal/100g",
+      "protein": "5g",
+      "carbs": "4g",
+      "fat": "5g",
+      "fiber": "2g",
+      "sodium": "450mg",
+      "potassium": "200mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 0, "risk": "safe", "reason": "채소 건더기는 좋으나 기름진 국물은 주의하세요." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "얼큰한 국물은 나트륨 함량이 매우 높습니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "고추기름과 고기 지방이 많습니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨과 칼륨(채소) 모두 주의가 필요합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "고기 육수는 퓨린이 높습니다." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "자극적인 음식은 피하는 게 좋습니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "기름지고 짠 음식은 혈관에 부담입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "매운 맛과 고사리(섬유질)가 소화 불량을 일으킬 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 함유되어 있습니다." }
+    }
+  },
+  "감자탕": {
+    "baseScore": 60,
+    "summary": "돼지 등뼈와 우거지, 감자를 넣은 푸짐한 요리입니다. 단백질과 섬유질이 풍부하나 칼로리와 나트륨 폭탄입니다.",
+    "pros": "고단백, 풍부한 섬유질(우거지), 든든함",
+    "cons": "초고열량, 높은 나트륨, 높은 지방, 볶음밥 추가 시 탄수화물 과다",
+    "expertAdvice": "뼈에 붙은 살과 우거지 위주로 드시고, 국물과 볶음밥은 피하세요.",
+    "nutrients": {
+      "calories": "110kcal/100g",
+      "protein": "7g",
+      "carbs": "5g",
+      "fat": "7g",
+      "fiber": "2g",
+      "sodium": "500mg",
+      "potassium": "250mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "감자와 볶음밥, 고열량은 혈당 관리에 방해됩니다." },
+      "고혈압": { "scoreModifier": -25, "risk": "warning", "reason": "나트륨 함량이 매우 높아 위험합니다." },
+      "고지혈증": { "scoreModifier": -20, "risk": "warning", "reason": "돼지 지방과 들깨가루의 열량이 부담됩니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "나트륨, 칼륨, 인 모두 높아 신장에 안 좋습니다." },
+      "통풍": { "scoreModifier": -25, "risk": "warning", "reason": "진한 돼지뼈 육수는 통풍 환자에게 금기 식품입니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "기름기만 주의하면 단백질 섭취는 가능합니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "warning", "reason": "비만과 혈관 질환을 유발하기 쉽습니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "기름지고 자극적이라 소화가 느립니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 풍부합니다." }
+    }
+  },
+  "곰탕": {
+    "baseScore": 72,
+    "summary": "소고기와 내장을 맑게 끓여낸 보양식입니다. 담백하고 영양가가 높지만 콜레스테롤이 높을 수 있습니다.",
+    "pros": "양질의 단백질, 소화 용이, 기력 회복, 맑은 국물",
+    "cons": "높은 콜레스테롤(내장), 국물 섭취 시 나트륨",
+    "expertAdvice": "내장보다는 살코기 위주로 드시면 지방 섭취를 줄일 수 있습니다.",
+    "nutrients": {
+      "calories": "80kcal/100g",
+      "protein": "6g",
+      "carbs": "1g",
+      "fat": "5g",
+      "fiber": "0g",
+      "sodium": "150mg",
+      "potassium": "100mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "탄수화물이 거의 없어 혈당에 안전합니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "소금 간을 적게 하면 문제 없습니다." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "내장류의 콜레스테롤이 높습니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "단백질 섭취량을 조절하세요." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "내장과 고기 국물은 퓨린 함량이 높습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "좋은 단백질원입니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "포화지방에 주의하세요." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "소화가 잘 되고 위를 편안하게 합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 풍부합니다." }
+    }
+  },
+  "추어탕": {
+    "baseScore": 85,
+    "summary": "미꾸라지를 갈아 만든 고단백 보양식으로 칼슘과 비타민이 매우 풍부합니다. 뼈째 먹어 영양 흡수율이 높습니다.",
+    "pros": "뼈 건강(칼슘), 원기 회복, 고단백, 눈 건강(비타민A)",
+    "cons": "높은 나트륨(국물), 산초가루(위장 자극)",
+    "expertAdvice": "시래기를 많이 넣어 드시면 섬유질 섭취까지 완벽해집니다.",
+    "nutrients": {
+      "calories": "80kcal/100g",
+      "protein": "6g",
+      "carbs": "4g",
+      "fat": "3g",
+      "fiber": "2g",
+      "sodium": "400mg",
+      "potassium": "200mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "단백질과 섬유질이 풍부해 혈당에 좋습니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "국물의 염분이 높을 수 있습니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "미꾸라지의 불포화지방산이 혈관에 좋습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "단백질과 칼륨 함량을 고려해야 합니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "퓨린이 다소 함유되어 있습니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "양질의 단백질과 비타민이 간을 돕습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "불포화지방산이 심혈관 건강을 돕습니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "갈아 만들어 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분과 비타민이 풍부합니다." }
+    }
+  },
+  "미역국": {
+    "baseScore": 95,
+    "summary": "생일과 산후조리에 먹는 미역국은 칼슘, 요오드, 철분이 풍부한 최고의 건강 국입니다. 피를 맑게 하고 변비를 예방합니다.",
+    "pros": "혈액 정화, 변비 해소(알긴산), 뼈 건강, 빈혈 예방",
+    "cons": "갑상선 환자 요오드 과다 주의, 나트륨(간)",
+    "expertAdvice": "소고기나 조개를 넣어 단백질을 보충하고 싱겁게 끓이세요.",
+    "nutrients": {
+      "calories": "30kcal/100g",
+      "protein": "2g",
+      "carbs": "3g",
+      "fat": "1g",
+      "fiber": "1g",
+      "sodium": "250mg",
+      "potassium": "100mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "미역의 끈적한 성분이 혈당 상승을 억제합니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨과 라미닌 성분이 혈압을 낮춥니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "알긴산이 콜레스테롤 배출을 돕습니다." },
+      "신장질환": { "scoreModifier": 0, "risk": "safe", "reason": "칼륨 함량만 주의하면 좋은 식품입니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "알칼리성 식품으로 요산 배출을 돕습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "해독 작용이 뛰어납니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "혈액 순환을 돕고 혈관을 튼튼하게 합니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "위 점막을 보호하고 장 운동을 돕습니다." },
+      "갑상선질환": { "scoreModifier": -25, "risk": "warning", "reason": "요오드가 매우 많아 항진증 환자는 섭취를 제한해야 합니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "철분과 엽산이 풍부해 빈혈에 최고입니다." }
+    }
+  },
+  "떡국": {
+    "baseScore": 60,
+    "summary": "설날에 먹는 떡국은 탄수화물 위주의 식사입니다. 떡은 밥보다 열량이 높고 혈당을 빠르게 올립니다.",
+    "pros": "에너지 공급, 소화 용이, 든든함",
+    "cons": "높은 탄수화물/열량, 혈당 급상승, 나트륨(국물)",
+    "expertAdvice": "떡의 양을 줄이고 만두나 계란, 고기 고명을 많이 넣어 드세요.",
+    "nutrients": {
+      "calories": "150kcal/100g",
+      "protein": "4g",
+      "carbs": "30g",
+      "fat": "2g",
+      "fiber": "0.5g",
+      "sodium": "300mg",
+      "potassium": "50mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "떡은 정제 탄수화물 덩어리로 혈당을 매우 빠르게 올립니다." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "국물의 나트륨을 주의하세요." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "탄수화물 과다 섭취는 중성지방을 높립니다." },
+      "신장질환": { "scoreModifier": 0, "risk": "safe", "reason": "단백질/칼륨이 적어 신장 부담은 적습니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "고기 국물만 주의하면 안전합니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "에너지 공급원으로 무난합니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "과도한 탄수화물은 심장에 좋지 않습니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "부드러워 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": -5, "risk": "caution", "reason": "철분이 부족합니다." }
+    }
+  },
+  "콩나물국": {
+    "baseScore": 90,
+    "summary": "시원하고 맑은 콩나물국은 숙취 해소와 감기 예방에 좋습니다. 칼로리가 낮고 비타민 C가 풍부합니다.",
+    "pros": "숙취 해소(아스파라긴산), 저칼로리, 비타민 C, 감기 예방",
+    "cons": "나트륨(소금/새우젓 간)",
+    "expertAdvice": "고춧가루를 넣어 얼큰하게 드시면 대사 촉진에 도움이 됩니다.",
+    "nutrients": {
+      "calories": "20kcal/100g",
+      "protein": "2g",
+      "carbs": "3g",
+      "fat": "0.1g",
+      "fiber": "1g",
+      "sodium": "250mg",
+      "potassium": "100mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "혈당에 영향이 거의 없고 포만감을 줍니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "맑은 국이라 나트륨 조절이 쉽습니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "저지방 저칼로리로 안심하고 드셔도 됩니다." },
+      "신장질환": { "scoreModifier": 0, "risk": "safe", "reason": "칼륨 함량이 적당하여 안전합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "수분 섭취와 이뇨 작용을 돕습니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "아스파라긴산이 간 해독을 강력히 돕습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "부담 없는 건강식입니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "자극 없이 소화를 돕습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분 함량은 보통입니다." }
+    }
+  },
+  "삼겹살": {
+    "baseScore": 50,
+    "summary": "한국인이 가장 사랑하는 돼지고기 부위지만 지방 함량이 매우 높습니다. 맛은 좋지만 심혈관 건강에는 주의가 필요합니다.",
+    "pros": "고단백, 비타민 B1(피로회복), 맛(기호성), 미네랄",
+    "cons": "매우 높은 포화지방, 고칼로리, 구울 때 발암물질 위험",
+    "expertAdvice": "채소 쌈을 많이 드시고, 기름장은 피하고 쌈장을 조금만 찍어 드세요.",
+    "nutrients": {
+      "calories": "330kcal/100g",
+      "protein": "17g",
+      "carbs": "0g",
+      "fat": "28g",
+      "fiber": "0g",
+      "sodium": "40mg",
+      "potassium": "200mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "지방 과다 섭취는 인슐린 저항성을 높입니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "비만을 유발하여 혈압 관리에 방해됩니다." },
+      "고지혈증": { "scoreModifier": -30, "risk": "warning", "reason": "포화지방이 콜레스테롤 수치를 직격으로 높입니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "단백질 과다 섭취를 주의해야 합니다." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "붉은 고기는 요산 수치를 높입니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "지방간 환자에게 고지방식은 해롭습니다." },
+      "심장질환": { "scoreModifier": -25, "risk": "warning", "reason": "혈관을 막는 포화지방 섭취를 제한해야 합니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "기름기가 많아 소화 불량과 설사를 유발할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분과 비타민 B12가 풍부합니다." }
+    }
+  },
+  "불고기": {
+    "baseScore": 65,
+    "summary": "얇게 썬 소고기를 양념에 재워 볶은 요리로 남녀노소 좋아합니다. 단백질이 풍부하지만 양념의 당분과 나트륨이 높습니다.",
+    "pros": "고단백, 부드러운 식감, 철분 공급, 기호성",
+    "cons": "높은 당분(설탕/올리고당), 나트륨, 밥 도둑(탄수화물 과다)",
+    "expertAdvice": "양념에 배나 키위를 갈아 넣어 설탕을 줄이고, 버섯을 많이 넣으세요.",
+    "nutrients": {
+      "calories": "180kcal/100g",
+      "protein": "18g",
+      "carbs": "10g",
+      "fat": "8g",
+      "fiber": "1g",
+      "sodium": "400mg",
+      "potassium": "250mg",
+      "sugar": "8g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "양념의 설탕이 혈당을 높입니다. 덜 달게 드세요." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "짭짤한 양념이 나트륨 섭취를 늘립니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "지방이 적은 부위를 사용하면 괜찮습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨과 단백질 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "소고기는 퓨린 함량이 있어 과식은 금물입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "양질의 단백질이 간 재생을 돕습니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "단맛과 짠맛을 줄이면 좋은 식품입니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "고기가 연하고 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "철분 흡수율이 높은 붉은 육류입니다." }
+    }
+  },
+  "갈비": {
+    "baseScore": 55,
+    "summary": "기름진 맛과 달콤한 양념이 어우러진 갈비는 외식 메뉴 1순위입니다. 하지만 뼈에 붙은 지방과 양념의 당분이 건강에는 부담입니다.",
+    "pros": "고단백, 맛(기호성), 철분",
+    "cons": "높은 포화지방, 고칼로리, 높은 당분/나트륨, 탄 부분(발암)",
+    "expertAdvice": "양념 갈비보다는 생갈비가 낫고, 탄 부분은 반드시 잘라내고 드세요.",
+    "nutrients": {
+      "calories": "250kcal/100g",
+      "protein": "15g",
+      "carbs": "10g",
+      "fat": "18g",
+      "fiber": "0g",
+      "sodium": "350mg",
+      "potassium": "200mg",
+      "sugar": "8g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "달콤한 양념과 지방이 혈당 조절을 방해합니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "양념의 나트륨 함량이 높습니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "갈비는 지방 함량이 매우 높은 부위입니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "단백질과 나트륨 주의가 필요합니다." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "붉은 고기 과다 섭취는 통풍 발작 원인입니다." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "지방이 많아 지방간 환자는 주의하세요." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "포화지방이 심혈관 질환 위험을 높입니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "기름기가 많아 소화가 느릴 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 풍부합니다." }
+    }
+  },
+  "제육볶음": {
+    "baseScore": 60,
+    "summary": "돼지고기와 채소를 매콤하게 볶은 밥도둑입니다. 지방이 적은 뒷다리살을 쓰면 좋지만, 보통은 기름진 부위와 강한 양념을 사용합니다.",
+    "pros": "단백질, 비타민 B1, 채소 섭취 가능",
+    "cons": "맵고 짠 양념, 높은 나트륨/당분, 지방(삼겹살 사용 시)",
+    "expertAdvice": "뒷다리살이나 앞다리살을 사용하고 채소 비율을 고기보다 높이세요.",
+    "nutrients": {
+      "calories": "180kcal/100g",
+      "protein": "15g",
+      "carbs": "10g",
+      "fat": "10g",
+      "fiber": "2g",
+      "sodium": "500mg",
+      "potassium": "250mg",
+      "sugar": "6g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "자극적인 양념은 과식과 혈당 상승을 유발합니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "고추장 양념의 나트륨이 높습니다." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "기름진 부위를 피하고 채소를 많이 드세요." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨 함량이 높아 신장에 부담됩니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "과식만 피하면 무난합니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "살코기 위주라면 좋은 단백질원입니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "맵고 짜고 기름진 음식은 혈관에 좋지 않습니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "매운 양념이 위벽을 자극합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "비타민 B12와 철분이 도움됩니다." }
+    }
+  },
+  "돼지갈비": {
+    "baseScore": 55,
+    "summary": "달콤 짭짤한 양념에 재운 돼지갈비는 인기 메뉴입니다. 하지만 양념이 잘 타서 발암 물질 위험이 있고 당분이 높습니다.",
+    "pros": "고단백, 비타민 B1, 맛(기호성)",
+    "cons": "높은 당분/나트륨, 탄 부분(발암물질), 높은 지방",
+    "expertAdvice": "자주 뒤집어 타지 않게 굽고, 양파절임과 함께 드세요.",
+    "nutrients": {
+      "calories": "240kcal/100g",
+      "protein": "16g",
+      "carbs": "12g",
+      "fat": "15g",
+      "fiber": "0g",
+      "sodium": "450mg",
+      "potassium": "200mg",
+      "sugar": "9g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "설탕, 물엿이 많이 들어가 혈당에 좋지 않습니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "양념의 염도가 높습니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "지방과 당분이 만나 중성지방을 높입니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨 주의가 필요합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "과도한 육류 섭취를 피하세요." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "탄 음식은 간에 독이 됩니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "고열량 고지방식은 피하는 게 좋습니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "과식하기 쉽고 소화가 부담될 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 함유되어 있습니다." }
+    }
+  },
+  "닭갈비": {
+    "baseScore": 60,
+    "summary": "닭고기와 양배추, 고구마를 매콤하게 볶은 춘천 명물입니다. 채소가 많아 보이지만 양념이 자극적이고 떡, 면 사리 추가 시 탄수화물 폭탄이 됩니다.",
+    "pros": "단백질, 채소 섭취(양배추), 입맛 돋움",
+    "cons": "맵고 짠 양념, 탄수화물 과다(사리/볶음밥), 위장 자극",
+    "expertAdvice": "사리와 볶음밥을 생략하고 닭고기와 양배추 위주로 드세요.",
+    "nutrients": {
+      "calories": "160kcal/100g",
+      "protein": "12g",
+      "carbs": "15g",
+      "fat": "6g",
+      "fiber": "2g",
+      "sodium": "400mg",
+      "potassium": "250mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "고구마, 떡, 면 사리가 혈당을 급격히 올립니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "자극적인 양념에 나트륨이 많습니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "닭껍질과 볶음밥 기름을 주의하세요." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨 함량이 높아 부담됩니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "비교적 안전한 단백질원입니다." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "너무 매운 맛은 피하세요." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨과 과식이 문제입니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "맵고 기름진 양념이 위염을 악화시킵니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "단백질이 풍부합니다." }
+    }
+  },
+  "찜닭": {
+    "baseScore": 70,
+    "summary": "간장 베이스에 닭과 당면, 채소를 넣고 조린 요리입니다. 맵지 않아 좋지만 당면과 감자의 탄수화물, 짭짤한 간장 양념을 주의해야 합니다.",
+    "pros": "고단백, 소화 용이(안 매운맛), 다양한 채소",
+    "cons": "높은 나트륨(간장), 당면(고탄수화물), 높은 당분",
+    "expertAdvice": "당면을 빼고 드시면 훌륭한 고단백 식단이 됩니다. 닭껍질은 떼고 드세요.",
+    "nutrients": {
+      "calories": "150kcal/100g",
+      "protein": "14g",
+      "carbs": "15g",
+      "fat": "5g",
+      "fiber": "1g",
+      "sodium": "450mg",
+      "potassium": "200mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "당면은 혈당을 매우 빠르게 올립니다. 당면 섭취를 금하세요." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "간장 양념이 배어 있어 나트륨이 높습니다." },
+      "고지혈증": { "scoreModifier": 0, "risk": "safe", "reason": "껍질만 제거하면 저지방 고단백입니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨 조절이 필요합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "닭고기는 퓨린 함량이 적당합니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "좋은 단백질 공급원입니다." },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "기름기 적은 부위 위주로 드세요." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "부드럽고 자극이 적어 좋습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "단백질이 철분 흡수를 돕습니다." }
+    }
+  },
+  "치킨": {
+    "baseScore": 40,
+    "summary": "국민 야식이지만 건강에는 적신호입니다. 튀김 옷의 탄수화물과 산화된 기름, 높은 나트륨까지 3박자를 갖춘 고열량 식품입니다.",
+    "pros": "스트레스 해소(맛), 고단백",
+    "cons": "트랜스지방/포화지방, 고칼로리, 고나트륨, 발암물질(튀김)",
+    "expertAdvice": "튀긴 치킨 대신 구운 치킨(로스트)을 선택하고 껍질을 벗겨 드세요.",
+    "nutrients": {
+      "calories": "280kcal/100g",
+      "protein": "18g",
+      "carbs": "15g",
+      "fat": "18g",
+      "fiber": "0.5g",
+      "sodium": "500mg",
+      "potassium": "200mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "튀김 옷과 고지방은 혈당 스파이크와 인슐린 저항성을 유발합니다." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "염지된 닭과 양념 소스의 나트륨이 매우 높습니다." },
+      "고지혈증": { "scoreModifier": -30, "risk": "warning", "reason": "튀김 기름과 동물성 지방은 최악의 조합입니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "높은 염분과 인 함량은 신장을 망가뜨립니다." },
+      "통풍": { "scoreModifier": -25, "risk": "warning", "reason": "치맥(치킨+맥주)은 통풍 발작의 지름길입니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "지방간의 주범 중 하나입니다." },
+      "심장질환": { "scoreModifier": -30, "risk": "warning", "reason": "혈관을 막는 트랜스지방 위험이 있습니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "기름기가 많아 소화 불량과 역류성 식도염을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양 불균형 식품입니다." }
+    }
+  },
+  "닭볶음탕": {
+    "baseScore": 65,
+    "summary": "매콤달콤한 국물에 닭과 감자를 끓여낸 요리입니다. 단백질이 풍부하지만 설탕과 나트륨이 많이 들어갑니다.",
+    "pros": "고단백, 입맛 돋움, 감자/당근 섭취",
+    "cons": "높은 당분/나트륨, 국물 섭취 시 과다 칼로리",
+    "expertAdvice": "껍질을 벗기고 조리하며, 설탕 양을 줄이는 것이 중요합니다.",
+    "nutrients": {
+      "calories": "140kcal/100g",
+      "protein": "10g",
+      "carbs": "10g",
+      "fat": "6g",
+      "fiber": "1g",
+      "sodium": "400mg",
+      "potassium": "250mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "감자와 달콤한 양념이 혈당을 올립니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "국물의 나트륨 함량이 높습니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "닭껍질의 지방을 주의하세요." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨과 칼륨(감자) 주의가 필요합니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "과식하지 않으면 괜찮습니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "단백질 공급원으로 무난합니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "자극적인 국물 섭취를 줄이세요." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "매운 양념이 위를 자극합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "단백질이 풍부합니다." }
+    }
+  },
+  "소고기": {
+    "baseScore": 85,
+    "summary": "최고의 단백질 공급원이자 철분, 아연 등 미네랄의 보고입니다. 부위별로 지방 함량 차이가 크므로 선택이 중요합니다.",
+    "pros": "필수 아미노산, 빈혈 예방(철분), 면역력(아연), 근육 생성",
+    "cons": "포화지방(마블링), 비싼 가격, 퓨린 함량",
+    "expertAdvice": "마블링이 적은 안심, 우둔살 부위를 굽지 않고 삶아 드시는 것이 건강에 최고입니다.",
+    "nutrients": {
+      "calories": "200kcal/100g",
+      "protein": "20g",
+      "carbs": "0g",
+      "fat": "13g",
+      "fiber": "0g",
+      "sodium": "50mg",
+      "potassium": "300mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "혈당을 올리지 않고 근육 유지에 필수적입니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "살코기 위주로 드시면 혈압에 영향 없습니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "기름진 부위(꽃등심, 차돌박이)는 피해야 합니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "단백질 대사 산물이 신장에 부담을 줄 수 있어 양 조절이 필수입니다." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "붉은 고기는 퓨린 함량이 높아 과식 시 위험합니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간 세포 재생에 꼭 필요한 양질의 단백질입니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "포화지방이 적은 부위를 선택하세요." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "부드러운 부위는 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "아연이 갑상선 호르몬 대사를 돕습니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "흡수율이 높은 헴철이 풍부하여 빈혈 치료에 필수입니다." }
+    }
+  },
+  "한우": {
+    "baseScore": 80,
+    "summary": "수입산에 비해 올레인산 함량이 높아 맛이 좋습니다. 하지만 등급이 높을수록 마블링(지방)이 많아 건강에는 불리할 수 있습니다.",
+    "pros": "맛과 풍미, 고단백, 철분, 올레인산",
+    "cons": "높은 포화지방(투뿔 등급), 매우 비쌈",
+    "expertAdvice": "건강을 생각한다면 1++ 등급보다는 2-3등급의 저지방 부위를 숙성해 드세요.",
+    "nutrients": {
+      "calories": "250kcal/100g",
+      "protein": "18g",
+      "carbs": "0g",
+      "fat": "19g",
+      "fiber": "0g",
+      "sodium": "50mg",
+      "potassium": "280mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 0, "risk": "safe", "reason": "지방이 너무 많은 부위는 인슐린 저항성을 높일 수 있습니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "적당량은 괜찮습니다." },
+      "고지혈증": { "scoreModifier": -20, "risk": "warning", "reason": "고등급 한우의 마블링은 혈관 건강의 적입니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "단백질 양 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "붉은 고기 섭취를 제한해야 합니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "단백질 공급원으로 좋습니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "기름기가 적은 부위를 선택하세요." },
+      "위장질환": { "scoreModifier": 0, "risk": "safe", "reason": "기름기가 많으면 소화가 더딜 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "철분이 풍부합니다." }
+    }
+  },
+  "육회": {
+    "baseScore": 90,
+    "summary": "익히지 않아 영양소 파괴가 적고, 지방이 적은 우둔살 등을 사용하여 담백합니다. 배와 함께 먹어 소화를 돕습니다.",
+    "pros": "저지방 고단백, 비타민 파괴 최소화, 소화 효소 보존",
+    "cons": "식중독/기생충 위험(신선도 중요), 임산부/노약자 주의",
+    "expertAdvice": "신선도가 생명이며, 면역력이 약한 분들은 익혀 드시는 것이 안전합니다.",
+    "nutrients": {
+      "calories": "150kcal/100g",
+      "protein": "20g",
+      "carbs": "5g",
+      "fat": "5g",
+      "fiber": "1g",
+      "sodium": "150mg",
+      "potassium": "300mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "양념의 설탕만 조심하면 훌륭한 단백질원입니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "지방이 적고 나트륨이 비교적 적습니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "지방이 거의 없는 살코기라 안심하고 드셔도 됩니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "생고기는 단백질 함량이 높아 양 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "붉은 고기는 요산을 생성합니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "기름기 없는 순수 단백질은 간에 최고입니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "저지방 육류 섭취를 권장합니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "날음식은 소화 기능이 약한 분들에게 부담될 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "철분 섭취에 매우 효율적입니다." }
+    }
+  }
+,
+  "라면": {
+    "baseScore": 25,
+    "summary": "한국인의 소울푸드지만, 영양학적으로는 나트륨과 포화지방 덩어리입니다. 튀긴 면(유탕면)과 자극적인 스프는 거의 모든 만성질환에 악영향을 줍니다.",
+    "pros": "간편함, 저렴함, 맛(스트레스 해소)",
+    "cons": "살인적인 나트륨, 포화지방, 정제 탄수화물, 영양 불균형",
+    "expertAdvice": "면을 한번 삶아 버리고 끓이거나, 스프를 절반만 넣고 채소와 계란을 듬뿍 넣어 드세요.",
+    "nutrients": {
+      "calories": "500kcal/100g",
+      "protein": "10g",
+      "carbs": "70g",
+      "fat": "17g",
+      "fiber": "2g",
+      "sodium": "1800mg",
+      "potassium": "150mg",
+      "sugar": "3g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "정제 탄수화물과 지방의 조합은 혈당 스파이크를 유발합니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "한 그릇에 하루 권장 나트륨이 거의 다 들어있습니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "팜유로 튀긴 면은 포화지방 함량이 매우 높습니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "높은 염분과 인공첨가물은 신장에 치명적입니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "비만과 고혈압을 유발하여 간접적으로 통풍을 악화시킵니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "인스턴트 식품의 첨가물은 간 해독 부담을 줍니다." },
+      "심장질환": { "scoreModifier": -30, "risk": "warning", "reason": "고나트륨, 고지방은 심혈관 질환의 지름길입니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "밀가루와 튀긴 기름, 매운 맛이 위를 강력히 자극합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양이 부족하여 빈혈에 도움이 되지 않습니다." }
+    }
+  },
+  "냉면": {
+    "baseScore": 55,
+    "summary": "메밀을 사용해 건강해 보이지만, 시판 육수의 나트륨과 설탕 함량이 상상을 초월합니다. 여름철 입맛을 돋우지만 혈당과 혈압에는 주의가 필요합니다.",
+    "pros": "메밀의 루틴(혈관 강화), 시원함, 소화 용이(면 종류에 따라 다름)",
+    "cons": "육수의 엄청난 나트륨/당분, 찬 성질(배탈)",
+    "expertAdvice": "국물은 마시지 말고 면 위주로 드시되, 식초와 겨자를 넣어 소화를 도우세요.",
+    "nutrients": {
+      "calories": "500kcal/100g",
+      "protein": "12g",
+      "carbs": "100g",
+      "fat": "3g",
+      "fiber": "2g",
+      "sodium": "2500mg",
+      "potassium": "100mg",
+      "sugar": "20g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "면의 탄수화물에 육수의 설탕까지 더해져 혈당을 급격히 올립니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "국물까지 다 마시면 하루 나트륨 권장량을 초과합니다." },
+      "고지혈증": { "scoreModifier": 0, "risk": "safe", "reason": "지방 함량은 낮아 안전합니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "나트륨 배출이 어려운 신장 환자에게는 독이 될 수 있습니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "고기 육수를 진하게 낸 경우 퓨린이 높을 수 있습니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "염분 과다 섭취로 심장 부담을 줍니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "찬 음식은 위장 기능을 떨어뜨리고 배탈을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양 불균형 식품입니다." }
+    }
+  },
+  "칼국수": {
+    "baseScore": 50,
+    "summary": "진한 국물과 부드러운 면발이 일품이지만, 정제 밀가루 폭탄에 나트륨 함량이 매우 높습니다. 겉절이 김치까지 곁들이면 나트륨 섭취는 배가 됩니다.",
+    "pros": "따뜻함, 포만감, 멸치/조개 육수(미네랄)",
+    "cons": "정제 탄수화물 과다, 매우 높은 나트륨, 단백질 부족",
+    "expertAdvice": "면 양을 반으로 줄이고 바지락이나 채소를 더 많이 드셔야 합니다.",
+    "nutrients": {
+      "calories": "450kcal/100g",
+      "protein": "12g",
+      "carbs": "90g",
+      "fat": "5g",
+      "fiber": "2g",
+      "sodium": "2000mg",
+      "potassium": "150mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "소화 흡수가 빠른 밀가루 면은 혈당을 매우 빠르게 올립니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "면 반죽과 국물 모두에 소금이 많이 들어갑니다." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "탄수화물 과잉은 중성지방 수치를 높입니다." },
+      "신장질환": { "scoreModifier": -25, "risk": "warning", "reason": "나트륨 함량이 너무 높아 부종을 유발합니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "해물 육수나 고기 육수는 퓨린 함량이 높을 수 있습니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "고염분 식사는 심부전을 악화시킵니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "밀가루 글루텐이 소화 불량을 일으킬 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": -5, "risk": "caution", "reason": "바지락 칼국수가 아니라면 철분이 부족합니다." }
+    }
+  },
+  "잔치국수": {
+    "baseScore": 55,
+    "summary": "멸치 육수에 소면을 말아 먹는 가벼운 식사입니다. 칼국수보다는 낫지만 여전히 탄수화물 위주이며 나트륨이 높습니다.",
+    "pros": "소화 용이, 깔끔한 맛, 멸치 육수(칼슘)",
+    "cons": "정제 탄수화물(소면), 높은 나트륨, 단백질 부족",
+    "expertAdvice": "계란 지단, 호박, 당근 등 고명을 많이 얹어 영양 균형을 맞추세요.",
+    "nutrients": {
+      "calories": "350kcal/100g",
+      "protein": "10g",
+      "carbs": "75g",
+      "fat": "2g",
+      "fiber": "1g",
+      "sodium": "1500mg",
+      "potassium": "100mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "소면은 GI 지수가 높아 혈당 관리에 좋지 않습니다." },
+      "고혈압": { "scoreModifier": -25, "risk": "warning", "reason": "국물과 양념장의 나트륨을 주의해야 합니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "탄수화물 위주의 식사는 중성지방을 높입니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "염분이 높아 신장에 부담을 줍니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "멸치 육수는 퓨린 함량이 다소 높습니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "소화가 잘 되어 간 부담은 적습니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨 섭취를 줄이기 위해 국물은 남기세요." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "따뜻하고 부드러워 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양가가 부족합니다." }
+    }
+  },
+  "비빔국수": {
+    "baseScore": 50,
+    "summary": "매콤달콤한 양념에 비벼 먹는 국수로 입맛을 돋웁니다. 하지만 설탕과 고추장이 많이 들어가 당분과 나트륨이 높습니다.",
+    "pros": "입맛 돋움, 채소 곁들임 가능",
+    "cons": "높은 당분(설탕), 높은 나트륨, 정제 탄수화물, 위장 자극",
+    "expertAdvice": "설탕 대신 매실액을 쓰고, 오이와 상추를 면만큼 많이 넣어 드세요.",
+    "nutrients": {
+      "calories": "400kcal/100g",
+      "protein": "8g",
+      "carbs": "80g",
+      "fat": "5g",
+      "fiber": "2g",
+      "sodium": "1200mg",
+      "potassium": "150mg",
+      "sugar": "15g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "설탕이 듬뿍 들어간 양념과 면은 혈당 폭탄입니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "고추장 양념의 나트륨 함량이 높습니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "탄수화물과 당분 과다 섭취를 주의하세요." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "수분 없는 고염분 음식은 갈증과 혈압 상승을 유발합니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "비만 관리 차원에서 주의하면 됩니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "단짠 양념은 피하는 것이 좋습니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "맵고 차가운 면은 위장을 강하게 자극합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양가가 낮습니다." }
+    }
+  },
+  "떡볶이": {
+    "baseScore": 30,
+    "summary": "국민 간식이지만 영양학적으로는 최악의 음식 중 하나입니다. 고밀도 탄수화물인 떡을 설탕과 고추장 범벅 소스에 끓여냅니다.",
+    "pros": "스트레스 해소, 맛(기호성)",
+    "cons": "탄수화물 폭탄, 높은 당분, 높은 나트륨, 영양 불균형",
+    "expertAdvice": "가장 피해야 할 음식입니다. 드신다면 떡은 조금만 먹고 어묵과 양배추 위주로 드세요.",
+    "nutrients": {
+      "calories": "300kcal/100g",
+      "protein": "5g",
+      "carbs": "60g",
+      "fat": "2g",
+      "fiber": "1g",
+      "sodium": "1200mg",
+      "potassium": "100mg",
+      "sugar": "20g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "압축된 탄수화물(떡)과 설탕 소스는 혈당 스파이크의 주범입니다." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "소스에 엄청난 양의 나트륨이 숨어있습니다." },
+      "고지혈증": { "scoreModifier": -20, "risk": "warning", "reason": "잉여 탄수화물이 중성지방으로 빠르게 전환됩니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "나트륨 함량이 높아 신장에 매우 해롭습니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "비만과 대사 증후군을 유발하여 통풍을 악화시킵니다." },
+      "간질환": { "scoreModifier": -10, "risk": "caution", "reason": "지방간이 있다면 탄수화물 과다 섭취를 피해야 합니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "고탄수화물 고염분 식사는 심혈관 위험 인자입니다." },
+      "위장질환": { "scoreModifier": -25, "risk": "warning", "reason": "맵고 짠 소스와 잘 씹히지 않는 떡은 소화불량을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양 가치가 없습니다." }
+    }
+  },
+  "순대": {
+    "baseScore": 60,
+    "summary": "돼지 창자에 당면과 선지를 넣어 찐 음식입니다. 선지는 철분이 풍부하지만 당면 때문에 탄수화물 함량이 의외로 높습니다.",
+    "pros": "철분 풍부(선지), 단백질, 비타민 A",
+    "cons": "높은 탄수화물(당면), 높은 포화지방/콜레스테롤(내장), 나트륨(소금)",
+    "expertAdvice": "소금 대신 쌈장을 아주 조금만 찍어 드시고, 내장(간, 허파)은 적당히 드세요.",
+    "nutrients": {
+      "calories": "180kcal/100g",
+      "protein": "5g",
+      "carbs": "20g",
+      "fat": "8g",
+      "fiber": "0g",
+      "sodium": "600mg",
+      "potassium": "100mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "순대 속 당면은 혈당을 빠르게 올립니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "가공 과정에서 이미 간이 되어 있고 소금을 또 찍어 먹습니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "내장류(특히 간)는 콜레스테롤이 매우 높습니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "나트륨 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -20, "risk": "warning", "reason": "내장류는 퓨린 함량이 가장 높은 식품군입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "선지의 단백질과 철분은 도움이 됩니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "콜레스테롤 섭취를 주의해야 합니다." },
+      "위장질환": { "scoreModifier": 0, "risk": "safe", "reason": "소화는 무난한 편입니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "선지는 흡수율 높은 철분의 보고입니다." }
+    }
+  },
+  "튀김": {
+    "baseScore": 30,
+    "summary": "신발을 튀겨도 맛있다지만, 건강에는 최악의 조리법입니다. 산화된 기름, 트랜스지방, 탄수화물 튀김옷의 조합입니다.",
+    "pros": "맛(기호성)",
+    "cons": "트랜스지방/포화지방, 고칼로리, 발암물질(아크릴아마이드), 소화불량",
+    "expertAdvice": "에어프라이어를 사용해 기름 없이 굽는 것이 그나마 낫습니다.",
+    "nutrients": {
+      "calories": "300kcal/100g",
+      "protein": "5g",
+      "carbs": "30g",
+      "fat": "20g",
+      "fiber": "1g",
+      "sodium": "400mg",
+      "potassium": "100mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "지방이 인슐린 저항성을 높이고 튀김옷이 혈당을 올립니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "비만을 유발하여 혈압 조절을 어렵게 합니다." },
+      "고지혈증": { "scoreModifier": -30, "risk": "warning", "reason": "트랜스지방은 나쁜 콜레스테롤을 높이고 좋은 콜레스테롤을 낮춥니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "혈관 건강 악화로 신장 기능에 나쁩니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "기름진 음식은 요산 배출을 방해합니다." },
+      "간질환": { "scoreModifier": -20, "risk": "warning", "reason": "산화된 기름은 간세포를 파괴하고 지방간을 유발합니다." },
+      "심장질환": { "scoreModifier": -30, "risk": "warning", "reason": "혈관을 막는 가장 직접적인 원인 식품입니다." },
+      "위장질환": { "scoreModifier": -25, "risk": "warning", "reason": "기름기가 소화를 방해하고 역류성 식도염을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "어묵": {
+    "baseScore": 55,
+    "summary": "생선살을 으깨 만들었지만 밀가루 함량이 높고 튀겨낸 제품이 많습니다. 나트륨 함량이 생각보다 매우 높습니다.",
+    "pros": "단백질, 저렴함, 소화 용이",
+    "cons": "높은 나트륨, 밀가루 함유(탄수화물), 튀긴 제품(지방)",
+    "expertAdvice": "끓는 물에 데쳐서 기름기와 첨가물을 제거하고 드세요.",
+    "nutrients": {
+      "calories": "140kcal/100g",
+      "protein": "10g",
+      "carbs": "15g",
+      "fat": "4g",
+      "fiber": "0g",
+      "sodium": "800mg",
+      "potassium": "100mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -5, "risk": "caution", "reason": "저렴한 어묵일수록 밀가루 함량이 높아 혈당을 올립니다." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "어묵 자체의 염도가 상당히 높아 주의해야 합니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "튀긴 어묵은 포화지방이 있습니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "나트륨과 인산염 첨가제가 신장에 해롭습니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "등푸른 생선이 원료인 경우 퓨린이 있을 수 있습니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "무난한 단백질원입니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨 섭취를 제한해야 합니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "부드러워 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "단백질 보충에는 도움이 됩니다." }
+    }
+  },
+  "만두": {
+    "baseScore": 60,
+    "summary": "고기, 두부, 채소가 들어가 영양 균형이 잡혀 보이지만 만두피(밀가루)의 비중이 크고 돼지비계가 많이 들어갑니다.",
+    "pros": "탄단지 균형, 채소 섭취, 맛",
+    "cons": "높은 나트륨, 포화지방(만두소 비계), 정제 탄수화물",
+    "expertAdvice": "군만두보다는 찐만두나 물만두가 지방 섭취를 줄이는 길입니다.",
+    "nutrients": {
+      "calories": "200kcal/100g",
+      "protein": "8g",
+      "carbs": "25g",
+      "fat": "10g",
+      "fiber": "2g",
+      "sodium": "500mg",
+      "potassium": "150mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "만두피는 정제된 밀가루라 혈당을 빨리 올립니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "만두소 양념에 소금과 조미료가 많이 들어갑니다." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "부드러운 식감을 위해 돼지 비계를 많이 섞습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨 함량이 높아 섭취량 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "고기 만두는 퓨린 섭취를 늘립니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "적당량은 괜찮습니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "포화지방과 나트륨을 주의하세요." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "밀가루 피가 소화불량을 유발할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "고기와 채소가 있어 약간 도움됩니다." }
+    }
+  },
+  "수제비": {
+    "baseScore": 50,
+    "summary": "칼국수와 비슷하지만 반죽이 더 두꺼워 소화가 더딥니다. 탄수화물 덩어리이며 국물 나트륨 섭취가 많습니다.",
+    "pros": "포만감, 멸치 육수(칼슘)",
+    "cons": "정제 탄수화물 과다, 높은 나트륨, 소화 불량",
+    "expertAdvice": "반죽을 얇게 뜨고 채소를 많이 넣으세요. 국물은 남기세요.",
+    "nutrients": {
+      "calories": "400kcal/100g",
+      "protein": "10g",
+      "carbs": "85g",
+      "fat": "3g",
+      "fiber": "2g",
+      "sodium": "1800mg",
+      "potassium": "100mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "밀가루 덩어리인 수제비는 혈당 스파이크를 일으킵니다." },
+      "고혈압": { "scoreModifier": -25, "risk": "warning", "reason": "국물의 나트륨 함량이 매우 높습니다." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "과도한 탄수화물은 중성지방 수치를 높입니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "나트륨 과다로 부종과 고혈압을 유발합니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "멸치 육수 사용 시 퓨린 주의가 필요합니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "염분 과다 섭취는 심장에 부담입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "두꺼운 밀가루 반죽은 소화가 잘 안 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양가가 부족합니다." }
+    }
+  },
+  "김치": {
+    "baseScore": 85,
+    "summary": "한국의 대표 발효 식품으로 유산균과 식이섬유가 풍부합니다. 항암, 면역력 증진 효과가 뛰어나지만 나트륨 함량이 높습니다.",
+    "pros": "유산균(장 건강), 항암 효과, 면역력, 식이섬유",
+    "cons": "높은 나트륨, 위장 자극(매운맛)",
+    "expertAdvice": "저염 김치를 담가 드시거나, 식사 시 양을 조절하여 드세요.",
+    "nutrients": {
+      "calories": "30kcal/100g",
+      "protein": "2g",
+      "carbs": "5g",
+      "fat": "0.5g",
+      "fiber": "3g",
+      "sodium": "650mg",
+      "potassium": "250mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "식이섬유가 풍부하고 당분이 낮아 혈당 관리에 좋습니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "염장 식품이라 나트륨 함량이 높습니다. 적당히 드세요." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "마늘, 고춧가루 등의 성분이 혈관 건강을 돕습니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨과 칼륨 함량 때문에 섭취 제한이 필요할 수 있습니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "알칼리성 식품으로 도움이 됩니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "발효 과정에서 생기는 유익균이 간을 돕습니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "나트륨 과다 섭취만 주의하면 좋습니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "유산균은 좋으나 매운 맛이 위벽을 자극할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "직접적인 도움은 적습니다." }
+    }
+  },
+  "깍두기": {
+    "baseScore": 82,
+    "summary": "무로 만든 김치로 소화 효소인 디아스타아제가 풍부해 소화를 돕습니다. 아삭한 식감이 좋으나 배추김치보다 당분이 높을 수 있습니다.",
+    "pros": "소화 촉진, 항암 효과, 비타민 C",
+    "cons": "높은 나트륨, 설탕 첨가(당분)",
+    "expertAdvice": "무의 껍질에 영양소가 많으니 깨끗이 씻어 껍질째 담그세요.",
+    "nutrients": {
+      "calories": "35kcal/100g",
+      "protein": "1.5g",
+      "carbs": "7g",
+      "fat": "0.2g",
+      "fiber": "2.5g",
+      "sodium": "700mg",
+      "potassium": "200mg",
+      "sugar": "3g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 0, "risk": "safe", "reason": "설탕을 많이 넣어 담근 경우 혈당에 영향을 줄 수 있습니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨 함량이 높습니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "식이섬유가 콜레스테롤 배출을 돕습니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨과 칼륨 주의가 필요합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "무는 요산 배출에 좋은 식품입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "무의 해독 작용이 간 건강에 좋습니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "염분 섭취를 조절하세요." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "천연 소화제라 불릴 만큼 소화에 탁월합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  },
+  "시금치나물": {
+    "baseScore": 93,
+    "summary": "비타민 A, C, 엽산, 철분이 풍부한 녹황색 채소의 왕입니다. 살짝 데쳐서 무치면 많은 양을 섭취할 수 있어 좋습니다.",
+    "pros": "눈 건강, 빈혈 예방, 뇌 건강, 혈관 탄력",
+    "cons": "수산(신장결석 위험), 나트륨(간)",
+    "expertAdvice": "반드시 끓는 물에 데쳐 수산을 제거한 뒤 섭취하세요.",
+    "nutrients": {
+      "calories": "40kcal/100g",
+      "protein": "4g",
+      "carbs": "5g",
+      "fat": "1.5g",
+      "fiber": "3g",
+      "sodium": "300mg",
+      "potassium": "500mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "알파리포산이 인슐린 감수성을 높여줍니다." },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "풍부한 칼륨과 질산염이 혈압을 낮춥니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "항산화 성분이 혈관 청소를 돕습니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "칼륨과 수산 함량이 매우 높아 결석 및 고칼륨혈증 위험이 큽니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "퓨린 함량이 채소 중에선 약간 있는 편입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "비타민과 미네랄이 대사를 돕습니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "엽산이 호모시스테인 수치를 낮춰 심장을 보호합니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "섬유질이 변비를 예방합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "익혀 먹으면 문제없습니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "철분과 엽산이 매우 풍부합니다." }
+    }
+  },
+  "콩나물": {
+    "baseScore": 90,
+    "summary": "가장 친숙한 국민 반찬으로 단백질과 비타민 C, 아스파라긴산이 풍부합니다. 가격이 저렴하고 영양가가 높습니다.",
+    "pros": "숙취 해소, 피로 회복, 단백질, 저렴함",
+    "cons": "특별한 단점 없음, 나트륨(무침 간)",
+    "expertAdvice": "너무 오래 삶으면 아삭한 식감과 비타민 C가 파괴되니 살짝만 익히세요.",
+    "nutrients": {
+      "calories": "30kcal/100g",
+      "protein": "4g",
+      "carbs": "3g",
+      "fat": "1g",
+      "fiber": "2g",
+      "sodium": "250mg",
+      "potassium": "250mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "혈당을 올리지 않고 포만감을 주는 좋은 식재료입니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨이 나트륨 배출을 돕습니다. 싱겁게 무치세요." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "콩 단백질이 혈중 지질 개선에 도움을 줍니다." },
+      "신장질환": { "scoreModifier": 0, "risk": "safe", "reason": "적당량 섭취 시 안전합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "수분이 많고 요산 배출을 돕습니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "아스파라긴산이 간의 알코올 해독을 돕습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "안전한 식품입니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "섬유질이 장 운동을 돕습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분이 약간 함유되어 있습니다." }
+    }
+  },
+  "계란찜": {
+    "baseScore": 92,
+    "summary": "완전식품인 계란을 부드럽게 익힌 최고의 단백질 반찬입니다. 소화가 매우 잘 되어 환자나 아이들에게 좋습니다.",
+    "pros": "고단백, 완전식품, 소화 흡수 용이, 부드러움",
+    "cons": "콜레스테롤(노른자), 나트륨(새우젓/소금 간)",
+    "expertAdvice": "우유를 조금 넣으면 더 부드럽고 칼슘도 보충할 수 있습니다.",
+    "nutrients": {
+      "calories": "100kcal/100g",
+      "protein": "9g",
+      "carbs": "2g",
+      "fat": "7g",
+      "fiber": "0g",
+      "sodium": "350mg",
+      "potassium": "100mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "탄수화물이 거의 없어 혈당에 안전한 단백질원입니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "계란 단백질이 혈압 조절을 돕습니다. 간은 싱겁게 하세요." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "노른자의 콜레스테롤 때문에 하루 1-2개로 제한하세요." },
+      "신장질환": { "scoreModifier": 5, "risk": "safe", "reason": "생물가가 높은 단백질이라 노폐물이 적게 나옵니다." },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "퓨린 함량이 매우 낮아 안전한 단백질입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "메티오닌이 간 해독을 돕습니다." },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "적당량 섭취는 문제없으나 콜레스테롤만 주의하세요." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "가장 소화가 잘 되는 조리법입니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "셀레늄이 갑상선 건강을 돕습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 들어있습니다." }
+    }
+  },
+  "계란말이": {
+    "baseScore": 85,
+    "summary": "계란에 채소를 다져 넣고 말아낸 도시락 인기 반찬입니다. 기름을 사용해 조리하므로 계란찜보다는 칼로리가 높습니다.",
+    "pros": "고단백, 채소 섭취 가능, 맛",
+    "cons": "기름 사용(지방 증가), 나트륨, 콜레스테롤",
+    "expertAdvice": "채소를 듬뿍 넣어 영양 밸런스를 맞추고 기름을 적게 두르세요.",
+    "nutrients": {
+      "calories": "150kcal/100g",
+      "protein": "10g",
+      "carbs": "3g",
+      "fat": "11g",
+      "fiber": "0.5g",
+      "sodium": "300mg",
+      "potassium": "120mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "혈당을 올리지 않습니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "케첩 등 소스를 뿌리지 않고 드세요." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "기름에 조리하여 지방 함량이 찜보다 높습니다." },
+      "신장질환": { "scoreModifier": 5, "risk": "safe", "reason": "양질의 단백질입니다." },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "안전한 단백질 공급원입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "간 세포 재생에 도움이 됩니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "콜레스테롤 섭취 조절이 필요합니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "비교적 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 함유되어 있습니다." }
+    }
+  },
+  "김치전": {
+    "baseScore": 40,
+    "summary": "김치와 밀가루를 기름에 튀기듯 지져낸 음식입니다. 김치의 나트륨과 밀가루의 탄수화물, 기름의 지방이 합쳐진 고열량 식품입니다.",
+    "pros": "맛(기호성), 김치 섭취",
+    "cons": "높은 나트륨, 고지방(기름), 정제 탄수화물(밀가루)",
+    "expertAdvice": "밀가루 양을 줄이고 두부나 참치를 넣어 단백질을 높이세요.",
+    "nutrients": {
+      "calories": "250kcal/100g",
+      "protein": "5g",
+      "carbs": "30g",
+      "fat": "13g",
+      "fiber": "2g",
+      "sodium": "700mg",
+      "potassium": "150mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "기름진 밀가루 음식은 혈당과 체중 관리에 적입니다." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "김치 자체 염분에 간장까지 찍으면 나트륨 과다입니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "기름을 많이 흡수하는 조리법이라 지방이 높습니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "높은 나트륨은 신장에 부담을 줍니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "기름진 음식은 요산 배출을 저해합니다." },
+      "간질환": { "scoreModifier": -10, "risk": "caution", "reason": "지방간 위험을 높일 수 있습니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "고혈압과 비만을 유발할 수 있습니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "기름지고 매운 맛이 소화 불량을 일으킵니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "파전": {
+    "baseScore": 50,
+    "summary": "쪽파를 듬뿍 넣어 부쳐낸 전입니다. 파의 영양은 좋으나 밀가루와 기름이 많이 들어가는 것이 단점입니다.",
+    "pros": "파의 항산화 성분, 혈액 순환, 감기 예방",
+    "cons": "고지방, 정제 탄수화물, 나트륨(초간장)",
+    "expertAdvice": "부침가루 대신 메밀가루를 쓰거나 계란 비율을 높이세요.",
+    "nutrients": {
+      "calories": "230kcal/100g",
+      "protein": "6g",
+      "carbs": "25g",
+      "fat": "12g",
+      "fiber": "3g",
+      "sodium": "300mg",
+      "potassium": "200mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "밀가루 반죽이 혈당을 올립니다." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "간장을 적게 찍어 드세요." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "기름 사용량을 줄여야 합니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "파의 칼륨 함량이 높을 수 있어 주의하세요." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "파는 요산 배출에 도움이 됩니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "적당량은 괜찮습니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "기름진 음식은 혈관에 부담입니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "기름기가 많으면 소화가 안 될 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "해물파전": {
+    "baseScore": 60,
+    "summary": "파전에 오징어, 조개 등 해물을 넣어 단백질과 맛을 보강했습니다. 해물의 타우린이 좋으나 여전히 고칼로리 음식입니다.",
+    "pros": "타우린(피로회복), 단백질, 맛, 파의 영양",
+    "cons": "높은 칼로리, 고지방, 나트륨, 퓨린(해물)",
+    "expertAdvice": "해물을 많이 넣고 밀가루는 접착제 역할만 하게 얇게 펴서 부치세요.",
+    "nutrients": {
+      "calories": "240kcal/100g",
+      "protein": "10g",
+      "carbs": "22g",
+      "fat": "13g",
+      "fiber": "2g",
+      "sodium": "400mg",
+      "potassium": "250mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "밀가루 양을 최소화하면 비교적 괜찮습니다." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "간장을 주의하세요." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "오징어 등 해물의 콜레스테롤과 기름이 만났습니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "단백질과 나트륨 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "해물은 퓨린 함량이 높아 통풍 환자는 피해야 합니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "해물의 타우린이 간을 돕습니다." },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "타우린은 좋으나 지방이 문제입니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "기름기가 소화를 방해합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "해물의 철분이 도움됩니다." }
+    }
+  },
+  "족발": {
+    "baseScore": 65,
+    "summary": "돼지 다리를 간장 양념에 삶아낸 요리로 콜라겐이 풍부합니다. 껍질의 쫄깃한 맛이 일품이지만 지방과 나트륨이 높습니다.",
+    "pros": "콜라겐(피부/관절), 고단백, 메티오닌(간 건강)",
+    "cons": "높은 지방(껍질), 높은 나트륨(양념), 고칼로리",
+    "expertAdvice": "껍질보다는 살코기 위주로 드시고, 새우젓을 찍지 말고 채소에 싸 드세요.",
+    "nutrients": {
+      "calories": "240kcal/100g",
+      "protein": "22g",
+      "carbs": "3g",
+      "fat": "16g",
+      "fiber": "0g",
+      "sodium": "500mg",
+      "potassium": "200mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 0, "risk": "safe", "reason": "당분이 적어 혈당에는 큰 영향이 없으나 막국수는 피하세요." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "조리 과정에서 간장이 많이 배어 있어 짭짤합니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "껍질에 포화지방과 콜레스테롤이 많습니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "단백질과 나트륨 섭취량 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "돼지고기는 퓨린이 있어 과식하면 안 됩니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "메티오닌 성분이 간 해독을 돕습니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "지방과 염분이 혈관에 부담을 줍니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "기름기가 많아 소화가 느립니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 함유되어 있습니다." }
+    }
+  },
+  "짜장면": {
+    "baseScore": 35,
+    "summary": "기름에 볶은 춘장과 돼지고기를 밀가루 면에 비벼 먹는 고열량 음식입니다. 지방, 설탕, 나트륨 함량이 모두 매우 높습니다.",
+    "pros": "맛(기호성), 포만감",
+    "cons": "고지방(라드/식용유), 높은 당분, 높은 나트륨, 정제 탄수화물",
+    "expertAdvice": "소스는 비비지 말고 조금만 얹어 드시거나, 짬뽕 국물 대신 물을 드세요.",
+    "nutrients": {
+      "calories": "250kcal/100g",
+      "protein": "6g",
+      "carbs": "35g",
+      "fat": "10g",
+      "fiber": "1g",
+      "sodium": "600mg",
+      "potassium": "150mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "밀가루 면에 설탕과 기름이 범벅된 최악의 조합입니다." },
+      "고혈압": { "scoreModifier": -25, "risk": "warning", "reason": "춘장은 나트륨 함량이 매우 높습니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "기름진 소스와 탄수화물 과다는 중성지방을 폭발시킵니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "나트륨과 화학조미료가 신장에 해롭습니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "비만을 유발하여 통풍 위험을 높입니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "지방간 환자는 피해야 할 음식입니다." },
+      "심장질환": { "scoreModifier": -25, "risk": "warning", "reason": "혈관 건강을 해치는 대표적인 외식 메뉴입니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "기름진 밀가루 음식은 소화불량의 주범입니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "짬뽕": {
+    "baseScore": 40,
+    "summary": "얼큰한 국물과 해물이 어우러진 면 요리입니다. 해물 덕분에 단백질은 좀 있지만, 나트륨 함량이 외식 메뉴 중 최고 수준입니다.",
+    "pros": "타우린(해물), 얼큰한 맛, 해장 느낌",
+    "cons": "살인적인 나트륨, 맵고 자극적, 정제 탄수화물, 고추기름(지방)",
+    "expertAdvice": "면만 건져 드시고 국물은 절대 마시지 마세요. 나트륨 섭취를 절반으로 줄일 수 있습니다.",
+    "nutrients": {
+      "calories": "150kcal/100g",
+      "protein": "7g",
+      "carbs": "20g",
+      "fat": "5g",
+      "fiber": "1g",
+      "sodium": "900mg",
+      "potassium": "150mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "밀가루 면과 자극적인 국물은 혈당 관리에 나쁩니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "한 그릇에 4000mg이 넘는 나트륨이 들어있기도 합니다." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "고추기름과 볶는 과정의 지방을 주의하세요." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "신장 환자에게는 독약과 같은 나트륨 폭탄입니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "해물 육수는 퓨린 함량이 높습니다." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "자극적인 국물이 간을 피로하게 할 수 있습니다." },
+      "심장질환": { "scoreModifier": -30, "risk": "warning", "reason": "고나트륨은 심장병 위험을 급격히 높입니다." },
+      "위장질환": { "scoreModifier": -30, "risk": "warning", "reason": "맵고 짠 국물은 위염과 위궤양을 악화시킵니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "해물의 철분이 약간 도움됩니다." }
+    }
+  },
+  "탕수육": {
+    "baseScore": 30,
+    "summary": "돼지고기를 튀겨 달콤한 소스를 부어 먹는 요리입니다. 튀김의 지방과 소스의 엄청난 설탕이 합쳐진 고칼로리 음식입니다.",
+    "pros": "단백질(돼지고기), 맛",
+    "cons": "트랜스지방/포화지방, 높은 당분(소스), 고칼로리",
+    "expertAdvice": "소스를 찍어 먹되(찍먹) 아주 조금만 찍고, 채소를 곁들여 드세요.",
+    "nutrients": {
+      "calories": "250kcal/100g",
+      "protein": "8g",
+      "carbs": "25g",
+      "fat": "14g",
+      "fiber": "0.5g",
+      "sodium": "250mg",
+      "potassium": "100mg",
+      "sugar": "15g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "설탕 소스와 튀김옷은 혈당을 폭발적으로 올립니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "비만을 유발하여 혈압을 높입니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "튀김 요리는 나쁜 콜레스테롤을 높입니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "혈관 건강 악화로 신장에 나쁩니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "기름진 고기는 요산 배출을 막습니다." },
+      "간질환": { "scoreModifier": -20, "risk": "warning", "reason": "지방간 환자에게는 매우 해롭습니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "혈관을 막는 기름진 음식입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "소화가 어렵고 더부룩함을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "마라탕": {
+    "baseScore": 35,
+    "summary": "중독적인 매운맛으로 인기지만, 사골 육수에 고추기름과 향신료, 나트륨이 가득합니다. 원하는 재료를 넣을 수 있지만 국물은 건강에 해롭습니다.",
+    "pros": "채소/두부 섭취 가능, 스트레스 해소",
+    "cons": "극도로 높은 나트륨, 자극적인 매운맛, 고지방(고추기름/땅콩소스)",
+    "expertAdvice": "국물은 절대 마시지 말고, 채소와 두부 위주로 건져 드세요.",
+    "nutrients": {
+      "calories": "150kcal/100g",
+      "protein": "6g",
+      "carbs": "10g",
+      "fat": "10g",
+      "fiber": "2g",
+      "sodium": "800mg",
+      "potassium": "200mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "당면, 분모자 등 탄수화물 재료를 피해야 합니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "나트륨 함량이 라면보다 높을 수 있습니다." },
+      "고지혈증": { "scoreModifier": -20, "risk": "warning", "reason": "기름진 국물과 땅콩 소스는 지방 함량이 높습니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "자극적이고 짠 국물은 신장 쇼크를 줄 수 있습니다." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "진한 고기 육수와 기름은 통풍에 좋지 않습니다." },
+      "간질환": { "scoreModifier": -10, "risk": "caution", "reason": "자극적인 향신료가 간에 부담을 줄 수 있습니다." },
+      "심장질환": { "scoreModifier": -25, "risk": "warning", "reason": "고혈압과 비만을 유발합니다." },
+      "위장질환": { "scoreModifier": -30, "risk": "warning", "reason": "위벽을 헐게 만들 정도로 자극적입니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  },
+  "마라샹궈": {
+    "baseScore": 30,
+    "summary": "마라 소스에 재료를 볶은 요리로 마라탕보다 나트륨과 기름 함량이 더 높을 수 있습니다. 밥과 함께 먹으면 탄수화물 섭취도 과해집니다.",
+    "pros": "채소 섭취 가능, 입맛 돋움",
+    "cons": "기름 범벅, 나트륨 폭탄, 위장 자극, 고칼로리",
+    "expertAdvice": "기름을 적게 넣어달라고 요청하고, 청경채나 배추 등 채소를 많이 넣으세요.",
+    "nutrients": {
+      "calories": "250kcal/100g",
+      "protein": "8g",
+      "carbs": "12g",
+      "fat": "20g",
+      "fiber": "3g",
+      "sodium": "1000mg",
+      "potassium": "250mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "기름지고 짠 음식은 밥을 많이 먹게 하여 혈당을 높입니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "소스가 재료에 농축되어 있어 나트륨 섭취가 매우 많습니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "볶음 요리라 기름 섭취량이 상당합니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "나트륨 배출이 안 되어 위험합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "기름진 음식은 요산 배출을 방해합니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "기름과 자극적인 맛이 간을 피로하게 합니다." },
+      "심장질환": { "scoreModifier": -25, "risk": "warning", "reason": "혈관 건강에 해로운 요소가 많습니다." },
+      "위장질환": { "scoreModifier": -30, "risk": "warning", "reason": "위염 환자는 절대 피해야 할 음식입니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  },
+  "깐풍기": {
+    "baseScore": 40,
+    "summary": "튀긴 닭고기를 매콤달콤한 소스에 볶은 요리입니다. 치킨과 비슷하지만 소스의 당분과 나트륨이 추가되어 더 해로울 수 있습니다.",
+    "pros": "단백질, 맛",
+    "cons": "튀김(지방), 높은 당분/나트륨, 고칼로리",
+    "expertAdvice": "양상추 등 곁들임 채소와 함께 드시고 과식을 피하세요.",
+    "nutrients": {
+      "calories": "270kcal/100g",
+      "protein": "12g",
+      "carbs": "15g",
+      "fat": "18g",
+      "fiber": "1g",
+      "sodium": "500mg",
+      "potassium": "150mg",
+      "sugar": "8g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "튀김과 설탕 소스는 혈당 조절을 망칩니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "짭짤한 소스가 나트륨 섭취를 늘립니다." },
+      "고지혈증": { "scoreModifier": -20, "risk": "warning", "reason": "튀긴 닭고기는 포화지방이 높습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "염분 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "닭고기 튀김은 퓨린과 지방이 모두 문제입니다." },
+      "간질환": { "scoreModifier": -10, "risk": "caution", "reason": "지방간에 좋지 않습니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "고열량 고지방식입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "매콤한 소스와 기름기가 위를 자극합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  },
+  "유린기": {
+    "baseScore": 50,
+    "summary": "튀긴 닭고기에 채소와 간장 소스를 곁들인 요리입니다. 깐풍기보다는 채소가 많아 낫지만 여전히 튀김 요리입니다.",
+    "pros": "풍부한 채소, 단백질, 상큼한 맛",
+    "cons": "튀김(지방), 나트륨(소스), 고칼로리",
+    "expertAdvice": "소스는 뿌리지 말고 찍어 드시고, 채소를 고기보다 많이 드세요.",
+    "nutrients": {
+      "calories": "220kcal/100g",
+      "protein": "12g",
+      "carbs": "10g",
+      "fat": "15g",
+      "fiber": "2g",
+      "sodium": "400mg",
+      "potassium": "200mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "튀김옷이 있지만 채소와 함께 먹어 혈당 상승이 다소 완화됩니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "간장 소스의 나트륨을 주의하세요." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "기름에 튀긴 닭고기는 지방이 높습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨 섭취에 주의하세요." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "튀김류는 피하는 게 좋습니다." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "튀김은 간에 부담입니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "지방 섭취를 조절해야 합니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "기름기가 소화를 더디게 합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  },
+  "팔보채": {
+    "baseScore": 75,
+    "summary": "여덟 가지 보물 같은 재료(해물, 채소)를 볶은 요리입니다. 튀기지 않고 볶아 영양 균형이 좋고 단백질이 풍부합니다.",
+    "pros": "고단백(해물), 다양한 채소, 튀기지 않음, 타우린",
+    "cons": "높은 나트륨(소스), 퓨린(해물)",
+    "expertAdvice": "중식 중에서는 비교적 건강한 메뉴입니다. 소스 양만 조절하세요.",
+    "nutrients": {
+      "calories": "120kcal/100g",
+      "protein": "10g",
+      "carbs": "8g",
+      "fat": "5g",
+      "fiber": "2g",
+      "sodium": "450mg",
+      "potassium": "250mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "전분 소스가 있지만 해물과 채소가 많아 혈당에 괜찮습니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "소스의 간이 셀 수 있습니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "해물의 타우린과 채소의 섬유질이 좋습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "단백질과 나트륨 주의가 필요합니다." },
+      "통풍": { "scoreModifier": -20, "risk": "warning", "reason": "다양한 해산물은 퓨린 함량이 높아 위험합니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "타우린이 간 기능을 강화합니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "지방이 적고 영양이 풍부합니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "소화가 잘 되고 부드럽습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "해물의 철분이 도움이 됩니다." }
+    }
+  },
+  "양장피": {
+    "baseScore": 70,
+    "summary": "다양한 채소와 해물, 고기를 겨자 소스에 곁들여 먹는 요리입니다. 튀기지 않아 칼로리가 낮고 채소 섭취량이 많습니다.",
+    "pros": "채소 풍부, 저칼로리(소스 제외), 단백질, 소화 촉진(겨자)",
+    "cons": "나트륨(소스), 위장 자극(겨자)",
+    "expertAdvice": "겨자 소스는 조금씩 뿌려 드시고, 전분 피보다는 채소 위주로 드세요.",
+    "nutrients": {
+      "calories": "130kcal/100g",
+      "protein": "9g",
+      "carbs": "15g",
+      "fat": "4g",
+      "fiber": "3g",
+      "sodium": "350mg",
+      "potassium": "200mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "채소와 해물이 많아 혈당 관리에 유리합니다." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "소스의 나트륨만 조절하면 좋습니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "기름지지 않고 채소가 많아 추천합니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "나트륨 주의가 필요합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "해물 섭취량을 조절하세요." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "균형 잡힌 영양식입니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "저지방 고단백이라 좋습니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "매운 겨자 소스가 위를 자극할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분이 함유되어 있습니다." }
+    }
+  }
+,
+  "초밥": {
+    "baseScore": 70,
+    "summary": "신선한 생선과 밥이 어우러진 음식입니다. 생선의 불포화지방산은 좋지만, 밥에 식초와 설탕으로 밑간이 되어 있고 간장을 찍어 먹어 당분과 염분 섭취가 생각보다 많습니다.",
+    "pros": "오메가-3(생선), 단백질, 소화 용이, 맛",
+    "cons": "높은 당분(초대리), 나트륨(간장), 정제 탄수화물(흰밥), 기생충 위험",
+    "expertAdvice": "밥 양을 반으로 덜어내고 드시거나, 회(사시미) 위주로 드시는 것이 좋습니다.",
+    "nutrients": {
+      "calories": "160kcal/100g",
+      "protein": "10g",
+      "carbs": "25g",
+      "fat": "2g",
+      "fiber": "0.5g",
+      "sodium": "400mg",
+      "potassium": "150mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "초밥의 밥은 설탕 양념이 되어 있고 압축되어 있어 혈당을 빨리 올립니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "간장을 많이 찍으면 나트륨 섭취가 과해집니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "생선의 오메가-3가 혈관 건강에 도움을 줍니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "염분 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "등푸른 생선 등 일부 재료는 퓨린이 높습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "양질의 단백질입니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "등푸른 생선 초밥은 심장에 좋습니다." },
+      "위장질환": { "scoreModifier": 0, "risk": "safe", "reason": "날생선은 위장이 예민한 분께 부담될 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "붉은 살 생선은 철분이 풍부합니다." }
+    }
+  },
+  "회": {
+    "baseScore": 90,
+    "summary": "조리 없이 섭취하여 영양소 파괴가 없고 단백질과 불포화지방산이 풍부합니다. 사시미는 탄수화물 없이 순수 단백질을 섭취할 수 있는 최고의 외식 메뉴 중 하나입니다.",
+    "pros": "고단백, 오메가-3(DHA/EPA), 저탄수화물, 뇌 건강",
+    "cons": "식중독/기생충/노로바이러스 위험, 퓨린(일부 어종), 수은(대형어류)",
+    "expertAdvice": "초장보다는 간장이나 된장을 곁들이고, 쌈 채소와 함께 드세요.",
+    "nutrients": {
+      "calories": "120kcal/100g",
+      "protein": "20g",
+      "carbs": "0g",
+      "fat": "4g",
+      "fiber": "0g",
+      "sodium": "50mg",
+      "potassium": "300mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "혈당을 전혀 올리지 않는 완벽한 단백질 식품입니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "양념장만 주의하면 혈관 건강에 매우 좋습니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "불포화지방산이 중성지방 수치를 낮춥니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "고단백이므로 섭취량 조절은 필요합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "등푸른 생선 등은 퓨린 함량이 높아 과식하면 안 됩니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간 세포 재생에 필요한 단백질 공급원입니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "혈전 생성을 막고 혈관을 튼튼하게 합니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "찬 성질의 날음식은 배탈을 유발할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분과 비타민 B12가 풍부합니다." }
+    }
+  },
+  "돈가스": {
+    "baseScore": 40,
+    "summary": "돼지고기에 빵가루를 입혀 기름에 튀긴 음식입니다. 단백질이 있지만 튀김옷의 탄수화물과 기름, 달콤한 소스가 더해져 칼로리가 매우 높습니다.",
+    "pros": "단백질, 맛(기호성), 아이들이 좋아함",
+    "cons": "트랜스지방/포화지방, 고칼로리, 당분(소스), 탄수화물",
+    "expertAdvice": "소스는 찍어 먹고, 튀김옷을 일부 벗겨내거나 샐러드를 먼저 드세요.",
+    "nutrients": {
+      "calories": "350kcal/100g",
+      "protein": "15g",
+      "carbs": "25g",
+      "fat": "22g",
+      "fiber": "1g",
+      "sodium": "400mg",
+      "potassium": "200mg",
+      "sugar": "8g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "튀김과 설탕 소스는 혈당 스파이크를 유발합니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "비만을 유발하고 소스의 나트륨이 높습니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "튀김 기름은 나쁜 콜레스테롤을 급격히 높립니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "혈관 부담이 신장 기능 저하로 이어집니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "기름진 육류는 요산 배출을 방해합니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "지방간 환자에게 매우 해로운 메뉴입니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "혈관을 막는 기름진 음식입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "기름기가 소화 불량을 일으킵니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "단백질이 있으나 지방이 너무 많습니다." }
+    }
+  },
+  "우동": {
+    "baseScore": 45,
+    "summary": "굵은 면발과 시원한 국물이 특징이지만, 영양적으로는 정제 밀가루와 소금물(국물)입니다. 혈당을 빠르게 올리고 영양 불균형이 심합니다.",
+    "pros": "소화 용이(면), 따뜻함, 포만감",
+    "cons": "탄수화물 과다, 매우 높은 나트륨, 단백질/비타민 부족",
+    "expertAdvice": "면은 반만 드시고 쑥갓, 유부, 어묵 등으로 배를 채우세요.",
+    "nutrients": {
+      "calories": "120kcal/100g",
+      "protein": "3g",
+      "carbs": "25g",
+      "fat": "1g",
+      "fiber": "0.5g",
+      "sodium": "800mg",
+      "potassium": "50mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "굵은 밀가루 면은 흡수가 빨라 혈당에 최악입니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "국물의 나트륨 함량이 매우 높습니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "탄수화물 과잉은 중성지방을 높입니다." },
+      "신장질환": { "scoreModifier": -25, "risk": "warning", "reason": "높은 염분은 신장에 부담을 줍니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "특별한 퓨린원은 없으나 비만 주의가 필요합니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨이 혈압과 심장에 좋지 않습니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "면이 부드러워 소화는 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양가가 없습니다." }
+    }
+  },
+  "라멘": {
+    "baseScore": 35,
+    "summary": "일본식 라면으로 돼지뼈 육수(돈코츠)를 사용하여 지방과 나트륨 함량이 한국 라면보다 더 높을 수 있습니다. 매우 진하고 짠 국물이 특징입니다.",
+    "pros": "맛(감칠맛), 단백질(차슈/계란)",
+    "cons": "극도로 높은 나트륨, 높은 포화지방(육수), 정제 탄수화물",
+    "expertAdvice": "국물은 절대 마시지 말고, 숙주를 추가해 나트륨 배출을 도우세요.",
+    "nutrients": {
+      "calories": "180kcal/100g",
+      "protein": "6g",
+      "carbs": "20g",
+      "fat": "8g",
+      "fiber": "1g",
+      "sodium": "1000mg",
+      "potassium": "100mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "기름진 국물과 면은 혈당 조절을 어렵게 합니다." },
+      "고혈압": { "scoreModifier": -30, "risk": "warning", "reason": "나트륨 함량이 위험 수준입니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "돼지 지방이 녹아든 국물은 포화지방 덩어리입니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "염분과 인 함량이 높아 신장에 치명적입니다." },
+      "통풍": { "scoreModifier": -20, "risk": "warning", "reason": "진한 고기 육수는 퓨린 함량이 매우 높습니다." },
+      "간질환": { "scoreModifier": -10, "risk": "caution", "reason": "과도한 지방과 염분은 간에 부담입니다." },
+      "심장질환": { "scoreModifier": -25, "risk": "warning", "reason": "혈관 건강을 해치는 모든 요소를 갖췄습니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "기름지고 짜서 소화가 안 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "소바": {
+    "baseScore": 75,
+    "summary": "메밀면을 간장 소스(쯔유)에 찍어 먹는 요리입니다. 메밀은 루틴이 풍부해 혈관에 좋지만, 찍어 먹는 소스의 당분과 나트륨을 조심해야 합니다.",
+    "pros": "루틴(혈관 강화), 혈당 상승 억제(메밀), 시원함, 소화 용이",
+    "cons": "나트륨(쯔유), 당분(소스), 메밀 함량 낮은 면 주의",
+    "expertAdvice": "메밀 함량이 높은 면을 선택하고, 소스는 끝만 살짝 찍어 드세요.",
+    "nutrients": {
+      "calories": "130kcal/100g",
+      "protein": "5g",
+      "carbs": "26g",
+      "fat": "1g",
+      "fiber": "2g",
+      "sodium": "500mg",
+      "potassium": "100mg",
+      "sugar": "3g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "메밀은 GI 지수가 낮아 혈당 관리에 좋은 탄수화물입니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "메밀의 루틴이 혈압을 낮추지만 소스는 짜게 드시지 마세요." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "지방이 적고 혈관 탄력에 도움을 줍니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "소스의 염분만 주의하면 됩니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "안전한 식단입니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "소화가 잘 되어 간 부담이 적습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "혈관 건강에 좋은 메밀입니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "찬 음식이라 위가 약하면 배탈이 날 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "큰 도움은 안 됩니다." }
+    }
+  },
+  "카츠동": {
+    "baseScore": 45,
+    "summary": "밥 위에 돈가스와 계란, 소스를 얹은 덮밥입니다. 튀김, 탄수화물, 단짠 소스의 조합으로 칼로리와 혈당 부하가 매우 높습니다.",
+    "pros": "포만감, 단백질, 맛",
+    "cons": "고탄수화물, 고지방, 높은 당분/나트륨, 칼로리 폭탄",
+    "expertAdvice": "밥은 반만 먹고 돈가스 튀김옷을 걷어내거나 양파를 많이 드세요.",
+    "nutrients": {
+      "calories": "220kcal/100g",
+      "protein": "8g",
+      "carbs": "28g",
+      "fat": "10g",
+      "fiber": "1g",
+      "sodium": "450mg",
+      "potassium": "150mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "튀김, 밥, 설탕 소스는 혈당을 급격히 올리는 최악의 조합입니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "소스와 튀김의 염분이 높습니다." },
+      "고지혈증": { "scoreModifier": -20, "risk": "warning", "reason": "튀긴 고기와 탄수화물 과다는 중성지방을 높입니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨 섭취를 주의해야 합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "기름진 고기와 과식은 통풍에 해롭습니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "지방간 위험을 높이는 고열량식입니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "비만과 혈관 질환을 유발합니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "기름지고 무거워 소화가 느립니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "규동": {
+    "baseScore": 60,
+    "summary": "소고기 덮밥으로 카츠동보다는 낫지만, 소고기 지방과 달콤 짭짤한 소스가 문제입니다. 탄수화물 비중이 높습니다.",
+    "pros": "단백질(소고기), 맛, 철분",
+    "cons": "높은 당분(소스), 포화지방, 탄수화물 과다, 나트륨",
+    "expertAdvice": "초생강을 곁들여 소화를 돕고 밥 양을 줄여서 드세요.",
+    "nutrients": {
+      "calories": "180kcal/100g",
+      "protein": "10g",
+      "carbs": "25g",
+      "fat": "8g",
+      "fiber": "0.5g",
+      "sodium": "400mg",
+      "potassium": "200mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "달콤한 소스와 밥이 혈당을 올립니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "간장 소스의 나트륨을 조심하세요." },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "우삼겹 등 기름진 부위를 쓰면 포화지방이 높습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "나트륨과 단백질 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "소고기 과다 섭취 주의가 필요합니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "단백질 섭취는 좋습니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "기름기를 걷어내고 드시면 좋습니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "고기가 얇아 소화는 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "소고기의 철분이 도움됩니다." }
+    }
+  },
+  "오니기리": {
+    "baseScore": 55,
+    "summary": "일본식 주먹밥으로 간편하지만 밥(탄수화물) 위주이며 속재료가 적습니다. 편의점 제품은 나트륨과 첨가물이 많습니다.",
+    "pros": "간편함, 저렴함",
+    "cons": "탄수화물 과다, 단백질/채소 부족, 높은 나트륨(양념)",
+    "expertAdvice": "이것만 드시지 말고 계란이나 샐러드를 곁들여 영양 균형을 맞추세요.",
+    "nutrients": {
+      "calories": "170kcal/100g",
+      "protein": "4g",
+      "carbs": "35g",
+      "fat": "2g",
+      "fiber": "0.5g",
+      "sodium": "400mg",
+      "potassium": "50mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "차가운 밥은 저항성 전분이 생기지만 기본적으로 고탄수화물입니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "속재료와 밥의 간이 짭짤합니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "탄수화물 위주 식사는 중성지방을 높입니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "염분 섭취 주의가 필요합니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "균형 잡힌 식사는 아닙니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "찬 밥은 소화가 잘 안 될 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양가가 부족합니다." }
+    }
+  },
+  "피자": {
+    "baseScore": 30,
+    "summary": "정제 밀가루 도우, 고지방 치즈, 가공육 토핑의 조합으로 칼로리, 나트륨, 포화지방이 매우 높습니다. 영양 불균형의 대표주자입니다.",
+    "pros": "맛(기호성), 칼슘(치즈)",
+    "cons": "고열량, 높은 포화지방/나트륨, 정제 탄수화물, 가공육(발암물질)",
+    "expertAdvice": "도우가 얇은 씬 피자를 선택하고 샐러드를 곁들여 1-2조각만 드세요.",
+    "nutrients": {
+      "calories": "270kcal/100g",
+      "protein": "12g",
+      "carbs": "30g",
+      "fat": "12g",
+      "fiber": "1g",
+      "sodium": "600mg",
+      "potassium": "150mg",
+      "sugar": "3g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "도우와 소스는 혈당을 올리고 지방은 혈당이 떨어지는 것을 막습니다." },
+      "고혈압": { "scoreModifier": -25, "risk": "warning", "reason": "치즈, 소스, 페퍼로니 등 나트륨 함량이 매우 높습니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "치즈와 가공육의 포화지방이 혈관을 막습니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "인과 나트륨 함량이 높아 신장에 해롭습니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "고칼로리와 기름진 토핑은 요산 관리에 좋지 않습니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "지방간을 악화시킵니다." },
+      "심장질환": { "scoreModifier": -25, "risk": "warning", "reason": "심혈관 질환 위험을 높이는 대표적인 음식입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "밀가루와 기름기가 소화 불량을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "햄버거": {
+    "baseScore": 45,
+    "summary": "패스트푸드 햄버거는 정제된 빵과 고지방 패티, 짠 소스로 건강에 해롭습니다. 하지만 채소가 많고 패티가 좋은 수제버거는 탄단지 균형이 괜찮을 수 있습니다.",
+    "pros": "단백질, 간편함, 맛",
+    "cons": "높은 포화지방/나트륨, 정제 탄수화물(번), 칼로리 과다(세트 메뉴)",
+    "expertAdvice": "감자튀김과 콜라를 빼고 햄버거 단품만 드시면 생각보다 나쁘지 않습니다.",
+    "nutrients": {
+      "calories": "250kcal/100g",
+      "protein": "13g",
+      "carbs": "25g",
+      "fat": "12g",
+      "fiber": "1g",
+      "sodium": "500mg",
+      "potassium": "200mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "빵과 소스의 당분이 혈당을 올립니다. 빵을 한쪽 빼고 드세요." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "패티와 소스, 치즈의 염분이 높습니다." },
+      "고지혈증": { "scoreModifier": -20, "risk": "warning", "reason": "패티의 가공 지방과 치즈가 문제입니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "나트륨과 인산염 첨가물이 많습니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "고기 패티와 고칼로리는 좋지 않습니다." },
+      "간질환": { "scoreModifier": -10, "risk": "caution", "reason": "패스트푸드는 간 건강에 해롭습니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "트랜스지방과 포화지방 섭취를 주의하세요." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "기름지고 급하게 먹기 쉬워 소화가 안 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "패티의 철분이 도움됩니다." }
+    }
+  },
+  "파스타": {
+    "baseScore": 60,
+    "summary": "소스에 따라 건강도가 천차만별입니다. 크림 소스는 지방이 매우 높지만, 토마토나 오일 파스타는 비교적 건강합니다. 면은 듀럼밀이라 혈당 상승이 생각보다 느립니다.",
+    "pros": "낮은 GI(알덴테 조리 시), 라이코펜(토마토), 불포화지방(올리브유)",
+    "cons": "고지방(크림), 탄수화물 과다, 나트륨",
+    "expertAdvice": "크림보다는 토마토나 오일 파스타를 선택하고 면 양을 줄이세요.",
+    "nutrients": {
+      "calories": "160kcal/100g",
+      "protein": "5g",
+      "carbs": "25g",
+      "fat": "5g",
+      "fiber": "1.5g",
+      "sodium": "300mg",
+      "potassium": "100mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "면을 덜 익혀(알덴테) 먹으면 혈당이 천천히 오릅니다. (크림 제외)" },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "면수 간과 소스의 나트륨을 주의하세요." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "올리브 오일 파스타는 혈관 건강에 좋습니다. (크림은 위험)" },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "염분 조절이 필요합니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "무난한 식사입니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "과식하지 않으면 괜찮습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "지중해식(채소+올리브유) 파스타는 심장에 좋습니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "밀가루가 소화되지 않을 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "조개 등을 넣으면 도움됩니다." }
+    }
+  },
+  "스테이크": {
+    "baseScore": 75,
+    "summary": "양질의 단백질과 철분을 섭취할 수 있는 훌륭한 메뉴입니다. 굽는 방식이나 부위에 따라 지방 함량이 달라집니다.",
+    "pros": "고단백, 철분, 아연, 근육 생성",
+    "cons": "포화지방, 탄 부분(발암물질), 비싼 가격",
+    "expertAdvice": "안심이나 등심 등 지방이 적은 부위를 미디엄으로 구워 드세요.",
+    "nutrients": {
+      "calories": "200kcal/100g",
+      "protein": "22g",
+      "carbs": "0g",
+      "fat": "12g",
+      "fiber": "0g",
+      "sodium": "60mg",
+      "potassium": "300mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "혈당을 올리지 않는 좋은 단백질원입니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "소스 없이 소금만 살짝 찍으면 안전합니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "마블링이 많은 부위는 포화지방이 높습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "단백질 섭취량을 계산해서 드세요." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "붉은 고기는 퓨린 함량이 높아 주의해야 합니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간 재생에 필수적인 단백질을 공급합니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "지방이 적은 부위를 선택하세요." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "꼭꼭 씹어 드시면 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "아연이 도움이 됩니다." },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "철분이 풍부하여 빈혈에 매우 좋습니다." }
+    }
+  },
+  "샐러드": {
+    "baseScore": 95,
+    "summary": "비타민, 미네랄, 식이섬유의 보고로 현대인에게 가장 필요한 음식입니다. 드레싱만 주의하면 완벽한 건강식입니다.",
+    "pros": "식이섬유, 항산화, 저칼로리, 포만감, 변비 해소",
+    "cons": "드레싱의 당분/지방/나트륨, 찬 성질",
+    "expertAdvice": "마요네즈 드레싱 대신 올리브유와 발사믹 식초를 뿌려 드세요.",
+    "nutrients": {
+      "calories": "30kcal/100g",
+      "protein": "1g",
+      "carbs": "5g",
+      "fat": "0.2g",
+      "fiber": "3g",
+      "sodium": "20mg",
+      "potassium": "300mg",
+      "sugar": "2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "식이섬유가 혈당 상승을 억제합니다." },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "풍부한 칼륨이 나트륨을 배출합니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "콜레스테롤 흡수를 막고 배출을 돕습니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "생채소의 칼륨 함량이 높아 섭취 제한이 필요할 수 있습니다." },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "알칼리성 식품으로 요산 배출에 좋습니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간 해독을 돕는 비타민이 가득합니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "혈관을 깨끗하게 하는 최고의 음식입니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "생채소는 소화가 안 되거나 위를 자극할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "비타민 C가 철분 흡수를 돕습니다." }
+    }
+  },
+  "샌드위치": {
+    "baseScore": 70,
+    "summary": "빵, 채소, 고기를 한 번에 먹을 수 있어 균형 잡힌 식사가 가능합니다. 빵 종류와 소스에 따라 건강식 여부가 결정됩니다.",
+    "pros": "탄단지 균형, 간편함, 채소 섭취",
+    "cons": "정제 탄수화물(식빵), 나트륨(햄/치즈/소스), 가공육",
+    "expertAdvice": "통밀빵을 선택하고 햄 대신 닭가슴살이나 계란을 넣으세요.",
+    "nutrients": {
+      "calories": "250kcal/100g",
+      "protein": "10g",
+      "carbs": "30g",
+      "fat": "10g",
+      "fiber": "2g",
+      "sodium": "500mg",
+      "potassium": "150mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -5, "risk": "caution", "reason": "흰 빵과 달콤한 소스는 혈당을 올립니다. 통밀빵을 쓰세요." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "햄, 치즈, 소스의 나트륨 함량이 높습니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "마요네즈나 가공육 사용을 자제하세요." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "가공육의 인산염과 나트륨을 주의하세요." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "재료에 따라 다르나 대체로 무난합니다." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "신선한 재료라면 좋습니다." },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "가공육 섭취를 줄이세요." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "비교적 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "내용물에 따라 다릅니다." }
+    }
+  },
+  "감자튀김": {
+    "baseScore": 20,
+    "summary": "감자를 기름에 튀겨 소금을 뿌린 것으로, 영양소는 파괴되고 칼로리와 발암물질만 남은 최악의 정크푸드입니다.",
+    "pros": "맛(중독성)",
+    "cons": "아크릴아마이드(발암), 트랜스지방, 높은 나트륨, 고탄수화물",
+    "expertAdvice": "건강을 위해 섭취를 중단하거나, 쪄서 드시는 것이 좋습니다.",
+    "nutrients": {
+      "calories": "320kcal/100g",
+      "protein": "3g",
+      "carbs": "40g",
+      "fat": "17g",
+      "fiber": "3g",
+      "sodium": "400mg",
+      "potassium": "400mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "혈당 지수가 높고 지방이 많아 최악입니다." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "소금 범벅이라 혈압에 해롭습니다." },
+      "고지혈증": { "scoreModifier": -30, "risk": "warning", "reason": "튀김 기름은 혈관 염증과 지질 수치 악화의 주범입니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "칼륨과 나트륨 모두 매우 높아 위험합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "기름진 음식은 요산 배출을 막습니다." },
+      "간질환": { "scoreModifier": -20, "risk": "warning", "reason": "산화된 기름이 간을 공격합니다." },
+      "심장질환": { "scoreModifier": -30, "risk": "warning", "reason": "심혈관 질환 위험을 크게 높입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "소화가 안 되고 속을 더부룩하게 합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "리조또": {
+    "baseScore": 55,
+    "summary": "쌀을 버터나 오일에 볶다가 육수를 부어 익히는 이탈리아 요리입니다. 부드럽지만 버터와 치즈가 많이 들어가 지방 함량이 높습니다.",
+    "pros": "소화 용이, 맛, 에너지 공급",
+    "cons": "높은 포화지방(버터/치즈), 고탄수화물, 나트륨",
+    "expertAdvice": "크림 대신 토마토 소스를 베이스로 하고 채소를 많이 넣으세요.",
+    "nutrients": {
+      "calories": "180kcal/100g",
+      "protein": "5g",
+      "carbs": "20g",
+      "fat": "10g",
+      "fiber": "1g",
+      "sodium": "350mg",
+      "potassium": "100mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "기름진 쌀 요리는 혈당을 오래 높게 유지시킵니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "육수와 치즈의 나트륨을 주의하세요." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "버터와 치즈의 포화지방이 높습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "유제품과 염분 섭취를 조절해야 합니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "무난합니다." },
+      "간질환": { "scoreModifier": -5, "risk": "caution", "reason": "지방 함량이 높을 수 있습니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "포화지방 섭취를 줄이세요." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "죽처럼 부드러워 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "큰 도움은 안 됩니다." }
+    }
+  }
+,
+  "그라탕": {
+    "baseScore": 40,
+    "summary": "재료에 화이트 소스와 치즈를 듬뿍 얹어 오븐에 구운 요리입니다. 고소하고 부드럽지만 지방과 칼로리가 매우 높습니다.",
+    "pros": "칼슘(치즈), 맛(풍미), 부드러움",
+    "cons": "높은 포화지방, 고칼로리, 나트륨, 느끼함",
+    "expertAdvice": "치즈와 소스 양을 줄이고 채소(가지, 감자 등) 그라탕을 선택하세요.",
+    "nutrients": {
+      "calories": "200kcal/100g",
+      "protein": "8g",
+      "carbs": "15g",
+      "fat": "12g",
+      "fiber": "1g",
+      "sodium": "400mg",
+      "potassium": "150mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "지방이 많아 혈당이 천천히 오르지만 오래 지속됩니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "치즈와 소스의 염분이 높습니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "버터, 생크림, 치즈의 포화지방 폭탄입니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "인과 나트륨 함량이 높습니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "고칼로리는 체중 증가를 유발합니다." },
+      "간질환": { "scoreModifier": -10, "risk": "caution", "reason": "지방간에 좋지 않습니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "혈관을 막는 성분이 많습니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "느끼해서 소화가 느리고 유당불내증을 유발할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "큰 도움 안 됩니다." }
+    }
+  },
+  "너겟": {
+    "baseScore": 25,
+    "summary": "닭고기를 갈아 만든 가공식품으로 튀김옷을 입혀 튀겨냅니다. 단백질보다 지방, 탄수화물, 첨가물 비중이 높은 정크푸드입니다.",
+    "pros": "간편함, 아이들 기호성",
+    "cons": "가공육(첨가물), 높은 나트륨, 튀김(지방), 낮은 고기 함량",
+    "expertAdvice": "가공된 너겟 대신 생닭가슴살이나 안심을 직접 조리해 드세요.",
+    "nutrients": {
+      "calories": "280kcal/100g",
+      "protein": "12g",
+      "carbs": "15g",
+      "fat": "18g",
+      "fiber": "0.5g",
+      "sodium": "600mg",
+      "potassium": "150mg",
+      "sugar": "1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "튀김옷과 가공육은 인슐린 저항성을 높입니다." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "작은 조각에 나트륨이 매우 많이 들어있습니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "튀김 기름과 가공 지방이 혈관에 해롭습니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "인산염 등 첨가물이 신장 기능을 떨어뜨립니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "가공육은 피하는 게 좋습니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "첨가물과 튀김 기름은 간에 부담입니다." },
+      "심장질환": { "scoreModifier": -25, "risk": "warning", "reason": "심혈관 질환 위험을 높입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "소화가 잘 안 되고 더부룩할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양 가치가 낮습니다." }
+    }
+  },
+  "빵": {
+    "baseScore": 40,
+    "summary": "정제된 밀가루, 설탕, 버터로 만든 빵은 혈당을 빠르게 올리는 주범입니다. 특히 달콤한 빵이나 케이크류는 영양가는 낮고 칼로리만 높습니다.",
+    "pros": "에너지 공급, 맛, 간편함",
+    "cons": "정제 탄수화물, 높은 당분/지방, 글루텐(소화불량)",
+    "expertAdvice": "흰 빵 대신 통곡물 100% 빵이나 호밀빵을 선택하고 채소를 곁들이세요.",
+    "nutrients": {
+      "calories": "280kcal/100g",
+      "protein": "8g",
+      "carbs": "50g",
+      "fat": "5g",
+      "fiber": "2g",
+      "sodium": "400mg",
+      "potassium": "100mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "GI 지수가 높아 섭취 직후 혈당이 급격히 오릅니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "빵 반죽에는 생각보다 많은 소금이 들어갑니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "버터나 마가린이 들어간 빵은 포화지방/트랜스지방이 높습니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "나트륨 함량을 확인하세요." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "과도한 당분은 요산 배출을 방해합니다." },
+      "간질환": { "scoreModifier": -10, "risk": "caution", "reason": "정제 탄수화물 과잉은 지방간의 원인입니다." },
+      "심장질환": { "scoreModifier": -15, "risk": "caution", "reason": "혈당 변동성과 나쁜 지방은 심장에 해롭습니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "글루텐이 가스, 복부 팽만, 소화 불량을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "영양 밀도가 낮습니다." }
+    }
+  },
+  "케이크": {
+    "baseScore": 10,
+    "summary": "설탕과 지방의 결정체입니다. 축하를 위한 음식이지만 건강에는 백해무익하며, 혈당 스파이크와 체중 증가를 즉각적으로 유발합니다.",
+    "pros": "기분 전환(단맛), 축하 의미",
+    "cons": "설탕 폭탄, 포화지방/트랜스지방, 고칼로리, 영양소 전무",
+    "expertAdvice": "특별한 날에만 아주 얇게 한 조각 드시고, 평소에는 피하세요.",
+    "nutrients": {
+      "calories": "350kcal/100g",
+      "protein": "4g",
+      "carbs": "45g",
+      "fat": "18g",
+      "fiber": "0.5g",
+      "sodium": "200mg",
+      "potassium": "80mg",
+      "sugar": "30g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "혈당 쇼크를 일으킬 만큼 당분이 높습니다." },
+      "고혈압": { "scoreModifier": -15, "risk": "caution", "reason": "비만은 고혈압의 가장 큰 원인입니다." },
+      "고지혈증": { "scoreModifier": -30, "risk": "warning", "reason": "크림과 빵의 지방/당분이 중성지방을 폭발시킵니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "당뇨 합병증으로 신장을 망가뜨리는 주범입니다." },
+      "통풍": { "scoreModifier": -20, "risk": "warning", "reason": "과당은 요산 생성을 촉진합니다." },
+      "간질환": { "scoreModifier": -25, "risk": "warning", "reason": "지방간을 악화시키는 최악의 음식입니다." },
+      "심장질환": { "scoreModifier": -30, "risk": "warning", "reason": "혈관 염증을 유발하고 혈액을 끈적하게 합니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "고지방 고당분은 위장 운동을 방해하고 역류를 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "체중 증가로 갑상선 부담을 줄 수 있습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "쿠키": {
+    "baseScore": 15,
+    "summary": "바삭한 식감을 위해 쇼트닝이나 마가린(트랜스지방)을 많이 사용하며 설탕 함량도 매우 높습니다. 작지만 칼로리는 엄청납니다.",
+    "pros": "간편함, 맛",
+    "cons": "트랜스지방, 설탕, 고칼로리, 치아 건강 악화",
+    "expertAdvice": "성분표를 확인하여 트랜스지방 0g, 통곡물 쿠키를 선택하세요.",
+    "nutrients": {
+      "calories": "480kcal/100g",
+      "protein": "5g",
+      "carbs": "65g",
+      "fat": "22g",
+      "fiber": "1g",
+      "sodium": "300mg",
+      "potassium": "100mg",
+      "sugar": "30g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "농축된 당분과 탄수화물입니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "혈관 탄력을 떨어뜨립니다." },
+      "고지혈증": { "scoreModifier": -30, "risk": "warning", "reason": "트랜스지방은 나쁜 콜레스테롤의 주범입니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "혈관 손상을 가속화합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "체중 증가의 원인입니다." },
+      "간질환": { "scoreModifier": -20, "risk": "warning", "reason": "간에 지방을 쌓이게 합니다." },
+      "심장질환": { "scoreModifier": -30, "risk": "warning", "reason": "트랜스지방은 심장병 위험을 강력하게 높입니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "소화가 잘 안 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "아이스크림": {
+    "baseScore": 20,
+    "summary": "유지방과 설탕을 얼린 디저트로 입에서는 녹지만 몸에는 지방으로 쌓입니다. 차가워서 단맛이 덜 느껴져 설탕이 엄청나게 들어갑니다.",
+    "pros": "기분 전환, 칼슘(소량)",
+    "cons": "액상과당, 포화지방, 위장 기능 저하, 고칼로리",
+    "expertAdvice": "저칼로리 아이스크림이나 얼린 과일(소르베)로 대체하세요.",
+    "nutrients": {
+      "calories": "200kcal/100g",
+      "protein": "3g",
+      "carbs": "25g",
+      "fat": "10g",
+      "fiber": "0g",
+      "sodium": "80mg",
+      "potassium": "150mg",
+      "sugar": "20g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "액상과당은 혈당을 매우 빠르게 올립니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "비만 위험을 높입니다." },
+      "고지혈증": { "scoreModifier": -25, "risk": "warning", "reason": "유지방(포화지방)과 당분이 많습니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "인산염 첨가물이 많아 신장에 부담됩니다." },
+      "통풍": { "scoreModifier": -15, "risk": "caution", "reason": "과당은 요산 수치를 높이는 주요 원인입니다." },
+      "간질환": { "scoreModifier": -20, "risk": "warning", "reason": "과당은 간에서 바로 지방으로 전환됩니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "혈관 건강에 해롭습니다." },
+      "위장질환": { "scoreModifier": -25, "risk": "warning", "reason": "찬 음식은 위장 운동을 둔화시키고 배탈을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "과자": {
+    "baseScore": 15,
+    "summary": "밀가루를 튀기거나 구워 시즈닝을 입힌 가공식품입니다. 포만감은 없는데 칼로리와 나트륨은 밥 한 공기를 훌쩍 넘깁니다.",
+    "pros": "간편함, 맛",
+    "cons": "높은 나트륨/지방/당분, 인공첨가물, 영양 불균형",
+    "expertAdvice": "구운 김, 견과류, 말린 과일 등 자연 간식으로 바꾸세요.",
+    "nutrients": {
+      "calories": "500kcal/100g",
+      "protein": "5g",
+      "carbs": "60g",
+      "fat": "25g",
+      "fiber": "2g",
+      "sodium": "500mg",
+      "potassium": "100mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "정제 탄수화물이라 혈당 관리에 매우 나쁩니다." },
+      "고혈압": { "scoreModifier": -20, "risk": "warning", "reason": "짭짤한 시즈닝에 나트륨이 많습니다." },
+      "고지혈증": { "scoreModifier": -30, "risk": "warning", "reason": "팜유 등 포화지방 함량이 매우 높습니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "나트륨과 첨가물이 신장 기능을 저하시킵니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "체중 증가를 유발합니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "첨가물 해독이 간에 부담을 줍니다." },
+      "심장질환": { "scoreModifier": -25, "risk": "warning", "reason": "혈관을 병들게 하는 음식입니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "소화가 안 되고 속 쓰림을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "도움 되지 않습니다." }
+    }
+  },
+  "초콜릿": {
+    "baseScore": 50,
+    "summary": "카카오 함량에 따라 약이 되기도, 독이 되기도 합니다. 시중의 밀크 초콜릿은 설탕 덩어리지만, 다크 초콜릿은 훌륭한 항산화 식품입니다.",
+    "pros": "항산화(폴리페놀), 기분 전환, 혈압 강하(다크)",
+    "cons": "높은 당분/지방(밀크/화이트), 카페인, 칼로리",
+    "expertAdvice": "카카오 함량 70% 이상의 다크 초콜릿을 하루 1-2조각만 드세요.",
+    "nutrients": {
+      "calories": "550kcal/100g",
+      "protein": "5g",
+      "carbs": "60g",
+      "fat": "30g",
+      "fiber": "7g",
+      "sodium": "20mg",
+      "potassium": "400mg",
+      "sugar": "50g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "밀크 초콜릿은 위험하나, 다크 초콜릿은 소량 섭취 시 괜찮습니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "다크 초콜릿의 폴리페놀이 혈압을 낮춥니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "지방 함량이 높아 과식은 금물입니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "칼륨과 인 함량이 있어 주의하세요." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "당분 과다 섭취를 주의하세요." },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "항산화 성분이 간에 도움이 될 수 있습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "적당한 다크 초콜릿은 심장병 위험을 낮춥니다." },
+      "위장질환": { "scoreModifier": -15, "risk": "caution", "reason": "카페인과 지방이 역류성 식도염을 악화시킵니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "카페인이 철분 흡수를 방해할 수 있습니다." }
+    }
+  },
+  "커피": {
+    "baseScore": 70,
+    "summary": "적당량의 블랙커피는 항산화 성분이 풍부해 간과 심장에 좋지만, 과하면 수면 장애와 위장 장애를 일으킵니다. 믹스커피는 설탕 덩어리입니다.",
+    "pros": "각성 효과, 항산화, 간암 예방, 대사 촉진",
+    "cons": "불면증, 위산 과다, 칼슘 배출, 카페인 의존",
+    "expertAdvice": "설탕 없는 아메리카노로 하루 2-3잔 이내, 오후 2시 이전에 드세요.",
+    "nutrients": {
+      "calories": "5kcal/100g",
+      "protein": "0g",
+      "carbs": "0g",
+      "fat": "0g",
+      "fiber": "0g",
+      "sodium": "5mg",
+      "potassium": "50mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "블랙커피는 당뇨병 발병 위험을 낮춘다는 연구가 많습니다." },
+      "고혈압": { "scoreModifier": -5, "risk": "caution", "reason": "일시적으로 혈압을 올릴 수 있어 조절되지 않는 환자는 주의하세요." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "에스프레소의 크레마(카페스톨)는 콜레스테롤을 높일 수 있습니다. (드립 권장)" },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "이뇨 작용과 칼륨 함량을 고려해야 합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "커피는 요산 수치를 낮추는 효과가 있습니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간암 및 간경변 위험을 유의미하게 낮춥니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "적당량은 심장 건강에 도움이 됩니다." },
+      "위장질환": { "scoreModifier": -20, "risk": "warning", "reason": "위산 분비를 촉진해 위염, 역류성 식도염을 악화시킵니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "약물 흡수를 방해하므로 공복 복용 1시간 후 드세요." },
+      "빈혈": { "scoreModifier": -15, "risk": "caution", "reason": "타닌과 카페인이 철분 흡수를 방해합니다. 식후 1시간 뒤 드세요." }
+    }
+  },
+  "녹차": {
+    "baseScore": 88,
+    "summary": "카테킨 성분이 지방 분해와 항산화 작용을 돕는 슈퍼푸드입니다. 커피보다 카페인이 적고 테아닌이 있어 진정 효과도 있습니다.",
+    "pros": "체지방 감소, 항암/항산화, 집중력 향상, 혈관 건강",
+    "cons": "철분 흡수 방해(타닌), 불면증(카페인 민감자), 공복 속쓰림",
+    "expertAdvice": "식후 1시간 뒤에 드셔야 철분 흡수 방해를 막을 수 있습니다.",
+    "nutrients": {
+      "calories": "1kcal/100g",
+      "protein": "0g",
+      "carbs": "0g",
+      "fat": "0g",
+      "fiber": "0g",
+      "sodium": "0mg",
+      "potassium": "20mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "인슐린 감수성을 높여 혈당 조절에 도움을 줍니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "혈관을 확장시키고 혈압 상승을 억제합니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "카테킨이 콜레스테롤 배출을 강력하게 돕습니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "소량의 옥살산과 카페인이 있어 결석 환자는 주의하세요." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "이뇨 작용으로 요산 배출을 돕습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "지방간 개선에 도움을 줍니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "항산화 성분이 심장을 보호합니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "공복 섭취 시 타닌이 위를 자극해 속쓰림을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": -20, "risk": "warning", "reason": "타닌이 철분과 결합해 흡수를 막습니다." }
+    }
+  },
+  "콜라": {
+    "baseScore": 10,
+    "summary": "설탕물에 탄산과 색소를 넣은 음료로 영양가는 없고 칼로리만 높습니다. 뼈 건강과 치아를 해치고 당뇨병의 직행열차입니다.",
+    "pros": "소화되는 느낌(일시적), 기분 전환",
+    "cons": "액상과당, 치아 부식, 뼈 건강 악화(인산), 위장 자극",
+    "expertAdvice": "제로 콜라로 대체하거나 탄산수를 드시는 습관을 들이세요.",
+    "nutrients": {
+      "calories": "45kcal/100g",
+      "protein": "0g",
+      "carbs": "11g",
+      "fat": "0g",
+      "fiber": "0g",
+      "sodium": "5mg",
+      "potassium": "0mg",
+      "sugar": "11g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -30, "risk": "warning", "reason": "액상과당은 혈당을 가장 빠르고 강력하게 올립니다." },
+      "고혈압": { "scoreModifier": -10, "risk": "caution", "reason": "체중 증가를 유발하여 혈압에 좋지 않습니다." },
+      "고지혈증": { "scoreModifier": -20, "risk": "warning", "reason": "과당은 간에서 중성지방으로 바로 합성됩니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "인산염이 칼슘을 배출시키고 신장에 해롭습니다." },
+      "통풍": { "scoreModifier": -30, "risk": "warning", "reason": "과당 음료는 통풍 발작의 가장 큰 위험 인자 중 하나입니다." },
+      "간질환": { "scoreModifier": -25, "risk": "warning", "reason": "비알코올성 지방간의 주요 원인입니다." },
+      "심장질환": { "scoreModifier": -20, "risk": "warning", "reason": "대사 증후군을 유발합니다." },
+      "위장질환": { "scoreModifier": -25, "risk": "warning", "reason": "탄산과 산성이 위벽을 자극하고 식도 괄약근을 느슨하게 합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": -5, "risk": "caution", "reason": "영양 흡수를 방해할 수 있습니다." }
+    }
+  },
+  "주스": {
+    "baseScore": 30,
+    "summary": "과일의 영양을 섭취한다고 생각하기 쉽지만, 식이섬유는 제거되고 당분만 남은 설탕물에 가깝습니다. 시판 주스는 첨가당이 더 많습니다.",
+    "pros": "비타민(일부), 맛",
+    "cons": "높은 당분, 식이섬유 제거, 빠른 흡수, 치아 부식",
+    "expertAdvice": "주스보다는 생과일을 씹어 드시는 것이 훨씬 건강합니다.",
+    "nutrients": {
+      "calories": "50kcal/100g",
+      "protein": "0.5g",
+      "carbs": "12g",
+      "fat": "0g",
+      "fiber": "0.2g",
+      "sodium": "5mg",
+      "potassium": "150mg",
+      "sugar": "10g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -25, "risk": "warning", "reason": "액체 형태의 과당은 혈당을 급격히 올립니다." },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "직접적인 영향은 적으나 비만 주의가 필요합니다." },
+      "고지혈증": { "scoreModifier": -15, "risk": "caution", "reason": "과당 과다 섭취는 중성지방을 높립니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "칼륨 함량이 높을 수 있어 주의하세요." },
+      "통풍": { "scoreModifier": -20, "risk": "warning", "reason": "과당이 요산 수치를 높입니다." },
+      "간질환": { "scoreModifier": -15, "risk": "caution", "reason": "지방간 위험을 높입니다." },
+      "심장질환": { "scoreModifier": -10, "risk": "caution", "reason": "당분 과다는 혈관에 좋지 않습니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "산성이 강한 주스(오렌지 등)는 속쓰림을 유발합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "비타민 C가 철분 흡수를 돕습니다." }
+    }
+  },
+  "우유": {
+    "baseScore": 88,
+    "summary": "칼슘, 단백질, 비타민 등 영양소가 골고루 들어있는 완전식품입니다. 성장기와 뼈 건강에 필수적이지만 유당불내증이 흔합니다.",
+    "pros": "뼈 건강(칼슘), 양질의 단백질, 신경 안정",
+    "cons": "유당불내증(설사/복통), 포화지방(일반우유), 알레르기",
+    "expertAdvice": "소화가 안 되면 락토프리나 두유를 드시고, 성인은 저지방 우유를 권장합니다.",
+    "nutrients": {
+      "calories": "65kcal/100g",
+      "protein": "3.2g",
+      "carbs": "4.8g",
+      "fat": "3.5g",
+      "fiber": "0g",
+      "sodium": "50mg",
+      "potassium": "150mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "적당량 섭취는 혈당 관리에 도움이 됩니다." },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "칼슘과 펩타이드가 혈압을 낮춥니다." },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "일반 우유의 포화지방이 걱정된다면 저지방을 드세요." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "인과 칼륨 함량이 높아 섭취량 조절이 필요합니다." },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "우유 단백질은 요산 배출을 돕고 통풍을 예방합니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "양질의 단백질 공급원입니다." },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "저지방 우유 섭취 시 안전합니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "위산을 중화시키지만 다시 분비를 촉진하며, 유당불내증이 흔합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": -5, "risk": "caution", "reason": "칼슘이 철분 흡수를 방해하므로 식사와 시간차를 두세요." }
+    }
+  },
+  "요거트": {
+    "baseScore": 92,
+    "summary": "우유를 유산균으로 발효시켜 소화가 잘 되고 장 건강에 좋습니다. 단, 시중의 과일 맛 요거트는 설탕 함량이 매우 높습니다.",
+    "pros": "장 건강(유산균), 면역력, 소화 용이, 단백질",
+    "cons": "높은 당분(가당 제품), 신맛(위산 자극)",
+    "expertAdvice": "반드시 '무가당' 또는 '그릭 요거트'를 선택해 견과류를 곁들여 드세요.",
+    "nutrients": {
+      "calories": "60kcal/100g",
+      "protein": "3.5g",
+      "carbs": "5g",
+      "fat": "3g",
+      "fiber": "0g",
+      "sodium": "50mg",
+      "potassium": "155mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "무가당 요거트는 혈당에 안전하며 장내 환경을 개선합니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼슘과 유산균이 혈압 조절에 기여합니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "유산균이 콜레스테롤 수치를 낮추는 데 도움을 줍니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "인과 칼륨 함량을 고려해야 합니다." },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "통풍 예방 효과가 입증된 식품입니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "장내 독소를 줄여 간 부담을 덜어줍니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "장 건강이 심혈관 건강과 연결됩니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "헬리코박터균 억제 및 소화 기능 개선에 좋습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": -5, "risk": "caution", "reason": "철분제와 동시 복용은 피하세요." }
+    }
+  }
+,
+  "닭가슴살": {
+    "baseScore": 95,
+    "summary": "지방이 거의 없는 순수 단백질 공급원으로 다이어트와 근육 생성의 필수품입니다. 필수 아미노산이 풍부하고 소화 흡수율이 높습니다.",
+    "pros": "초고단백, 저지방, 근육 생성, 피로 회복(이미다졸디펩타이드)",
+    "cons": "퍽퍽한 식감, 미량 영양소 부족(단일 섭취 시), 통풍 주의",
+    "expertAdvice": "채소와 함께 드셔야 비타민과 섬유질을 보완할 수 있습니다.",
+    "nutrients": {
+      "calories": "110kcal/100g",
+      "protein": "23g",
+      "carbs": "0g",
+      "fat": "1.2g",
+      "fiber": "0g",
+      "sodium": "70mg",
+      "potassium": "250mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "혈당을 올리지 않고 근육을 유지해 인슐린 감수성을 높입니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "지방이 적어 혈관 건강에 좋습니다. (양념 주의)" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "포화지방이 거의 없어 가장 권장되는 육류입니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "단백질 대사 산물이 신장에 부담을 줄 수 있어 양 조절이 필요합니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "퓨린이 중간 정도로 함유되어 있어 급성기엔 피하세요." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간 세포 재생을 돕는 양질의 단백질입니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "심장 부담이 적고 혈관을 튼튼하게 합니다." },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "기름기가 없어 소화가 잘 됩니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분 흡수를 돕습니다." }
+    }
+  },
+  "고구마": {
+    "baseScore": 85,
+    "summary": "식이섬유가 풍부하고 포만감이 좋은 다이어트 탄수화물입니다. 조리법에 따라 혈당지수가 크게 달라지므로 주의가 필요합니다.",
+    "pros": "풍부한 섬유질, 변비 해소, 항산화(베타카로틴), 포만감",
+    "cons": "높은 칼륨(신장), 가스 발생, 구울 때 당도 급상승",
+    "expertAdvice": "혈당 관리가 필요하다면 군고구마 대신 찐고구마를 식혀서 드세요.",
+    "nutrients": {
+      "calories": "86kcal/100g",
+      "protein": "1.6g",
+      "carbs": "20g",
+      "fat": "0.1g",
+      "fiber": "3g",
+      "sodium": "10mg",
+      "potassium": "340mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "caution", "reason": "특히 군고구마는 혈당을 설탕만큼 빠르게 올립니다." },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "풍부한 칼륨이 나트륨 배출을 탁월하게 돕습니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "식이섬유가 콜레스테롤 흡수를 막습니다." },
+      "신장질환": { "scoreModifier": -25, "risk": "warning", "reason": "칼륨 함량이 매우 높아 고칼륨혈증 위험이 큽니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "알칼리성 식품으로 도움이 됩니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "좋은 에너지원입니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "혈압 조절을 통해 심장을 보호합니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "아마이드 성분이 가스를 유발해 속이 더부룩할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  },
+  "바나나": {
+    "baseScore": 80,
+    "summary": "간편하게 에너지를 보충할 수 있고 소화가 잘 됩니다. 칼륨과 마그네슘이 풍부해 근육 경련 예방과 혈압 조절에 좋습니다.",
+    "pros": "즉각적 에너지, 소화 용이, 나트륨 배출, 우울증 완화(트립토판)",
+    "cons": "높은 당분, 신장 환자에게 위험(고칼륨), 공복 섭취 시 마그네슘 불균형",
+    "expertAdvice": "검은 반점이 생길 때 면역력은 높지만, 당뇨 환자는 약간 푸른 바나나가 좋습니다.",
+    "nutrients": {
+      "calories": "90kcal/100g",
+      "protein": "1g",
+      "carbs": "23g",
+      "fat": "0.3g",
+      "fiber": "2.6g",
+      "sodium": "1mg",
+      "potassium": "360mg",
+      "sugar": "12g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "과일 중 당도가 높고 흡수가 빨라 혈당을 높입니다." },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "나트륨 배출 효과가 가장 뛰어난 과일 중 하나입니다." },
+      "고지혈증": { "scoreModifier": 0, "risk": "safe", "reason": "지방이 없습니다." },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "칼륨 폭탄이라 불릴 정도로 함량이 높아 위험합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "요산 결정을 녹이는 데 도움을 줄 수 있습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "소화가 잘 되어 간 부담이 적습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨과 마그네슘이 심장 박동을 안정시킵니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "펙틴이 장을 진정시키고 설사를 멎게 합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  },
+  "사과": {
+    "baseScore": 90,
+    "summary": "아침 사과는 금이라고 불릴 만큼 유익합니다. 펙틴이 장 건강을 돕고 유기산이 피로를 풀어줍니다.",
+    "pros": "변비 예방(펙틴), 피로 회복, 폐 기능 강화, 항산화",
+    "cons": "위산 분비 촉진(속쓰림), 당분, 밤에 섭취 시 부담",
+    "expertAdvice": "껍질에 펙틴과 안토시아닌이 많으니 껍질째 드세요.",
+    "nutrients": {
+      "calories": "57kcal/100g",
+      "protein": "0.2g",
+      "carbs": "14g",
+      "fat": "0.2g",
+      "fiber": "2.4g",
+      "sodium": "1mg",
+      "potassium": "100mg",
+      "sugar": "10g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "GI 지수가 낮고 섬유질이 풍부하지만 과식은 금물입니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨이 혈압 조절을 돕습니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "펙틴이 콜레스테롤 배출을 강력하게 돕습니다." },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "칼륨이 있어 섭취량 조절이 필요합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "알칼리성 식품으로 요산 배출을 돕습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "해독 작용을 돕습니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "플라보노이드가 심장병 위험을 낮춥니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "산도가 있어 위염 환자는 공복 섭취를 피하세요." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "비타민 C가 철분 흡수를 돕습니다." }
+    }
+  },
+  "오이": {
+    "baseScore": 88,
+    "summary": "95%가 수분으로 이루어져 등산이나 운동 후 갈증 해소에 최고입니다. 칼로리가 매우 낮아 다이어트에 완벽합니다.",
+    "pros": "수분 보충, 다이어트, 부종 제거, 체열 강하",
+    "cons": "비타민 C 파괴 효소, 찬 성질(설사)",
+    "expertAdvice": "식초를 섞으면 비타민 C 파괴 효소의 활동을 막을 수 있습니다.",
+    "nutrients": {
+      "calories": "15kcal/100g",
+      "protein": "0.7g",
+      "carbs": "3g",
+      "fat": "0.1g",
+      "fiber": "0.5g",
+      "sodium": "2mg",
+      "potassium": "150mg",
+      "sugar": "1.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "혈당을 거의 올리지 않고 수분을 공급합니다." },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "이뇨 작용을 통해 혈압을 낮춥니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "칼로리와 지방이 없어 안심할 수 있습니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "칼륨이 있어 신부전 환자는 주의가 필요합니다." },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "소변 배출을 늘려 요산을 씻어냅니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "해독 작용과 숙취 해소에 좋습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "혈액 순환을 돕습니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "몸이 찬 사람은 설사를 할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  },
+  "토마토": {
+    "baseScore": 95,
+    "summary": "의사가 가장 싫어하는 채소(병을 없애서)라는 말이 있을 정도로 완벽한 슈퍼푸드입니다. 라이코펜이 심혈관 질환과 암을 예방합니다.",
+    "pros": "항암(라이코펜), 전립선 건강, 혈관 강화, 다이어트",
+    "cons": "산성(속쓰림), 덜 익은 토마토 독성, 칼륨",
+    "expertAdvice": "기름에 익혀 드셔야 지용성인 라이코펜 흡수율이 폭발적으로 증가합니다.",
+    "nutrients": {
+      "calories": "18kcal/100g",
+      "protein": "1g",
+      "carbs": "4g",
+      "fat": "0.2g",
+      "fiber": "1.2g",
+      "sodium": "5mg",
+      "potassium": "250mg",
+      "sugar": "2.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "당부하 지수가 매우 낮아 혈당 관리에 탁월합니다." },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "라이코펜과 칼륨이 혈압을 안정시킵니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "혈관 내 나쁜 콜레스테롤의 산화를 막습니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "칼륨 함량이 높아 섭취 제한 1순위 채소 중 하나입니다." },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "일부 연구에서 요산 수치를 높일 수 있다는 보고가 있습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "간 세포 재생을 촉진합니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "심근경색 및 뇌졸중 위험을 크게 낮춥니다." },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "산도가 높아 역류성 식도염 환자를 자극합니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분 흡수를 돕는 비타민 C가 풍부합니다." }
+    }
+  },
+  "견과류": {
+    "baseScore": 90,
+    "summary": "불포화지방산의 보물창고로 심장과 뇌 건강에 필수적입니다. 하지만 지방 함량이 높아 칼로리가 밥보다 높을 수 있습니다.",
+    "pros": "심혈관 건강, 뇌 발달, 항산화, 포만감",
+    "cons": "고칼로리(비만), 산패 위험, 알레르기, 인/칼륨(신장)",
+    "expertAdvice": "하루 한 줌(약 30g)만 드시고, 소금이나 설탕이 없는 것을 고르세요.",
+    "nutrients": {
+      "calories": "600kcal/100g",
+      "protein": "20g",
+      "carbs": "20g",
+      "fat": "50g",
+      "fiber": "10g",
+      "sodium": "5mg",
+      "potassium": "700mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "식후 혈당 상승을 억제하고 인슐린 감수성을 개선합니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "마그네슘과 불포화지방이 혈관을 이완시킵니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "LDL 콜레스테롤을 낮추고 HDL을 높입니다." },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "인과 칼륨이 매우 높아 신장에 부담이 큽니다." },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "퓨린은 적으나 지방 과다 섭취는 주의하세요." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "비타민 E가 간을 보호합니다. (오래된 견과류 곰팡이 주의)" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "매일 섭취 시 심장병 사망률이 감소합니다." },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "지방이 많아 소화가 느리고 설사를 유발할 수 있습니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분과 엽산이 들어있습니다." }
+    }
+  },
+  "아몬드": {
+    "baseScore": 92,
+    "summary": "견과류 중 비타민 E가 가장 풍부하여 노화 방지에 탁월합니다. 껍질에는 항산화 성분이 많고 뼈 건강에 좋은 칼슘도 들어있습니다.",
+    "pros": "노화 방지(비타민 E), 뼈 건강, 다이어트(포만감), 혈당 조절",
+    "cons": "고칼로리, 옥살산(신장결석), 소화불량(과식 시)",
+    "expertAdvice": "식사 전 5~10알을 꼭꼭 씹어 드시면 과식을 막아줍니다.",
+    "nutrients": {
+      "calories": "580kcal/100g",
+      "protein": "21g",
+      "carbs": "20g",
+      "fat": "50g",
+      "fiber": "12g",
+      "sodium": "1mg",
+      "potassium": "730mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "탄수화물 흡수를 늦춰 식후 혈당을 안정시킵니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "마그네슘 부족을 해결해 혈압 안정에 기여합니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "혈관 청소를 돕는 불포화지방산이 풍부합니다." },
+      "신장질환": { "scoreModifier": -25, "risk": "warning", "reason": "옥살산과 인 함량이 높아 결석 환자는 피해야 합니다." },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "옥살산이 결석을 유발하여 통풍과 합병증을 일으킬 수 있습니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "간 수치 개선에 도움을 줍니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "강력한 항산화제가 혈관벽 손상을 막습니다." },
+      "위장질환": { "scoreModifier": 0, "risk": "safe", "reason": "적당량은 변비에 좋으나 과식은 금물입니다." },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "견과류 중 철분이 많은 편입니다." }
+    }
+  },
+  "브로콜리": {
+    "baseScore": 96,
+    "summary": "세계 10대 슈퍼푸드로 설포라판 성분이 강력한 항암 작용을 합니다. 비타민 C 함량이 레몬보다 높고 위장 건강에 특효약입니다.",
+    "pros": "항암(설포라판), 위장 보호(비타민 U), 면역력, 해독",
+    "cons": "가스 발생(복부팽만), 갑상선 기능 저하(고이트로젠), 살짝 데쳐야 함",
+    "expertAdvice": "찜기에 3분 이내로 쪄서 드셔야 항암 성분을 최대로 섭취할 수 있습니다.",
+    "nutrients": {
+      "calories": "34kcal/100g",
+      "protein": "3g",
+      "carbs": "7g",
+      "fat": "0.4g",
+      "fiber": "2.6g",
+      "sodium": "30mg",
+      "potassium": "316mg",
+      "sugar": "1.7g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "설포라판이 혈관 손상을 막고 혈당을 조절합니다." },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "크롬과 칼륨이 혈압을 낮추고 인슐린 작용을 돕습니다." },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "수용성 섬유질이 콜레스테롤 배출을 돕습니다." },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "칼륨이 많아 물에 데쳐서 칼륨을 빼고 드셔야 합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "퓨린 함량이 낮아 안전합니다." },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간의 해독 효소 생성을 촉진합니다." },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "혈관 내벽을 튼튼하게 하여 심장을 보호합니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "헬리코박터균을 억제하여 위염을 예방합니다." },
+      "갑상선질환": { "scoreModifier": -10, "risk": "caution", "reason": "고이트로젠 성분이 요오드 흡수를 방해하므로 반드시 익혀 드세요." },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분과 엽산이 풍부합니다." }
+    }
+  },
+  "양배추": {
+    "baseScore": 95,
+    "summary": "위장약의 원료로 쓰일 만큼 위 점막 보호 효과가 탁월합니다. 가격이 저렴하고 포만감이 커서 다이어트와 건강 관리에 기본이 되는 채소입니다.",
+    "pros": "위 점막 재생(비타민 U), 변비 해소, 다이어트, 항암",
+    "cons": "가스 유발, 갑상선 기능 저하(고이트로젠), 찬 성질",
+    "expertAdvice": "심지 부분에 비타민 U가 가장 많으니 버리지 말고 함께 갈아 드세요.",
+    "nutrients": {
+      "calories": "30kcal/100g",
+      "protein": "1.5g",
+      "carbs": "6g",
+      "fat": "0.1g",
+      "fiber": "2.5g",
+      "sodium": "18mg",
+      "potassium": "240mg",
+      "sugar": "3g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "식사 전 양배추를 먹으면 혈당 스파이크를 막아줍니다." },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "나트륨 배출을 돕고 혈관을 깨끗하게 합니다." },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "식이섬유가 지방 흡수를 억제합니다." },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "칼륨 함량이 있어 섭취량 조절이나 전처리가 필요합니다." },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "퓨린이 거의 없어 안전합니다." },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "해독 작용을 돕습니다." },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "혈전 생성을 억제하는 효과가 있습니다." },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "위염, 위궤양, 역류성 식도염에 최고의 음식입니다." },
+      "갑상선질환": { "scoreModifier": -10, "risk": "caution", "reason": "생으로 과다 섭취 시 요오드 흡수를 방해할 수 있습니다." },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없습니다." }
+    }
+  }
 }
