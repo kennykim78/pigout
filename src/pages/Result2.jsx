@@ -294,126 +294,212 @@ const Result2 = () => {
           <span className="material-symbols-rounded">arrow_back</span>
         </button>
         <h1 className="result2__food-name">[ {foodName} ]</h1>
+        <p className="result2__question">자세히 분석했돼지!</p>
         {foodImage ? (
           <img src={foodImage} alt={foodName} className="result2__header-bg"/>
         ) : (
-          <div className="result2__header-bg result2__header-bg--placeholder" style={{ backgroundColor: '#000' }}>
+          <div className="result2__header-bg result2__header-bg--placeholder">
+            <span>{foodName}</span>
           </div>
         )}
       </div>
 
-      <div className="result2__sections">
-        <div className="result2__section result2__section--bad">
-          <div className="result2__section-header">
-            <div className="result2__title-group">
-              <h2 className="result2__section-title">
-                좋지 않은<span className="result2__emoji">돼</span>~
-              </h2>
-              <img src={imgangry} alt="angry" className="result2__pig-icon" />
-            </div>
-          </div>
-          <div className="result2__info-box">
-            <p style={{ whiteSpace: 'pre-line' }}>
-              {getBadPoints()}
-            </p>
-          </div>
+      {/* 점수 표시 */}
+      <div className="result2__score-section">
+        <div className="result2__score-circle">
+          <div className="result2__score-value">{score}</div>
+          <div className="result2__score-label">점</div>
         </div>
-
-        <div className="result2__section result2__section--good">
-          <div className="result2__section-header">
-            <div className="result2__title-group">
-              <h2 className="result2__section-title">
-                이건 좋은<span className="result2__emoji">돼</span>~
-              </h2>
-              <img src={imghappy} alt="happy" className="result2__pig-icon" />
-            </div>
-          </div>
-          <div className="result2__info-box">
-            <p style={{ whiteSpace: 'pre-line' }}>
-              {getGoodPoints()}
-            </p>
-          </div>
+        <div className="result2__score-comment">
+          {score >= 85 && '매우 건강한 선택이에요!'}
+          {score >= 70 && score < 85 && '적당히 드시면 좋아요'}
+          {score >= 50 && score < 70 && '주의가 필요해요'}
+          {score < 50 && '가급적 피하시는게 좋아요'}
         </div>
       </div>
 
-      <div className="result2__content">
-        {riskFactorEntries.length > 0 && (
-          <div className="result2__risk-section">
-            <div className="result2__risk-header">
-              <div>
-                <p className="result2__risk-kicker">식품의약품안전처 분석 기반</p>
-                <h3>위험 성분 & 근거</h3>
-              </div>
-            </div>
-            <ul className="result2__risk-list">
-              {riskFactorEntries.map((entry) => (
-                <li
-                  key={entry.key}
-                  className={`result2__risk-item ${entry.active ? 'result2__risk-item--active' : 'result2__risk-item--inactive'}`}
-                >
-                  <div className="result2__risk-item-title">
-                    <span>{entry.label}</span>
-                    <span className={`result2__risk-chip ${entry.active ? 'result2__risk-chip--active' : ''}`}>
-                      {entry.active ? '검출됨' : '가능성 낮음'}
+      {/* 약물 상호작용 - 위험/주의가 있을 때만 표시 */}
+      {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
+       detailedAnalysis.medicalAnalysis.drug_food_interactions.some(d => d.risk_level === 'danger' || d.risk_level === 'caution') && (
+        <div className="result2__medicine-alert">
+          <h3 className="result2__medicine-alert-title">
+            <span className="result2__medicine-alert-icon">⚠️</span>
+            복용 중인 약과의 상호작용
+          </h3>
+          <div className="result2__medicine-list">
+            {detailedAnalysis.medicalAnalysis.drug_food_interactions
+              .filter(d => d.risk_level === 'danger' || d.risk_level === 'caution')
+              .map((drug, idx) => (
+                <div key={idx} className={`result2__medicine-card result2__medicine-card--${drug.risk_level}`}>
+                  <div className="result2__medicine-header">
+                    <span className="result2__medicine-name">{drug.medicine_name}</span>
+                    <span className={`result2__risk-badge result2__risk-badge--${drug.risk_level}`}>
+                      {drug.risk_level === 'danger' ? '위험' : '주의'}
                     </span>
                   </div>
-                  <p>{entry.note}</p>
-                </li>
+                  {drug.interaction_description && (
+                    <p className="result2__medicine-desc">{drug.interaction_description}</p>
+                  )}
+                  {drug.recommendation && (
+                    <p className="result2__medicine-recommend">💡 {drug.recommendation}</p>
+                  )}
+                </div>
+              ))}
+          </div>
+        </div>
+      )}
+
+      {/* 주요 분석 내용 */}
+      <div className="result2__main-content">
+        {/* 좋은 점 */}
+        {detailedAnalysis?.goodPoints && detailedAnalysis.goodPoints.length > 0 && (
+          <div className="result2__analysis-section result2__analysis-section--good">
+            <h3 className="result2__analysis-title">
+              <span className="result2__analysis-icon">✅</span>
+              이런 점이 좋아요
+            </h3>
+            <ul className="result2__analysis-list">
+              {detailedAnalysis.goodPoints.map((point, idx) => (
+                <li key={idx}>{point.replace(/^✅\s*/, '')}</li>
               ))}
             </ul>
           </div>
         )}
 
-        {summaryParagraphs.length > 0 && (
-          <div className="result2__summary-section">
-            <p className="result2__summary-kicker">💊 AI 전문가 조언</p>
-            <p style={{ whiteSpace: 'pre-line', marginBottom: '20px' }}>
-              {getExpertAdvice()}
+        {/* 주의할 점 */}
+        {detailedAnalysis?.badPoints && detailedAnalysis.badPoints.length > 0 && (
+          <div className="result2__analysis-section result2__analysis-section--bad">
+            <h3 className="result2__analysis-title">
+              <span className="result2__analysis-icon">⚠️</span>
+              주의할 점이 있어요
+            </h3>
+            <ul className="result2__analysis-list">
+              {detailedAnalysis.badPoints.map((point, idx) => (
+                <li key={idx}>{point.replace(/^⚠️\s*/, '')}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 경고 사항 */}
+        {detailedAnalysis?.warnings && detailedAnalysis.warnings.length > 0 && (
+          <div className="result2__analysis-section result2__analysis-section--warning">
+            <h3 className="result2__analysis-title">
+              <span className="result2__analysis-icon">🚨</span>
+              특별 경고
+            </h3>
+            <ul className="result2__analysis-list">
+              {detailedAnalysis.warnings.map((warning, idx) => (
+                <li key={idx}>{warning.replace(/^🚨\s*/, '')}</li>
+              ))}
+            </ul>
+          </div>
+        )}
+
+        {/* 전문가 조언 */}
+        {detailedAnalysis?.expertAdvice && (
+          <div className="result2__expert-section">
+            <h3 className="result2__expert-title">
+              <span className="result2__expert-icon">💊</span>
+              전문가 조언
+            </h3>
+            <p className="result2__expert-content">
+              {detailedAnalysis.expertAdvice.replace(/^💊\s*/, '')}
             </p>
           </div>
         )}
 
-        <div className="result2__summary-section">
-          <p className="result2__summary-kicker">🔬 최종 종합 분석</p>
-          <p style={{ whiteSpace: 'pre-line' }}>
-            {getFinalSummary()}
-          </p>
-        </div>
-
-        <div className="result2__tips-section">
-          <div className="result2__tips-header">
-            <h2 className="result2__tips-title">
-              이렇게<br />먹음돼지!
-            </h2>
-            <img src={imgcook} alt="cook" className="result2__pig-large" />
+        {/* 건강 조리법 */}
+        {detailedAnalysis?.cookingTips && detailedAnalysis.cookingTips.length > 0 && (
+          <div className="result2__tips-section">
+            <div className="result2__tips-header">
+              <h3 className="result2__tips-title">
+                <span className="result2__tips-emoji">👨‍🍳</span>
+                이렇게 먹으면 더 좋아요!
+              </h3>
+              <img src={imgcook} alt="cook" className="result2__tips-pig" />
+            </div>
+            <div className="result2__tips-list">
+              {detailedAnalysis.cookingTips.map((tipItem, idx) => {
+                const tipText = typeof tipItem === 'object' 
+                  ? `${tipItem.category ? tipItem.category + ': ' : ''}${tipItem.tip || ''}`
+                  : tipItem;
+                return (
+                  <div key={idx} className="result2__tip-item">
+                    <span className="result2__tip-number">{idx + 1}</span>
+                    <span className="result2__tip-text">{tipText}</span>
+                  </div>
+                );
+              })}
+            </div>
           </div>
-          <div className="result2__tips-box">
-            <p style={{ whiteSpace: 'pre-line' }}>
-              {getCookingTips()}
+        )}
+
+        {/* 위험 성분 분석 */}
+        {riskFactorEntries.length > 0 && (
+          <div className="result2__risk-section">
+            <h3 className="result2__risk-title">
+              <span className="result2__risk-icon">🔬</span>
+              위험 성분 분석
+            </h3>
+            <p className="result2__risk-subtitle">식품의약품안전처 데이터 기반</p>
+            <div className="result2__risk-list">
+              {riskFactorEntries.map((entry) => (
+                <div
+                  key={entry.key}
+                  className={`result2__risk-item ${entry.active ? 'result2__risk-item--active' : 'result2__risk-item--inactive'}`}
+                >
+                  <div className="result2__risk-item-header">
+                    <span className="result2__risk-item-name">{entry.label}</span>
+                    <span className={`result2__risk-chip ${entry.active ? 'result2__risk-chip--active' : ''}`}>
+                      {entry.active ? '검출' : '안전'}
+                    </span>
+                  </div>
+                  <p className="result2__risk-item-note">{entry.note}</p>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* 종합 분석 */}
+        {(detailedAnalysis?.summary || analysis) && (
+          <div className="result2__summary-section">
+            <h3 className="result2__summary-title">
+              <span className="result2__summary-icon">📋</span>
+              종합 분석
+            </h3>
+            <p className="result2__summary-content">
+              {(detailedAnalysis?.summary || analysis).replace(/^🔬\s*/, '')}
             </p>
           </div>
+        )}
+
+        {/* 데이터 출처 */}
+        <div className="result2__source-section">
+          <p className="result2__source-label">데이터 출처</p>
+          <p className="result2__source-value">{getDataSources()}</p>
         </div>
 
-        <p className="result2__source">
-          출처 : {getDataSources()}
-        </p>
-
+        {/* 추천 카드 */}
         <div className="result2__recommendations">
           <RecommendationCard 
-                                image={img_travel}
-                                title="하루하루 세계 민간요법"
-                                alt="하루하루 세계 민간요법"
-                              />
-                              <RecommendationCard 
-                                image={img_run}
-                                title="하루하루 추천 운동법"
-                                alt="하루하루 추천 운동법"
-                              />
+            image={img_travel}
+            title="하루하루 세계 민간요법"
+            alt="하루하루 세계 민간요법"
+          />
+          <RecommendationCard 
+            image={img_run}
+            title="하루하루 추천 운동법"
+            alt="하루하루 추천 운동법"
+          />
         </div>
 
-        <p className="result2__disclaimer">
-          본 앱은 의료 조언을 제공하지 않으며, 모든 건강 관련 결정은 반드시 전문의와 상의해야 합니다. 본 앱의 정보는 참고용으로만 제공됩니다.
-        </p>
+        {/* 면책 조항 */}
+        <div className="result2__disclaimer">
+          <p>본 앱은 의료 조언을 제공하지 않으며, 모든 건강 관련 결정은 반드시 전문의와 상의해야 합니다.</p>
+          <p>본 앱의 정보는 참고용으로만 제공됩니다.</p>
+        </div>
       </div>
     </div>
   );
