@@ -485,6 +485,9 @@ export class FoodService {
   // 경량 텍스트 분석: 공공데이터 없이 순수 AI 지식만으로 빠른 분석
   async simpleAnalyzeFoodByText(foodName: string, diseases: string[] = [], deviceId?: string) {
     try {
+      // 함수 import (최상단)
+      const { normalizeFoodName, compressAnalysisForResult01 } = require('./food-rules');
+
       console.log('=== 순수 AI 빠른 분석 시작 ===');
       console.log('음식명:', foodName);
       console.log('질병 정보:', diseases);
@@ -513,54 +516,75 @@ export class FoodService {
       console.log('[순수AI] 복용 약물:', medicineNames);
 
       // ================================================================
-      // 🆕 계층적 분석 1단계: 규칙 기반 분석 (유사음식 정규화 적용)
+      // 🆕 계층적 분석 1단계: 규칙 기반 분석 (DB에서 조회)
       // ================================================================
-      const { canUseRuleBasedAnalysis, getRuleBasedAnalysis, normalizeFoodName, compressAnalysisForResult01 } = require('./food-rules');
-      
-      if (canUseRuleBasedAnalysis(foodName)) {
-        console.log('[계층적 분석] 규칙 기반 분석 가능한 음식 - AI 호출 생략');
-        const ruleResult = getRuleBasedAnalysis(foodName, diseases, medicineNames);
-        
-        if (ruleResult) {
-          // DB 저장
-          const result = await this.supabaseService.saveFoodAnalysis({
-            foodName: ruleResult.detailedAnalysis.foodName,
-            score: ruleResult.score,
-            analysis: ruleResult.analysis,
-            diseases,
-            userId,
-          });
-
-          // 응답 압축 재사용 (Result01용 경량 응답)
-          const compressedDetails = compressAnalysisForResult01(ruleResult.detailedAnalysis);
-
-          const responseData = {
-            id: result[0].id,
-            foodName: result[0].food_name,
-            score: result[0].score,
-            analysis: result[0].analysis,
-            detailedAnalysis: {
-              ...compressedDetails,
-              dataSources: [ruleResult.dataSource],
-              mode: 'rule-based',
-            },
-            createdAt: result[0].created_at,
-          };
-
-          console.log('[계층적 분석] 규칙 기반 분석 완료 (AI 미사용)');
-          return {
-            success: true,
-            data: responseData,
-            message: '규칙 기반 빠른 분석이 완료되었습니다.',
-            ruleBasedAnalysis: true,
-          };
-        }
-      }
-      // ================================================================
-
-      // 🆕 유사음식 정규화 적용 (캐시 키 생성 전)
       const normalizedFoodName = normalizeFoodName(foodName);
       console.log(`[정규화] ${foodName} → ${normalizedFoodName}`);
+
+      // DB에서 규칙 조회
+      const foodRule = await this.supabaseService.getFoodRule(normalizedFoodName);
+      
+      if (foodRule) {
+        console.log('[계층적 분석] DB 규칙 기반 분석 - AI 호출 생략');
+        
+        let finalScore = foodRule.baseScore;
+        const warnings: string[] = [];
+        
+        // 질병별 점수 조정
+        if (foodRule.diseaseAnalysis) {
+          for (const disease of diseases) {
+            const diseaseData = foodRule.diseaseAnalysis[disease];
+            if (diseaseData) {
+              finalScore += diseaseData.scoreModifier;
+              if (diseaseData.risk !== 'safe') {
+                warnings.push(`${disease}: ${diseaseData.reason}`);
+              }
+            }
+          }
+        }
+        
+        // 점수 범위 제한
+        finalScore = Math.max(10, Math.min(100, finalScore));
+        
+        const analysis = warnings.length > 0
+          ? `${foodRule.summary}\n⚠️ 주의: ${warnings.join(' / ')}`
+          : foodRule.summary;
+        
+        // DB 저장
+        const result = await this.supabaseService.saveFoodAnalysis({
+          foodName: normalizedFoodName,
+          score: finalScore,
+          analysis,
+          diseases,
+          userId,
+        });
+
+        const responseData = {
+          id: result[0].id,
+          foodName: result[0].food_name,
+          score: result[0].score,
+          analysis: result[0].analysis,
+          detailedAnalysis: {
+            pros: foodRule.pros,
+            cons: foodRule.cons,
+            summary: foodRule.summary,
+            warnings: warnings.join(', '),
+            expertAdvice: foodRule.expertAdvice,
+            dataSources: ['규칙 기반 DB'],
+            mode: 'rule-based',
+          },
+          createdAt: result[0].created_at,
+        };
+
+        console.log('[계층적 분석] 규칙 기반 분석 완료 (AI 미사용)');
+        return {
+          success: true,
+          data: responseData,
+          message: '규칙 기반 빠른 분석이 완료되었습니다.',
+          ruleBasedAnalysis: true,
+        };
+      }
+      // ================================================================
 
       // ================================================================
       // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인

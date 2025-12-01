@@ -243,4 +243,55 @@ export class SupabaseService {
       return null;
     }
   }
+
+  /**
+   * 음식 규칙 조회 (DB에서)
+   */
+  async getFoodRule(foodName: string): Promise<any> {
+    try {
+      const { data, error } = await this.supabase
+        .from('food_rules')
+        .select('*')
+        .eq('food_name', foodName)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      return {
+        baseScore: data.base_score,
+        summary: data.summary,
+        pros: data.pros,
+        cons: data.cons,
+        expertAdvice: data.expert_advice,
+        nutrients: data.nutrients,
+        diseaseAnalysis: data.disease_analysis,
+      };
+    } catch (error) {
+      console.warn(`[FoodRule] ${foodName} 조회 실패:`, error.message);
+      return null;
+    }
+  }
+
+  /**
+   * 모든 음식 규칙 이름 조회 (캐싱용)
+   */
+  async getAllFoodRuleNames(): Promise<string[]> {
+    try {
+      const { data, error } = await this.supabase
+        .from('food_rules')
+        .select('food_name');
+
+      if (error || !data) {
+        return [];
+      }
+
+      return data.map((row: any) => row.food_name);
+    } catch (error) {
+      console.warn('[FoodRule] 전체 목록 조회 실패:', error.message);
+      return [];
+    }
+  }
 }
+

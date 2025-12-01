@@ -1,0 +1,642 @@
+{
+  "물": {
+    "baseScore": 95,
+    "summary": "물은 인체의 60-70%를 구성하는 필수 성분으로, 모든 대사 과정에 필요합니다. 하루 2L 정도의 충분한 수분 섭취는 건강 유지에 필수적입니다.",
+    "pros": "수분 보충, 신진대사 촉진, 독소 배출, 피부 건강, 체온 조절",
+    "cons": "과도한 섭취 시 저나트륨혈증 가능, 신장질환자는 섭취량 조절 필요",
+    "expertAdvice": "하루 8잔(약 2L)을 식사 사이사이에 나눠 마시는 것이 좋습니다.",
+    "nutrients": {
+      "calories": "0kcal/100g",
+      "protein": "0g",
+      "carbs": "0g",
+      "fat": "0g",
+      "fiber": "0g",
+      "sodium": "0mg",
+      "potassium": "0mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "혈당에 영향 없음, 대사 원활화" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "나트륨 배출에 도움" },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "혈액 순환 개선 및 노폐물 배출" },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "신부전 단계에 따라 수분 제한 필요, 부종 악화 위험" },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "심부전 환자의 경우 체액 과부하 주의" },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "복수 찬 경우를 제외하면 일반적 섭취 권장" },
+      "통풍": { "scoreModifier": 10, "risk": "safe", "reason": "소변을 통한 요산 배출 촉진" },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "소화액 분비 및 변비 예방" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "직접적 영향 없음" }
+    }
+  },
+  "밥": {
+    "baseScore": 70,
+    "summary": "한국인의 주식인 백미밥은 에너지를 빠르게 공급하고 소화가 잘 됩니다. 하지만 도정 과정에서 영양소가 손실되어 섬유질이 부족하고 혈당을 빠르게 올립니다.",
+    "pros": "빠른 에너지 공급, 소화 용이, 저칼륨(신장질환 유리)",
+    "cons": "높은 당지수(GI), 낮은 영양 밀도, 비타민/미네랄 부족",
+    "expertAdvice": "당뇨 환자는 섭취를 줄이고, 잡곡을 섞어 드시는 것이 좋습니다.",
+    "nutrients": {
+      "calories": "130kcal/100g",
+      "protein": "2.7g",
+      "carbs": "28g",
+      "fat": "0.3g",
+      "fiber": "0.4g",
+      "sodium": "1mg",
+      "potassium": "29mg",
+      "sugar": "0.1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "높은 GI지수로 식후 혈당 급상승 유발" },
+      "고혈압": { "scoreModifier": 0, "risk": "safe", "reason": "나트륨이 적어 직접적 해악 없음" },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "과잉 탄수화물은 중성지방 수치를 높임" },
+      "신장질환": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨과 인 함량이 낮아 신장 환자에게는 현미보다 안전" },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "중성지방 증가 리스크" },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "에너지원으로 무난함" },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "퓨린 함량 낮음" },
+      "위장질환": { "scoreModifier": 10, "risk": "safe", "reason": "소화가 잘 되어 위염/장염 환자에게 적합" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" }
+    }
+  },
+  "현미밥": {
+    "baseScore": 85,
+    "summary": "현미는 쌀겨와 배아를 남겨둔 쌀로, 백미보다 비타민, 미네랄, 식이섬유가 풍부합니다. 혈당 조절과 다이어트에 효과적입니다.",
+    "pros": "풍부한 식이섬유, 낮은 당지수, 비타민 B군 함유, 포만감 유지",
+    "cons": "거친 식감, 소화 불량 가능성, 높은 칼륨/인 함량",
+    "expertAdvice": "충분히 불려서 짓고, 30번 이상 꼭꼭 씹어 드셔야 소화가 잘 됩니다.",
+    "nutrients": {
+      "calories": "110kcal/100g",
+      "protein": "3g",
+      "carbs": "23g",
+      "fat": "0.9g",
+      "fiber": "1.8g",
+      "sodium": "1mg",
+      "potassium": "90mg",
+      "sugar": "0.4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "safe", "reason": "식이섬유가 혈당 상승 속도를 늦춤" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨이 나트륨 배출을 도움" },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "식이섬유가 콜레스테롤 배출을 도움" },
+      "신장질환": { "scoreModifier": -25, "risk": "warning", "reason": "높은 칼륨과 인 함량으로 신장에 부담" },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "통곡물 섭취는 심혈관 건강에 도움" },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "양질의 에너지원" },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "퓨린 함량 낮음" },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "식이섬유가 많아 소화가 잘 안 될 수 있음" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "피틴산이 철분 흡수를 일부 방해할 수 있음" }
+    }
+  },
+  "사과": {
+    "baseScore": 88,
+    "summary": "사과는 펙틴이라는 수용성 식이섬유가 풍부하여 장 건강에 좋고 항산화 물질이 많습니다. 아침 사과는 금이라는 말이 있을 정도로 건강에 유익합니다.",
+    "pros": "변비 예방, 피로 회복, 항산화 작용, 폐 기능 강화",
+    "cons": "위산 분비 촉진, 밤 늦게 섭취 시 속쓰림, 과당 함유",
+    "expertAdvice": "껍질째 먹는 것이 펙틴과 안토시아닌 섭취에 가장 좋습니다.",
+    "nutrients": {
+      "calories": "57kcal/100g",
+      "protein": "0.3g",
+      "carbs": "14g",
+      "fat": "0.2g",
+      "fiber": "2.4g",
+      "sodium": "1mg",
+      "potassium": "107mg",
+      "sugar": "10g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 0, "risk": "safe", "reason": "GI지수가 낮지만 과당이 있어 적정량 섭취 필요" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨이 혈압 조절에 기여" },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "펙틴이 콜레스테롤 배출을 도움" },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "칼륨 함량이 있어 섭취량 조절 필요" },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "플라보노이드 성분이 심장병 위험 감소" },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "비타민 C가 간 해독 도움" },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "알칼리성 식품으로 요산 배출 도움" },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "산 성분이 위염, 역류성 식도염 자극 가능" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "비타민C가 철분 흡수를 도움" }
+    }
+  },
+  "바나나": {
+    "baseScore": 80,
+    "summary": "바나나는 휴대하기 간편하고 소화가 잘 되는 에너지원입니다. 칼륨이 매우 풍부하여 나트륨 배출에 탁월하지만 당도가 높습니다.",
+    "pros": "즉각적인 에너지, 나트륨 배출, 우울증 완화(트립토판), 위 점막 보호",
+    "cons": "높은 당분, 신장 환자에게 위험한 수준의 고칼륨",
+    "expertAdvice": "잘 익은 바나나는 면역력을 높이지만, 당뇨 환자는 덜 익은 바나나가 낫습니다.",
+    "nutrients": {
+      "calories": "89kcal/100g",
+      "protein": "1.1g",
+      "carbs": "23g",
+      "fat": "0.3g",
+      "fiber": "2.6g",
+      "sodium": "1mg",
+      "potassium": "358mg",
+      "sugar": "12g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -10, "risk": "caution", "reason": "잘 익을수록 당 흡수가 빨라 혈당 주의" },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "풍부한 칼륨이 나트륨 배출을 강력히 도움" },
+      "고지혈증": { "scoreModifier": 0, "risk": "safe", "reason": "지방 함량이 거의 없음" },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "매우 높은 칼륨 함량으로 고칼륨혈증 위험" },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨과 마그네슘이 심장 기능 보조" },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "소화가 잘 되어 간 부담 적음" },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "요산 결정 용해를 돕는 성분 함유" },
+      "위장질환": { "scoreModifier": 10, "risk": "safe", "reason": "부드럽고 펙틴이 장 안정을 도움" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분이 소량 있으나 큰 영향 없음" }
+    }
+  }
+,
+  "두부": {
+    "baseScore": 92,
+    "summary": "밭에서 나는 소고기라 불리는 두부는 식물성 단백질의 최고 급원입니다. 소화 흡수율이 높고 리놀산이 풍부하여 콜레스테롤 수치를 낮추는 데 도움을 줍니다.",
+    "pros": "우수한 식물성 단백질, 낮은 포화지방, 소화 흡수율 95%, 이소플라본(항암/갱년기)",
+    "cons": "통풍 환자 과다 섭취 주의(퓨린), 갑상선 기능 저하 시 주의",
+    "expertAdvice": "동물성 지방 섭취를 줄여야 하는 만성질환자에게 최고의 단백질 대체제입니다.",
+    "nutrients": {
+      "calories": "84kcal/100g",
+      "protein": "8.5g",
+      "carbs": "1.9g",
+      "fat": "4.6g",
+      "fiber": "0.3g",
+      "sodium": "7mg",
+      "potassium": "121mg",
+      "sugar": "0.5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "혈당을 거의 올리지 않는 훌륭한 단백질원" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "나트륨 배출 및 혈관 건강 개선" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "리놀산과 레시틴이 콜레스테롤 저하 도움" },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "식물성이지만 단백질 대사 산물 부담 가능, 칼륨 수치 고려 필요" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "식물성 단백질 섭취는 심혈관 질환 위험 감소" },
+      "간질환": { "scoreModifier": 10, "risk": "recommend", "reason": "간세포 재생을 돕는 양질의 단백질" },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "퓨린 함량이 육류보단 낮으나 과다 섭취 시 주의 필요" },
+      "위장질환": { "scoreModifier": 10, "risk": "safe", "reason": "부드럽고 소화가 매우 잘 됨" },
+      "갑상선질환": { "scoreModifier": -5, "risk": "caution", "reason": "고이트로젠 성분이 요오드 흡수 방해 가능(조리 시 감소)" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분이 포함되어 있으나 흡수율은 육류보다 낮음" }
+    }
+  },
+  "계란": {
+    "baseScore": 90,
+    "summary": "완전식품이라 불리는 계란은 필수 아미노산이 균형 있게 들어있습니다. 노른자의 레시틴은 뇌 건강에 좋지만, 콜레스테롤 함량 때문에 섭취량 조절이 논의됩니다.",
+    "pros": "완전 단백질, 비타민 D, 레시틴(뇌 건강), 루테인(눈 건강), 저렴한 가격",
+    "cons": "노른자의 높은 콜레스테롤, 알레르기 유발 가능성",
+    "expertAdvice": "건강한 성인은 하루 1-2개도 무방하나, 고지혈증 환자는 노른자 섭취를 주 2-3회로 조절하세요.",
+    "nutrients": {
+      "calories": "155kcal/100g",
+      "protein": "13g",
+      "carbs": "1.1g",
+      "fat": "11g",
+      "fiber": "0g",
+      "sodium": "124mg",
+      "potassium": "126mg",
+      "sugar": "1.1g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "탄수화물이 거의 없고 단백질 공급에 유리" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "흰자의 펩타이드 성분이 혈압 조절 도움" },
+      "고지혈증": { "scoreModifier": -5, "risk": "caution", "reason": "노른자의 식이 콜레스테롤 함량이 높음" },
+      "신장질환": { "scoreModifier": 5, "risk": "safe", "reason": "생물가가 높은 단백질로 노폐물 생성이 적음" },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "당뇨 동반 시 콜레스테롤 섭취 주의 필요" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "메티오닌이 간 해독 작용을 도움" },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "퓨린 함량이 매우 낮아 안전한 단백질원" },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "반숙 등 부드럽게 조리 시 소화 용이" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "셀레늄이 갑상선 건강 도움" },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "노른자에 철분 함유" }
+    }
+  },
+  "닭가슴살": {
+    "baseScore": 88,
+    "summary": "저지방 고단백 식품의 대명사입니다. 필수 아미노산이 풍부하여 근육 생성과 유지에 탁월하며, 피로 회복 물질인 이미다졸 디펩타이드를 함유하고 있습니다.",
+    "pros": "강력한 단백질 공급, 낮은 지방, 근육 생성, 나이아신 풍부",
+    "cons": "퍽퍽한 식감, 식이섬유 및 비타민 부족, 조리법에 따라 나트륨 과다",
+    "expertAdvice": "채소와 함께 드셔야 부족한 식이섬유와 비타민을 보완할 수 있습니다.",
+    "nutrients": {
+      "calories": "109kcal/100g",
+      "protein": "23g",
+      "carbs": "0g",
+      "fat": "1.2g",
+      "fiber": "0g",
+      "sodium": "74mg",
+      "potassium": "256mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "인슐린 저항성 개선 및 근육량 유지에 필수" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "저지방 단백질은 혈압 관리에 도움" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "포화지방이 적어 육류 중 가장 권장됨" },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "과다 단백질 섭취는 신장 과부하 (양 조절 필수)" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "호모시스테인 억제 및 혈관 건강 유지" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "BCAA(분지쇄아미노산)가 간 기능 보호" },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "퓨린 함량이 중간 수준, 발작 시 제한 필요" },
+      "위장질환": { "scoreModifier": 0, "risk": "safe", "reason": "기름기 적어 소화 부담 적음" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분 흡수를 돕는 동물성 단백질" }
+    }
+  },
+  "브로콜리": {
+    "baseScore": 96,
+    "summary": "세계 10대 슈퍼푸드로 꼽히는 브로콜리는 설포라판 성분이 강력한 항암, 항염 작용을 합니다. 비타민 C가 레몬의 2배에 달합니다.",
+    "pros": "항암 효과(설포라판), 위장 건강(헬리코박터 억제), 비타민 C/K 풍부, 해독 작용",
+    "cons": "과다 섭취 시 가스 발생, 갑상선 기능 저하 환자 주의(고이트로젠)",
+    "expertAdvice": "살짝 데쳐서 드셔야 항암 성분과 영양소 파괴를 최소화할 수 있습니다.",
+    "nutrients": {
+      "calories": "34kcal/100g",
+      "protein": "2.8g",
+      "carbs": "7g",
+      "fat": "0.4g",
+      "fiber": "2.6g",
+      "sodium": "33mg",
+      "potassium": "316mg",
+      "sugar": "1.7g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "설포라판이 혈당 조절 및 혈관 손상 예방" },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "칼륨과 항산화 성분이 혈압 강하 도움" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "수용성 섬유질이 콜레스테롤 배출" },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "칼륨 함량이 높아 섭취 시 데쳐서 물을 버려야 함" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "혈관 청소 및 심장 보호 효과" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "간의 해독 효소 생성을 도움" },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "퓨린이 적고 알칼리성으로 도움" },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "비타민 U가 위 점막 보호, 헬리코박터균 억제" },
+      "갑상선질환": { "scoreModifier": -10, "risk": "caution", "reason": "고이트로젠이 요오드 흡수 방해 (익혀 먹으면 안전)" },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분과 엽산 함유" }
+    }
+  },
+  "시금치": {
+    "baseScore": 93,
+    "summary": "녹황색 채소의 왕인 시금치는 베타카로틴, 엽산, 철분이 풍부합니다. 눈 건강과 빈혈 예방에 탁월하지만 결석 환자는 주의해야 합니다.",
+    "pros": "눈 건강(루테인/베타카로틴), 빈혈 예방(철분/엽산), 뇌 건강, 혈관 탄력",
+    "cons": "수산(옥살산) 함유로 결석 위험, 칼슘 흡수 방해 가능성",
+    "expertAdvice": "끓는 물에 데쳐서 수산을 제거한 후 섭취하는 것이 안전합니다.",
+    "nutrients": {
+      "calories": "23kcal/100g",
+      "protein": "2.9g",
+      "carbs": "3.6g",
+      "fat": "0.4g",
+      "fiber": "2.2g",
+      "sodium": "79mg",
+      "potassium": "558mg",
+      "sugar": "0.4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "알파리포산이 인슐린 저항성 개선 도움" },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "질산염이 혈관을 확장시켜 혈압 조절" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "항산화 성분이 혈관 염증 예방" },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "매우 높은 칼륨과 수산 함량으로 신장 결석 및 고칼륨혈증 위험" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "엽산이 호모시스테인 수치를 낮춤" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "각종 비타민과 미네랄이 대사 보조" },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "퓨린 함량이 채소 중에는 있는 편이라 과다 섭취 주의" },
+      "위장질환": { "scoreModifier": 5, "risk": "safe", "reason": "섬유질이 변비 예방" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "익혀 먹으면 고이트로젠 문제 없음" },
+      "빈혈": { "scoreModifier": 10, "risk": "recommend", "reason": "철분과 엽산이 매우 풍부" }
+    }
+  }
+,
+  "양배추": {
+    "baseScore": 95,
+    "summary": "위장 건강의 수호자로 불리는 양배추는 비타민 U와 K가 풍부하여 위 점막 보호와 재생에 탁월합니다. 칼로리가 낮고 식이섬유가 풍부해 다이어트에도 좋습니다.",
+    "pros": "위 점막 보호(비타민 U), 항암 효과, 변비 예방, 해독 작용",
+    "cons": "과다 섭취 시 가스 유발(복부 팽만), 갑상선 기능 저하 시 주의(고이트로젠)",
+    "expertAdvice": "위가 약한 분들은 생으로 드시기보다 살짝 쪄서 드시는 것이 소화에 더 좋습니다.",
+    "nutrients": {
+      "calories": "31kcal/100g",
+      "protein": "1.5g",
+      "carbs": "7.3g",
+      "fat": "0.2g",
+      "fiber": "2.5g",
+      "sodium": "18mg",
+      "potassium": "246mg",
+      "sugar": "3.8g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "혈당 상승 억제 및 포만감 유지" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "나트륨 배출 도움" },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "식이섬유가 지방 흡수 억제" },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "칼륨 함량이 있어 섭취 시 삶아서 물을 버리고 섭취 권장" },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "혈전 생성 억제 도움" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "간의 해독 작용 보조" },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "퓨린 함량이 낮음" },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "위염, 위궤양 완화에 특효" },
+      "갑상선질환": { "scoreModifier": -10, "risk": "caution", "reason": "고이트로젠이 요오드 흡수 방해 (익혀 먹으면 안전)" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" }
+    }
+  },
+  "당근": {
+    "baseScore": 89,
+    "summary": "베타카로틴의 황제 당근은 눈 건강과 면역력 강화에 필수적입니다. 지용성 비타민이므로 기름과 함께 섭취할 때 흡수율이 극대화됩니다.",
+    "pros": "시력 보호(비타민 A), 항산화/항암, 피부 건강, 면역력 증진",
+    "cons": "당지수가 채소치고는 약간 높음, 과다 섭취 시 피부 황변",
+    "expertAdvice": "기름에 볶아 드시면 베타카로틴 흡수율이 60~70%까지 높아집니다.",
+    "nutrients": {
+      "calories": "34kcal/100g",
+      "protein": "1g",
+      "carbs": "8.6g",
+      "fat": "0.2g",
+      "fiber": "3g",
+      "sodium": "30mg",
+      "potassium": "300mg",
+      "sugar": "6g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 0, "risk": "safe", "reason": "생당근은 괜찮으나, 착즙하거나 푹 익히면 혈당 상승 주의" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨이 혈압 조절 도움" },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "카로티노이드가 혈관 내 염증 억제" },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "칼륨 함량이 중상 수준으로 섭취량 조절 필요" },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "항산화 성분이 심혈관 질환 예방" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "비타민 A가 간 세포 재생 도움 (과잉은 주의)" },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "알칼리성 식품으로 도움" },
+      "위장질환": { "scoreModifier": 0, "risk": "safe", "reason": "적당량 섭취 시 무난함" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분이 소량 함유됨" }
+    }
+  },
+  "토마토": {
+    "baseScore": 94,
+    "summary": "라이코펜이 풍부한 토마토는 전립선 건강과 심혈관 질환 예방에 강력한 효과가 있습니다. 익혀 먹으면 라이코펜 흡수율이 더욱 높아집니다.",
+    "pros": "강력한 항산화(라이코펜), 전립선 건강, 혈관 탄력, 다이어트",
+    "cons": "산성으로 인한 속쓰림 가능성, 덜 익은 토마토 독성(솔라닌)",
+    "expertAdvice": "빨갛게 잘 익은 것을 골라 올리브유와 함께 익혀 드시는 것이 최고입니다.",
+    "nutrients": {
+      "calories": "18kcal/100g",
+      "protein": "0.9g",
+      "carbs": "3.9g",
+      "fat": "0.2g",
+      "fiber": "1.2g",
+      "sodium": "5mg",
+      "potassium": "237mg",
+      "sugar": "2.6g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "당분이 적고 혈당 조절에 도움" },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "라이코펜과 칼륨이 혈압 강하 및 혈관 보호" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "LDL 콜레스테롤 산화 방지" },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "칼륨 함량이 높아 칼륨 제한 환자는 섭취 주의" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "심근경색 및 뇌졸중 위험 감소" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "간 세포 재생 촉진" },
+      "통풍": { "scoreModifier": -5, "risk": "caution", "reason": "일부 연구에서 요산 수치 증가와 연관성 보고됨 (개인차 있음)" },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "산도가 높아 역류성 식도염 환자에게 자극적" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "비타민 C가 철분 흡수 도움" }
+    }
+  },
+  "오이": {
+    "baseScore": 85,
+    "summary": "95% 이상이 수분인 오이는 갈증 해소와 이뇨 작용에 탁월합니다. 칼로리가 매우 낮아 다이어트 간식으로 좋으며 몸의 열을 내려줍니다.",
+    "pros": "수분 공급, 부종 제거, 체열 강하, 다이어트, 피부 미용",
+    "cons": "비타민 C 파괴 효소(아스코르비나아제) 함유, 몸이 찬 사람에게 설사 유발",
+    "expertAdvice": "당근과 함께 드실 때는 식초를 살짝 뿌려야 비타민 C 파괴를 막을 수 있습니다.",
+    "nutrients": {
+      "calories": "15kcal/100g",
+      "protein": "0.7g",
+      "carbs": "3.6g",
+      "fat": "0.1g",
+      "fiber": "0.5g",
+      "sodium": "2mg",
+      "potassium": "150mg",
+      "sugar": "1.7g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "safe", "reason": "혈당 지수가 매우 낮고 수분 공급에 좋음" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "이뇨 작용을 통해 나트륨 배출" },
+      "고지혈증": { "scoreModifier": 0, "risk": "safe", "reason": "칼로리와 지방이 없어 부담 없음" },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "칼륨이 있어 신부전 환자는 과다 섭취 주의" },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "수분 공급으로 혈액 순환 보조" },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "해독 작용 및 숙취 해소에 도움" },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "알칼리성으로 소변을 통한 요산 배출 촉진" },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "찬 성질이라 과민성 대장 증후군 환자는 주의" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" }
+    }
+  },
+  "고구마": {
+    "baseScore": 82,
+    "summary": "양질의 탄수화물과 식이섬유 공급원입니다. 찌거나 삶으면 GI 지수가 낮지만, 구우면 당도가 급격히 올라가 혈당 관리에 불리해집니다.",
+    "pros": "풍부한 식이섬유, 항산화(베타카로틴/안토시아닌), 변비 해소, 포만감",
+    "cons": "구우면 높은 당지수, 가스 발생, 신장 환자에게 위험한 고칼륨",
+    "expertAdvice": "체중이나 혈당 관리를 위해서는 군고구마보다 찐 고구마가 훨씬 유리합니다.",
+    "nutrients": {
+      "calories": "86kcal/100g",
+      "protein": "1.6g",
+      "carbs": "20g",
+      "fat": "0.1g",
+      "fiber": "3g",
+      "sodium": "55mg",
+      "potassium": "337mg",
+      "sugar": "4.2g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -15, "risk": "warning", "reason": "군고구마는 혈당을 급격히 올림. 찐고구마도 양 조절 필수" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼륨이 풍부해 나트륨 배출 탁월" },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "식이섬유가 콜레스테롤 흡수 저해" },
+      "신장질환": { "scoreModifier": -25, "risk": "warning", "reason": "칼륨 함량이 매우 높아 고칼륨혈증 위험 높음" },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "혈관 건강에 좋은 성분 함유" },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "양질의 에너지원" },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "퓨린 함량 낮음" },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "아마이드 성분이 장내 가스 유발 및 속쓰림 가능" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" }
+    }
+  },
+  "감자": {
+    "baseScore": 75,
+    "summary": "땅 속의 사과라 불리며 비타민 C가 풍부합니다. 나트륨 배출 효과가 뛰어나지만, 탄수화물 위주라 혈당 관리가 필요한 분들은 주의해야 합니다.",
+    "pros": "나트륨 배출(칼륨 왕), 위 점막 보호, 비타민 C(조리 후 파괴 적음)",
+    "cons": "높은 당지수(GI), 튀길 경우 칼로리/발암물질 위험, 신장 부담",
+    "expertAdvice": "튀김보다는 찌거나 굽는 방식이 좋으며, 식혀서 드시면 저항성 전분이 늘어 혈당에 좋습니다.",
+    "nutrients": {
+      "calories": "77kcal/100g",
+      "protein": "2g",
+      "carbs": "17g",
+      "fat": "0.1g",
+      "fiber": "2.2g",
+      "sodium": "6mg",
+      "potassium": "421mg",
+      "sugar": "0.8g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": -20, "risk": "warning", "reason": "GI 지수가 높아 혈당 상승 빠름" },
+      "고혈압": { "scoreModifier": 10, "risk": "recommend", "reason": "최고 수준의 칼륨 함량으로 혈압 조절 탁월" },
+      "고지혈증": { "scoreModifier": 0, "risk": "safe", "reason": "지방이 거의 없음" },
+      "신장질환": { "scoreModifier": -30, "risk": "warning", "reason": "칼륨 폭탄 수준이라 신장 환자는 섭취 제한 필수" },
+      "심장질환": { "scoreModifier": 0, "risk": "safe", "reason": "나트륨 배출로 심장 부담 경감" },
+      "간질환": { "scoreModifier": 0, "risk": "safe", "reason": "에너지원으로 무난함" },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "퓨린 함량 낮음" },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "알기닌 성분이 위벽 보호 및 궤양 완화" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "비타민 C가 철분 흡수 도움" }
+    }
+  },
+  "우유": {
+    "baseScore": 88,
+    "summary": "칼슘과 단백질의 대표적인 공급원입니다. 뼈 건강에 필수적이지만, 유당 불내증이 있거나 포화지방이 걱정되는 경우 주의가 필요합니다.",
+    "pros": "뼈 건강(칼슘), 단백질 공급, 신경 안정, 치아 건강",
+    "cons": "유당불내증(설사/복통), 포화지방, 신장/결석 환자 인/칼슘 주의",
+    "expertAdvice": "소화가 안 되면 락토프리 제품을, 고지혈증이 있다면 저지방 우유를 선택하세요.",
+    "nutrients": {
+      "calories": "60kcal/100g",
+      "protein": "3.2g",
+      "carbs": "4.8g",
+      "fat": "3.4g",
+      "fiber": "0g",
+      "sodium": "50mg",
+      "potassium": "150mg",
+      "sugar": "5g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 0, "risk": "safe", "reason": "유당이 있으나 단백질이 혈당 급상승 방지 (적정량 권장)" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼슘과 펩타이드가 혈압 조절 도움" },
+      "고지혈증": { "scoreModifier": -10, "risk": "caution", "reason": "동물성 포화지방 함유 (저지방 권장)" },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "인과 칼륨 함량이 높아 섭취량 조절 필요" },
+      "심장질환": { "scoreModifier": -5, "risk": "caution", "reason": "일반 우유의 포화지방 주의" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "양질의 단백질 공급" },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "요산 배출을 돕고 통풍 예방 효과 있음" },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "위산 분비 촉진(속쓰림) 및 유당불내증" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": -5, "risk": "caution", "reason": "칼슘이 철분 흡수를 방해할 수 있음 (시간차 섭취 권장)" }
+    }
+  },
+  "요거트": {
+    "baseScore": 92,
+    "summary": "유산균이 풍부하여 장내 환경을 개선하고 면역력을 높입니다. 우유보다 소화가 잘 되지만, 시판 제품의 첨가당에 주의해야 합니다.",
+    "pros": "장 건강(유산균), 면역력 증진, 우유 대비 소화 용이, 단백질",
+    "cons": "시판 제품의 높은 당분, 신장 환자 인/칼륨 주의",
+    "expertAdvice": "반드시 '무가당' 또는 '그릭 요거트'를 선택하여 당분 섭취를 줄이세요.",
+    "nutrients": {
+      "calories": "60kcal/100g",
+      "protein": "3.5g",
+      "carbs": "4.7g",
+      "fat": "3.3g",
+      "fiber": "0g",
+      "sodium": "46mg",
+      "potassium": "155mg",
+      "sugar": "4.7g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "caution", "reason": "무가당은 좋으나, 가당 제품은 혈당 급상승 위험" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "칼슘과 유산균이 혈압 도움" },
+      "고지혈증": { "scoreModifier": 5, "risk": "safe", "reason": "유산균이 콜레스테롤 수치 개선 기여 (저지방 권장)" },
+      "신장질환": { "scoreModifier": -10, "risk": "caution", "reason": "인 함량 주의 필요" },
+      "심장질환": { "scoreModifier": 5, "risk": "safe", "reason": "장내 미생물 개선이 심혈관 건강 연관" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "장내 독소 감소로 간 부담 경감" },
+      "통풍": { "scoreModifier": 10, "risk": "recommend", "reason": "유제품은 통풍 예방 인자" },
+      "위장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "유산균이 헬리코박터 억제 및 장 기능 개선" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": -5, "risk": "caution", "reason": "칼슘이 철분제 흡수 방해 가능" }
+    }
+  },
+  "견과류": {
+    "baseScore": 90,
+    "summary": "불포화지방산의 보물창고로 심혈관 건강과 두뇌 발달에 좋습니다. 하지만 지방 함량이 높아 칼로리가 높으므로 과식은 금물입니다.",
+    "pros": "심혈관 건강(불포화지방), 뇌 건강, 항산화(비타민 E), 포만감",
+    "cons": "높은 칼로리(비만 위험), 산패 위험, 신장 결석(옥살산) 주의",
+    "expertAdvice": "하루 한 줌(약 30g)이 적당하며, 소금이나 설탕이 가미되지 않은 구운 견과류가 좋습니다.",
+    "nutrients": {
+      "calories": "600kcal/100g",
+      "protein": "20g",
+      "carbs": "20g",
+      "fat": "50g",
+      "fiber": "10g",
+      "sodium": "5mg",
+      "potassium": "700mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "혈당 급상승 막고 인슐린 감수성 개선" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "마그네슘과 불포화지방이 혈압 조절" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "HDL(좋은 콜레스테롤) 증가 및 LDL 감소" },
+      "신장질환": { "scoreModifier": -20, "risk": "warning", "reason": "칼륨과 인 함량이 매우 높음" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "혈관 탄력 개선 및 염증 감소" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "비타민 E가 간 보호 (오래된 견과류 아플라톡신 주의)" },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "퓨린 적음. 단, 지방 과다 섭취는 요산 배출 저해 가능성" },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "지방이 많아 소화가 느리고 설사 유발 가능" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 5, "risk": "safe", "reason": "철분과 엽산 함유" }
+    }
+  },
+  "아몬드": {
+    "baseScore": 92,
+    "summary": "비타민 E와 마그네슘이 특히 풍부한 견과류입니다. 강력한 항산화 작용으로 노화 방지와 혈관 건강에 탁월합니다.",
+    "pros": "비타민 E 최다 함유, 뼈 건강(마그네슘/칼슘), 다이어트, 혈당 조절",
+    "cons": "높은 칼로리, 옥살산 함유(결석/통풍 주의), 알레르기",
+    "expertAdvice": "식사 전 5-10알을 드시면 포만감을 주어 과식을 예방할 수 있습니다.",
+    "nutrients": {
+      "calories": "579kcal/100g",
+      "protein": "21g",
+      "carbs": "21g",
+      "fat": "49g",
+      "fiber": "12g",
+      "sodium": "1mg",
+      "potassium": "733mg",
+      "sugar": "4g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "식후 급격한 혈당 상승 억제 효과 입증됨" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "마그네슘 부족 시 고혈압 위험, 아몬드가 보충해줌" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "나쁜 콜레스테롤 수치 감소 효과 탁월" },
+      "신장질환": { "scoreModifier": -25, "risk": "warning", "reason": "옥살산과 칼륨/인 함량이 높아 신장 결석 위험" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "비타민 E가 혈관 노화 방지" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "간 수치 개선에 도움된다는 연구 존재" },
+      "통풍": { "scoreModifier": -10, "risk": "caution", "reason": "옥살산이 결석 유발 및 통풍 악화 가능성" },
+      "위장질환": { "scoreModifier": 0, "risk": "safe", "reason": "적당량은 변비에 좋으나 과식 시 소화장애" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "철분 함유" }
+    }
+  },
+  "호두": {
+    "baseScore": 91,
+    "summary": "식물성 오메가-3 지방산(알파리놀렌산)이 가장 풍부한 견과류로, 뇌 기능 활성화와 치매 예방에 좋습니다.",
+    "pros": "뇌 건강(오메가-3), 심장 보호, 항암 효과, 수면 유도(멜라토닌)",
+    "cons": "매우 높은 칼로리, 산패가 쉬움, 떫은 맛(타닌)",
+    "expertAdvice": "산패되기 쉬우므로 냉동 보관하시고, 뇌 건강을 위해 하루 2-3알 꾸준히 드세요.",
+    "nutrients": {
+      "calories": "654kcal/100g",
+      "protein": "15g",
+      "carbs": "13g",
+      "fat": "65g",
+      "fiber": "6.7g",
+      "sodium": "2mg",
+      "potassium": "441mg",
+      "sugar": "2.6g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 5, "risk": "recommend", "reason": "제2형 당뇨 발병 위험 감소" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "혈관 탄력을 높여 혈압 안정" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "오메가-3가 중성지방 수치를 낮춤" },
+      "신장질환": { "scoreModifier": -15, "risk": "caution", "reason": "칼륨과 인 함량이 높음" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "알파리놀렌산이 심혈관 질환 강력 예방" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "아르기닌과 글루타치온이 간 해독 도움" },
+      "통풍": { "scoreModifier": 0, "risk": "safe", "reason": "특별한 위험 없음" },
+      "위장질환": { "scoreModifier": -5, "risk": "caution", "reason": "지방 함량이 매우 높아 소화 불량 주의" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" }
+    }
+  },
+  "녹차": {
+    "baseScore": 88,
+    "summary": "카테킨 성분이 풍부하여 강력한 항산화 및 지방 분해 효과가 있습니다. 다만 카페인이 들어있어 민감한 분들은 섭취 시 주의가 필요합니다.",
+    "pros": "체지방 감소(카테킨), 항산화/항암, 집중력 향상, 혈당 조절",
+    "cons": "카페인 과민 반응(불면/두근거림), 철분 흡수 방해, 이뇨 작용",
+    "expertAdvice": "식후 바로 드시면 철분 흡수를 방해하니, 식후 1시간 뒤에 드시는 것이 좋습니다.",
+    "nutrients": {
+      "calories": "1kcal/100g",
+      "protein": "0g",
+      "carbs": "0g",
+      "fat": "0g",
+      "fiber": "0g",
+      "sodium": "0mg",
+      "potassium": "20mg",
+      "sugar": "0g"
+    },
+    "diseaseAnalysis": {
+      "당뇨": { "scoreModifier": 10, "risk": "recommend", "reason": "인슐린 감수성 증가 및 혈당 상승 억제" },
+      "고혈압": { "scoreModifier": 5, "risk": "safe", "reason": "혈관 확장 및 혈압 상승 억제 효과" },
+      "고지혈증": { "scoreModifier": 10, "risk": "recommend", "reason": "카테킨이 콜레스테롤 배출 촉진" },
+      "신장질환": { "scoreModifier": -5, "risk": "caution", "reason": "이뇨 작용 및 소량의 옥살산 함유로 결석 환자 주의" },
+      "심장질환": { "scoreModifier": 10, "risk": "recommend", "reason": "혈전 형성 억제 및 혈관 보호" },
+      "간질환": { "scoreModifier": 5, "risk": "safe", "reason": "지방간 개선 효과 (단, 고농축 녹차 추출물 보충제는 간 독성 주의)" },
+      "통풍": { "scoreModifier": 5, "risk": "safe", "reason": "이뇨 작용으로 요산 배출 도움 (수분 섭취 병행)" },
+      "위장질환": { "scoreModifier": -10, "risk": "caution", "reason": "타닌이 위 점막 자극 및 위산 분비 촉진(공복 섭취 금지)" },
+      "갑상선질환": { "scoreModifier": 0, "risk": "safe", "reason": "특이 영향 없음" },
+      "빈혈": { "scoreModifier": -20, "risk": "warning", "reason": "타닌이 철분과 결합하여 흡수를 강력히 방해" }
+    }
+  }
+}
