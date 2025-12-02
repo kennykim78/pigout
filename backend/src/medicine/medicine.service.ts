@@ -8,7 +8,10 @@ export class MedicineService {
   constructor(
     private readonly supabaseService: SupabaseService,
     private readonly externalApiClient: ExternalApiClient,
-  ) {}
+  ) {
+    // 의약품 검색 캐싱을 위해 SupabaseService 주입
+    this.externalApiClient.setSupabaseService(supabaseService);
+  }
 
   /**
    * QR 코드 스캔하여 약 정보 저장

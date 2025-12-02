@@ -1,6 +1,7 @@
 import { Injectable } from '@nestjs/common';
 import axios from 'axios';
 import { canUseApi, recordApiUsage } from '../../utils/api-usage-monitor';
+import { SupabaseService } from '../../supabase/supabase.service';
 
 type PillIdentificationParams = {
   itemName?: string;
@@ -70,6 +71,16 @@ export class ExternalApiClient {
   private readonly MFDS_BASE_URL = process.env.MFDS_BASE_URL || 'https://apis.data.go.kr/1471000';
   private readonly RECIPE_BASE_URL = process.env.RECIPE_DB_BASE_URL || 'http://openapi.foodsafetykorea.go.kr/api';
   private readonly HIRA_BASE_URL = process.env.HIRA_BASE_URL || 'https://apis.data.go.kr/B551182';
+
+  // SupabaseService 인스턴스 (캐싱용)
+  private supabaseService: SupabaseService | null = null;
+
+  /**
+   * SupabaseService 설정 (캐싱 활성화)
+   */
+  setSupabaseService(supabaseService: SupabaseService) {
+    this.supabaseService = supabaseService;
+  }
 
   private buildMfdsParams(params: Record<string, any>) {
     const merged = {
@@ -170,21 +181,36 @@ export class ExternalApiClient {
 
   /**
    * 식약처 의약품 개요정보 조회 (e약은요) - 성공한 API
-   * API 사용량 모니터링 적용
+   * API 사용량 모니터링 적용 + DB 캐싱
    * @param medicineName 의약품명
    * @param numOfRows 조회할 행 수 (기본 20)
    */
   async getMedicineInfo(medicineName: string, numOfRows: number = 20): Promise<any> {
     try {
+      // ================================================================
+      // 0단계: DB 캐시 확인 (API 호출 없이 바로 반환)
+      // ================================================================
+      if (this.supabaseService) {
+        const cachedResults = await this.supabaseService.getMedicineCached(medicineName);
+        if (cachedResults && cachedResults.length > 0) {
+          console.log(`[0단계-캐시] ✅ DB 캐시 히트: ${medicineName} (${cachedResults.length}건) - API 호출 생략`);
+          return cachedResults;
+        }
+      }
+
       // API 사용량 체크 - 한도 초과 시 AI가 대체
       if (!canUseApi('eDrugApi')) {
         console.log(`[API] 일일 한도 초과 - AI가 의약품 정보 생성`);
-        return this.generateAIMedicineInfo(medicineName, numOfRows);
+        const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
+        await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
+        return aiResults;
       }
       
       if (!this.SERVICE_KEY) {
         console.warn('[API] MFDS_API_KEY 미설정 - AI가 의약품 정보 생성');
-        return this.generateAIMedicineInfo(medicineName, numOfRows);
+        const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
+        await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
+        return aiResults;
       }
       
       // ================================================================
@@ -211,8 +237,10 @@ export class ExternalApiClient {
 
         if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
           recordApiUsage('eDrugApi', 1);
-          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 2,3단계 생략`);
-          return response.data.body.items; // 1단계에서 찾으면 바로 반환
+          const results = response.data.body.items;
+          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 캐시 저장 후 반환`);
+          await this.saveMedicineToCache(medicineName, results, 'e약은요');
+          return results;
         }
       } catch (step1Error) {
         console.warn(`[1단계-e약은요] API 오류:`, step1Error.message);
@@ -223,15 +251,18 @@ export class ExternalApiClient {
       // ================================================================
       if (!canUseApi('eDrugApi')) {
         console.log(`[2단계] API 한도 초과 - AI 대체`);
-        return this.generateAIMedicineInfo(medicineName, numOfRows);
+        const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
+        await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
+        return aiResults;
       }
       
       console.log(`[2단계-의약품허가] 전문의약품 조회: ${medicineName}`);
       const approvalResults = await this.searchPrescriptionDrug(medicineName, numOfRows);
       
       if (approvalResults && approvalResults.length > 0) {
-        console.log(`[2단계-의약품허가] ✅ ${approvalResults.length}건 검색됨 - 3단계 생략`);
-        return approvalResults; // 2단계에서 찾으면 바로 반환
+        console.log(`[2단계-의약품허가] ✅ ${approvalResults.length}건 검색됨 - 캐시 저장 후 반환`);
+        await this.saveMedicineToCache(medicineName, approvalResults, '의약품허가정보');
+        return approvalResults;
       }
 
       // ================================================================
@@ -239,14 +270,17 @@ export class ExternalApiClient {
       // ================================================================
       if (!canUseApi('healthFoodApi')) {
         console.log(`[3단계] API 한도 초과 - AI 대체`);
-        return this.generateAIMedicineInfo(medicineName, numOfRows);
+        const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
+        await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
+        return aiResults;
       }
       
       console.log(`[3단계-건강기능식품] 조회: ${medicineName}`);
       const healthFoodResults = await this.searchHealthFunctionalFood(medicineName, numOfRows);
       
       if (healthFoodResults && healthFoodResults.length > 0) {
-        console.log(`[3단계-건강기능식품] ✅ ${healthFoodResults.length}건 검색됨`);
+        console.log(`[3단계-건강기능식품] ✅ ${healthFoodResults.length}건 검색됨 - 캐시 저장 후 반환`);
+        await this.saveMedicineToCache(medicineName, healthFoodResults, '건강기능식품');
         return healthFoodResults;
       }
 
@@ -254,11 +288,22 @@ export class ExternalApiClient {
       // 4단계: 모든 API에서 검색 실패 - AI가 대체
       // ================================================================
       console.log(`[API 검색 실패] 모든 단계에서 결과 없음 - AI가 정보 생성: ${medicineName}`);
-      return this.generateAIMedicineInfo(medicineName, numOfRows);
+      const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
+      await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
+      return aiResults;
       
     } catch (error) {
       console.error('[getMedicineInfo] 오류 발생 - AI 대체:', error.message);
       return this.generateAIMedicineInfo(medicineName, numOfRows);
+    }
+  }
+
+  /**
+   * 의약품 검색 결과 캐시 저장 헬퍼
+   */
+  private async saveMedicineToCache(keyword: string, results: any[], source: string): Promise<void> {
+    if (this.supabaseService && results && results.length > 0) {
+      await this.supabaseService.saveMedicineCache(keyword, results, source);
     }
   }
 

@@ -295,5 +295,121 @@ export class SupabaseService {
       return [];
     }
   }
+
+  // ================================================================
+  // 의약품 검색 결과 캐싱 (API 호출 절약)
+  // ================================================================
+
+  /**
+   * 의약품 검색 캐시 조회
+   * @param searchKeyword 검색 키워드
+   * @returns 캐시된 검색 결과 또는 null
+   */
+  async getMedicineCached(searchKeyword: string): Promise<any[] | null> {
+    try {
+      const normalizedKeyword = searchKeyword.trim().toLowerCase();
+      
+      const { data, error } = await this.supabase
+        .from('medicine_cache')
+        .select('*')
+        .eq('search_keyword', normalizedKeyword)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      // 캐시 만료 확인 (30일)
+      const expiresAt = new Date(data.expires_at);
+      if (expiresAt < new Date()) {
+        console.log(`[MedicineCache] 캐시 만료됨: ${searchKeyword}`);
+        return null;
+      }
+
+      // 히트 카운트 증가
+      await this.supabase
+        .from('medicine_cache')
+        .update({ 
+          hit_count: (data.hit_count || 0) + 1,
+          last_hit_at: new Date().toISOString()
+        })
+        .eq('id', data.id);
+
+      console.log(`[MedicineCache] ✅ 캐시 히트: ${searchKeyword} (${data.result_count}건, 히트: ${data.hit_count + 1}회)`);
+      
+      return data.results;
+    } catch (error) {
+      console.warn(`[MedicineCache] 조회 오류:`, error.message);
+      return null;
+    }
+  }
+
+  /**
+   * 의약품 검색 결과 캐시 저장
+   * @param searchKeyword 검색 키워드
+   * @param results 검색 결과 배열
+   * @param source 데이터 출처 (e약은요, 의약품허가, 건강기능식품, AI)
+   */
+  async saveMedicineCache(searchKeyword: string, results: any[], source: string): Promise<void> {
+    try {
+      const normalizedKeyword = searchKeyword.trim().toLowerCase();
+      const expiresAt = new Date();
+      expiresAt.setDate(expiresAt.getDate() + 30); // 30일 후 만료
+
+      const { error } = await this.supabase
+        .from('medicine_cache')
+        .upsert([{
+          search_keyword: normalizedKeyword,
+          results: results,
+          result_count: results.length,
+          source: source,
+          hit_count: 0,
+          expires_at: expiresAt.toISOString(),
+          created_at: new Date().toISOString(),
+        }], {
+          onConflict: 'search_keyword'
+        });
+
+      if (error) {
+        console.warn(`[MedicineCache] 저장 실패:`, error.message);
+      } else {
+        console.log(`[MedicineCache] 저장 완료: ${searchKeyword} (${results.length}건, 출처: ${source})`);
+      }
+    } catch (error) {
+      console.warn(`[MedicineCache] 저장 오류:`, error.message);
+    }
+  }
+
+  /**
+   * 의약품 캐시 통계 조회
+   */
+  async getMedicineCacheStatistics(): Promise<any> {
+    try {
+      const { data, error } = await this.supabase
+        .from('medicine_cache')
+        .select('search_keyword, result_count, hit_count, source, created_at');
+
+      if (error || !data) {
+        return null;
+      }
+
+      const totalEntries = data.length;
+      const totalHits = data.reduce((sum, item) => sum + (item.hit_count || 0), 0);
+      const bySource = data.reduce((acc, item) => {
+        acc[item.source] = (acc[item.source] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      return {
+        totalEntries,
+        totalHits,
+        apiCallsSaved: totalHits, // 캐시 히트 = API 호출 절약
+        bySource,
+      };
+    } catch (error) {
+      console.warn(`[MedicineCache] 통계 조회 오류:`, error.message);
+      return null;
+    }
+  }
 }
 

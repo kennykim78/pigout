@@ -15,7 +15,10 @@ export class FoodService {
     private readonly openDataService: OpenDataService,
     private readonly externalApiClient: ExternalApiClient,
     private readonly usersService: UsersService,
-  ) {}
+  ) {
+    // 의약품 검색 캐싱을 위해 SupabaseService 주입
+    this.externalApiClient.setSupabaseService(supabaseService);
+  }
 
   private async getGeminiClient() {
     if (!this.geminiClient) {

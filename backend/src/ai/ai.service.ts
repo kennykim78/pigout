@@ -29,6 +29,8 @@ export class AiService {
     this.geminiClient = new GeminiClient(geminiApiKey);
     this.scoreCalculator = new ScoreCalculator();
     this.externalApiClient = new ExternalApiClient();
+    // 캐싱을 위해 SupabaseService 주입
+    this.externalApiClient.setSupabaseService(supabaseService);
   }
 
   /**
