@@ -186,6 +186,8 @@ export class ExternalApiClient {
         console.warn('[e약은요] MFDS_API_KEY 미설정 - Mock 데이터 사용');
         return this.generateMockMedicines(medicineName);
       }
+      
+      // 1단계: e약은요 API 검색 (일반의약품)
       const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
       
       console.log(`[e약은요] 의약품 조회: ${medicineName}`);
@@ -207,11 +209,20 @@ export class ExternalApiClient {
       if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
         // API 호출 성공 시 사용량 기록
         recordApiUsage('eDrugApi', 1);
-        console.log(`[e약은요] ${response.data.body.totalCount}건 검색됨`);
+        console.log(`[e약은요] ${response.data.body.totalCount}건 검색됨 (일반의약품)`);
         return response.data.body.items;
       }
 
-      console.log(`[e약은요] 검색 결과 없음`);
+      // 2단계: e약은요에 없으면 의약품 허가정보 API 검색 (전문의약품 포함)
+      console.log(`[e약은요] 일반의약품 검색 결과 없음. 전문의약품 검색 시도...`);
+      const approvalResults = await this.searchPrescriptionDrug(medicineName, numOfRows);
+      
+      if (approvalResults && approvalResults.length > 0) {
+        console.log(`[의약품허가정보] ${approvalResults.length}건 검색됨 (전문의약품 포함)`);
+        return approvalResults;
+      }
+
+      console.log(`[의약품] 검색 결과 없음: ${medicineName}`);
       return [];
     } catch (error) {
       console.error('[e약은요] API error:', error.message);
@@ -221,6 +232,76 @@ export class ExternalApiClient {
       }
       return [];
     }
+  }
+
+  /**
+   * 전문의약품 검색 (의약품 허가정보 API)
+   * e약은요에서 검색되지 않는 전문의약품(콜킨, 콜키신 등)을 검색
+   * @param medicineName 의약품명
+   * @param numOfRows 조회할 행 수
+   */
+  async searchPrescriptionDrug(medicineName: string, numOfRows: number = 20): Promise<any[]> {
+    try {
+      const url = `${this.MFDS_BASE_URL}/DrugPrdtPrmsnInfoService05/getDrugPrdtPrmsnDtlInq04`;
+      
+      console.log(`[의약품허가정보] 전문의약품 조회: ${medicineName}`);
+      
+      const response = await axios.get(url, {
+        params: {
+          serviceKey: this.SERVICE_KEY,
+          item_name: medicineName,
+          numOfRows: numOfRows,
+          pageNo: 1,
+          type: 'json',
+        },
+        timeout: 15000,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const body = response.data?.body;
+      if (body?.items) {
+        const items = Array.isArray(body.items) ? body.items : 
+                      (body.items.item ? (Array.isArray(body.items.item) ? body.items.item : [body.items.item]) : []);
+        
+        if (items.length > 0) {
+          recordApiUsage('eDrugApi', 1);
+          // 전문의약품 데이터를 e약은요 형식으로 변환
+          return items.map((item: any) => this.convertApprovalToEasyDrugFormat(item));
+        }
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('[의약품허가정보] API error:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * 의약품 허가정보 데이터를 e약은요 형식으로 변환
+   * Result2에서 동일한 형식으로 처리할 수 있도록 함
+   */
+  private convertApprovalToEasyDrugFormat(approvalItem: any): any {
+    return {
+      itemName: approvalItem.ITEM_NAME || approvalItem.item_name || '',
+      entpName: approvalItem.ENTP_NAME || approvalItem.entp_name || '',
+      itemSeq: approvalItem.ITEM_SEQ || approvalItem.item_seq || '',
+      efcyQesitm: approvalItem.EE_DOC_DATA || approvalItem.EE_DOC_ID || '효능효과 정보는 의사/약사와 상담하세요.',
+      useMethodQesitm: approvalItem.UD_DOC_DATA || approvalItem.UD_DOC_ID || '용법용량 정보는 의사/약사와 상담하세요.',
+      atpnWarnQesitm: approvalItem.NB_DOC_DATA || '',
+      atpnQesitm: approvalItem.NB_DOC_DATA || '주의사항 정보는 의사/약사와 상담하세요.',
+      intrcQesitm: '상호작용 정보는 의사/약사와 상담하세요.',
+      seQesitm: '부작용 정보는 의사/약사와 상담하세요.',
+      depositMethodQesitm: approvalItem.STORAGE_METHOD || '보관방법 정보는 의사/약사와 상담하세요.',
+      itemImage: approvalItem.BIG_PRDT_IMG_URL || approvalItem.itemImage || '',
+      // 전문의약품 표시
+      _isPrescriptionDrug: true,
+      _source: '의약품허가정보API',
+      // 원본 데이터 보존
+      _originalData: approvalItem,
+    };
   }
 
   /**
