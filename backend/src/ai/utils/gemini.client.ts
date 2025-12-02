@@ -1288,5 +1288,104 @@ JSON 형식으로만 응답:
       throw new Error(`AI drug interaction analysis failed: ${error.message}`);
     }
   }
-}
 
+  /**
+   * AI가 의약품/건강기능식품 정보 생성 (API 한도 초과 또는 검색 실패 시 대체)
+   * @param productName 제품명
+   * @param numOfRows 생성할 결과 수
+   */
+  async generateMedicineInfo(productName: string, numOfRows: number = 5): Promise<any[]> {
+    try {
+      console.log(`[AI] 의약품/건강기능식품 정보 생성: ${productName}`);
+      
+      const prompt = `당신은 의약품 및 건강기능식품 전문가입니다.
+사용자가 "${productName}"을(를) 검색했습니다.
+
+이 제품과 관련된 의약품 또는 건강기능식품 정보를 ${Math.min(numOfRows, 5)}개 생성해주세요.
+실제로 존재하는 제품명과 유사하게 생성하되, 정확한 정보를 제공해주세요.
+
+다음 JSON 배열 형식으로 응답하세요:
+[
+  {
+    "itemName": "정확한 제품명 (브랜드명 포함)",
+    "entpName": "제조사명",
+    "itemSeq": "고유번호",
+    "efcyQesitm": "효능효과 (100자 이상 상세히)",
+    "useMethodQesitm": "용법용량 (복용 방법, 횟수, 주의점 포함)",
+    "atpnWarnQesitm": "경고 주의사항",
+    "atpnQesitm": "일반 주의사항 (복용 시 주의할 점)",
+    "intrcQesitm": "상호작용 (다른 약물/음식과의 상호작용)",
+    "seQesitm": "이상반응 (부작용)",
+    "depositMethodQesitm": "보관방법",
+    "productType": "일반의약품|전문의약품|건강기능식품"
+  }
+]
+
+# 규칙:
+1. "${productName}"과 관련된 실제 존재하는 제품 정보를 기반으로 생성
+2. 효능, 용법, 주의사항은 정확하고 상세하게 작성
+3. 의약품이면 성분명도 포함
+4. 건강기능식품이면 기능성 원료 포함
+5. JSON 배열만 응답 (다른 텍스트 없이)`;
+
+      let rawText: string;
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+      }
+
+      const parsed = this.extractJsonArray(rawText);
+      
+      if (parsed && parsed.length > 0) {
+        // e약은요 형식으로 변환하여 반환
+        return parsed.map((item: any, idx: number) => ({
+          itemName: item.itemName || productName,
+          entpName: item.entpName || 'AI 생성',
+          itemSeq: item.itemSeq || `AI_${Date.now()}_${idx}`,
+          efcyQesitm: item.efcyQesitm || '',
+          useMethodQesitm: item.useMethodQesitm || '',
+          atpnWarnQesitm: item.atpnWarnQesitm || '',
+          atpnQesitm: item.atpnQesitm || '',
+          intrcQesitm: item.intrcQesitm || '',
+          seQesitm: item.seQesitm || '',
+          depositMethodQesitm: item.depositMethodQesitm || '',
+          itemImage: '',
+          _isAIGenerated: true,
+          _source: 'AI 생성 (Gemini)',
+          _productType: item.productType || '정보 없음',
+        }));
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('[AI] 의약품 정보 생성 실패:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * JSON 배열 추출 헬퍼
+   */
+  private extractJsonArray(raw: string): any[] {
+    try {
+      let cleaned = raw.trim();
+      cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
+      
+      // 배열 시작/끝 찾기
+      const startIdx = cleaned.indexOf('[');
+      const endIdx = cleaned.lastIndexOf(']');
+      
+      if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
+        const jsonStr = cleaned.substring(startIdx, endIdx + 1);
+        return JSON.parse(jsonStr);
+      }
+      
+      return [];
+    } catch {
+      return [];
+    }
+  }
+}

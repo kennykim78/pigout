@@ -176,71 +176,153 @@ export class ExternalApiClient {
    */
   async getMedicineInfo(medicineName: string, numOfRows: number = 20): Promise<any> {
     try {
-      // API 사용량 체크 - 한도 초과 시 빈 배열 반환 (AI가 대체)
+      // API 사용량 체크 - 한도 초과 시 AI가 대체
       if (!canUseApi('eDrugApi')) {
-        console.log(`[e약은요] 일일 한도 초과 - AI 분석으로 대체`);
-        return [];
+        console.log(`[API] 일일 한도 초과 - AI가 의약품 정보 생성`);
+        return this.generateAIMedicineInfo(medicineName, numOfRows);
       }
       
       if (!this.SERVICE_KEY) {
-        console.warn('[e약은요] MFDS_API_KEY 미설정 - Mock 데이터 사용');
-        return this.generateMockMedicines(medicineName);
+        console.warn('[API] MFDS_API_KEY 미설정 - AI가 의약품 정보 생성');
+        return this.generateAIMedicineInfo(medicineName, numOfRows);
       }
       
+      // ================================================================
       // 1단계: e약은요 API 검색 (일반의약품)
+      // ================================================================
       const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
       
-      console.log(`[e약은요] 의약품 조회: ${medicineName}`);
+      console.log(`[1단계-e약은요] 일반의약품 조회: ${medicineName}`);
       
-      const response = await axios.get(url, {
-        params: {
-          serviceKey: this.SERVICE_KEY,
-          itemName: medicineName,
-          numOfRows: numOfRows,
-          pageNo: 1,
-          type: 'json',
-        },
-        timeout: 15000,
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
+      try {
+        const response = await axios.get(url, {
+          params: {
+            serviceKey: this.SERVICE_KEY,
+            itemName: medicineName,
+            numOfRows: numOfRows,
+            pageNo: 1,
+            type: 'json',
+          },
+          timeout: 15000,
+          headers: {
+            'Accept': 'application/json',
+          },
+        });
 
-      if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
-        // API 호출 성공 시 사용량 기록
-        recordApiUsage('eDrugApi', 1);
-        console.log(`[e약은요] ${response.data.body.totalCount}건 검색됨 (일반의약품)`);
-        return response.data.body.items;
+        if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
+          recordApiUsage('eDrugApi', 1);
+          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 2,3단계 생략`);
+          return response.data.body.items; // 1단계에서 찾으면 바로 반환
+        }
+      } catch (step1Error) {
+        console.warn(`[1단계-e약은요] API 오류:`, step1Error.message);
       }
 
-      // 2단계: e약은요에 없으면 의약품 허가정보 API 검색 (전문의약품 포함)
-      console.log(`[e약은요] 일반의약품 검색 결과 없음. 전문의약품 검색 시도...`);
+      // ================================================================
+      // 2단계: 의약품 허가정보 API 검색 (전문의약품)
+      // ================================================================
+      if (!canUseApi('eDrugApi')) {
+        console.log(`[2단계] API 한도 초과 - AI 대체`);
+        return this.generateAIMedicineInfo(medicineName, numOfRows);
+      }
+      
+      console.log(`[2단계-의약품허가] 전문의약품 조회: ${medicineName}`);
       const approvalResults = await this.searchPrescriptionDrug(medicineName, numOfRows);
       
       if (approvalResults && approvalResults.length > 0) {
-        console.log(`[의약품허가정보] ${approvalResults.length}건 검색됨 (전문의약품 포함)`);
-        return approvalResults;
+        console.log(`[2단계-의약품허가] ✅ ${approvalResults.length}건 검색됨 - 3단계 생략`);
+        return approvalResults; // 2단계에서 찾으면 바로 반환
       }
 
-      // 3단계: 의약품에도 없으면 건강기능식품 API 검색
-      console.log(`[의약품허가정보] 전문의약품 검색 결과 없음. 건강기능식품 검색 시도...`);
+      // ================================================================
+      // 3단계: 건강기능식품 API 검색
+      // ================================================================
+      if (!canUseApi('healthFoodApi')) {
+        console.log(`[3단계] API 한도 초과 - AI 대체`);
+        return this.generateAIMedicineInfo(medicineName, numOfRows);
+      }
+      
+      console.log(`[3단계-건강기능식품] 조회: ${medicineName}`);
       const healthFoodResults = await this.searchHealthFunctionalFood(medicineName, numOfRows);
       
       if (healthFoodResults && healthFoodResults.length > 0) {
-        console.log(`[건강기능식품] ${healthFoodResults.length}건 검색됨`);
+        console.log(`[3단계-건강기능식품] ✅ ${healthFoodResults.length}건 검색됨`);
         return healthFoodResults;
       }
 
-      console.log(`[의약품/건강기능식품] 검색 결과 없음: ${medicineName}`);
-      return [];
+      // ================================================================
+      // 4단계: 모든 API에서 검색 실패 - AI가 대체
+      // ================================================================
+      console.log(`[API 검색 실패] 모든 단계에서 결과 없음 - AI가 정보 생성: ${medicineName}`);
+      return this.generateAIMedicineInfo(medicineName, numOfRows);
+      
     } catch (error) {
-      console.error('[e약은요] API error:', error.message);
-      if (error.response) {
-        console.error('응답 상태:', error.response.status);
-        console.error('응답 데이터:', error.response.data);
+      console.error('[getMedicineInfo] 오류 발생 - AI 대체:', error.message);
+      return this.generateAIMedicineInfo(medicineName, numOfRows);
+    }
+  }
+
+  /**
+   * AI가 의약품/건강기능식품 정보 생성 (API 한도 초과 또는 검색 실패 시)
+   * @param productName 제품명
+   * @param numOfRows 생성할 결과 수
+   */
+  private async generateAIMedicineInfo(productName: string, numOfRows: number = 5): Promise<any[]> {
+    try {
+      console.log(`[AI 대체] ${productName} 정보 생성 중...`);
+      
+      // Gemini AI로 의약품/건강기능식품 정보 생성
+      const geminiClient = await this.getGeminiClientForFallback();
+      if (geminiClient) {
+        const aiResults = await geminiClient.generateMedicineInfo(productName, numOfRows);
+        if (aiResults && aiResults.length > 0) {
+          console.log(`[AI 대체] ✅ ${aiResults.length}건 생성 완료`);
+          return aiResults;
+        }
       }
+      
+      // AI도 실패하면 기본 정보 반환
+      console.log(`[AI 대체] AI 생성 실패 - 기본 정보 반환`);
+      return [{
+        itemName: productName,
+        entpName: '정보 없음',
+        itemSeq: `AI_${Date.now()}`,
+        efcyQesitm: `${productName}의 효능 정보를 확인할 수 없습니다. 의사/약사와 상담하세요.`,
+        useMethodQesitm: '용법용량은 제품 라벨 또는 의사/약사의 지시에 따르세요.',
+        atpnWarnQesitm: '',
+        atpnQesitm: '복용 전 의사/약사와 상담하세요.',
+        intrcQesitm: '다른 약물과의 상호작용은 전문가와 상담하세요.',
+        seQesitm: '이상반응 발생 시 복용을 중단하고 전문가와 상담하세요.',
+        depositMethodQesitm: '서늘하고 건조한 곳에 보관하세요.',
+        itemImage: '',
+        _isAIGenerated: true,
+        _source: 'AI 생성',
+      }];
+    } catch (error) {
+      console.error('[AI 대체] 오류:', error.message);
       return [];
     }
+  }
+
+  /**
+   * AI 대체용 Gemini 클라이언트 가져오기
+   */
+  private async getGeminiClientForFallback(): Promise<any> {
+    try {
+      // GeminiClient가 이미 있으면 사용
+      if (this.geminiClient) {
+        return this.geminiClient;
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  }
+
+  private geminiClient: any = null;
+  
+  setGeminiClient(client: any) {
+    this.geminiClient = client;
   }
 
   /**
