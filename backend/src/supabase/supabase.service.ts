@@ -319,7 +319,7 @@ export class SupabaseService {
         return null;
       }
 
-      // 캐시 만료 확인 (30일)
+      // 캐시 만료 확인 (6개월)
       const expiresAt = new Date(data.expires_at);
       if (expiresAt < new Date()) {
         console.log(`[MedicineCache] 캐시 만료됨: ${searchKeyword}`);
@@ -354,7 +354,7 @@ export class SupabaseService {
     try {
       const normalizedKeyword = searchKeyword.trim().toLowerCase();
       const expiresAt = new Date();
-      expiresAt.setDate(expiresAt.getDate() + 30); // 30일 후 만료
+      expiresAt.setMonth(expiresAt.getMonth() + 6); // 6개월 후 만료
 
       const { error } = await this.supabase
         .from('medicine_cache')

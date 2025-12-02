@@ -9,7 +9,7 @@ CREATE TABLE IF NOT EXISTS medicine_cache (
   source TEXT,                           -- 데이터 출처 (e약은요, 의약품허가, 건강기능식품, AI생성)
   hit_count INTEGER DEFAULT 0,           -- 캐시 히트 횟수
   last_hit_at TIMESTAMPTZ,               -- 마지막 히트 시간
-  expires_at TIMESTAMPTZ NOT NULL,       -- 만료 시간 (30일)
+  expires_at TIMESTAMPTZ NOT NULL,       -- 만료 시간 (6개월)
   created_at TIMESTAMPTZ DEFAULT NOW(),
   updated_at TIMESTAMPTZ DEFAULT NOW()
 );
