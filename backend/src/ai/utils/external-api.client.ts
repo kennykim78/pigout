@@ -222,7 +222,16 @@ export class ExternalApiClient {
         return approvalResults;
       }
 
-      console.log(`[의약품] 검색 결과 없음: ${medicineName}`);
+      // 3단계: 의약품에도 없으면 건강기능식품 API 검색
+      console.log(`[의약품허가정보] 전문의약품 검색 결과 없음. 건강기능식품 검색 시도...`);
+      const healthFoodResults = await this.searchHealthFunctionalFood(medicineName, numOfRows);
+      
+      if (healthFoodResults && healthFoodResults.length > 0) {
+        console.log(`[건강기능식품] ${healthFoodResults.length}건 검색됨`);
+        return healthFoodResults;
+      }
+
+      console.log(`[의약품/건강기능식품] 검색 결과 없음: ${medicineName}`);
       return [];
     } catch (error) {
       console.error('[e약은요] API error:', error.message);
@@ -301,6 +310,86 @@ export class ExternalApiClient {
       _source: '의약품허가정보API',
       // 원본 데이터 보존
       _originalData: approvalItem,
+    };
+  }
+
+  /**
+   * 건강기능식품 검색 (HtfsInfoService03 API)
+   * 의약품에서 검색되지 않는 건강기능식품(오메가3, 비타민 등)을 검색
+   * @param productName 제품명
+   * @param numOfRows 조회할 행 수
+   */
+  async searchHealthFunctionalFood(productName: string, numOfRows: number = 20): Promise<any[]> {
+    try {
+      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsList01`;
+      
+      console.log(`[건강기능식품] 조회: ${productName}`);
+      
+      const response = await axios.get(url, {
+        params: {
+          serviceKey: this.SERVICE_KEY,
+          prdlst_nm: productName,
+          numOfRows: numOfRows,
+          pageNo: 1,
+          type: 'json',
+        },
+        timeout: 15000,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const body = response.data?.body;
+      if (body?.items) {
+        const items = Array.isArray(body.items) ? body.items : 
+                      (body.items.item ? (Array.isArray(body.items.item) ? body.items.item : [body.items.item]) : []);
+        
+        if (items.length > 0) {
+          recordApiUsage('healthFoodApi', 1);
+          // 건강기능식품 데이터를 e약은요 형식으로 변환
+          return items.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item));
+        }
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('[건강기능식품] API error:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * 건강기능식품 데이터를 e약은요 형식으로 변환
+   * 기존 의약품 로직과 호환되도록 변환
+   */
+  private convertHealthFoodToEasyDrugFormat(healthFoodItem: any): any {
+    // 기능성 내용 파싱
+    const functionality = healthFoodItem.PRIMARY_FNCLTY || healthFoodItem.FNCLTY_CN || '';
+    // 섭취 방법 파싱  
+    const intakeMethod = healthFoodItem.INTAKE_HINT1 || healthFoodItem.NTK_MTHD || '';
+    // 주의사항 파싱
+    const caution = healthFoodItem.CSTDY_MTHD || healthFoodItem.IFTKN_ATNT_MATR_CN || '';
+    
+    return {
+      itemName: healthFoodItem.PRDLST_NM || healthFoodItem.prdlst_nm || '',
+      entpName: healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || healthFoodItem.entrps || '',
+      itemSeq: healthFoodItem.PRDLST_REPORT_NO || healthFoodItem.prdlst_report_no || `HF_${Date.now()}`,
+      efcyQesitm: functionality || '건강기능식품입니다. 기능성 정보는 제품 라벨을 확인하세요.',
+      useMethodQesitm: intakeMethod || '섭취 방법은 제품 라벨을 확인하세요.',
+      atpnWarnQesitm: caution || '',
+      atpnQesitm: caution || '주의사항은 제품 라벨을 확인하세요.',
+      intrcQesitm: '의약품과 함께 복용 시 전문가와 상담하세요.',
+      seQesitm: '이상반응 발생 시 섭취를 중단하고 전문가와 상담하세요.',
+      depositMethodQesitm: healthFoodItem.CSTDY_MTHD || '서늘하고 건조한 곳에 보관하세요.',
+      itemImage: '',
+      // 건강기능식품 표시
+      _isHealthFunctionalFood: true,
+      _source: '건강기능식품정보API',
+      // 추가 정보
+      _rawMaterial: healthFoodItem.RAWMTRL_NM || healthFoodItem.rawmtrl_nm || '',
+      _shelfLife: healthFoodItem.POG_DAYCNT || '',
+      // 원본 데이터 보존
+      _originalData: healthFoodItem,
     };
   }
 
