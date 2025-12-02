@@ -297,11 +297,11 @@ export class FoodService {
       console.log(`\n[1단계] 복용 약물: ${medicines?.length || 0}개`);
       
       // ================================================================
-      // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인 (Result02)
+      // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인 (Result02 - 전체분석)
       // ================================================================
       const medicineNames = (medicines || []).map((m: any) => m.name);
-      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames);
-      console.log(`[Cache-Result02] 캐시 키: ${cacheKey.substring(0, 16)}...`);
+      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames, 'full');
+      console.log(`[Cache-Result02] 캐시 키 (full): ${cacheKey.substring(0, 16)}...`);
       
       const cachedResult = await this.supabaseService.getCachedAnalysis(cacheKey);
       if (cachedResult) {
@@ -519,7 +519,7 @@ export class FoodService {
       console.log('[Result02] 히스토리 저장 건너뜀 (Result01 레코드만 유지)');
 
       // ================================================================
-      // 캐시 저장: 다음 동일 요청을 위해 Result02 결과 캐싱
+      // 캐시 저장: 다음 동일 요청을 위해 Result02 결과 캐싱 (전체 분석)
       // ================================================================
       try {
         await this.supabaseService.saveCachedAnalysis({
@@ -530,8 +530,9 @@ export class FoodService {
           detailedAnalysis,
           diseases,
           medicines: medicineNames,
+          analysisMode: 'full', // Result02 전체 분석
         });
-        console.log('[Cache-Result02] 캐시 저장 완료');
+        console.log('[Cache-Result02] 캐시 저장 완료 (full)');
       } catch (cacheError) {
         console.warn('[Cache-Result02] 캐시 저장 실패 (분석은 성공):', cacheError.message);
       }
@@ -668,10 +669,10 @@ export class FoodService {
       // ================================================================
 
       // ================================================================
-      // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인
+      // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인 (Result01 - 빠른분석)
       // ================================================================
-      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames);
-      console.log(`[Cache] 캐시 키: ${cacheKey.substring(0, 16)}...`);
+      const cacheKey = this.supabaseService.generateCacheKey(normalizedFoodName, diseases, medicineNames, 'quick');
+      console.log(`[Cache-Result01] 캐시 키 (quick): ${cacheKey.substring(0, 16)}...`);
       
       const cachedResult = await this.supabaseService.getCachedAnalysis(cacheKey);
       if (cachedResult) {

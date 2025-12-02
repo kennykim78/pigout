@@ -130,13 +130,14 @@ export class SupabaseService {
   // ================================================================
 
   /**
-   * 캐시 키 생성: 음식명 + 질병목록 + 약물목록의 MD5 해시
+   * 캐시 키 생성: 음식명 + 질병목록 + 약물목록 + 분석모드의 MD5 해시
+   * @param analysisMode 분석 모드 ('quick' | 'full') - Result01과 Result02 캐시 분리용
    */
-  generateCacheKey(foodName: string, diseases: string[], medicines: string[]): string {
+  generateCacheKey(foodName: string, diseases: string[], medicines: string[], analysisMode: string = 'full'): string {
     const normalizedFood = foodName.trim().toLowerCase();
     const sortedDiseases = [...diseases].sort().join(',').toLowerCase();
     const sortedMedicines = [...medicines].sort().join(',').toLowerCase();
-    const raw = `${normalizedFood}|${sortedDiseases}|${sortedMedicines}`;
+    const raw = `${normalizedFood}|${sortedDiseases}|${sortedMedicines}|${analysisMode}`;
     return crypto.createHash('md5').update(raw).digest('hex');
   }
 
