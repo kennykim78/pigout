@@ -747,6 +747,11 @@ const Medicine = () => {
                   <p className="medicine__results-count">전체 검색 결과: {healthFoodResults.length}건</p>
                   <p className="medicine__results-info" style={{ fontSize: '12px', color: '#666', marginTop: '-8px', marginBottom: '12px' }}>
                     🥗 건강기능식품 정보입니다. 기능성 내용을 확인하고 선택하세요.
+                    {healthFoodResults.some(r => r._isAIGenerated) && (
+                      <span style={{ display: 'block', color: '#FF9800', marginTop: '4px' }}>
+                        ⚠️ AI가 실제 제품 정보를 기반으로 생성한 결과가 포함되어 있습니다.
+                      </span>
+                    )}
                   </p>
                   {(() => {
                     const totalPages = Math.ceil(healthFoodResults.length / itemsPerPage);
@@ -758,16 +763,29 @@ const Medicine = () => {
                       <>
                         {currentResults.map((result, index) => (
                           <div key={result.itemSeq || index} className="medicine__result-card medicine__result-card--healthfood">
-                            <div className="medicine__result-badge" style={{ 
-                              display: 'inline-block', 
-                              backgroundColor: '#4CAF50', 
-                              color: 'white', 
-                              padding: '2px 8px', 
-                              borderRadius: '12px', 
-                              fontSize: '11px',
-                              marginBottom: '8px'
-                            }}>
-                              🥗 건강기능식품
+                            <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                              <div className="medicine__result-badge" style={{ 
+                                display: 'inline-block', 
+                                backgroundColor: '#4CAF50', 
+                                color: 'white', 
+                                padding: '2px 8px', 
+                                borderRadius: '12px', 
+                                fontSize: '11px',
+                              }}>
+                                🥗 건강기능식품
+                              </div>
+                              {result._isAIGenerated && (
+                                <div style={{ 
+                                  display: 'inline-block', 
+                                  backgroundColor: '#FF9800', 
+                                  color: 'white', 
+                                  padding: '2px 8px', 
+                                  borderRadius: '12px', 
+                                  fontSize: '11px',
+                                }}>
+                                  🤖 AI 추천
+                                </div>
+                              )}
                             </div>
                             <h4>{result.itemName}</h4>
                             <p className="medicine__result-manufacturer">제조사: {result.entpName}</p>

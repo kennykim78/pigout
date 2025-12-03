@@ -133,6 +133,7 @@ export class MedicineService {
   /**
    * 건강기능식품 전용 검색 (HtfsInfoService03 API 사용)
    * 의약품 검색과 분리하여 건강기능식품만 검색
+   * API 결과가 없으면 AI가 실제 존재하는 제품을 기반으로 정보 생성
    */
   async searchHealthFood(keyword: string) {
     try {
@@ -140,32 +141,55 @@ export class MedicineService {
       
       const apiLimit = 100;
       
-      // 건강기능식품 API만 사용
+      // 건강기능식품 API 검색
       const results = await this.externalApiClient.searchHealthFunctionalFood(keyword, apiLimit);
       
-      if (!results || results.length === 0) {
-        console.log(`[건강기능식품 검색] 결과 없음`);
-        return [];
+      if (results && results.length > 0) {
+        // API 결과를 프론트엔드 형식으로 변환
+        const formattedResults = results.map((item: any) => ({
+          itemSeq: item.itemSeq,
+          itemName: item.itemName,
+          entpName: item.entpName,
+          efcyQesitm: item.efcyQesitm,
+          useMethodQesitm: item.useMethodQesitm,
+          atpnWarnQesitm: item.atpnWarnQesitm,
+          atpnQesitm: item.atpnQesitm,
+          intrcQesitm: item.intrcQesitm,
+          seQesitm: item.seQesitm,
+          depositMethodQesitm: item.depositMethodQesitm,
+          _isHealthFunctionalFood: true,
+          _rawMaterial: item._rawMaterial || '',
+        }));
+        
+        console.log(`[건강기능식품 검색] ✅ ${formattedResults.length}건 검색됨`);
+        return formattedResults;
       }
       
-      // 결과를 프론트엔드 형식으로 변환
-      const formattedResults = results.map((item: any) => ({
-        itemSeq: item.itemSeq,
-        itemName: item.itemName,
-        entpName: item.entpName,
-        efcyQesitm: item.efcyQesitm,
-        useMethodQesitm: item.useMethodQesitm,
-        atpnWarnQesitm: item.atpnWarnQesitm,
-        atpnQesitm: item.atpnQesitm,
-        intrcQesitm: item.intrcQesitm,
-        seQesitm: item.seQesitm,
-        depositMethodQesitm: item.depositMethodQesitm,
-        _isHealthFunctionalFood: true,
-        _rawMaterial: item._rawMaterial || '',
-      }));
+      // API 결과가 없으면 AI가 실제 존재하는 건강기능식품 정보 생성
+      console.log(`[건강기능식품 검색] API 결과 없음 - AI가 실제 제품 기반으로 정보 생성`);
+      const aiResults = await this.externalApiClient.generateAIHealthFoodInfo(keyword, 10);
       
-      console.log(`[건강기능식품 검색] ${formattedResults.length}건 검색됨`);
-      return formattedResults;
+      if (aiResults && aiResults.length > 0) {
+        console.log(`[건강기능식품 검색] ✅ AI 생성 ${aiResults.length}건`);
+        return aiResults.map((item: any) => ({
+          itemSeq: item.itemSeq,
+          itemName: item.itemName,
+          entpName: item.entpName,
+          efcyQesitm: item.efcyQesitm,
+          useMethodQesitm: item.useMethodQesitm,
+          atpnWarnQesitm: item.atpnWarnQesitm,
+          atpnQesitm: item.atpnQesitm,
+          intrcQesitm: item.intrcQesitm,
+          seQesitm: item.seQesitm,
+          depositMethodQesitm: item.depositMethodQesitm,
+          _isHealthFunctionalFood: true,
+          _isAIGenerated: true,
+          _rawMaterial: item._rawMaterial || '',
+        }));
+      }
+      
+      console.log(`[건강기능식품 검색] 결과 없음`);
+      return [];
     } catch (error) {
       console.error('[건강기능식품 검색] 오류:', error.message);
       throw error;

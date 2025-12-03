@@ -1432,6 +1432,86 @@ JSON 형식으로만 응답:
   }
 
   /**
+   * AI가 건강기능식품 정보 생성 (API 검색 실패 시 대체)
+   * 실제 존재하는 건강기능식품을 기반으로 정보 생성
+   * @param keyword 검색 키워드 (예: 오메가3, 비타민D, 유산균)
+   * @param numOfRows 생성할 결과 수
+   */
+  async generateHealthFoodInfo(keyword: string, numOfRows: number = 10): Promise<any[]> {
+    try {
+      console.log(`[AI] 건강기능식품 정보 생성: ${keyword}`);
+      
+      const prompt = `당신은 건강기능식품 전문가입니다.
+사용자가 "${keyword}"을(를) 검색했습니다.
+
+**중요: 실제로 한국에서 판매되고 있는 건강기능식품 제품을 기반으로 정보를 제공해주세요.**
+
+"${keyword}"과 관련된 실제 건강기능식품 정보를 ${Math.min(numOfRows, 10)}개 생성해주세요.
+
+다음 JSON 배열 형식으로 응답하세요:
+[
+  {
+    "itemName": "실제 제품명 (브랜드명 + 제품명, 예: 종근당 오메가3)",
+    "entpName": "제조사명 (예: 종근당건강, 뉴트리원, 안국건강)",
+    "itemSeq": "고유번호",
+    "efcyQesitm": "기능성 내용 (혈행 개선, 눈 건강 등 식약처 인정 기능성 포함)",
+    "useMethodQesitm": "1일 섭취량, 섭취 방법, 섭취 시기 등",
+    "atpnWarnQesitm": "경고 주의사항 (알레르기 등)",
+    "atpnQesitm": "섭취 시 주의사항",
+    "intrcQesitm": "의약품/음식과의 상호작용 주의사항",
+    "seQesitm": "이상반응",
+    "depositMethodQesitm": "보관방법",
+    "rawMaterial": "주원료 (예: EPA, DHA, 비타민D, 프로바이오틱스 균주명)"
+  }
+]
+
+# 규칙:
+1. 실제 한국에서 판매되는 건강기능식품 브랜드/제품명 사용 (종근당, 안국건강, 뉴트리원, 대웅제약, 일양약품, 고려은단 등)
+2. 식약처 인정 기능성 원료 및 기능성 내용 정확하게 기재
+3. "${keyword}"과 관련된 다양한 제품 (다른 브랜드, 다른 성분 조합) 포함
+4. 실제 섭취량 및 방법 기재 (예: 1일 1회 1캡슐)
+5. JSON 배열만 응답 (다른 텍스트 없이)`;
+
+      let rawText: string;
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+      }
+
+      const parsed = this.extractJsonArray(rawText);
+      
+      if (parsed && parsed.length > 0) {
+        // e약은요 형식으로 변환하여 반환
+        return parsed.map((item: any, idx: number) => ({
+          itemName: item.itemName || keyword,
+          entpName: item.entpName || 'AI 생성',
+          itemSeq: item.itemSeq || `AI_HF_${Date.now()}_${idx}`,
+          efcyQesitm: item.efcyQesitm || '',
+          useMethodQesitm: item.useMethodQesitm || '',
+          atpnWarnQesitm: item.atpnWarnQesitm || '',
+          atpnQesitm: item.atpnQesitm || '',
+          intrcQesitm: item.intrcQesitm || '',
+          seQesitm: item.seQesitm || '',
+          depositMethodQesitm: item.depositMethodQesitm || '',
+          itemImage: '',
+          _isAIGenerated: true,
+          _isHealthFunctionalFood: true,
+          _source: 'AI 생성 (Gemini)',
+          _rawMaterial: item.rawMaterial || '',
+        }));
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('[AI] 건강기능식품 정보 생성 실패:', error.message);
+      return [];
+    }
+  }
+
+  /**
    * JSON 배열 추출 헬퍼
    */
   private extractJsonArray(raw: string): any[] {

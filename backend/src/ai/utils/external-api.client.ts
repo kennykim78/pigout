@@ -343,6 +343,51 @@ export class ExternalApiClient {
   }
 
   /**
+   * AI가 건강기능식품 정보 생성 (API 검색 실패 시 대체)
+   * 실제 존재하는 건강기능식품을 기반으로 정보 생성
+   * @param productName 제품명/키워드
+   * @param numOfRows 생성할 결과 수
+   */
+  async generateAIHealthFoodInfo(productName: string, numOfRows: number = 10): Promise<any[]> {
+    try {
+      console.log(`[AI 건강기능식품] ${productName} 정보 생성 중...`);
+      
+      // Gemini AI로 건강기능식품 정보 생성
+      const geminiClient = await this.getGeminiClientForFallback();
+      if (geminiClient) {
+        const aiResults = await geminiClient.generateHealthFoodInfo(productName, numOfRows);
+        if (aiResults && aiResults.length > 0) {
+          console.log(`[AI 건강기능식품] ✅ ${aiResults.length}건 생성 완료`);
+          return aiResults;
+        }
+      }
+      
+      // AI도 실패하면 기본 정보 반환
+      console.log(`[AI 건강기능식품] AI 생성 실패 - 기본 정보 반환`);
+      return [{
+        itemName: productName,
+        entpName: '정보 없음',
+        itemSeq: `AI_HF_${Date.now()}`,
+        efcyQesitm: `${productName} 관련 건강기능식품입니다. 기능성 정보는 제품 라벨을 확인하세요.`,
+        useMethodQesitm: '섭취 방법은 제품 라벨을 확인하세요.',
+        atpnWarnQesitm: '',
+        atpnQesitm: '섭취 전 전문가와 상담하세요.',
+        intrcQesitm: '의약품과 함께 섭취 시 전문가와 상담하세요.',
+        seQesitm: '이상반응 발생 시 섭취를 중단하고 전문가와 상담하세요.',
+        depositMethodQesitm: '서늘하고 건조한 곳에 보관하세요.',
+        itemImage: '',
+        _isAIGenerated: true,
+        _isHealthFunctionalFood: true,
+        _source: 'AI 생성',
+        _rawMaterial: '',
+      }];
+    } catch (error) {
+      console.error('[AI 건강기능식품] 오류:', error.message);
+      return [];
+    }
+  }
+
+  /**
    * AI 대체용 Gemini 클라이언트 가져오기
    */
   private async getGeminiClientForFallback(): Promise<any> {
