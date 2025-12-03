@@ -382,6 +382,29 @@ export class SupabaseService {
   }
 
   /**
+   * 무효한 의약품 캐시 삭제
+   * @param searchKeyword 검색 키워드
+   */
+  async deleteMedicineCache(searchKeyword: string): Promise<void> {
+    try {
+      const normalizedKeyword = searchKeyword.trim().toLowerCase();
+      
+      const { error } = await this.supabase
+        .from('medicine_cache')
+        .delete()
+        .eq('search_keyword', normalizedKeyword);
+
+      if (error) {
+        console.warn(`[MedicineCache] 삭제 실패:`, error.message);
+      } else {
+        console.log(`[MedicineCache] 무효 캐시 삭제: ${searchKeyword}`);
+      }
+    } catch (error) {
+      console.warn(`[MedicineCache] 삭제 오류:`, error.message);
+    }
+  }
+
+  /**
    * 의약품 캐시 통계 조회
    */
   async getMedicineCacheStatistics(): Promise<any> {

@@ -193,8 +193,19 @@ export class ExternalApiClient {
       if (this.supabaseService) {
         const cachedResults = await this.supabaseService.getMedicineCached(medicineName);
         if (cachedResults && cachedResults.length > 0) {
-          console.log(`[0단계-캐시] ✅ DB 캐시 히트: ${medicineName} (${cachedResults.length}건) - API 호출 생략`);
-          return cachedResults;
+          // 캐시된 데이터 유효성 검사: itemName이 비어있거나 잘못된 데이터 필터링
+          const validResults = cachedResults.filter((item: any) => 
+            item.itemName && item.itemName.trim() !== ''
+          );
+          
+          if (validResults.length > 0) {
+            console.log(`[0단계-캐시] ✅ DB 캐시 히트: ${medicineName} (${validResults.length}건) - API 호출 생략`);
+            return validResults;
+          } else {
+            console.log(`[0단계-캐시] ⚠️ 캐시 데이터 무효 (itemName 비어있음): ${medicineName} - API 재조회`);
+            // 무효한 캐시 삭제
+            await this.supabaseService.deleteMedicineCache(medicineName);
+          }
         }
       }
 
