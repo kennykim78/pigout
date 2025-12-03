@@ -633,7 +633,10 @@ export class ExternalApiClient {
   /**
    * 건강기능식품 검색 (상세정보 API 사용)
    * 의약품에서 검색되지 않는 건강기능식품(오메가3, 비타민 등)을 검색
-   * getHtfsItem01 API 사용 - 주요 기능성, 섭취방법, 주의사항 등 상세정보 포함
+   * 
+   * 주의: API가 검색 파라미터를 무시하고 전체 목록을 반환하므로,
+   * 대량의 데이터를 가져온 후 클라이언트에서 필터링
+   * 
    * @param productName 제품명
    * @param numOfRows 조회할 행 수
    */
@@ -644,15 +647,19 @@ export class ExternalApiClient {
       
       console.log(`[건강기능식품] 상세정보 조회: ${productName}`);
       
+      // API가 검색을 지원하지 않으므로 더 많은 데이터를 가져와서 필터링
+      // 최대 500건까지 가져와서 필터링
+      const fetchSize = 500;
+      
       const response = await axios.get(url, {
         params: {
           serviceKey: this.SERVICE_KEY,
-          prdlst_nm: productName,
-          numOfRows: numOfRows,
+          prdlst_nm: productName, // API가 이를 무시하지만 일단 전송
+          numOfRows: fetchSize,
           pageNo: 1,
           type: 'json',
         },
-        timeout: 15000,
+        timeout: 20000,
         headers: {
           'Accept': 'application/json',
         },
@@ -672,13 +679,40 @@ export class ExternalApiClient {
         }
         
         if (items.length > 0) {
-          console.log(`[건강기능식품] ${items.length}건 검색됨`);
-          recordApiUsage('healthFoodApi', 1);
-          // 건강기능식품 데이터를 e약은요 형식으로 변환
-          return items.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, productName));
+          console.log(`[건강기능식품] API 응답: ${items.length}건`);
+          
+          // 클라이언트 측 필터링: 제품명, 기능성, 원료명에서 키워드 검색
+          const keyword = productName.toLowerCase();
+          const keywords = keyword.split(/\s+/).filter(k => k.length > 0);
+          
+          const filteredItems = items.filter((item: any) => {
+            const prduct = (item.PRDUCT || '').toLowerCase();
+            const mainFnctn = (item.MAIN_FNCTN || '').toLowerCase();
+            const baseStandard = (item.BASE_STANDARD || '').toLowerCase();
+            const srvUse = (item.SRV_USE || '').toLowerCase();
+            
+            // 모든 키워드 중 하나라도 매칭되면 포함
+            return keywords.some(kw => 
+              prduct.includes(kw) || 
+              mainFnctn.includes(kw) || 
+              baseStandard.includes(kw) ||
+              srvUse.includes(kw)
+            );
+          });
+          
+          console.log(`[건강기능식품] 필터링 후: ${filteredItems.length}건 (키워드: ${productName})`);
+          
+          if (filteredItems.length > 0) {
+            recordApiUsage('healthFoodApi', 1);
+            // 건강기능식품 데이터를 e약은요 형식으로 변환 (요청 수만큼만 반환)
+            return filteredItems
+              .slice(0, numOfRows)
+              .map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, productName));
+          }
         }
       }
       
+      console.log(`[건강기능식품] 검색 결과 없음: ${productName}`);
       return [];
     } catch (error) {
       console.error('[건강기능식품] API error:', error.message);
