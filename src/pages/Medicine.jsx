@@ -12,6 +12,7 @@ const Medicine = () => {
   const [searchResults, setSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
   const [activeTab, setActiveTab] = useState('list');
+  const [addSubTab, setAddSubTab] = useState('medicine'); // 'medicine' or 'healthfood'
   const [currentPage, setCurrentPage] = useState(1);
   const itemsPerPage = 20;
   const [showAnalysis, setShowAnalysis] = useState(false);
@@ -340,15 +341,17 @@ const Medicine = () => {
 
   // 탭 이동 핸들러
   const handleTabSwitch = (targetTab, keyword) => {
-    setActiveTab(targetTab);
+    setActiveTab('add');
     if (targetTab === 'healthfood') {
+      setAddSubTab('healthfood');
       setHealthFoodKeyword(keyword);
       setTabSuggestion(null);
       // 자동 검색
       setTimeout(() => {
         document.querySelector('.medicine__search-btn')?.click();
       }, 100);
-    } else if (targetTab === 'add') {
+    } else if (targetTab === 'add' || targetTab === 'medicine') {
+      setAddSubTab('medicine');
       setSearchKeyword(keyword);
       setHealthFoodTabSuggestion(null);
       // 자동 검색
@@ -456,21 +459,33 @@ const Medicine = () => {
           className={`medicine__tab ${activeTab === 'list' ? 'medicine__tab--active' : ''}`}
           onClick={() => setActiveTab('list')}
         >
-          내 약 목록 ({medicines.length})
+          📋 내 약 목록 ({medicines.length})
         </button>
         <button
           className={`medicine__tab ${activeTab === 'add' ? 'medicine__tab--active' : ''}`}
           onClick={() => setActiveTab('add')}
         >
-          💊 의약품
-        </button>
-        <button
-          className={`medicine__tab ${activeTab === 'healthfood' ? 'medicine__tab--active' : ''}`}
-          onClick={() => setActiveTab('healthfood')}
-        >
-          🥗 건강기능식품
+          ➕ 내 약 추가
         </button>
       </div>
+
+      {/* 내 약 추가 탭 내부의 서브탭 */}
+      {activeTab === 'add' && (
+        <div className="medicine__sub-tabs">
+          <button
+            className={`medicine__sub-tab ${addSubTab === 'medicine' ? 'medicine__sub-tab--active' : ''}`}
+            onClick={() => setAddSubTab('medicine')}
+          >
+            💊 의약품 추가
+          </button>
+          <button
+            className={`medicine__sub-tab ${addSubTab === 'healthfood' ? 'medicine__sub-tab--active' : ''}`}
+            onClick={() => setAddSubTab('healthfood')}
+          >
+            🥗 건강기능식품 추가
+          </button>
+        </div>
+      )}
 
       {activeTab === 'list' && (
         <div className="medicine__list">
@@ -630,7 +645,7 @@ const Medicine = () => {
         </div>
       )}
 
-      {activeTab === 'add' && (
+      {activeTab === 'add' && addSubTab === 'medicine' && (
         <div className="medicine__add">
           <section className="medicine__section">
             <h2 className="medicine__section-title">📸 약 촬영하기</h2>
@@ -947,7 +962,7 @@ const Medicine = () => {
         </div>
       )}
 
-      {activeTab === 'healthfood' && (
+      {activeTab === 'add' && addSubTab === 'healthfood' && (
         <div className="medicine__add">
           <section className="medicine__section">
             <h2 className="medicine__section-title">🥗 건강기능식품 검색</h2>

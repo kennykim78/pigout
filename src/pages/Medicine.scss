@@ -30,7 +30,7 @@
   &__tabs {
     display: flex;
     gap: 10px;
-    margin-bottom: 20px;
+    margin-bottom: 10px;
   }
 
   &__tab {
@@ -54,6 +54,42 @@
 
     &:hover:not(&--active) {
       background: rgba(255, 255, 255, 0.8);
+    }
+  }
+
+  // 서브탭 스타일 (의약품/건강기능식품)
+  &__sub-tabs {
+    display: flex;
+    gap: 8px;
+    margin-bottom: 20px;
+    padding: 10px;
+    background: rgba(255, 255, 255, 0.5);
+    border-radius: $border-radius-sm;
+  }
+
+  &__sub-tab {
+    flex: 1;
+    padding: 12px 10px;
+    background: $color-white;
+    border: 2px solid transparent;
+    border-radius: $border-radius-sm;
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
+    color: $color-gray;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &--active {
+      background: $color-white;
+      border-color: $color-primary-orange;
+      color: $color-primary-orange;
+      font-weight: $font-weight-semibold;
+    }
+
+    &:hover:not(&--active) {
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba($color-primary-orange, 0.3);
     }
   }
 
