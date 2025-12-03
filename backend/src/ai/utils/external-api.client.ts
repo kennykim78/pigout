@@ -277,33 +277,8 @@ export class ExternalApiClient {
       }
 
       // ================================================================
-      // 3단계: 건강기능식품 API 검색 (키워드가 건강기능식품 관련일 때만)
-      // ================================================================
-      const healthFoodKeywords = ['오메가', '비타민', '프로바이오틱스', '유산균', '콜라겐', '루테인', '홍삼', '프로폴리스', '밀크씨슬', '영양제', '철분', '칼슘', '마그네슘', '아연', '셀레늄', '엽산', '코엔자임', 'CoQ10', 'EPA', 'DHA', '글루코사민', '크릴오일'];
-      const isLikelyHealthFood = healthFoodKeywords.some(kw => medicineName.toLowerCase().includes(kw.toLowerCase()));
-      
-      if (isLikelyHealthFood) {
-        if (!canUseApi('healthFoodApi')) {
-          console.log(`[3단계] API 한도 초과 - AI 대체`);
-          const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
-          await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
-          return aiResults;
-        }
-        
-        console.log(`[3단계-건강기능식품] 조회 (건강기능식품 키워드 감지): ${medicineName}`);
-        const healthFoodResults = await this.searchHealthFunctionalFood(medicineName, numOfRows);
-        
-        if (healthFoodResults && healthFoodResults.length > 0) {
-          console.log(`[3단계-건강기능식품] ✅ ${healthFoodResults.length}건 검색됨 - 캐시 저장 후 반환`);
-          await this.saveMedicineToCache(medicineName, healthFoodResults, '건강기능식품');
-          return healthFoodResults;
-        }
-      } else {
-        console.log(`[3단계-건강기능식품] ⏭️ 건강기능식품 키워드 미감지 - 스킵: ${medicineName}`);
-      }
-
-      // ================================================================
-      // 4단계: 모든 API에서 검색 실패 - AI가 대체
+      // 3단계: 모든 API에서 검색 실패 - AI가 대체
+      // (건강기능식품은 별도 탭에서 검색하므로 여기서 제외)
       // ================================================================
       console.log(`[API 검색 실패] 모든 단계에서 결과 없음 - AI가 정보 생성: ${medicineName}`);
       const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);

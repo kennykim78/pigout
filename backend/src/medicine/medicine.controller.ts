@@ -52,11 +52,20 @@ export class MedicineController {
 
   /**
    * POST /api/medicine/search
-   * 약품명으로 검색
+   * 약품명으로 검색 (일반/전문 의약품)
    */
   @Post('search')
   async searchMedicine(@Body() searchDto: SearchMedicineDto) {
     return this.medicineService.searchMedicine(searchDto.keyword);
+  }
+
+  /**
+   * POST /api/medicine/search-health-food
+   * 건강기능식품 전용 검색
+   */
+  @Post('search-health-food')
+  async searchHealthFood(@Body() searchDto: SearchMedicineDto) {
+    return this.medicineService.searchHealthFood(searchDto.keyword);
   }
 
   /**

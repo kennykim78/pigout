@@ -144,7 +144,7 @@ export const scanMedicineQR = async (qrData: string, dosage?: string, frequency?
   return response.data;
 };
 
-// 약품 검색
+// 약품 검색 (일반/전문 의약품)
 export const searchMedicine = async (keyword: string, limit: number = 20) => {
   console.log('[API] searchMedicine 호출:', { keyword, limit });
   try {
@@ -154,6 +154,20 @@ export const searchMedicine = async (keyword: string, limit: number = 20) => {
     return response.data;
   } catch (error) {
     console.error('[API] searchMedicine 에러:', error);
+    throw error;
+  }
+};
+
+// 건강기능식품 전용 검색
+export const searchHealthFood = async (keyword: string, limit: number = 20) => {
+  console.log('[API] searchHealthFood 호출:', { keyword, limit });
+  try {
+    const response = await apiClient.post('/medicine/search-health-food', { keyword, limit });
+    console.log('[API] searchHealthFood 응답:', response);
+    console.log('[API] searchHealthFood 데이터:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[API] searchHealthFood 에러:', error);
     throw error;
   }
 };

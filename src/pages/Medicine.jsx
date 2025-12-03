@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useMedicineStore } from '../store/medicineStore';
-import { getMyMedicines, scanMedicineQR, searchMedicine, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines } from '../services/api';
+import { getMyMedicines, scanMedicineQR, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines } from '../services/api';
 import { Scanner } from '@yudiel/react-qr-scanner';
 import './Medicine.scss';
 
@@ -18,6 +18,12 @@ const Medicine = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+  
+  // 건강기능식품 탭용 상태
+  const [healthFoodKeyword, setHealthFoodKeyword] = useState('');
+  const [healthFoodResults, setHealthFoodResults] = useState([]);
+  const [hasSearchedHealthFood, setHasSearchedHealthFood] = useState(false);
+  const [healthFoodPage, setHealthFoodPage] = useState(1);
   
   // QR 스캔 결과 상태
   const [scannedMedicine, setScannedMedicine] = useState(null);
@@ -157,6 +163,28 @@ const Medicine = () => {
     }
   };
 
+  // 건강기능식품 검색
+  const handleHealthFoodSearch = async () => {
+    if (!healthFoodKeyword.trim()) return;
+
+    setLoading(true);
+    setHasSearchedHealthFood(true);
+    setHealthFoodPage(1);
+    try {
+      console.log('[건강기능식품 검색 시작] 키워드:', healthFoodKeyword);
+      const results = await searchHealthFood(healthFoodKeyword);
+      console.log('[건강기능식품 검색 완료] 결과:', results);
+      setHealthFoodResults(results);
+    } catch (error) {
+      console.error('Health food search failed:', error);
+      console.error('Error details:', error.response?.data);
+      setError('건강기능식품 검색에 실패했습니다.');
+      setHealthFoodResults([]);
+    } finally {
+      setLoading(false);
+    }
+  };
+
   const handleAddMedicine = async (medicine) => {
     try {
       setLoading(true);
@@ -261,7 +289,13 @@ const Medicine = () => {
           className={`medicine__tab ${activeTab === 'add' ? 'medicine__tab--active' : ''}`}
           onClick={() => setActiveTab('add')}
         >
-          약 추가
+          💊 의약품
+        </button>
+        <button
+          className={`medicine__tab ${activeTab === 'healthfood' ? 'medicine__tab--active' : ''}`}
+          onClick={() => setActiveTab('healthfood')}
+        >
+          🥗 건강기능식품
         </button>
       </div>
 
@@ -672,6 +706,136 @@ const Medicine = () => {
                 hasSearched && !isLoading && (
                   <p className="medicine__no-results">
                     검색 결과가 없습니다. 다른 키워드로 시도해보세요.
+                  </p>
+                )
+              )}
+            </div>
+          </section>
+        </div>
+      )}
+
+      {activeTab === 'healthfood' && (
+        <div className="medicine__add">
+          <section className="medicine__section">
+            <h2 className="medicine__section-title">🥗 건강기능식품 검색</h2>
+            <p className="medicine__section-desc">
+              건강기능식품명, 원료명, 제조사로 검색하세요<br />
+              (예: 오메가3, 비타민, 유산균, 홍삼, 루테인, 프로바이오틱스)
+            </p>
+            
+            <div className="medicine__search">
+              <input
+                type="text"
+                className="medicine__search-input"
+                placeholder="건강기능식품명, 원료명, 제조사 입력"
+                value={healthFoodKeyword}
+                onChange={(e) => setHealthFoodKeyword(e.target.value)}
+                onKeyPress={(e) => e.key === 'Enter' && handleHealthFoodSearch()}
+              />
+              <button
+                className="medicine__search-btn"
+                onClick={handleHealthFoodSearch}
+                disabled={isLoading}
+              >
+                검색
+              </button>
+            </div>
+
+            <div className="medicine__search-results">
+              {healthFoodResults.length > 0 ? (
+                <>
+                  <p className="medicine__results-count">전체 검색 결과: {healthFoodResults.length}건</p>
+                  <p className="medicine__results-info" style={{ fontSize: '12px', color: '#666', marginTop: '-8px', marginBottom: '12px' }}>
+                    🥗 건강기능식품 정보입니다. 기능성 내용을 확인하고 선택하세요.
+                  </p>
+                  {(() => {
+                    const totalPages = Math.ceil(healthFoodResults.length / itemsPerPage);
+                    const startIndex = (healthFoodPage - 1) * itemsPerPage;
+                    const endIndex = startIndex + itemsPerPage;
+                    const currentResults = healthFoodResults.slice(startIndex, endIndex);
+                    
+                    return (
+                      <>
+                        {currentResults.map((result, index) => (
+                          <div key={result.itemSeq || index} className="medicine__result-card medicine__result-card--healthfood">
+                            <div className="medicine__result-badge" style={{ 
+                              display: 'inline-block', 
+                              backgroundColor: '#4CAF50', 
+                              color: 'white', 
+                              padding: '2px 8px', 
+                              borderRadius: '12px', 
+                              fontSize: '11px',
+                              marginBottom: '8px'
+                            }}>
+                              🥗 건강기능식품
+                            </div>
+                            <h4>{result.itemName}</h4>
+                            <p className="medicine__result-manufacturer">제조사: {result.entpName}</p>
+                            {result._rawMaterial && (
+                              <p className="medicine__result-raw-material" style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
+                                원료명: {result._rawMaterial}
+                              </p>
+                            )}
+                            {result.efcyQesitm && (
+                              <div className="medicine__result-efficacy">
+                                <strong style={{ color: '#4CAF50' }}>기능성:</strong>
+                                <p style={{ marginTop: '4px', fontSize: '13px', lineHeight: '1.5' }}>
+                                  {result.efcyQesitm.length > 150 
+                                    ? `${result.efcyQesitm.substring(0, 150)}...` 
+                                    : result.efcyQesitm}
+                                </p>
+                              </div>
+                            )}
+                            <button
+                              className="medicine__result-add-btn"
+                              onClick={() => handleAddMedicine(result)}
+                              disabled={isLoading}
+                            >
+                              {isLoading ? '추가 중...' : '추가'}
+                            </button>
+                          </div>
+                        ))}
+                        
+                        {totalPages > 1 && (
+                          <div className="medicine__pagination">
+                            <button
+                              className="medicine__page-btn"
+                              onClick={() => setHealthFoodPage(prev => Math.max(prev - 1, 1))}
+                              disabled={healthFoodPage === 1}
+                            >
+                              이전
+                            </button>
+                            <div className="medicine__page-numbers">
+                              {Array.from({ length: totalPages }, (_, i) => i + 1).map(page => (
+                                <button
+                                  key={page}
+                                  className={`medicine__page-num ${healthFoodPage === page ? 'medicine__page-num--active' : ''}`}
+                                  onClick={() => setHealthFoodPage(page)}
+                                >
+                                  {page}
+                                </button>
+                              ))}
+                            </div>
+                            <button
+                              className="medicine__page-btn"
+                              onClick={() => setHealthFoodPage(prev => Math.min(prev + 1, totalPages))}
+                              disabled={healthFoodPage === totalPages}
+                            >
+                              다음
+                            </button>
+                          </div>
+                        )}
+                      </>
+                    );
+                  })()}
+                </>
+              ) : (
+                hasSearchedHealthFood && !isLoading && (
+                  <p className="medicine__no-results">
+                    검색 결과가 없습니다. 다른 키워드로 시도해보세요.<br />
+                    <span style={{ fontSize: '12px', color: '#888' }}>
+                      예: 오메가3, 비타민D, 유산균, 홍삼, 루테인
+                    </span>
                   </p>
                 )
               )}
