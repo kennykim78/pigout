@@ -26,6 +26,7 @@ const Result2 = () => {
   const [currentStage, setCurrentStage] = useState(null);
   const [streamingMessage, setStreamingMessage] = useState('');
   const [streamError, setStreamError] = useState(null);
+  const [streamProgress, setStreamProgress] = useState(0);
   const abortRef = useRef(null);
 
   // 🆕 스트리밍 분석 시작 함수
@@ -49,6 +50,13 @@ const Result2 = () => {
         console.log('[Stream] 단계:', data);
         setCurrentStage(data.stage);
         setStreamingMessage(data.message);
+        // 진행률 계산 (5단계 기준)
+        const totalStages = 5;
+        const progressPerStage = 100 / totalStages;
+        const baseProgress = (data.stage - 1) * progressPerStage;
+        const stageProgress = data.status === 'complete' ? progressPerStage : progressPerStage * 0.5;
+        setStreamProgress(Math.min(baseProgress + stageProgress, 100));
+        
         setStreamingStages(prev => prev.map(s => 
           s.stage === data.stage 
             ? { ...s, status: data.status, message: data.message }
@@ -80,6 +88,7 @@ const Result2 = () => {
           setAnalysis(data.data.analysis);
           setDetailedAnalysis(data.data.detailedAnalysis);
         }
+        setStreamProgress(100);
         setIsStreaming(false);
         setStreamingMessage('분석 완료!');
       },
@@ -388,26 +397,63 @@ const Result2 = () => {
         )}
       </div>
 
-      {/* 🆕 스트리밍 진행 상태 표시 */}
+      {/* 🆕 스트리밍 진행 상태 표시 - 카드형 */}
       {isStreaming && (
         <div className="result2__streaming-section">
           <div className="result2__streaming-header">
             <div className="result2__streaming-spinner"></div>
-            <p className="result2__streaming-message">{streamingMessage}</p>
+            <div className="result2__streaming-info">
+              <p className="result2__streaming-title">AI가 분석 중이에요</p>
+              <p className="result2__streaming-message">{streamingMessage}</p>
+            </div>
           </div>
+          
+          {/* 진행 바 */}
+          <div className="result2__streaming-progress">
+            <div className="result2__streaming-progress-bar">
+              <div 
+                className="result2__streaming-progress-fill" 
+                style={{ width: `${streamProgress}%` }}
+              />
+            </div>
+            <span className="result2__streaming-progress-text">{Math.round(streamProgress)}%</span>
+          </div>
+          
+          {/* 단계별 상태 */}
           <div className="result2__streaming-stages">
             {streamingStages.map((stage) => (
               <div 
                 key={stage.stage} 
                 className={`result2__streaming-stage result2__streaming-stage--${stage.status}`}
               >
+                <span className="result2__streaming-stage-number">{stage.stage}</span>
+                <span className="result2__streaming-stage-name">{stage.name}</span>
                 <span className="result2__streaming-stage-icon">
                   {stage.status === 'complete' ? '✅' : 
-                   stage.status === 'loading' ? '⏳' : '⏸️'}
+                   stage.status === 'loading' ? '🔄' : '⏳'}
                 </span>
-                <span className="result2__streaming-stage-name">{stage.name}</span>
               </div>
             ))}
+          </div>
+        </div>
+      )}
+
+      {/* 🆕 하단 고정 진행 바 */}
+      {isStreaming && (
+        <div className="result2__bottom-progress">
+          <div className="result2__bottom-progress-inner">
+            <div className="result2__bottom-progress-bar">
+              <div 
+                className="result2__bottom-progress-fill" 
+                style={{ width: `${streamProgress}%` }}
+              />
+            </div>
+            <div className="result2__bottom-progress-info">
+              <span className="result2__bottom-progress-stage">
+                {currentStage ? `${currentStage}/5 단계` : '준비 중...'}
+              </span>
+              <span className="result2__bottom-progress-text">{streamingMessage}</span>
+            </div>
           </div>
         </div>
       )}
