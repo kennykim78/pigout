@@ -371,6 +371,7 @@ export class FoodService {
       
       let nutritionRows = [];
       let healthFoodRows = [];
+      let publicDataFailed = false;
       
       try {
         [nutritionRows, healthFoodRows] = await Promise.all([
@@ -378,24 +379,33 @@ export class FoodService {
           this.externalApiClient.getHealthFunctionalFoodList({ productName: foodName, numOfRows: 5 }),
         ]);
       } catch (apiError) {
-        console.warn('[보강 데이터] API 조회 실패, AI가 대체:', apiError.message);
+        console.warn('[보강 데이터] API 조회 실패:', apiError.message);
+        publicDataFailed = true;
       }
+      
+      // 공공데이터 없을 경우 플래그 설정 (AI가 상세 분석 시 대체 데이터 생성하도록)
+      const needAINutritionData = !nutritionRows || nutritionRows.length === 0;
+      const needAIRecipeData = false; // 레시피는 별도 처리
       
       const supplementalPublicData = {
         nutrition: {
           source: nutritionRows?.length > 0 ? '식품의약품안전처 식품영양성분DB' : 'AI 지식 기반',
           items: nutritionRows || [],
+          needAIFallback: needAINutritionData, // AI가 영양 정보 보강 필요
         },
         healthFunctionalFoods: {
           source: healthFoodRows?.length > 0 ? '식품의약품안전처 건강기능식품정보' : 'AI 지식 기반',
           items: healthFoodRows || [],
         },
         diseaseInfo: { source: 'AI 지식 기반', items: [] },
+        publicDataFailed, // 공공데이터 전체 실패 여부
       };
       
       console.log('[보강 데이터] 결과:', {
         nutritionCount: nutritionRows?.length || 0,
         healthFoodCount: healthFoodRows?.length || 0,
+        needAINutritionData,
+        publicDataFailed,
       });
       
       // 3단계 + 4단계 + 레시피 조회: 병렬 실행으로 속도 최적화
@@ -432,17 +442,24 @@ export class FoodService {
       });
       
       // 레시피 데이터 완료 대기 (병렬 실행됨)
-      const recipeData = await recipeDataPromise;
-      console.log(`[레시피] 조회 완료: ${recipeData?.length || 0}개`);
+      let recipeData = await recipeDataPromise;
+      const recipeApiSuccess = recipeData && recipeData.length > 0;
+      console.log(`[레시피] 조회 완료: ${recipeData?.length || 0}개 ${recipeApiSuccess ? '' : '- AI가 레시피 생성 예정'}`);
       
       // 5단계: AI가 최종 종합 분석 + 레시피 팁 통합 (하나의 AI 호출로 통합)
+      // 공공데이터/레시피 없을 경우 AI가 더 상세하게 생성하도록 플래그 전달
       console.log(`\n[5단계] AI가 최종 분석 + 레시피 팁 통합 생성 중...`);
       const { finalAnalysis, healthyRecipes } = await geminiClient.generateFinalAnalysisWithRecipes(
         foodName,
         foodAnalysis,
         interactionAnalysis,
         diseases,
-        recipeData
+        recipeData,
+        {
+          needDetailedNutrition: needAINutritionData,
+          needDetailedRecipes: !recipeApiSuccess,
+          publicDataFailed,
+        }
       );
       
       // 🆕 점수 통일: Result01 점수가 있으면 사용, 없으면 AI 점수 사용

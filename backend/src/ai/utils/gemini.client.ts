@@ -1037,7 +1037,12 @@ JSON 형식으로만 응답:
     foodAnalysis: any,
     interactionAnalysis: any,
     diseases: string[],
-    recipeData: any
+    recipeData: any,
+    options?: {
+      needDetailedNutrition?: boolean;
+      needDetailedRecipes?: boolean;
+      publicDataFailed?: boolean;
+    }
   ): Promise<{
     finalAnalysis: {
       suitabilityScore: number;
@@ -1054,9 +1059,22 @@ JSON 형식으로만 응답:
       const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
       const drugList = interactionAnalysis?.interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
       
+      // 공공데이터 부족 시 AI가 더 상세하게 분석하도록 지시
+      const needDetailedAnalysis = options?.needDetailedNutrition || options?.needDetailedRecipes || options?.publicDataFailed;
+      const detailInstruction = needDetailedAnalysis ? `
+⚠️ **중요**: 공공데이터(영양성분DB, 레시피DB)에서 데이터를 가져오지 못했습니다.
+따라서 당신의 전문 지식을 활용하여 다음을 **반드시 상세하게** 작성해주세요:
+- goodPoints: 각 항목 80자 이상, 구체적인 영양소와 효능 설명
+- badPoints: 각 항목 80자 이상, 구체적인 위험 요소와 이유 설명
+- warnings: 해당되는 경우 상세한 경고 메시지
+- expertAdvice: 150자 이상의 전문가 조언
+- summary: 300자 이상의 종합 분석
+- healthyRecipes: 6개 이상의 구체적인 조리/섭취 팁 (각 50자 이상)
+` : '';
+      
       const prompt = `# Role Definition
 당신은 20년 경력의 **'임상 약사(Clinical Pharmacist)'**이자 **'임상 영양학자(Clinical Nutritionist)'**입니다.
-
+${detailInstruction}
 ---
 
 # Input Data Context
@@ -1072,7 +1090,7 @@ ${JSON.stringify(foodAnalysis, null, 2)}
 ${JSON.stringify(interactionAnalysis, null, 2)}
 
 **레시피 DB 데이터 (식품안전나라):**
-${JSON.stringify(recipeData?.slice(0, 3), null, 2)}
+${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), null, 2) : '레시피 데이터 없음 - AI가 전문 지식으로 상세한 조리법/섭취 팁 생성 필요'}
 
 ---
 
@@ -1085,17 +1103,18 @@ ${JSON.stringify(recipeData?.slice(0, 3), null, 2)}
    - safe하지만 질병 고려: 70-85점
    - 완전 안전: 85-100점
 
-2. **goodPoints** (배열 3-5개): ✅ 좋은 점 (각 50자 이상)
-3. **badPoints** (배열 2-4개): ⚠️ 주의할 점 (각 50자 이상)
-4. **warnings** (배열 0-3개): 🚨 경고 (위험한 상호작용만)
-5. **expertAdvice** (문자열): 💊 AI 전문가 조언 (100자 이상, 친근한 어조)
+2. **goodPoints** (배열 3-5개): ✅ 좋은 점 (각 ${needDetailedAnalysis ? '80' : '50'}자 이상, 구체적인 영양소/효능 포함)
+3. **badPoints** (배열 2-4개): ⚠️ 주의할 점 (각 ${needDetailedAnalysis ? '80' : '50'}자 이상, 구체적인 이유 포함)
+4. **warnings** (배열 0-3개): 🚨 경고 (위험한 상호작용만, 구체적으로)
+5. **expertAdvice** (문자열): 💊 AI 전문가 조언 (${needDetailedAnalysis ? '150' : '100'}자 이상, 친근한 어조로 실용적 조언)
 6. **briefSummary** (문자열): 간략 요약 (200자 내외)
-7. **summary** (문자열): 🔬 최종 종합 분석 (200자 이상)
+7. **summary** (문자열): 🔬 최종 종합 분석 (${needDetailedAnalysis ? '300' : '200'}자 이상, 영양학적/약학적 관점 종합)
 
 ## Part 2: 건강 레시피 팁
-**healthyRecipes** (배열 4-6개): ${foodName}을 건강하게 조리/섭취하는 방법
+**healthyRecipes** (배열 ${needDetailedAnalysis ? '6-8' : '4-6'}개): ${foodName}을 건강하게 조리/섭취하는 방법
 - ❌ 절대 다른 음식 추천 금지! ${foodName} 자체를 어떻게 먹을지만 답변
-- ✅ [재료 변경], [조리법 변경], [섭취 팁] 카테고리로 구체적 작성
+- ✅ [재료 변경], [조리법 변경], [섭취 팁], [약 복용 시] 카테고리로 구체적 작성
+- 각 항목 ${needDetailedAnalysis ? '50' : '30'}자 이상 상세 설명
 
 ---
 
@@ -1103,18 +1122,20 @@ ${JSON.stringify(recipeData?.slice(0, 3), null, 2)}
 {
   "finalAnalysis": {
     "suitabilityScore": 75,
-    "goodPoints": ["✅ 단백질이 풍부하여...", "✅ 비타민B군이...", "✅ ..."],
-    "badPoints": ["⚠️ 나트륨 함량이...", "⚠️ ..."],
-    "warnings": ["🚨 [DANGER] 와파린 복용 중이라면..."],
-    "expertAdvice": "💊 이 음식은 영양가가 높지만...",
-    "briefSummary": "영양가 높은 음식이지만...",
-    "summary": "🔬 [최종 종합 분석] 이 음식은..."
+    "goodPoints": ["✅ 단백질이 풍부하여 근육 형성에 도움이 되며, 특히 류신 함량이 높아 근육 단백질 합성을 촉진합니다.", "✅ 비타민B군이 풍부하여 에너지 대사를 활성화하고 피로 회복에 효과적입니다.", "✅ ..."],
+    "badPoints": ["⚠️ 나트륨 함량이 1인분당 약 800mg으로 높아, 고혈압 환자의 경우 혈압 상승의 원인이 될 수 있습니다.", "⚠️ ..."],
+    "warnings": ["🚨 [DANGER] 와파린 복용 중이시라면 비타민K가 풍부한 이 음식이 약효를 감소시킬 수 있으니 섭취량을 제한하세요."],
+    "expertAdvice": "💊 이 음식은 영양가가 높지만 복용 중인 약물과의 상호작용을 고려해야 합니다. 특히 식후 2시간 후에 약을 복용하시면 상호작용을 최소화할 수 있습니다. 1주일에 2-3회 정도 적당량을 드시는 것을 권장합니다.",
+    "briefSummary": "영양가 높은 음식이지만 복용 약물과의 상호작용에 주의가 필요합니다.",
+    "summary": "🔬 [최종 종합 분석] 이 음식은 단백질과 비타민이 풍부하여 건강에 유익하지만, 현재 복용 중인 약물과의 상호작용을 고려해야 합니다. 특히 나트륨 함량이 높아 고혈압 환자분은 섭취량을 조절하시고, 약 복용 시간과 식사 시간을 분리하시면 약효를 유지하면서 영양 섭취도 가능합니다."
   },
   "healthyRecipes": [
-    "[재료 변경] 소금 대신 저염간장을 사용하세요",
-    "[조리법 변경] 튀기지 말고 에어프라이어로 조리하세요",
-    "[섭취 팁] 국물보다 건더기 위주로 드세요",
-    "[섭취 팁] 약 복용 2시간 후에 드시는 것이 좋습니다"
+    "[재료 변경] 일반 소금 대신 저염간장이나 레몬즙을 사용하면 나트륨 섭취를 30% 이상 줄일 수 있습니다",
+    "[조리법 변경] 기름에 튀기는 대신 에어프라이어나 오븐에서 구우면 지방 섭취를 크게 줄일 수 있습니다",
+    "[섭취 팁] 국물보다 건더기 위주로 드시면 나트륨 섭취를 절반으로 줄일 수 있습니다",
+    "[섭취 팁] 채소를 곁들여 드시면 식이섬유가 나트륨 배출을 도와줍니다",
+    "[약 복용 시] 약 복용 2시간 전후로 드시면 약물 흡수에 영향을 최소화할 수 있습니다",
+    "[섭취량 조절] 1인분의 2/3 정도만 드시고 나머지는 다음 끼니로 미루세요"
   ]
 }`;
 
@@ -1129,37 +1150,81 @@ ${JSON.stringify(recipeData?.slice(0, 3), null, 2)}
       
       const parsed = this.extractJsonObject(rawText);
       
-      // 기본값 설정
+      // 기본값 설정 및 검증
       const finalAnalysis = parsed.finalAnalysis || {};
-      if (!finalAnalysis.warnings) finalAnalysis.warnings = [];
-      if (!finalAnalysis.expertAdvice) {
-        finalAnalysis.expertAdvice = '균형 잡힌 식단의 일부로 적당량 섭취하시면 건강에 도움이 됩니다.';
+      
+      // goodPoints 검증 - 배열이 아니거나 비어있으면 기본값
+      if (!Array.isArray(finalAnalysis.goodPoints) || finalAnalysis.goodPoints.length === 0) {
+        finalAnalysis.goodPoints = [
+          `✅ ${foodName}에는 다양한 영양소가 포함되어 있어 균형 잡힌 식단에 도움이 됩니다.`,
+          `✅ 적절한 양을 섭취하면 일일 영양 권장량을 채우는 데 기여합니다.`,
+          `✅ 다양한 조리법으로 즐길 수 있어 식단의 다양성을 높여줍니다.`,
+        ];
       }
       
-      const healthyRecipes = parsed.healthyRecipes || [
-        '신선한 재료를 사용하세요',
-        '조리 시 염분과 당분을 적게 사용하세요',
-        '채소를 많이 추가하면 더 건강해요'
-      ];
+      // badPoints 검증
+      if (!Array.isArray(finalAnalysis.badPoints) || finalAnalysis.badPoints.length === 0) {
+        finalAnalysis.badPoints = [
+          `⚠️ 과다 섭취 시 영양 불균형이 발생할 수 있으니 적정량을 유지하세요.`,
+          `⚠️ 복용 중인 약물이 있다면 식사 시간과 약 복용 시간을 분리하는 것이 좋습니다.`,
+        ];
+      }
+      
+      if (!finalAnalysis.warnings) finalAnalysis.warnings = [];
+      
+      if (!finalAnalysis.expertAdvice || finalAnalysis.expertAdvice.length < 50) {
+        finalAnalysis.expertAdvice = `💊 ${foodName}은(는) 영양가가 있는 음식입니다. 복용 중인 약물이 있다면 식후 1-2시간 간격을 두고 약을 드시는 것이 좋습니다. 균형 잡힌 식단의 일부로 적당량 섭취하시면 건강 유지에 도움이 됩니다. 특별한 질환이 있으시다면 담당 의사와 상담 후 섭취량을 조절하세요.`;
+      }
+      
+      if (!finalAnalysis.summary || finalAnalysis.summary.length < 100) {
+        finalAnalysis.summary = `🔬 [최종 종합 분석] ${foodName}은(는) 다양한 영양소를 함유하고 있는 음식입니다. 복용 중인 약물과의 상호작용을 고려하여 식사 시간을 조절하시고, 질병 상태에 따라 섭취량을 적절히 조절하시면 건강한 식단의 일부로 즐기실 수 있습니다. 전문가와 상담하여 개인 맞춤형 식이 조절을 하시면 더욱 좋습니다.`;
+      }
+      
+      if (!finalAnalysis.briefSummary || finalAnalysis.briefSummary.length < 30) {
+        finalAnalysis.briefSummary = `${foodName}은(는) 영양가 있는 음식이지만, 복용 약물과의 상호작용을 고려하여 적절히 섭취하세요.`;
+      }
+      
+      // healthyRecipes 검증 - 배열이 아니거나 항목이 부족하면 보강
+      let healthyRecipes = parsed.healthyRecipes || [];
+      if (!Array.isArray(healthyRecipes) || healthyRecipes.length < 4) {
+        healthyRecipes = [
+          `[재료 변경] ${foodName} 조리 시 소금 대신 저염 양념이나 천연 향신료를 사용하면 나트륨 섭취를 줄일 수 있습니다`,
+          `[조리법 변경] 튀기는 대신 굽거나 찌는 조리법을 선택하면 지방 섭취를 줄이고 영양소 손실을 최소화할 수 있습니다`,
+          `[섭취 팁] 채소와 함께 섭취하면 식이섬유가 소화를 도와 영양 흡수를 개선합니다`,
+          `[섭취 팁] 천천히 꼭꼭 씹어 드시면 소화에 도움이 되고 포만감도 오래 유지됩니다`,
+          `[약 복용 시] 약 복용과 식사 시간을 1-2시간 간격으로 분리하면 약물 흡수에 영향을 줄일 수 있습니다`,
+          `[섭취량 조절] 1회 섭취량을 적정 수준으로 유지하고 과식하지 않도록 주의하세요`,
+        ];
+      }
       
       return { finalAnalysis, healthyRecipes };
     } catch (error) {
       console.error('AI 통합 분석 실패:', error);
-      // 폴백: 기본값 반환
+      // 폴백: 상세한 기본값 반환
       return {
         finalAnalysis: {
           suitabilityScore: 50,
-          briefSummary: `${foodName}에 대한 분석 결과입니다.`,
-          goodPoints: ['균형 잡힌 영양소를 제공합니다'],
-          badPoints: ['과다 섭취 시 주의가 필요합니다'],
+          briefSummary: `${foodName}은(는) 영양가 있는 음식이지만, 복용 약물과의 상호작용을 고려하여 적절히 섭취하세요.`,
+          goodPoints: [
+            `✅ ${foodName}에는 다양한 영양소가 포함되어 있어 균형 잡힌 식단에 도움이 됩니다.`,
+            `✅ 적절한 양을 섭취하면 일일 영양 권장량을 채우는 데 기여합니다.`,
+            `✅ 다양한 조리법으로 즐길 수 있어 식단의 다양성을 높여줍니다.`,
+          ],
+          badPoints: [
+            `⚠️ 과다 섭취 시 영양 불균형이 발생할 수 있으니 적정량을 유지하세요.`,
+            `⚠️ 복용 중인 약물이 있다면 식사 시간과 약 복용 시간을 분리하는 것이 좋습니다.`,
+          ],
           warnings: [],
-          expertAdvice: '적당량 섭취하시면 건강에 도움이 됩니다.',
-          summary: `${foodName}은(는) 균형있게 섭취하시면 좋습니다.`,
+          expertAdvice: `💊 ${foodName}은(는) 영양가가 있는 음식입니다. 복용 중인 약물이 있다면 식후 1-2시간 간격을 두고 약을 드시는 것이 좋습니다. 균형 잡힌 식단의 일부로 적당량 섭취하시면 건강 유지에 도움이 됩니다.`,
+          summary: `🔬 [최종 종합 분석] ${foodName}은(는) 다양한 영양소를 함유하고 있는 음식입니다. 복용 중인 약물과의 상호작용을 고려하여 식사 시간을 조절하시고, 질병 상태에 따라 섭취량을 적절히 조절하시면 건강한 식단의 일부로 즐기실 수 있습니다.`,
         },
         healthyRecipes: [
-          '신선한 재료를 사용하세요',
-          '조리 시 염분과 당분을 적게 사용하세요',
-          '채소를 많이 추가하면 더 건강해요'
+          `[재료 변경] ${foodName} 조리 시 소금 대신 저염 양념이나 천연 향신료를 사용하면 나트륨 섭취를 줄일 수 있습니다`,
+          `[조리법 변경] 튀기는 대신 굽거나 찌는 조리법을 선택하면 지방 섭취를 줄이고 영양소 손실을 최소화할 수 있습니다`,
+          `[섭취 팁] 채소와 함께 섭취하면 식이섬유가 소화를 도와 영양 흡수를 개선합니다`,
+          `[섭취 팁] 천천히 꼭꼭 씹어 드시면 소화에 도움이 되고 포만감도 오래 유지됩니다`,
+          `[약 복용 시] 약 복용과 식사 시간을 1-2시간 간격으로 분리하면 약물 흡수에 영향을 줄일 수 있습니다`,
+          `[섭취량 조절] 1회 섭취량을 적정 수준으로 유지하고 과식하지 않도록 주의하세요`,
         ],
       };
     }
