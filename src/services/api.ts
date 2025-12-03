@@ -341,6 +341,44 @@ export const analyzeFoodByTextStream = (
 
   const abortController = new AbortController();
 
+  // 이벤트 상태를 루프 외부에서 유지
+  let currentEvent = '';
+  let currentData = '';
+
+  const processEvent = () => {
+    if (currentEvent && currentData) {
+      try {
+        const parsedData = JSON.parse(currentData);
+        console.log(`[SSE] 이벤트 수신: ${currentEvent}`, parsedData);
+        
+        switch (currentEvent) {
+          case 'start':
+            callbacks.onStart?.(parsedData);
+            break;
+          case 'stage':
+            callbacks.onStage?.(parsedData);
+            break;
+          case 'partial':
+            callbacks.onPartial?.(parsedData);
+            break;
+          case 'result':
+            callbacks.onResult?.(parsedData);
+            break;
+          case 'error':
+            callbacks.onError?.(parsedData);
+            break;
+          case 'complete':
+            callbacks.onComplete?.();
+            break;
+        }
+      } catch (e) {
+        console.warn('SSE 데이터 파싱 실패:', currentData, e);
+      }
+      currentEvent = '';
+      currentData = '';
+    }
+  };
+
   // fetch로 SSE 연결
   fetch(`${API_BASE_URL}/food/text-analyze-stream`, {
     method: 'POST',
@@ -356,6 +394,8 @@ export const analyzeFoodByTextStream = (
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
+      console.log('[SSE] 연결 성공, 스트림 시작');
+
       const reader = response.body?.getReader();
       if (!reader) {
         throw new Error('ReadableStream not supported');
@@ -366,51 +406,27 @@ export const analyzeFoodByTextStream = (
 
       while (true) {
         const { done, value } = await reader.read();
-        if (done) break;
+        if (done) {
+          // 남은 이벤트 처리
+          processEvent();
+          console.log('[SSE] 스트림 종료');
+          break;
+        }
 
         buffer += decoder.decode(value, { stream: true });
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
-        let currentEvent = '';
-        let currentData = '';
-
         for (const line of lines) {
           if (line.startsWith('event:')) {
+            // 새 이벤트 시작 전 이전 이벤트 처리
+            processEvent();
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith('data:')) {
             currentData = line.slice(5).trim();
-            
-            if (currentEvent && currentData) {
-              try {
-                const parsedData = JSON.parse(currentData);
-                
-                switch (currentEvent) {
-                  case 'start':
-                    callbacks.onStart?.(parsedData);
-                    break;
-                  case 'stage':
-                    callbacks.onStage?.(parsedData);
-                    break;
-                  case 'partial':
-                    callbacks.onPartial?.(parsedData);
-                    break;
-                  case 'result':
-                    callbacks.onResult?.(parsedData);
-                    break;
-                  case 'error':
-                    callbacks.onError?.(parsedData);
-                    break;
-                  case 'complete':
-                    callbacks.onComplete?.();
-                    break;
-                }
-              } catch (e) {
-                console.warn('SSE 데이터 파싱 실패:', currentData);
-              }
-              currentEvent = '';
-              currentData = '';
-            }
+          } else if (line === '') {
+            // 빈 줄은 SSE 메시지 구분자 - 이벤트 처리
+            processEvent();
           }
         }
       }
