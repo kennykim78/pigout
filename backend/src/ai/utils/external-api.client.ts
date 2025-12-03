@@ -247,7 +247,7 @@ export class ExternalApiClient {
       }
 
       // ================================================================
-      // 2단계: 의약품 허가정보 API 검색 (전문의약품)
+      // 2단계: 낱알정보 API 검색 (일반/전문 의약품 모두 검색 가능)
       // ================================================================
       if (!canUseApi('eDrugApi')) {
         console.log(`[2단계] API 한도 초과 - AI 대체`);
@@ -256,32 +256,39 @@ export class ExternalApiClient {
         return aiResults;
       }
       
-      console.log(`[2단계-의약품허가] 전문의약품 조회: ${medicineName}`);
-      const approvalResults = await this.searchPrescriptionDrug(medicineName, numOfRows);
+      console.log(`[2단계-낱알정보] 의약품 조회 (일반/전문): ${medicineName}`);
+      const pillResults = await this.searchPillIdentification(medicineName, numOfRows);
       
-      if (approvalResults && approvalResults.length > 0) {
-        console.log(`[2단계-의약품허가] ✅ ${approvalResults.length}건 검색됨 - 캐시 저장 후 반환`);
-        await this.saveMedicineToCache(medicineName, approvalResults, '의약품허가정보');
-        return approvalResults;
+      if (pillResults && pillResults.length > 0) {
+        console.log(`[2단계-낱알정보] ✅ ${pillResults.length}건 검색됨 - 캐시 저장 후 반환`);
+        await this.saveMedicineToCache(medicineName, pillResults, '낱알정보');
+        return pillResults;
       }
 
       // ================================================================
-      // 3단계: 건강기능식품 API 검색
+      // 3단계: 건강기능식품 API 검색 (키워드가 건강기능식품 관련일 때만)
       // ================================================================
-      if (!canUseApi('healthFoodApi')) {
-        console.log(`[3단계] API 한도 초과 - AI 대체`);
-        const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
-        await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
-        return aiResults;
-      }
+      const healthFoodKeywords = ['오메가', '비타민', '프로바이오틱스', '유산균', '콜라겐', '루테인', '홍삼', '프로폴리스', '밀크씨슬', '영양제', '철분', '칼슘', '마그네슘', '아연', '셀레늄', '엽산', '코엔자임', 'CoQ10', 'EPA', 'DHA', '글루코사민', '크릴오일'];
+      const isLikelyHealthFood = healthFoodKeywords.some(kw => medicineName.toLowerCase().includes(kw.toLowerCase()));
       
-      console.log(`[3단계-건강기능식품] 조회: ${medicineName}`);
-      const healthFoodResults = await this.searchHealthFunctionalFood(medicineName, numOfRows);
-      
-      if (healthFoodResults && healthFoodResults.length > 0) {
-        console.log(`[3단계-건강기능식품] ✅ ${healthFoodResults.length}건 검색됨 - 캐시 저장 후 반환`);
-        await this.saveMedicineToCache(medicineName, healthFoodResults, '건강기능식품');
-        return healthFoodResults;
+      if (isLikelyHealthFood) {
+        if (!canUseApi('healthFoodApi')) {
+          console.log(`[3단계] API 한도 초과 - AI 대체`);
+          const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
+          await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
+          return aiResults;
+        }
+        
+        console.log(`[3단계-건강기능식품] 조회 (건강기능식품 키워드 감지): ${medicineName}`);
+        const healthFoodResults = await this.searchHealthFunctionalFood(medicineName, numOfRows);
+        
+        if (healthFoodResults && healthFoodResults.length > 0) {
+          console.log(`[3단계-건강기능식품] ✅ ${healthFoodResults.length}건 검색됨 - 캐시 저장 후 반환`);
+          await this.saveMedicineToCache(medicineName, healthFoodResults, '건강기능식품');
+          return healthFoodResults;
+        }
+      } else {
+        console.log(`[3단계-건강기능식품] ⏭️ 건강기능식품 키워드 미감지 - 스킵: ${medicineName}`);
       }
 
       // ================================================================
@@ -437,6 +444,98 @@ export class ExternalApiClient {
       _source: '의약품허가정보API',
       // 원본 데이터 보존
       _originalData: approvalItem,
+    };
+  }
+
+  /**
+   * 낱알정보 API로 의약품 검색 (MdcinGrnIdntfcInfoService03)
+   * 일반/전문 의약품 모두 검색 가능 - 전문의약품 검색에 더 적합
+   * @param medicineName 의약품명
+   * @param numOfRows 조회할 행 수
+   */
+  async searchPillIdentification(medicineName: string, numOfRows: number = 20): Promise<any[]> {
+    try {
+      const url = `${this.MFDS_BASE_URL}/MdcinGrnIdntfcInfoService03/getMdcinGrnIdntfcInfoList03`;
+      
+      console.log(`[낱알정보] 의약품 조회 (일반/전문): ${medicineName}`);
+      
+      const response = await axios.get(url, {
+        params: {
+          serviceKey: this.SERVICE_KEY,
+          item_name: medicineName,
+          numOfRows: numOfRows,
+          pageNo: 1,
+          type: 'json',
+        },
+        timeout: 15000,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const body = response.data?.body;
+      if (body?.items) {
+        const items = Array.isArray(body.items) ? body.items : 
+                      (body.items.item ? (Array.isArray(body.items.item) ? body.items.item : [body.items.item]) : []);
+        
+        if (items.length > 0) {
+          recordApiUsage('eDrugApi', 1);
+          console.log(`[낱알정보] ✅ ${items.length}건 검색 (전체: ${body.totalCount}건)`);
+          // 낱알정보 데이터를 e약은요 형식으로 변환
+          return items.map((item: any) => this.convertPillToEasyDrugFormat(item));
+        }
+      }
+      
+      console.log(`[낱알정보] 검색 결과 없음: ${medicineName}`);
+      return [];
+    } catch (error) {
+      console.error('[낱알정보] API error:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * 낱알정보 데이터를 e약은요 형식으로 변환
+   * 낱알정보 API는 전문의약품도 포함하므로 상세 정보 제공
+   */
+  private convertPillToEasyDrugFormat(pillItem: any): any {
+    // 분류명으로 전문/일반 구분
+    const classNo = pillItem.CLASS_NO || '';
+    const className = pillItem.CLASS_NAME || '';
+    const isPrescriptionDrug = className.includes('전문의약품') || 
+                               classNo.startsWith('1') || // 전문의약품 분류 코드
+                               !className.includes('일반의약품');
+    
+    return {
+      itemName: pillItem.ITEM_NAME || '',
+      entpName: pillItem.ENTP_NAME || '',
+      itemSeq: pillItem.ITEM_SEQ || '',
+      efcyQesitm: pillItem.CLASS_NAME ? 
+        `[${pillItem.CLASS_NAME}] ${isPrescriptionDrug ? '전문의약품입니다. 의사의 처방이 필요합니다.' : '일반의약품입니다.'}` : 
+        '효능효과 정보는 의사/약사와 상담하세요.',
+      useMethodQesitm: '용법용량 정보는 처방전 또는 제품 라벨을 확인하세요.',
+      atpnWarnQesitm: '',
+      atpnQesitm: isPrescriptionDrug ? 
+        '전문의약품입니다. 반드시 의사의 지시에 따라 복용하세요.' : 
+        '주의사항은 제품 라벨을 확인하세요.',
+      intrcQesitm: '상호작용 정보는 의사/약사와 상담하세요.',
+      seQesitm: '부작용 정보는 의사/약사와 상담하세요.',
+      depositMethodQesitm: '보관방법은 제품 라벨을 확인하세요.',
+      itemImage: pillItem.ITEM_IMAGE || '',
+      // 의약품 분류 정보
+      _isPrescriptionDrug: isPrescriptionDrug,
+      _isGeneralDrug: !isPrescriptionDrug,
+      _source: '낱알정보API',
+      _classNo: classNo,
+      _className: className,
+      // 낱알식별 정보 (모양, 색상 등)
+      _drugShape: pillItem.DRUG_SHAPE || '',
+      _colorClass1: pillItem.COLOR_CLASS1 || '',
+      _colorClass2: pillItem.COLOR_CLASS2 || '',
+      _printFront: pillItem.PRINT_FRONT || '',
+      _printBack: pillItem.PRINT_BACK || '',
+      // 원본 데이터 보존
+      _originalData: pillItem,
     };
   }
 
