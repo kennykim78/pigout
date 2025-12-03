@@ -17,7 +17,6 @@ const Result2 = () => {
   const [foodName, setFoodName] = useState('김치찌개');
   const [foodImage, setFoodImage] = useState(null);
   const [analysis, setAnalysis] = useState('');
-  const [score, setScore] = useState(65);
   const [detailedAnalysis, setDetailedAnalysis] = useState(null);
   
   // 🆕 스트리밍 관련 상태
@@ -77,7 +76,6 @@ const Result2 = () => {
       onResult: (data) => {
         console.log('[Stream] 최종 결과:', data);
         if (data.success && data.data) {
-          setScore(data.data.score);
           setAnalysis(data.data.analysis);
           setDetailedAnalysis(data.data.detailedAnalysis);
         }
@@ -121,11 +119,6 @@ const Result2 = () => {
       if (location.state.analysis) {
         console.log('✅ analysis 설정');
         setAnalysis(location.state.analysis);
-      }
-      
-      if (location.state.score !== undefined) {
-        console.log('✅ score 설정:', location.state.score);
-        setScore(location.state.score);
       }
       
       // 🆕 스트리밍 모드 체크
