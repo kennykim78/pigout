@@ -341,43 +341,7 @@ export const analyzeFoodByTextStream = (
 
   const abortController = new AbortController();
 
-  // 이벤트 상태를 루프 외부에서 유지
-  let currentEvent = '';
-  let currentData = '';
-
-  const processEvent = () => {
-    if (currentEvent && currentData) {
-      try {
-        const parsedData = JSON.parse(currentData);
-        console.log(`[SSE] 이벤트 수신: ${currentEvent}`, parsedData);
-        
-        switch (currentEvent) {
-          case 'start':
-            callbacks.onStart?.(parsedData);
-            break;
-          case 'stage':
-            callbacks.onStage?.(parsedData);
-            break;
-          case 'partial':
-            callbacks.onPartial?.(parsedData);
-            break;
-          case 'result':
-            callbacks.onResult?.(parsedData);
-            break;
-          case 'error':
-            callbacks.onError?.(parsedData);
-            break;
-          case 'complete':
-            callbacks.onComplete?.();
-            break;
-        }
-      } catch (e) {
-        console.warn('SSE 데이터 파싱 실패:', currentData, e);
-      }
-      currentEvent = '';
-      currentData = '';
-    }
-  };
+  console.log('[SSE] 스트리밍 분석 요청:', { foodName, diseases, deviceId });
 
   // fetch로 SSE 연결
   fetch(`${API_BASE_URL}/food/text-analyze-stream`, {
@@ -390,7 +354,11 @@ export const analyzeFoodByTextStream = (
     signal: abortController.signal,
   })
     .then(async (response) => {
+      console.log('[SSE] Response status:', response.status, response.ok);
+      
       if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[SSE] HTTP 오류 응답:', errorText);
         throw new Error(`HTTP error! status: ${response.status}`);
       }
 
@@ -403,21 +371,67 @@ export const analyzeFoodByTextStream = (
 
       const decoder = new TextDecoder();
       let buffer = '';
+      
+      // 이벤트 상태를 루프 내에서 유지
+      let currentEvent = '';
+      let currentData = '';
+
+      const processEvent = () => {
+        if (currentEvent && currentData) {
+          try {
+            console.log(`[SSE] Raw event: "${currentEvent}", data: "${currentData.substring(0, 100)}..."`);
+            const parsedData = JSON.parse(currentData);
+            console.log(`[SSE] 이벤트 수신: ${currentEvent}`, parsedData);
+            
+            switch (currentEvent) {
+              case 'start':
+                callbacks.onStart?.(parsedData);
+                break;
+              case 'stage':
+                callbacks.onStage?.(parsedData);
+                break;
+              case 'partial':
+                callbacks.onPartial?.(parsedData);
+                break;
+              case 'result':
+                callbacks.onResult?.(parsedData);
+                break;
+              case 'error':
+                callbacks.onError?.(parsedData);
+                break;
+              case 'complete':
+                callbacks.onComplete?.();
+                break;
+            }
+          } catch (e) {
+            console.warn('[SSE] 데이터 파싱 실패:', currentData, e);
+          }
+          currentEvent = '';
+          currentData = '';
+        }
+      };
 
       while (true) {
         const { done, value } = await reader.read();
+        
         if (done) {
           // 남은 이벤트 처리
           processEvent();
           console.log('[SSE] 스트림 종료');
+          callbacks.onComplete?.();
           break;
         }
 
-        buffer += decoder.decode(value, { stream: true });
+        const chunk = decoder.decode(value, { stream: true });
+        console.log('[SSE] 청크 수신:', chunk.length, 'bytes');
+        
+        buffer += chunk;
         const lines = buffer.split('\n');
         buffer = lines.pop() || '';
 
         for (const line of lines) {
+          console.log('[SSE] 라인:', line);
+          
           if (line.startsWith('event:')) {
             // 새 이벤트 시작 전 이전 이벤트 처리
             processEvent();
@@ -433,7 +447,7 @@ export const analyzeFoodByTextStream = (
     })
     .catch((error) => {
       if (error.name !== 'AbortError') {
-        console.error('SSE 연결 오류:', error);
+        console.error('[SSE] 연결 오류:', error);
         callbacks.onError?.({ message: error.message });
       }
     });
