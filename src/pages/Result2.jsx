@@ -5,6 +5,7 @@ import imgcook from '../assets/images/img_cook.png';
 import img_travel from '../assets/images/img_travel.png';
 import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
+import { AnalysisDashboard } from '../components/AnalysisCharts';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { analyzeFoodByTextStream } from '../services/api';
@@ -453,6 +454,11 @@ const Result2 = () => {
               ))}
           </div>
         </div>
+      )}
+
+      {/* 🆕 시각적 분석 대시보드 (차트) */}
+      {!isStreaming && detailedAnalysis && (
+        <AnalysisDashboard detailedAnalysis={detailedAnalysis} />
       )}
 
       {/* 주요 분석 내용 */}

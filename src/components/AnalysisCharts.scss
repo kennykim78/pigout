@@ -1,0 +1,225 @@
+@import '../styles/variables';
+
+.analysis-dashboard {
+  margin: 16px;
+  
+  &__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  &__icon {
+    font-size: 20px;
+  }
+
+  &__charts {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+}
+
+.analysis-chart {
+  background: #fff;
+  border-radius: 16px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+
+  &__title {
+    font-size: 15px;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 12px;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+  }
+
+  &__icon {
+    font-size: 16px;
+  }
+
+  &__container {
+    position: relative;
+  }
+
+  // 레이더 차트
+  &--radar {
+    .analysis-chart__container {
+      margin: 0 -10px;
+    }
+  }
+
+  // 파이 차트
+  &--pie {
+    .analysis-chart__container {
+      position: relative;
+    }
+
+    .analysis-chart__center-label {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      pointer-events: none;
+    }
+
+    .analysis-chart__center-number {
+      display: block;
+      font-size: 28px;
+      font-weight: 700;
+      color: #333;
+      line-height: 1;
+    }
+
+    .analysis-chart__center-text {
+      display: block;
+      font-size: 11px;
+      color: #888;
+      margin-top: 4px;
+    }
+  }
+
+  // 균형 차트
+  &--balance {
+    .analysis-chart__health-score {
+      margin-top: 12px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .analysis-chart__score-bar {
+      flex: 1;
+      height: 8px;
+      background: #e0e0e0;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .analysis-chart__score-fill {
+      height: 100%;
+      background: linear-gradient(90deg, #ff9800, #4caf50);
+      border-radius: 4px;
+      transition: width 0.5s ease;
+    }
+
+    .analysis-chart__score-text {
+      font-size: 13px;
+      color: #666;
+      white-space: nowrap;
+
+      strong {
+        color: #333;
+        font-weight: 700;
+      }
+    }
+  }
+
+  // 범례
+  &__legend {
+    display: flex;
+    justify-content: center;
+    gap: 16px;
+    margin-top: 8px;
+    font-size: 12px;
+  }
+
+  &__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    color: #666;
+
+    &--danger {
+      color: #ef5350;
+    }
+
+    &--safe {
+      color: #66bb6a;
+    }
+  }
+
+  // 요약 배지
+  &__summary {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  &__badge {
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: 12px;
+    font-weight: 600;
+
+    &--danger {
+      background: #ffebee;
+      color: #c62828;
+    }
+
+    &--caution {
+      background: #fff3e0;
+      color: #e65100;
+    }
+
+    &--safe {
+      background: #e8f5e9;
+      color: #2e7d32;
+    }
+  }
+
+  // 툴팁
+  &__tooltip {
+    background: rgba(0, 0, 0, 0.8);
+    padding: 8px 12px;
+    border-radius: 8px;
+    color: #fff;
+  }
+
+  &__tooltip-label {
+    font-size: 12px;
+    font-weight: 600;
+    margin-bottom: 4px;
+  }
+
+  &__tooltip-value {
+    font-size: 11px;
+
+    &.detected {
+      color: #ff8a80;
+    }
+
+    &.safe {
+      color: #b9f6ca;
+    }
+  }
+}
+
+// 스트리밍 중 차트 스켈레톤
+.analysis-chart--skeleton {
+  .analysis-chart__container {
+    height: 200px;
+    background: linear-gradient(90deg, #f0f0f0 25%, #e0e0e0 50%, #f0f0f0 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s infinite;
+    border-radius: 8px;
+  }
+}
+
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
