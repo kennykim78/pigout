@@ -132,48 +132,37 @@ const Result2 = () => {
       }
       
       // 🆕 스트리밍 모드 체크
-      // detailedAnalysis가 의미있는 데이터를 포함하는지 확인
-      // 1차 분석(pros/cons 문자열)과 상세 분석(goodPoints/badPoints 배열) 모두 체크
+      // Result2는 상세 분석 페이지이므로, "진짜" 상세 분석 데이터가 있을 때만 스킵
+      // 1차 분석(pros/cons 문자열)은 간편 분석이므로, 상세 분석을 다시 받아야 함
       const da = location.state.detailedAnalysis;
-      const hasValidDetailedAnalysis = da && (
-        // 상세 분석 데이터 (배열 형태)
-        da.goodPoints?.length > 0 ||
-        da.badPoints?.length > 0 ||
-        da.medicalAnalysis?.drug_food_interactions?.length > 0 ||
-        // 1차 분석 데이터 (문자열 형태) - 스트리밍 불필요
-        (da.pros && da.cons && da.summary)
+      
+      // 상세 분석 데이터 체크 (배열 형태의 데이터가 있어야 진짜 상세 분석)
+      const hasRealDetailedAnalysis = da && (
+        (da.goodPoints && Array.isArray(da.goodPoints) && da.goodPoints.length > 0) ||
+        (da.badPoints && Array.isArray(da.badPoints) && da.badPoints.length > 0) ||
+        da.medicalAnalysis?.drug_food_interactions?.length > 0
       );
+      
+      // 1차 분석 데이터만 있는 경우 (문자열 형태) - 상세 분석 필요
+      const hasOnlyQuickAnalysis = da && !hasRealDetailedAnalysis && (da.pros || da.cons || da.summary);
       
       console.log('📊 detailedAnalysis 검사:', {
         exists: !!da,
-        hasValid: hasValidDetailedAnalysis,
+        hasRealDetailed: hasRealDetailedAnalysis,
+        hasOnlyQuick: hasOnlyQuickAnalysis,
         hasGoodPoints: da?.goodPoints?.length > 0,
         hasBadPoints: da?.badPoints?.length > 0,
         hasPros: !!da?.pros,
         hasCons: !!da?.cons,
-        hasSummary: !!da?.summary,
       });
 
-      if (location.state.useStreaming && location.state.foodName && !hasValidDetailedAnalysis) {
-        // 유효한 detailedAnalysis가 없을 때만 스트리밍 시작
-        console.log('🚀 스트리밍 모드로 분석 시작! → startStreamingAnalysis 호출');
-        startStreamingAnalysis(location.state.foodName);
-      } else if (da) {
-        console.log('✅ detailedAnalysis 이미 있음, 스트리밍 스킵');
-        // 1차 분석 데이터를 상세 분석 형태로 변환
-        const convertedAnalysis = {
-          ...da,
-          // 문자열을 배열로 변환 (없으면 기존 배열 사용)
-          goodPoints: da.goodPoints || (da.pros ? [da.pros] : []),
-          badPoints: da.badPoints || (da.cons ? [da.cons] : []),
-          warnings: da.warnings ? (Array.isArray(da.warnings) ? da.warnings : [da.warnings]) : [],
-          summary: da.summary || '',
-          expertAdvice: da.expertAdvice || '',
-        };
-        setDetailedAnalysis(convertedAnalysis);
+      if (hasRealDetailedAnalysis) {
+        // 진짜 상세 분석 데이터가 있으면 그대로 사용
+        console.log('✅ 상세 분석 데이터 있음, 스트리밍 스킵');
+        setDetailedAnalysis(da);
       } else if (location.state.foodName) {
-        // detailedAnalysis도 없고 useStreaming도 없으면 스트리밍 시작
-        console.warn('⚠️ detailedAnalysis 없음, 스트리밍 시작');
+        // 상세 분석 데이터가 없으면 (1차 분석만 있거나 아예 없으면) 스트리밍 시작
+        console.log('🚀 상세 분석 시작! (1차 분석만 있거나 데이터 없음)');
         startStreamingAnalysis(location.state.foodName);
       }
       
