@@ -133,37 +133,48 @@ const Result2 = () => {
       
       // 🆕 스트리밍 모드 체크
       // detailedAnalysis가 의미있는 데이터를 포함하는지 확인
-      const hasValidDetailedAnalysis = location.state.detailedAnalysis && 
-        (location.state.detailedAnalysis.goodPoints?.length > 0 ||
-         location.state.detailedAnalysis.badPoints?.length > 0 ||
-         location.state.detailedAnalysis.medicalAnalysis ||
-         location.state.detailedAnalysis.summary);
+      // 1차 분석(pros/cons 문자열)과 상세 분석(goodPoints/badPoints 배열) 모두 체크
+      const da = location.state.detailedAnalysis;
+      const hasValidDetailedAnalysis = da && (
+        // 상세 분석 데이터 (배열 형태)
+        da.goodPoints?.length > 0 ||
+        da.badPoints?.length > 0 ||
+        da.medicalAnalysis?.drug_food_interactions?.length > 0 ||
+        // 1차 분석 데이터 (문자열 형태) - 스트리밍 불필요
+        (da.pros && da.cons && da.summary)
+      );
       
       console.log('📊 detailedAnalysis 검사:', {
-        exists: !!location.state.detailedAnalysis,
+        exists: !!da,
         hasValid: hasValidDetailedAnalysis,
-        value: location.state.detailedAnalysis
+        hasGoodPoints: da?.goodPoints?.length > 0,
+        hasBadPoints: da?.badPoints?.length > 0,
+        hasPros: !!da?.pros,
+        hasCons: !!da?.cons,
+        hasSummary: !!da?.summary,
       });
 
-      if (location.state.useStreaming && location.state.foodName) {
-        console.log('🚀 스트리밍 모드로 분석 시작!');
-        // 유효한 detailedAnalysis가 없으면 스트리밍 시작
-        if (!hasValidDetailedAnalysis) {
-          console.log('  → startStreamingAnalysis 호출!');
-          startStreamingAnalysis(location.state.foodName);
-        } else {
-          console.log('  → detailedAnalysis 이미 있음, 스트리밍 스킵');
-          // 이미 데이터가 있으면 바로 설정
-          setDetailedAnalysis(location.state.detailedAnalysis);
-        }
-      } else if (hasValidDetailedAnalysis) {
-        console.log('✅✅✅ detailedAnalysis 발견!');
-        setDetailedAnalysis(location.state.detailedAnalysis);
-      } else {
+      if (location.state.useStreaming && location.state.foodName && !hasValidDetailedAnalysis) {
+        // 유효한 detailedAnalysis가 없을 때만 스트리밍 시작
+        console.log('🚀 스트리밍 모드로 분석 시작! → startStreamingAnalysis 호출');
+        startStreamingAnalysis(location.state.foodName);
+      } else if (da) {
+        console.log('✅ detailedAnalysis 이미 있음, 스트리밍 스킵');
+        // 1차 분석 데이터를 상세 분석 형태로 변환
+        const convertedAnalysis = {
+          ...da,
+          // 문자열을 배열로 변환 (없으면 기존 배열 사용)
+          goodPoints: da.goodPoints || (da.pros ? [da.pros] : []),
+          badPoints: da.badPoints || (da.cons ? [da.cons] : []),
+          warnings: da.warnings ? (Array.isArray(da.warnings) ? da.warnings : [da.warnings]) : [],
+          summary: da.summary || '',
+          expertAdvice: da.expertAdvice || '',
+        };
+        setDetailedAnalysis(convertedAnalysis);
+      } else if (location.state.foodName) {
+        // detailedAnalysis도 없고 useStreaming도 없으면 스트리밍 시작
         console.warn('⚠️ detailedAnalysis 없음, 스트리밍 시작');
-        if (location.state.foodName) {
-          startStreamingAnalysis(location.state.foodName);
-        }
+        startStreamingAnalysis(location.state.foodName);
       }
       
       // cleanup 함수: blob URL 해제 및 스트리밍 중단
