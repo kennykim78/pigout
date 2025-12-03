@@ -631,91 +631,31 @@ export class ExternalApiClient {
   }
 
   /**
-   * 건강기능식품 검색 (상세정보 API 사용)
-   * 의약품에서 검색되지 않는 건강기능식품(오메가3, 비타민 등)을 검색
+   * 건강기능식품 검색 (AI 기반)
    * 
-   * 주의: API가 검색 파라미터를 무시하고 전체 목록을 반환하므로,
-   * 대량의 데이터를 가져온 후 클라이언트에서 필터링
+   * 공공데이터 API가 검색 파라미터를 지원하지 않아 전체 목록만 반환하므로,
+   * AI를 사용하여 실제 존재하는 건강기능식품 정보를 생성
    * 
-   * @param productName 제품명
+   * @param productName 제품명/원료명 키워드
    * @param numOfRows 조회할 행 수
    */
   async searchHealthFunctionalFood(productName: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      // 상세정보 API 사용 (getHtfsItem01)
-      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsItem01`;
+      console.log(`[건강기능식품] AI 기반 검색: ${productName}`);
       
-      console.log(`[건강기능식품] 상세정보 조회: ${productName}`);
+      // AI가 실제 건강기능식품 정보 기반으로 생성
+      const aiResults = await this.generateAIHealthFoodInfo(productName, numOfRows);
       
-      // API가 검색을 지원하지 않으므로 더 많은 데이터를 가져와서 필터링
-      // 최대 500건까지 가져와서 필터링
-      const fetchSize = 500;
-      
-      const response = await axios.get(url, {
-        params: {
-          serviceKey: this.SERVICE_KEY,
-          prdlst_nm: productName, // API가 이를 무시하지만 일단 전송
-          numOfRows: fetchSize,
-          pageNo: 1,
-          type: 'json',
-        },
-        timeout: 20000,
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-
-      const body = response.data?.body;
-      if (body?.items) {
-        // API 응답 구조: body.items는 배열이고, 각 요소에 item 객체가 있음
-        let items: any[] = [];
-        
-        if (Array.isArray(body.items)) {
-          // items가 배열인 경우: [{item: {...}}, {item: {...}}]
-          items = body.items.map((wrapper: any) => wrapper.item).filter(Boolean);
-        } else if (body.items.item) {
-          // items.item이 있는 경우
-          items = Array.isArray(body.items.item) ? body.items.item : [body.items.item];
-        }
-        
-        if (items.length > 0) {
-          console.log(`[건강기능식품] API 응답: ${items.length}건`);
-          
-          // 클라이언트 측 필터링: 제품명, 기능성, 원료명에서 키워드 검색
-          const keyword = productName.toLowerCase();
-          const keywords = keyword.split(/\s+/).filter(k => k.length > 0);
-          
-          const filteredItems = items.filter((item: any) => {
-            const prduct = (item.PRDUCT || '').toLowerCase();
-            const mainFnctn = (item.MAIN_FNCTN || '').toLowerCase();
-            const baseStandard = (item.BASE_STANDARD || '').toLowerCase();
-            const srvUse = (item.SRV_USE || '').toLowerCase();
-            
-            // 모든 키워드 중 하나라도 매칭되면 포함
-            return keywords.some(kw => 
-              prduct.includes(kw) || 
-              mainFnctn.includes(kw) || 
-              baseStandard.includes(kw) ||
-              srvUse.includes(kw)
-            );
-          });
-          
-          console.log(`[건강기능식품] 필터링 후: ${filteredItems.length}건 (키워드: ${productName})`);
-          
-          if (filteredItems.length > 0) {
-            recordApiUsage('healthFoodApi', 1);
-            // 건강기능식품 데이터를 e약은요 형식으로 변환 (요청 수만큼만 반환)
-            return filteredItems
-              .slice(0, numOfRows)
-              .map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, productName));
-          }
-        }
+      if (aiResults && aiResults.length > 0) {
+        console.log(`[건강기능식품] AI 생성 완료: ${aiResults.length}건`);
+        // AI 결과는 이미 e약은요 형식이므로 그대로 반환
+        return aiResults;
       }
       
       console.log(`[건강기능식품] 검색 결과 없음: ${productName}`);
       return [];
     } catch (error) {
-      console.error('[건강기능식품] API error:', error.message);
+      console.error('[건강기능식품] 검색 오류:', error.message);
       return [];
     }
   }
