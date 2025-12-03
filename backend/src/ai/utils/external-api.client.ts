@@ -388,6 +388,42 @@ export class ExternalApiClient {
   }
 
   /**
+   * AI가 제품 유형을 분류 (의약품 vs 건강기능식품)
+   * @param keyword 검색 키워드
+   * @returns 'medicine' | 'healthFood' | 'unknown'
+   */
+  async classifyProductType(keyword: string): Promise<'medicine' | 'healthFood' | 'unknown'> {
+    try {
+      console.log(`[AI 제품분류] ${keyword} 유형 판단 중...`);
+      
+      const geminiClient = await this.getGeminiClientForFallback();
+      if (geminiClient) {
+        const productType = await geminiClient.classifyProductType(keyword);
+        console.log(`[AI 제품분류] ${keyword} → ${productType}`);
+        return productType;
+      }
+      
+      // AI 없으면 키워드 기반 휴리스틱 판단
+      const healthFoodKeywords = ['오메가', '비타민', '프로바이오틱스', '유산균', '콜라겐', '루테인', '홍삼', '프로폴리스', '밀크씨슬', '영양제', '철분', '칼슘', '마그네슘', '아연', '셀레늄', '엽산', '코엔자임', 'CoQ10', 'EPA', 'DHA', '글루코사민', '크릴오일', '비오틴', '멀티비타민'];
+      const medicineKeywords = ['정', '캡슐', '시럽', '연고', '주사', '패치', '타이레놀', '아스피린', '항생제', '진통제', '감기약', '콜킨', '콜키신'];
+      
+      const keywordLower = keyword.toLowerCase();
+      
+      if (healthFoodKeywords.some(kw => keywordLower.includes(kw.toLowerCase()))) {
+        return 'healthFood';
+      }
+      if (medicineKeywords.some(kw => keywordLower.includes(kw.toLowerCase()))) {
+        return 'medicine';
+      }
+      
+      return 'unknown';
+    } catch (error) {
+      console.error('[AI 제품분류] 오류:', error.message);
+      return 'unknown';
+    }
+  }
+
+  /**
    * AI 대체용 Gemini 클라이언트 가져오기
    */
   private async getGeminiClientForFallback(): Promise<any> {

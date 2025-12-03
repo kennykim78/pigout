@@ -70,6 +70,7 @@ export class MedicineService {
 
   /**
    * 약품명, 효능(질병), 제조사로 검색 (e약은요 API 사용)
+   * API 결과 없을 때 AI가 제품 유형 판단 후 올바른 탭 안내
    */
   async searchMedicine(keyword: string) {
     try {
@@ -96,8 +97,42 @@ export class MedicineService {
       console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건, 중복제거 후: ${uniqueResults.length}건`);
       
       if (!uniqueResults || uniqueResults.length === 0) {
-        console.log(`[약품 검색] API 결과 없음, DB 검색 시도`);
-        // API 결과 없으면 로컬 DB 검색
+        console.log(`[약품 검색] API 결과 없음 - 제품 유형 판단 시작`);
+        
+        // 건강기능식품 API에서 검색해보기
+        const healthFoodResults = await this.externalApiClient.searchHealthFunctionalFood(keyword, 5);
+        
+        if (healthFoodResults && healthFoodResults.length > 0) {
+          // 건강기능식품에서 발견됨 - 탭 이동 안내
+          console.log(`[약품 검색] ✅ 건강기능식품 탭에서 ${healthFoodResults.length}건 발견 - 탭 이동 안내`);
+          return {
+            results: [],
+            suggestion: {
+              type: 'wrongTab',
+              correctTab: 'healthfood',
+              message: `"${keyword}"은(는) 건강기능식품입니다. 건강기능식품 탭에서 검색해주세요.`,
+              foundCount: healthFoodResults.length,
+            }
+          };
+        }
+        
+        // AI에게 제품 유형 판단 요청
+        const productType = await this.externalApiClient.classifyProductType(keyword);
+        console.log(`[약품 검색] AI 제품 유형 판단: ${productType}`);
+        
+        if (productType === 'healthFood') {
+          return {
+            results: [],
+            suggestion: {
+              type: 'wrongTab',
+              correctTab: 'healthfood',
+              message: `"${keyword}"은(는) 건강기능식품으로 보입니다. 건강기능식품 탭에서 검색해주세요.`,
+              foundCount: 0,
+            }
+          };
+        }
+        
+        // 의약품이 맞는데 없는 경우 - DB 검색 시도
         const { data, error } = await this.supabaseService
           .getClient()
           .from('medicine_list')
@@ -133,7 +168,7 @@ export class MedicineService {
   /**
    * 건강기능식품 전용 검색 (HtfsInfoService03 API 사용)
    * 의약품 검색과 분리하여 건강기능식품만 검색
-   * API 결과가 없으면 AI가 실제 존재하는 제품을 기반으로 정보 생성
+   * API 결과가 없으면 AI가 제품 유형 판단 후 올바른 탭 안내 또는 정보 생성
    */
   async searchHealthFood(keyword: string) {
     try {
@@ -165,8 +200,42 @@ export class MedicineService {
         return formattedResults;
       }
       
-      // API 결과가 없으면 AI가 실제 존재하는 건강기능식품 정보 생성
-      console.log(`[건강기능식품 검색] API 결과 없음 - AI가 실제 제품 기반으로 정보 생성`);
+      // API 결과 없음 - 의약품 API에서 검색해보기
+      console.log(`[건강기능식품 검색] API 결과 없음 - 의약품 검색 시도`);
+      const medicineResults = await this.externalApiClient.getMedicineInfo(keyword, 5);
+      
+      if (medicineResults && medicineResults.length > 0) {
+        // 의약품에서 발견됨 - 탭 이동 안내
+        console.log(`[건강기능식품 검색] ✅ 의약품 탭에서 ${medicineResults.length}건 발견 - 탭 이동 안내`);
+        return {
+          results: [],
+          suggestion: {
+            type: 'wrongTab',
+            correctTab: 'add',
+            message: `"${keyword}"은(는) 의약품입니다. 의약품 탭에서 검색해주세요.`,
+            foundCount: medicineResults.length,
+          }
+        };
+      }
+      
+      // AI에게 제품 유형 판단 요청
+      const productType = await this.externalApiClient.classifyProductType(keyword);
+      console.log(`[건강기능식품 검색] AI 제품 유형 판단: ${productType}`);
+      
+      if (productType === 'medicine') {
+        return {
+          results: [],
+          suggestion: {
+            type: 'wrongTab',
+            correctTab: 'add',
+            message: `"${keyword}"은(는) 의약품으로 보입니다. 의약품 탭에서 검색해주세요.`,
+            foundCount: 0,
+          }
+        };
+      }
+      
+      // 건강기능식품이 맞는데 API에 없는 경우 - AI가 실제 제품 기반으로 정보 생성
+      console.log(`[건강기능식품 검색] AI가 실제 제품 기반으로 정보 생성`);
       const aiResults = await this.externalApiClient.generateAIHealthFoodInfo(keyword, 10);
       
       if (aiResults && aiResults.length > 0) {

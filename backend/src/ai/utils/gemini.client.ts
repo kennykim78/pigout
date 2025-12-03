@@ -1512,6 +1512,57 @@ JSON 형식으로만 응답:
   }
 
   /**
+   * AI가 제품 유형을 분류 (의약품 vs 건강기능식품)
+   * @param keyword 검색 키워드
+   * @returns 'medicine' | 'healthFood' | 'unknown'
+   */
+  async classifyProductType(keyword: string): Promise<'medicine' | 'healthFood' | 'unknown'> {
+    try {
+      console.log(`[AI] 제품 유형 분류: ${keyword}`);
+      
+      const prompt = `당신은 의약품과 건강기능식품을 분류하는 전문가입니다.
+
+"${keyword}"이(가) 다음 중 어디에 해당하는지 판단해주세요:
+
+1. **의약품 (medicine)**: 의사 처방이 필요한 전문의약품 또는 약국에서 구매하는 일반의약품
+   - 예: 타이레놀, 아스피린, 콜킨, 콜키신, 가스터, 듀오덤, 무좀약, 감기약, 항생제, 진통제 등
+
+2. **건강기능식품 (healthFood)**: 식약처 인증 건강기능식품, 영양제, 보충제
+   - 예: 오메가3, 비타민, 유산균, 홍삼, 루테인, 프로바이오틱스, 글루코사민, 콜라겐 등
+
+3. **알 수 없음 (unknown)**: 판단하기 어려운 경우
+
+**중요**: 반드시 다음 중 하나만 응답하세요: medicine, healthFood, unknown
+
+응답:`;
+
+      let rawText: string;
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text().trim().toLowerCase();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = rawText.trim().toLowerCase();
+      }
+
+      console.log(`[AI] 제품 유형 분류 응답: ${rawText}`);
+      
+      if (rawText.includes('healthfood') || rawText.includes('health_food') || rawText.includes('건강기능식품')) {
+        return 'healthFood';
+      }
+      if (rawText.includes('medicine') || rawText.includes('의약품')) {
+        return 'medicine';
+      }
+      
+      return 'unknown';
+    } catch (error) {
+      console.error('[AI] 제품 유형 분류 실패:', error.message);
+      return 'unknown';
+    }
+  }
+
+  /**
    * JSON 배열 추출 헬퍼
    */
   private extractJsonArray(raw: string): any[] {

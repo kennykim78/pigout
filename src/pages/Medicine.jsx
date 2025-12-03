@@ -25,6 +25,10 @@ const Medicine = () => {
   const [hasSearchedHealthFood, setHasSearchedHealthFood] = useState(false);
   const [healthFoodPage, setHealthFoodPage] = useState(1);
   
+  // 탭 이동 안내 상태
+  const [tabSuggestion, setTabSuggestion] = useState(null);
+  const [healthFoodTabSuggestion, setHealthFoodTabSuggestion] = useState(null);
+  
   // QR 스캔 결과 상태
   const [scannedMedicine, setScannedMedicine] = useState(null);
   const [isProcessingQR, setIsProcessingQR] = useState(false);
@@ -146,13 +150,22 @@ const Medicine = () => {
     setLoading(true);
     setHasSearched(true);
     setCurrentPage(1);
+    setTabSuggestion(null); // 이전 안내 초기화
     try {
       console.log('[검색 시작] 키워드:', searchKeyword);
-      const results = await searchMedicine(searchKeyword);
-      console.log('[검색 완료] 결과:', results);
-      console.log('[검색 완료] 결과 타입:', typeof results);
-      console.log('[검색 완료] 배열 여부:', Array.isArray(results));
-      setSearchResults(results);
+      const response = await searchMedicine(searchKeyword);
+      console.log('[검색 완료] 결과:', response);
+      
+      // 탭 이동 안내가 있는 경우
+      if (response && response.suggestion) {
+        console.log('[검색 완료] 탭 이동 안내:', response.suggestion);
+        setTabSuggestion(response.suggestion);
+        setSearchResults([]);
+      } else {
+        // 일반 검색 결과
+        const results = Array.isArray(response) ? response : (response.results || []);
+        setSearchResults(results);
+      }
     } catch (error) {
       console.error('Search failed:', error);
       console.error('Error details:', error.response?.data);
@@ -170,11 +183,22 @@ const Medicine = () => {
     setLoading(true);
     setHasSearchedHealthFood(true);
     setHealthFoodPage(1);
+    setHealthFoodTabSuggestion(null); // 이전 안내 초기화
     try {
       console.log('[건강기능식품 검색 시작] 키워드:', healthFoodKeyword);
-      const results = await searchHealthFood(healthFoodKeyword);
-      console.log('[건강기능식품 검색 완료] 결과:', results);
-      setHealthFoodResults(results);
+      const response = await searchHealthFood(healthFoodKeyword);
+      console.log('[건강기능식품 검색 완료] 결과:', response);
+      
+      // 탭 이동 안내가 있는 경우
+      if (response && response.suggestion) {
+        console.log('[건강기능식품 검색 완료] 탭 이동 안내:', response.suggestion);
+        setHealthFoodTabSuggestion(response.suggestion);
+        setHealthFoodResults([]);
+      } else {
+        // 일반 검색 결과
+        const results = Array.isArray(response) ? response : (response.results || []);
+        setHealthFoodResults(results);
+      }
     } catch (error) {
       console.error('Health food search failed:', error);
       console.error('Error details:', error.response?.data);
@@ -182,6 +206,26 @@ const Medicine = () => {
       setHealthFoodResults([]);
     } finally {
       setLoading(false);
+    }
+  };
+
+  // 탭 이동 핸들러
+  const handleTabSwitch = (targetTab, keyword) => {
+    setActiveTab(targetTab);
+    if (targetTab === 'healthfood') {
+      setHealthFoodKeyword(keyword);
+      setTabSuggestion(null);
+      // 자동 검색
+      setTimeout(() => {
+        document.querySelector('.medicine__search-btn')?.click();
+      }, 100);
+    } else if (targetTab === 'add') {
+      setSearchKeyword(keyword);
+      setHealthFoodTabSuggestion(null);
+      // 자동 검색
+      setTimeout(() => {
+        document.querySelector('.medicine__search-btn')?.click();
+      }, 100);
     }
   };
 
@@ -631,6 +675,41 @@ const Medicine = () => {
             </div>
 
             <div className="medicine__search-results">
+              {/* 탭 이동 안내 */}
+              {tabSuggestion && (
+                <div className="medicine__tab-suggestion" style={{
+                  backgroundColor: '#FFF3E0',
+                  border: '1px solid #FF9800',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  marginBottom: '16px',
+                }}>
+                  <p style={{ margin: 0, color: '#E65100', fontWeight: 'bold', fontSize: '14px' }}>
+                    🔔 {tabSuggestion.message}
+                  </p>
+                  {tabSuggestion.foundCount > 0 && (
+                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '13px' }}>
+                      ✅ {tabSuggestion.foundCount}건의 결과가 {tabSuggestion.correctTab === 'healthfood' ? '건강기능식품' : '의약품'} 탭에서 발견되었습니다.
+                    </p>
+                  )}
+                  <button
+                    onClick={() => handleTabSwitch(tabSuggestion.correctTab, searchKeyword)}
+                    style={{
+                      marginTop: '12px',
+                      padding: '8px 16px',
+                      backgroundColor: '#FF9800',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    {tabSuggestion.correctTab === 'healthfood' ? '🥗 건강기능식품 탭으로 이동' : '💊 의약품 탭으로 이동'}
+                  </button>
+                </div>
+              )}
+              
               {searchResults.length > 0 ? (
                 <>
                   <p className="medicine__results-count">전체 검색 결과: {searchResults.length}건</p>
@@ -742,6 +821,41 @@ const Medicine = () => {
             </div>
 
             <div className="medicine__search-results">
+              {/* 탭 이동 안내 */}
+              {healthFoodTabSuggestion && (
+                <div className="medicine__tab-suggestion" style={{
+                  backgroundColor: '#E3F2FD',
+                  border: '1px solid #2196F3',
+                  borderRadius: '8px',
+                  padding: '16px',
+                  marginBottom: '16px',
+                }}>
+                  <p style={{ margin: 0, color: '#1565C0', fontWeight: 'bold', fontSize: '14px' }}>
+                    🔔 {healthFoodTabSuggestion.message}
+                  </p>
+                  {healthFoodTabSuggestion.foundCount > 0 && (
+                    <p style={{ margin: '8px 0 0', color: '#666', fontSize: '13px' }}>
+                      ✅ {healthFoodTabSuggestion.foundCount}건의 결과가 의약품 탭에서 발견되었습니다.
+                    </p>
+                  )}
+                  <button
+                    onClick={() => handleTabSwitch(healthFoodTabSuggestion.correctTab, healthFoodKeyword)}
+                    style={{
+                      marginTop: '12px',
+                      padding: '8px 16px',
+                      backgroundColor: '#2196F3',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '6px',
+                      cursor: 'pointer',
+                      fontWeight: 'bold',
+                    }}
+                  >
+                    💊 의약품 탭으로 이동
+                  </button>
+                </div>
+              )}
+              
               {healthFoodResults.length > 0 ? (
                 <>
                   <p className="medicine__results-count">전체 검색 결과: {healthFoodResults.length}건</p>
