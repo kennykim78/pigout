@@ -396,7 +396,8 @@ export class ExternalApiClient {
    */
   async searchPrescriptionDrug(medicineName: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      const url = `${this.MFDS_BASE_URL}/DrugPrdtPrmsnInfoService05/getDrugPrdtPrmsnDtlInq04`;
+      // 최신 API 버전 사용: DrugPrdtPrmsnInfoService07 (2025년 기준)
+      const url = `${this.MFDS_BASE_URL}/DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07`;
       
       console.log(`[의약품허가정보] 전문의약품 조회: ${medicineName}`);
       
@@ -1125,6 +1126,7 @@ export class ExternalApiClient {
    * 의약품 제품허가정보 조회
    */
   async getDrugApprovalInfo(params: DrugApprovalParams = {}): Promise<any[]> {
+    // 의약품 제품 허가 목록 조회 (최신 버전)
     return this.callMfdsApi('DrugPrdtPrmsnInfoService07/getDrugPrdtPrmsnInq07', {
       item_name: params.itemName,
       item_seq: params.itemSeq,
