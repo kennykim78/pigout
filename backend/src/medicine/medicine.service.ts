@@ -266,6 +266,135 @@ export class MedicineService {
   }
 
   /**
+   * 이미지에서 약품 정보 추출 (AI 분석)
+   * 약 봉지, 처방전, 알약 등 촬영하여 약품명 인식
+   * 다수의 약품이 포함된 경우 모두 추출하여 반환
+   */
+  async analyzeMedicineImage(imageBase64: string, mimeType: string = 'image/jpeg') {
+    try {
+      console.log(`[약품 이미지 분석] 시작`);
+
+      // Gemini API로 이미지 분석
+      const { GeminiClient } = await import('../ai/utils/gemini.client');
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      if (!geminiApiKey) {
+        throw new Error('GEMINI_API_KEY가 설정되지 않았습니다.');
+      }
+
+      const geminiClient = new GeminiClient(geminiApiKey);
+      const analysisResult = await geminiClient.analyzeMedicineImage(imageBase64);
+
+      console.log(`[약품 이미지 분석] AI 분석 결과:`, analysisResult.success ? `${analysisResult.totalCount}개 약품 감지` : '분석 실패');
+
+      if (!analysisResult.success || analysisResult.medicines.length === 0) {
+        return {
+          success: false,
+          message: analysisResult.message || '이미지에서 약품을 인식할 수 없습니다. 약품명이 잘 보이도록 다시 촬영해주세요.',
+          detectedMedicines: [],
+          verifiedMedicines: [],
+        };
+      }
+
+      const detectedMedicines = analysisResult.medicines;
+
+      // 감지된 약품들에 대해 공공데이터 API로 검증 및 상세 정보 조회
+      const verifiedMedicines = [];
+
+      for (const medicine of detectedMedicines) {
+        console.log(`[약품 이미지 분석] 검증 중: ${medicine.name}`);
+        
+        // e약은요 API로 약품 검색
+        const apiResults = await this.externalApiClient.getMedicineInfo(medicine.name, 3);
+        
+        if (apiResults && apiResults.length > 0) {
+          // API에서 찾은 결과
+          const matched = apiResults[0];
+          verifiedMedicines.push({
+            detectedName: medicine.name,
+            confidence: medicine.confidence / 100, // 0-100 → 0-1
+            type: medicine.shape,
+            verified: true,
+            apiMatch: {
+              itemSeq: matched.itemSeq,
+              itemName: matched.itemName,
+              entpName: matched.entpName,
+              efcyQesitm: matched.efcyQesitm,
+              useMethodQesitm: matched.useMethodQesitm,
+              atpnQesitm: matched.atpnQesitm,
+              intrcQesitm: matched.intrcQesitm,
+              seQesitm: matched.seQesitm,
+            },
+            shape: medicine.shape,
+            color: medicine.color,
+            imprint: medicine.imprint,
+          });
+        } else {
+          // API에서 못 찾은 경우 - 낱알정보로 시도
+          const pillResults = await this.externalApiClient.getPillIdentificationInfo({
+            itemName: medicine.name,
+            numOfRows: 3,
+          });
+          
+          if (pillResults && pillResults.length > 0) {
+            const matched = pillResults[0];
+            verifiedMedicines.push({
+              detectedName: medicine.name,
+              confidence: medicine.confidence / 100,
+              type: medicine.shape,
+              verified: true,
+              apiMatch: {
+                itemSeq: matched.ITEM_SEQ,
+                itemName: matched.ITEM_NAME,
+                entpName: matched.ENTP_NAME,
+                efcyQesitm: matched.CLASS_NAME || '',
+                useMethodQesitm: '',
+                atpnQesitm: '',
+                intrcQesitm: '',
+                seQesitm: '',
+              },
+              shape: medicine.shape || matched.DRUG_SHAPE,
+              color: medicine.color || matched.COLOR_CLASS1,
+              imprint: medicine.imprint || matched.PRINT_FRONT,
+            });
+          } else {
+            // 검증 실패 - AI 감지 정보만 반환
+            verifiedMedicines.push({
+              detectedName: medicine.name,
+              confidence: medicine.confidence / 100,
+              type: medicine.shape,
+              verified: false,
+              apiMatch: null,
+              shape: medicine.shape,
+              color: medicine.color,
+              imprint: medicine.imprint,
+              manufacturer: medicine.manufacturer,
+            });
+          }
+        }
+      }
+
+      console.log(`[약품 이미지 분석] 완료 - 검증됨: ${verifiedMedicines.filter(m => m.verified).length}건`);
+
+      return {
+        success: true,
+        message: `${detectedMedicines.length}개의 약품이 감지되었습니다.`,
+        detectedMedicines: detectedMedicines,
+        verifiedMedicines: verifiedMedicines,
+        imageType: analysisResult.imageType,
+        rawText: analysisResult.rawText,
+        summary: {
+          total: detectedMedicines.length,
+          verified: verifiedMedicines.filter(m => m.verified).length,
+          unverified: verifiedMedicines.filter(m => !m.verified).length,
+        },
+      };
+    } catch (error) {
+      console.error('[약품 이미지 분석] 오류:', error.message);
+      throw error;
+    }
+  }
+
+  /**
    * 검색 결과에서 약 직접 등록
    */
   async addMedicineFromSearch(

@@ -1,7 +1,6 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMedicineStore } from '../store/medicineStore';
-import { getMyMedicines, scanMedicineQR, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines } from '../services/api';
-import { Scanner } from '@yudiel/react-qr-scanner';
+import { getMyMedicines, scanMedicineQR, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines, analyzeMedicineImage } from '../services/api';
 import './Medicine.scss';
 
 const Medicine = () => {
@@ -33,6 +32,16 @@ const Medicine = () => {
   const [scannedMedicine, setScannedMedicine] = useState(null);
   const [isProcessingQR, setIsProcessingQR] = useState(false);
   const [qrScanError, setQrScanError] = useState('');
+  
+  // 📸 AI 이미지 분석 상태
+  const [showImageCapture, setShowImageCapture] = useState(false);
+  const [capturedImage, setCapturedImage] = useState(null);
+  const [isAnalyzingImage, setIsAnalyzingImage] = useState(false);
+  const [imageAnalysisResult, setImageAnalysisResult] = useState(null);
+  const [selectedMedicines, setSelectedMedicines] = useState([]);
+  const [showMedicineSelectPopup, setShowMedicineSelectPopup] = useState(false);
+  const fileInputRef = useRef(null);
+  const cameraInputRef = useRef(null);
 
   useEffect(() => {
     loadMedicines();
@@ -142,6 +151,126 @@ const Medicine = () => {
     setScannedMedicine(null);
     setIsProcessingQR(false);
     setQrScanError('');
+  };
+
+  // 📸 이미지 파일 선택 핸들러
+  const handleImageFileSelect = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    // 파일을 Base64로 변환
+    const reader = new FileReader();
+    reader.onloadend = async () => {
+      const base64Data = reader.result.split(',')[1]; // data:image/... 부분 제거
+      const mimeType = file.type || 'image/jpeg';
+      
+      setCapturedImage(reader.result);
+      await analyzeImageWithAI(base64Data, mimeType);
+    };
+    reader.readAsDataURL(file);
+  };
+
+  // 📸 AI로 이미지 분석
+  const analyzeImageWithAI = async (base64Data, mimeType) => {
+    setIsAnalyzingImage(true);
+    setImageAnalysisResult(null);
+    
+    try {
+      console.log('[이미지 분석] 시작');
+      const result = await analyzeMedicineImage(base64Data, mimeType);
+      console.log('[이미지 분석] 결과:', result);
+      
+      setImageAnalysisResult(result);
+      
+      if (result.success && result.verifiedMedicines?.length > 0) {
+        // 감지된 약품이 있으면 선택 팝업 표시
+        setSelectedMedicines(result.verifiedMedicines.map(m => m.verified)); // 검증된 약품만 기본 선택
+        setShowMedicineSelectPopup(true);
+      }
+    } catch (error) {
+      console.error('[이미지 분석] 실패:', error);
+      setImageAnalysisResult({
+        success: false,
+        message: '이미지 분석에 실패했습니다. 다시 시도해주세요.',
+        detectedMedicines: [],
+        verifiedMedicines: [],
+      });
+    } finally {
+      setIsAnalyzingImage(false);
+    }
+  };
+
+  // 📸 이미지 촬영/업로드 초기화
+  const handleResetImageCapture = () => {
+    setCapturedImage(null);
+    setImageAnalysisResult(null);
+    setSelectedMedicines([]);
+    setShowMedicineSelectPopup(false);
+    if (fileInputRef.current) fileInputRef.current.value = '';
+    if (cameraInputRef.current) cameraInputRef.current.value = '';
+  };
+
+  // 📸 약품 선택 토글
+  const handleToggleMedicine = (index) => {
+    setSelectedMedicines(prev => {
+      const newSelection = [...prev];
+      newSelection[index] = !newSelection[index];
+      return newSelection;
+    });
+  };
+
+  // 📸 전체 선택/해제
+  const handleSelectAllMedicines = (selectAll) => {
+    if (!imageAnalysisResult?.verifiedMedicines) return;
+    setSelectedMedicines(imageAnalysisResult.verifiedMedicines.map(() => selectAll));
+  };
+
+  // 📸 선택한 약품들 일괄 등록
+  const handleAddSelectedMedicines = async () => {
+    if (!imageAnalysisResult?.verifiedMedicines) return;
+    
+    const medicinesToAdd = imageAnalysisResult.verifiedMedicines.filter((_, idx) => selectedMedicines[idx]);
+    
+    if (medicinesToAdd.length === 0) {
+      alert('등록할 약품을 선택해주세요.');
+      return;
+    }
+
+    setLoading(true);
+    let successCount = 0;
+    let failCount = 0;
+
+    for (const medicine of medicinesToAdd) {
+      try {
+        const medicineData = medicine.apiMatch ? {
+          itemName: medicine.apiMatch.itemName,
+          entpName: medicine.apiMatch.entpName,
+          itemSeq: medicine.apiMatch.itemSeq,
+          efcyQesitm: medicine.apiMatch.efcyQesitm,
+        } : {
+          itemName: medicine.detectedName,
+          entpName: medicine.manufacturer || '(정보 없음)',
+        };
+
+        await addMedicineAPI(medicineData);
+        successCount++;
+      } catch (error) {
+        console.error(`약 추가 실패 (${medicine.detectedName}):`, error);
+        failCount++;
+      }
+    }
+
+    setLoading(false);
+
+    if (successCount > 0) {
+      alert(`${successCount}개의 약이 등록되었습니다.${failCount > 0 ? ` (${failCount}개 실패)` : ''}`);
+      await loadMedicines();
+      handleResetImageCapture();
+      setShowImageCapture(false);
+      setActiveTab('list');
+    } else {
+      alert('약 등록에 실패했습니다.');
+    }
   };
 
   const handleSearch = async () => {
@@ -504,150 +633,175 @@ const Medicine = () => {
       {activeTab === 'add' && (
         <div className="medicine__add">
           <section className="medicine__section">
-            <h2 className="medicine__section-title">📱 QR 코드 스캔</h2>
-            <p className="medicine__section-desc">약 포장의 QR 코드를 스캔하세요</p>
+            <h2 className="medicine__section-title">📸 약 촬영하기</h2>
+            <p className="medicine__section-desc">
+              약 봉지, 처방전, 알약 등을 촬영하면 AI가 자동으로 인식합니다
+            </p>
             
-            <div className="medicine__qr-mode-buttons">
+            <div className="medicine__capture-buttons">
+              {/* 숨겨진 파일 입력들 */}
+              <input
+                ref={cameraInputRef}
+                type="file"
+                accept="image/*"
+                capture="environment"
+                style={{ display: 'none' }}
+                onChange={handleImageFileSelect}
+              />
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleImageFileSelect}
+              />
+              
               <button
-                className="medicine__scan-btn"
-                onClick={() => {
-                  setShowQrScanner(true);
-                  setScanMode('camera');
-                }}
+                className="medicine__capture-btn"
+                onClick={() => cameraInputRef.current?.click()}
+                disabled={isAnalyzingImage}
               >
-                📷 카메라로 스캔하기
+                📷 카메라로 촬영
               </button>
               <button
-                className="medicine__scan-btn medicine__scan-btn--secondary"
-                onClick={() => {
-                  setShowQrScanner(!showQrScanner);
-                  setScanMode('manual');
-                }}
+                className="medicine__capture-btn medicine__capture-btn--secondary"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={isAnalyzingImage}
               >
-                {showQrScanner && scanMode === 'manual' ? '✕ 입력 닫기' : '⌨️ 직접 입력하기'}
+                🖼️ 갤러리에서 선택
               </button>
             </div>
 
-            {showQrScanner && scanMode === 'camera' && (
-              <div className="medicine__qr-fullscreen">
-                <div className="medicine__qr-header">
-                  <h2>QR 코드 스캔</h2>
-                  <button
-                    className="medicine__qr-close-btn"
-                    onClick={handleCloseQrScanner}
-                  >
-                    <span className="material-symbols-rounded">close</span>
-                  </button>
-                </div>
-
-                {!scannedMedicine && !qrScanError && (
-                  <>
-                    <div className="medicine__qr-scanner-area">
-                      <Scanner
-                        onScan={handleCameraScan}
-                        onError={(error) => {
-                          console.error('Scanner error:', error);
-                          setQrScanError('카메라를 사용할 수 없습니다.');
-                        }}
-                        constraints={{
-                          facingMode: 'environment'
-                        }}
-                        styles={{
-                          container: {
-                            width: '100%',
-                            height: '100%',
-                          },
-                          video: {
-                            width: '100%',
-                            height: '100%',
-                            objectFit: 'cover'
-                          }
-                        }}
-                      />
-                      <div className="medicine__qr-overlay">
-                        <div className="medicine__qr-frame">
-                          <div className="medicine__qr-corner medicine__qr-corner--tl"></div>
-                          <div className="medicine__qr-corner medicine__qr-corner--tr"></div>
-                          <div className="medicine__qr-corner medicine__qr-corner--bl"></div>
-                          <div className="medicine__qr-corner medicine__qr-corner--br"></div>
-                        </div>
-                      </div>
-                    </div>
-                    <div className="medicine__qr-guide">
-                      <p>약 포장의 QR 코드를 프레임 안에 맞춰주세요</p>
-                      {isProcessingQR && <p className="medicine__qr-processing">🔄 인식 중...</p>}
-                    </div>
-                  </>
-                )}
-
-                {qrScanError && (
-                  <div className="medicine__qr-error">
-                    <div className="medicine__qr-error-icon">❌</div>
-                    <p>{qrScanError}</p>
-                    <button
-                      className="medicine__qr-retry-btn"
-                      onClick={handleRescan}
-                    >
-                      다시 스캔하기
-                    </button>
-                  </div>
-                )}
-
-                {scannedMedicine && (
-                  <div className="medicine__qr-result">
-                    <div className="medicine__qr-result-icon">✅</div>
-                    <h3>약 정보를 찾았습니다!</h3>
-                    
-                    <div className="medicine__qr-result-card">
-                      <h4>{scannedMedicine.parsedInfo.medicineName}</h4>
-                      {scannedMedicine.parsedInfo.companyName && (
-                        <p className="medicine__qr-result-company">
-                          제조사: {scannedMedicine.parsedInfo.companyName}
-                        </p>
-                      )}
-                      {scannedMedicine.parsedInfo.productCode && (
-                        <p className="medicine__qr-result-code">
-                          품목코드: {scannedMedicine.parsedInfo.productCode}
-                        </p>
-                      )}
-                    </div>
-
-                    <div className="medicine__qr-result-buttons">
-                      <button
-                        className="medicine__qr-rescan-btn"
-                        onClick={handleRescan}
-                      >
-                        다시 스캔
-                      </button>
-                      <button
-                        className="medicine__qr-add-btn"
-                        onClick={handleAddScannedMedicine}
-                        disabled={isLoading}
-                      >
-                        {isLoading ? '등록 중...' : '약 등록하기'}
-                      </button>
-                    </div>
-                  </div>
-                )}
+            {/* 이미지 분석 중 */}
+            {isAnalyzingImage && (
+              <div className="medicine__analyzing">
+                <div className="medicine__analyzing-spinner"></div>
+                <p>🔍 AI가 약품을 분석하고 있습니다...</p>
               </div>
             )}
 
-            {showQrScanner && scanMode === 'manual' && (
-              <div className="medicine__qr-input">
-                <textarea
-                  className="medicine__textarea"
-                  placeholder="QR 코드 텍스트를 붙여넣으세요&#10;예:&#10;품목명: 타이레놀 500mg&#10;업체명: Johnson & Johnson&#10;품목기준코드: 8806429021102"
-                  value={qrInput}
-                  onChange={(e) => setQrInput(e.target.value)}
-                  rows={6}
-                />
+            {/* 촬영된 이미지 미리보기 */}
+            {capturedImage && !isAnalyzingImage && (
+              <div className="medicine__captured-preview">
+                <img src={capturedImage} alt="촬영된 약" />
                 <button
-                  className="medicine__submit-btn"
-                  onClick={() => handleQrScan()}
-                  disabled={isLoading}
+                  className="medicine__recapture-btn"
+                  onClick={handleResetImageCapture}
                 >
-                  {isLoading ? '처리 중...' : '추가하기'}
+                  다시 촬영
                 </button>
+              </div>
+            )}
+
+            {/* 분석 결과 (약품이 없거나 오류인 경우) */}
+            {imageAnalysisResult && !imageAnalysisResult.success && (
+              <div className="medicine__analysis-error">
+                <p>❌ {imageAnalysisResult.message}</p>
+                <button
+                  className="medicine__retry-btn"
+                  onClick={handleResetImageCapture}
+                >
+                  다시 시도
+                </button>
+              </div>
+            )}
+
+            {/* 약품 선택 팝업 */}
+            {showMedicineSelectPopup && imageAnalysisResult?.verifiedMedicines?.length > 0 && (
+              <div className="medicine__select-popup-overlay">
+                <div className="medicine__select-popup">
+                  <div className="medicine__select-popup-header">
+                    <h3>📋 인식된 약품 목록</h3>
+                    <button
+                      className="medicine__popup-close-btn"
+                      onClick={() => {
+                        setShowMedicineSelectPopup(false);
+                        handleResetImageCapture();
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                  
+                  <div className="medicine__select-popup-summary">
+                    <p>
+                      총 <strong>{imageAnalysisResult.summary.total}</strong>개 약품 감지 
+                      (검증됨: {imageAnalysisResult.summary.verified}개, 
+                      미검증: {imageAnalysisResult.summary.unverified}개)
+                    </p>
+                  </div>
+
+                  <div className="medicine__select-actions">
+                    <button
+                      className="medicine__select-all-btn"
+                      onClick={() => handleSelectAllMedicines(true)}
+                    >
+                      ✅ 전체 선택
+                    </button>
+                    <button
+                      className="medicine__deselect-all-btn"
+                      onClick={() => handleSelectAllMedicines(false)}
+                    >
+                      ⬜ 전체 해제
+                    </button>
+                  </div>
+
+                  <div className="medicine__select-list">
+                    {imageAnalysisResult.verifiedMedicines.map((medicine, index) => (
+                      <div
+                        key={index}
+                        className={`medicine__select-item ${selectedMedicines[index] ? 'medicine__select-item--selected' : ''}`}
+                        onClick={() => handleToggleMedicine(index)}
+                      >
+                        <div className="medicine__select-checkbox">
+                          {selectedMedicines[index] ? '☑️' : '⬜'}
+                        </div>
+                        <div className="medicine__select-info">
+                          <h4>{medicine.apiMatch?.itemName || medicine.detectedName}</h4>
+                          <p className="medicine__select-manufacturer">
+                            {medicine.apiMatch?.entpName || medicine.manufacturer || '제조사 정보 없음'}
+                          </p>
+                          <div className="medicine__select-badges">
+                            {medicine.verified ? (
+                              <span className="medicine__badge medicine__badge--verified">✅ 검증됨</span>
+                            ) : (
+                              <span className="medicine__badge medicine__badge--unverified">⚠️ 미검증</span>
+                            )}
+                            <span className="medicine__badge medicine__badge--confidence">
+                              신뢰도: {Math.round(medicine.confidence * 100)}%
+                            </span>
+                            {medicine.type && (
+                              <span className="medicine__badge">{medicine.type}</span>
+                            )}
+                          </div>
+                          {medicine.shape && (
+                            <p className="medicine__select-detail">
+                              형태: {medicine.shape} {medicine.color && `/ 색상: ${medicine.color}`}
+                            </p>
+                          )}
+                          {medicine.apiMatch?.efcyQesitm && (
+                            <p className="medicine__select-efficacy">
+                              효능: {medicine.apiMatch.efcyQesitm.substring(0, 80)}...
+                            </p>
+                          )}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+
+                  <div className="medicine__select-popup-footer">
+                    <span className="medicine__selected-count">
+                      {selectedMedicines.filter(Boolean).length}개 선택됨
+                    </span>
+                    <button
+                      className="medicine__add-selected-btn"
+                      onClick={handleAddSelectedMedicines}
+                      disabled={isLoading || selectedMedicines.filter(Boolean).length === 0}
+                    >
+                      {isLoading ? '등록 중...' : `선택한 약 등록하기 (${selectedMedicines.filter(Boolean).length}개)`}
+                    </button>
+                  </div>
+                </div>
               </div>
             )}
           </section>

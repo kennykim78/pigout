@@ -138,6 +138,130 @@ JSON 형식으로만 응답:
     throw new Error(`Gemini image analysis failed after ${retries + 1} attempts: ${lastError?.message}`);
   }
 
+  /**
+   * 약품 이미지 분석 (약 봉지, 약품, 알약 등)
+   * OCR + 약품 형태 인식으로 약품명 추출
+   * @param imageBase64 이미지 Base64 데이터
+   * @returns 인식된 약품 목록
+   */
+  async analyzeMedicineImage(imageBase64: string, retries = 2): Promise<{
+    success: boolean;
+    medicines: Array<{
+      name: string;           // 약품명
+      manufacturer?: string;  // 제조사 (인식된 경우)
+      dosage?: string;        // 용량 (인식된 경우)
+      shape?: string;         // 약품 형태 (정제, 캡슐, 시럽 등)
+      color?: string;         // 색상
+      imprint?: string;       // 각인 문자
+      confidence: number;     // 인식 신뢰도 (0-100)
+    }>;
+    totalCount: number;
+    imageType: 'prescription_bag' | 'pill_package' | 'loose_pills' | 'medicine_bottle' | 'unknown';
+    rawText?: string;         // OCR로 인식된 전체 텍스트
+    message?: string;
+  }> {
+    let lastError: any;
+
+    for (let attempt = 0; attempt <= retries; attempt++) {
+      try {
+        const prompt = `당신은 의약품 이미지 분석 전문가입니다.
+이미지를 분석하여 약품 정보를 추출해주세요.
+
+## 분석 대상
+1. **약 봉지/처방전 봉투**: 약국에서 받은 처방약 봉지 (약품명, 용량, 복용법 텍스트 포함)
+2. **개별 포장 약품**: 알약, 캡슐, 시럽 등 개별 포장된 약품
+3. **낱개 알약**: 포장 없이 보이는 알약 (형태, 색상, 각인으로 식별)
+4. **약품 병**: 시럽, 물약 등 병에 담긴 약품
+
+## 분석 방법
+1. **OCR 텍스트 인식**: 이미지에 보이는 모든 텍스트를 읽음
+   - 약품명, 제조사, 용량, 성분, 복용법 등
+2. **약품 형태 인식**: 알약의 모양, 색상, 각인 분석
+3. **다수 약품 처리**: 여러 약품이 보이면 모두 개별적으로 식별
+
+## 중요
+- 정확하게 인식된 약품만 포함 (추측하지 말 것)
+- 한글 약품명 우선, 없으면 영문 약품명
+- 인식 불가능한 경우 confidence를 낮게 설정
+
+JSON 형식으로만 응답:
+{
+  "success": true,
+  "imageType": "prescription_bag|pill_package|loose_pills|medicine_bottle|unknown",
+  "rawText": "이미지에서 인식된 전체 텍스트 (줄바꿈 포함)",
+  "medicines": [
+    {
+      "name": "정확한 약품명",
+      "manufacturer": "제조사 (인식된 경우, 없으면 null)",
+      "dosage": "용량 예: 500mg (인식된 경우, 없으면 null)",
+      "shape": "정제|캡슐|시럽|연고|주사|파우더|기타",
+      "color": "흰색|노란색|분홍색|등 (인식된 경우)",
+      "imprint": "각인 문자 (인식된 경우)",
+      "confidence": 85
+    }
+  ],
+  "totalCount": 1,
+  "message": "분석 결과 요약 메시지"
+}
+
+이미지에서 약품을 찾을 수 없거나 분석 불가능한 경우:
+{
+  "success": false,
+  "imageType": "unknown",
+  "medicines": [],
+  "totalCount": 0,
+  "message": "약품을 인식할 수 없습니다. 더 선명한 이미지로 다시 시도해주세요."
+}`;
+
+        let rawText: string;
+        try {
+          // Primary: SDK path
+          const result = await this.visionModel.generateContent([
+            prompt,
+            {
+              inlineData: {
+                mimeType: 'image/jpeg',
+                data: imageBase64,
+              },
+            },
+          ]);
+          const response = await result.response;
+          rawText = response.text();
+        } catch (sdkError) {
+          console.log(`[약품 이미지 분석] SDK 오류, REST API 시도 (${attempt + 1}/${retries + 1}):`, sdkError.message);
+          // Fallback: direct v1 REST
+          rawText = await this.callV1GenerateContent('gemini-2.5-flash', [
+            { text: prompt },
+            { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
+          ]);
+        }
+
+        const parsed = this.extractJsonObject(rawText);
+        console.log(`[약품 이미지 분석] 성공: ${parsed.totalCount}개 약품 인식`);
+        return parsed;
+      } catch (error) {
+        lastError = error;
+        console.error(`[약품 이미지 분석] 실패 (시도 ${attempt + 1}/${retries + 1}):`, error.message);
+        
+        if (attempt < retries) {
+          const waitTime = Math.pow(2, attempt) * 1000;
+          console.log(`${waitTime}ms 후 재시도...`);
+          await new Promise(resolve => setTimeout(resolve, waitTime));
+        }
+      }
+    }
+
+    // 모든 재시도 실패 시 기본 응답
+    console.error(`[약품 이미지 분석] 모든 시도 실패: ${lastError?.message}`);
+    return {
+      success: false,
+      medicines: [],
+      totalCount: 0,
+      imageType: 'unknown',
+      message: '이미지 분석에 실패했습니다. 다시 시도해주세요.',
+    };
+  }
+
   async extractFoodNameFromText(textInput: string): Promise<string> {
     try {
       const prompt = `당신은 음식명 추출 전문가입니다.

@@ -69,11 +69,35 @@
   }
   &__score-section { position: relative; @include flex-center; flex-direction: column; margin-bottom: 75px; }
   &__score-outer { width: 319px; height: 319px; background-color: $color-primary-yellow; border-radius: 50%; @include flex-center; position: relative; }
-  &__score-inner { width: 259px; height: 259px; background-color: $color-primary-orange; border-radius: 50%; @include flex-center; box-shadow: $shadow-default; }
+  &__score-inner { 
+    width: 259px; height: 259px; background-color: $color-primary-orange; border-radius: 50%; @include flex-center; box-shadow: $shadow-default;
+    transition: background-color 0.3s ease;
+    
+    // 8단계 수명 일수 색상 클래스
+    &--life-perfect { background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%); } // 금색 (+70일 이상)
+    &--life-excellent { background-color: #1B5E20; } // 진한 초록 (+40~+69일)
+    &--life-great { background-color: #2E7D32; }     // 초록 (+15~+39일)
+    &--life-good { background-color: #7CB342; }      // 연두 (+1~+14일)
+    &--life-warning { background-color: #FFA000; }   // 노랑 (-1~-14일)
+    &--life-caution { background-color: #F57C00; }   // 주황 (-15~-39일)
+    &--life-danger { background-color: #D32F2F; }    // 빨강 (-40~-69일)
+    &--life-critical { background: linear-gradient(135deg, #4A148C 0%, #1A1A1A 100%); } // 보라/검정 (-70일 이하)
+  }
   &__score-content { text-align: center; }
   &__score-label { font-family: $font-family; font-size: $font-size-base; font-weight: $font-weight-medium; color: $color-white; margin: 0 0 8px 0; }
-  &__score-value { font-family: $font-family; font-size: $font-size-score; font-weight: $font-weight-medium; color: $color-white; line-height: 1.2; margin: 0 0 12px 0; }
-  &__score-comment { font-family: $font-family; font-size: $font-size-medium; font-weight: $font-weight-medium; color: $color-white; line-height: 1.2; margin: 0; }
+  &__score-value { 
+    font-family: $font-family; font-size: $font-size-score; font-weight: $font-weight-black; color: $color-white; line-height: 1.2; margin: 0 0 12px 0;
+    
+    &--positive { 
+      color: #C8E6C9; // 연한 초록
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    &--negative { 
+      color: #FFCDD2; // 연한 빨강
+      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+  }
+  &__score-comment { font-family: $font-family; font-size: $font-size-medium; font-weight: $font-weight-medium; color: $color-white; line-height: 1.4; margin: 0; white-space: pre-line; }
   &__food-image { width: 160px; height: 160px; position: absolute; top: -120px; left:50%; transform: translateX(-50%); z-index: -1;  }
   &__info-section { @include flex-column; gap: 40px; margin-bottom: 40px; position: relative; z-index: 3;}
   &__info-card {

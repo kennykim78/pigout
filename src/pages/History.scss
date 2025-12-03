@@ -138,13 +138,65 @@
     padding: 4px 12px;
     border-radius: 20px;
     
-    &--good {
+    // 8단계 수명 일수 색상 클래스
+    &--life-perfect {
+      background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%);
+      color: #1A1A1A;
+    }
+    
+    &--life-excellent {
+      background-color: #1B5E20;
+      color: white;
+    }
+    
+    &--life-great {
+      background-color: #2E7D32;
+      color: white;
+    }
+    
+    &--life-good {
+      background-color: #7CB342;
+      color: white;
+    }
+    
+    &--life-warning {
+      background-color: #FFA000;
+      color: white;
+    }
+    
+    &--life-caution {
+      background-color: #F57C00;
+      color: white;
+    }
+    
+    &--life-danger {
+      background-color: #D32F2F;
+      color: white;
+    }
+    
+    &--life-critical {
+      background: linear-gradient(135deg, #4A148C 0%, #1A1A1A 100%);
+      color: white;
+    }
+    
+    // 기존 호환성 유지
+    &--great {
       background-color: #4CAF50;
       color: white;
     }
     
-    &--warning {
+    &--good {
+      background-color: #8BC34A;
+      color: white;
+    }
+    
+    &--neutral {
       background-color: #FF9800;
+      color: white;
+    }
+    
+    &--caution {
+      background-color: #FF5722;
       color: white;
     }
     

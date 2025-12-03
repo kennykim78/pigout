@@ -225,11 +225,53 @@ export class ExternalApiClient {
       }
       
       // ================================================================
-      // 1단계: e약은요 API 검색 (일반의약품)
+      // 1단계: 의약품 허가정보 API 검색 (일반/전문 의약품 모두 검색 가능)
       // ================================================================
+      console.log(`[1단계-허가정보] 의약품 조회 (일반/전문): ${medicineName}`);
+      
+      try {
+        const approvalResults = await this.getDrugApprovalInfo({
+          itemName: medicineName,
+          numOfRows: numOfRows,
+        });
+        
+        if (approvalResults && approvalResults.length > 0) {
+          recordApiUsage('eDrugApi', 1);
+          // 허가정보 API 결과를 e약은요 형식으로 변환
+          const formattedResults = approvalResults.map((item: any) => ({
+            itemSeq: item.ITEM_SEQ || item.itemSeq,
+            itemName: item.ITEM_NAME || item.itemName,
+            entpName: item.ENTP_NAME || item.entpName,
+            efcyQesitm: item.EE_DOC_DATA || item.eeDocData || item.CHART || '',
+            useMethodQesitm: item.UD_DOC_DATA || item.udDocData || '',
+            atpnWarnQesitm: item.NB_DOC_DATA || item.nbDocData || '',
+            atpnQesitm: item.NB_DOC_DATA || item.nbDocData || '',
+            intrcQesitm: '',
+            seQesitm: '',
+            depositMethodQesitm: item.STORAGE_METHOD || item.storageMethod || '',
+            _source: '허가정보',
+          }));
+          console.log(`[1단계-허가정보] ✅ ${formattedResults.length}건 검색됨 - 캐시 저장 후 반환`);
+          await this.saveMedicineToCache(medicineName, formattedResults, '허가정보');
+          return formattedResults;
+        }
+      } catch (step1Error) {
+        console.warn(`[1단계-허가정보] API 오류:`, step1Error.message);
+      }
+
+      // ================================================================
+      // 2단계: e약은요 API 검색 (일반의약품)
+      // ================================================================
+      if (!canUseApi('eDrugApi')) {
+        console.log(`[2단계] API 한도 초과 - AI 대체`);
+        const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
+        await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
+        return aiResults;
+      }
+
       const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
       
-      console.log(`[1단계-e약은요] 일반의약품 조회: ${medicineName}`);
+      console.log(`[2단계-e약은요] 일반의약품 조회: ${medicineName}`);
       
       try {
         const response = await axios.get(url, {
@@ -249,31 +291,12 @@ export class ExternalApiClient {
         if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
           recordApiUsage('eDrugApi', 1);
           const results = response.data.body.items;
-          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 캐시 저장 후 반환`);
+          console.log(`[2단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 캐시 저장 후 반환`);
           await this.saveMedicineToCache(medicineName, results, 'e약은요');
           return results;
         }
-      } catch (step1Error) {
-        console.warn(`[1단계-e약은요] API 오류:`, step1Error.message);
-      }
-
-      // ================================================================
-      // 2단계: 낱알정보 API 검색 (일반/전문 의약품 모두 검색 가능)
-      // ================================================================
-      if (!canUseApi('eDrugApi')) {
-        console.log(`[2단계] API 한도 초과 - AI 대체`);
-        const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
-        await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
-        return aiResults;
-      }
-      
-      console.log(`[2단계-낱알정보] 의약품 조회 (일반/전문): ${medicineName}`);
-      const pillResults = await this.searchPillIdentification(medicineName, numOfRows);
-      
-      if (pillResults && pillResults.length > 0) {
-        console.log(`[2단계-낱알정보] ✅ ${pillResults.length}건 검색됨 - 캐시 저장 후 반환`);
-        await this.saveMedicineToCache(medicineName, pillResults, '낱알정보');
-        return pillResults;
+      } catch (step2Error) {
+        console.warn(`[2단계-e약은요] API 오류:`, step2Error.message);
       }
 
       // ================================================================

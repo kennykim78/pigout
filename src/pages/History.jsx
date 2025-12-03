@@ -2,6 +2,7 @@ import './History.scss';
 import { useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { getMonthlyReport, getAnalysisHistory } from '../services/api';
+import { scoreToLifeDays, formatLifeDays, getLifeDaysColorClass } from '../utils/lifeScoreUtils';
 
 const History = () => {
   const navigate = useNavigate();
@@ -194,8 +195,8 @@ const History = () => {
                     <div className="history__record-name">{item.foodName}</div>
                     <div className="history__record-time">{item.time}</div>
                   </div>
-                  <div className={`history__record-score ${item.score >= 70 ? 'history__record-score--good' : item.score >= 40 ? 'history__record-score--warning' : 'history__record-score--bad'}`}>
-                    {item.score}점
+                  <div className={`history__record-score history__record-score--${getLifeDaysColorClass(scoreToLifeDays(item.score))}`}>
+                    {formatLifeDays(scoreToLifeDays(item.score))}
                   </div>
                 </div>
               ))

@@ -5,6 +5,7 @@ import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { scoreToLifeDays, getLifeComment, formatLifeDays, getLifeDaysColorClass } from '../utils/lifeScoreUtils';
 
 const imgsorce = 'https://img.bizthenaum.co.kr/data/img/1000000869/ori/1000000869_11.jpg';
 
@@ -72,12 +73,11 @@ const Result01 = () => {
     };
   }, [location.state]);
 
-  const getScoreComment = (score) => {
-    if (score >= 85) return '아주\n좋아요!';
-    if (score >= 70) return '나쁘지는\n않은데 말입죠\n...';
-    if (score >= 50) return '조금\n주의가\n필요해요';
-    return '피하시는게\n좋겠어요';
-  };
+  // 수명 일수 계산
+  const lifeDays = scoreToLifeDays(score);
+  const lifeDaysText = formatLifeDays(lifeDays);
+  const lifeComment = getLifeComment(lifeDays);
+  const lifeColorClass = getLifeDaysColorClass(lifeDays);
 
   const [isFullLoading, setIsFullLoading] = useState(false);
   const [fullStage, setFullStage] = useState(null); // 'collect' | 'interactions' | 'final'
@@ -148,12 +148,14 @@ const Result01 = () => {
         )}
         <div className="result01__score-section">
           <div className="result01__score-outer">
-            <div className="result01__score-inner">
+            <div className={`result01__score-inner result01__score-inner--${lifeColorClass}`}>
               <div className="result01__score-content">
-                <p className="result01__score-label">적합점수</p>
-                <p className="result01__score-value">{score}</p>
+                <p className="result01__score-label">예상 수명 변화</p>
+                <p className={`result01__score-value result01__score-value--${lifeDays >= 0 ? 'positive' : 'negative'}`}>
+                  {lifeDaysText}
+                </p>
                 <p className="result01__score-comment">
-                  {getScoreComment(score)}
+                  {lifeComment}
                 </p>
               </div>
             </div>

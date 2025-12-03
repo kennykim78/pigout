@@ -4,6 +4,7 @@ import { ScanQrDto } from './dtos/scan-qr.dto';
 import { SearchMedicineDto } from './dtos/search-medicine.dto';
 import { AnalyzeInteractionDto } from './dtos/analyze-interaction.dto';
 import { AnalyzeAllMedicinesDto } from './dtos/analyze-all-medicines.dto';
+import { AnalyzeMedicineImageDto } from './dtos/analyze-image.dto';
 import { UsersService } from '../users/users.service';
 
 @Controller('medicine')
@@ -66,6 +67,19 @@ export class MedicineController {
   @Post('search-health-food')
   async searchHealthFood(@Body() searchDto: SearchMedicineDto) {
     return this.medicineService.searchHealthFood(searchDto.keyword);
+  }
+
+  /**
+   * POST /api/medicine/analyze-image
+   * 이미지에서 약품 정보 추출 (AI 분석)
+   * QR 코드 대신 카메라로 약 봉지/알약 촬영하여 약품명 인식
+   */
+  @Post('analyze-image')
+  async analyzeImage(@Body() analyzeDto: AnalyzeMedicineImageDto) {
+    return this.medicineService.analyzeMedicineImage(
+      analyzeDto.imageBase64,
+      analyzeDto.mimeType || 'image/jpeg',
+    );
   }
 
   /**

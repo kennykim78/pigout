@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useRewardStore } from '../store/rewardStore';
 import { getRewardPoints, getStatsSummary, getAnalysisHistory, getMyMedicines } from '../services/api';
+import { scoreToLifeDays, formatLifeDays, getLifeDaysColorClass } from '../utils/lifeScoreUtils';
 import './MyPage.scss';
 
 const MyPage = () => {
@@ -80,9 +81,13 @@ const MyPage = () => {
   };
 
   const getScoreColor = (score) => {
-    if (score >= 70) return 'good';
-    if (score >= 40) return 'warning';
-    return 'bad';
+    const lifeDays = scoreToLifeDays(score);
+    return getLifeDaysColorClass(lifeDays);
+  };
+
+  const getLifeDaysDisplay = (score) => {
+    const lifeDays = scoreToLifeDays(score);
+    return formatLifeDays(lifeDays);
   };
 
   if (loading) {
@@ -231,7 +236,7 @@ const MyPage = () => {
                   <div className="mypage__recent-time">{record.date} {record.time}</div>
                 </div>
                 <div className={`mypage__recent-score mypage__recent-score--${getScoreColor(record.score)}`}>
-                  {record.score}점
+                  {getLifeDaysDisplay(record.score)}
                 </div>
               </div>
             ))

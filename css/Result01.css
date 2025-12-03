@@ -118,6 +118,31 @@
   align-items: center;
   justify-content: center;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  transition: background-color 0.3s ease;
+}
+.result01__score-inner--life-perfect {
+  background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%);
+}
+.result01__score-inner--life-excellent {
+  background-color: #1B5E20;
+}
+.result01__score-inner--life-great {
+  background-color: #2E7D32;
+}
+.result01__score-inner--life-good {
+  background-color: #7CB342;
+}
+.result01__score-inner--life-warning {
+  background-color: #FFA000;
+}
+.result01__score-inner--life-caution {
+  background-color: #F57C00;
+}
+.result01__score-inner--life-danger {
+  background-color: #D32F2F;
+}
+.result01__score-inner--life-critical {
+  background: linear-gradient(135deg, #4A148C 0%, #1A1A1A 100%);
 }
 .result01__score-content {
   text-align: center;
@@ -132,18 +157,27 @@
 .result01__score-value {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   font-size: 96px;
-  font-weight: 500;
+  font-weight: 900;
   color: rgb(255, 255, 255);
   line-height: 1.2;
   margin: 0 0 12px 0;
+}
+.result01__score-value--positive {
+  color: #C8E6C9;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+}
+.result01__score-value--negative {
+  color: #FFCDD2;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
 }
 .result01__score-comment {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   font-size: 20px;
   font-weight: 500;
   color: rgb(255, 255, 255);
-  line-height: 1.2;
+  line-height: 1.4;
   margin: 0;
+  white-space: pre-line;
 }
 .result01__food-image {
   width: 160px;

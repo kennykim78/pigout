@@ -220,6 +220,23 @@ export const analyzeAllMedicines = async () => {
   return response.data;
 };
 
+// 📸 약품 이미지 분석 (AI 기반)
+// 약 봉지, 처방전, 알약 촬영하여 약품명 인식
+export const analyzeMedicineImage = async (imageBase64: string, mimeType: string = 'image/jpeg') => {
+  console.log('[API] analyzeMedicineImage 호출');
+  try {
+    const response = await apiClient.post('/medicine/analyze-image', { 
+      imageBase64, 
+      mimeType 
+    });
+    console.log('[API] analyzeMedicineImage 응답:', response.data);
+    return response.data;
+  } catch (error) {
+    console.error('[API] analyzeMedicineImage 에러:', error);
+    throw error;
+  }
+};
+
 // ============================================
 // 리워드 API
 // ============================================
