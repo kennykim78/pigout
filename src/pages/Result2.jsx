@@ -431,21 +431,6 @@ const Result2 = () => {
         </div>
       )}
 
-      {/* 점수 표시 */}
-      <div className="result2__score-section">
-        <div className={`result2__score-circle ${isStreaming ? 'result2__score-circle--loading' : ''}`}>
-          <div className="result2__score-value">{isStreaming ? '...' : score}</div>
-          <div className="result2__score-label">점</div>
-        </div>
-        <div className="result2__score-comment">
-          {isStreaming ? '점수를 계산하고 있어요...' :
-           score >= 85 ? '매우 건강한 선택이에요!' :
-           score >= 70 ? '적당히 드시면 좋아요' :
-           score >= 50 ? '주의가 필요해요' :
-           '가급적 피하시는게 좋아요'}
-        </div>
-      </div>
-
       {/* 약물 상호작용 - 위험/주의가 있을 때만 표시 */}
       {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
        detailedAnalysis.medicalAnalysis.drug_food_interactions.some(d => d.risk_level === 'danger' || d.risk_level === 'caution') && (

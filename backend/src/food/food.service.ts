@@ -1307,7 +1307,7 @@ export class FoodService {
         stage: 5, 
         name: '최종분석',
         status: 'complete',
-        message: `분석 완료! 적합도 ${score}점`,
+        message: '분석이 완료되었어요!',
         data: { score }
       });
 
