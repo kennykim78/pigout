@@ -631,16 +631,18 @@ export class ExternalApiClient {
   }
 
   /**
-   * 건강기능식품 검색 (HtfsInfoService03 API)
+   * 건강기능식품 검색 (상세정보 API 사용)
    * 의약품에서 검색되지 않는 건강기능식품(오메가3, 비타민 등)을 검색
+   * getHtfsItem01 API 사용 - 주요 기능성, 섭취방법, 주의사항 등 상세정보 포함
    * @param productName 제품명
    * @param numOfRows 조회할 행 수
    */
   async searchHealthFunctionalFood(productName: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsList01`;
+      // 상세정보 API 사용 (getHtfsItem01)
+      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsItem01`;
       
-      console.log(`[건강기능식품] 조회: ${productName}`);
+      console.log(`[건강기능식품] 상세정보 조회: ${productName}`);
       
       const response = await axios.get(url, {
         params: {
@@ -670,7 +672,7 @@ export class ExternalApiClient {
         }
         
         if (items.length > 0) {
-          console.log(`[건강기능식품] ${items.length}건 검색됨. 첫 번째 항목:`, JSON.stringify(items[0], null, 2));
+          console.log(`[건강기능식품] ${items.length}건 검색됨`);
           recordApiUsage('healthFoodApi', 1);
           // 건강기능식품 데이터를 e약은요 형식으로 변환
           return items.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, productName));
@@ -687,22 +689,40 @@ export class ExternalApiClient {
   /**
    * 건강기능식품 데이터를 e약은요 형식으로 변환
    * 기존 의약품 로직과 호환되도록 변환
-   * API가 제공하는 필드: ENTRPS(업체명), PRDUCT(제품명), STTEMNT_NO(신고번호), REGIST_DT(등록일)
+   * 
+   * getHtfsItem01 API 응답 필드:
+   * - ENTRPS: 업체명
+   * - PRDUCT: 제품명  
+   * - STTEMNT_NO: 신고번호
+   * - REGIST_DT: 등록일
+   * - DISTB_PD: 유통기한
+   * - SUNGSANG: 성상
+   * - SRV_USE: 섭취량 및 섭취방법
+   * - PRSRV_PD: 보관방법
+   * - INTAKE_HINT1: 주의사항
+   * - MAIN_FNCTN: 주요 기능성
+   * - BASE_STANDARD: 기준규격
    */
   private convertHealthFoodToEasyDrugFormat(healthFoodItem: any, searchKeyword?: string): any {
-    // API 응답 필드 매핑 (실제 API 응답 구조에 맞춤)
-    const productName = healthFoodItem.PRDUCT || healthFoodItem.PRDLST_NM || healthFoodItem.prdlst_nm || '';
-    const companyName = healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || healthFoodItem.entrps || '';
-    const reportNo = healthFoodItem.STTEMNT_NO || healthFoodItem.PRDLST_REPORT_NO || healthFoodItem.prdlst_report_no || `HF_${Date.now()}`;
+    // API 응답 필드 매핑 (getHtfsItem01 상세정보 API 구조에 맞춤)
+    const productName = healthFoodItem.PRDUCT || healthFoodItem.PRDLST_NM || '';
+    const companyName = healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || '';
+    const reportNo = healthFoodItem.STTEMNT_NO || healthFoodItem.PRDLST_REPORT_NO || `HF_${Date.now()}`;
     
-    // 기능성 내용 파싱 (API에서 제공되지 않으면 검색 키워드 기반으로 기본 설명 생성)
-    const functionality = healthFoodItem.PRIMARY_FNCLTY || healthFoodItem.FNCLTY_CN || '';
-    // 섭취 방법 파싱  
-    const intakeMethod = healthFoodItem.INTAKE_HINT1 || healthFoodItem.NTK_MTHD || '';
-    // 주의사항 파싱
-    const caution = healthFoodItem.CSTDY_MTHD || healthFoodItem.IFTKN_ATNT_MATR_CN || '';
+    // 주요 기능성 (MAIN_FNCTN 필드 - 가장 중요!)
+    const mainFunction = healthFoodItem.MAIN_FNCTN || '';
+    // 섭취량 및 섭취방법 (SRV_USE 필드)
+    const servingUse = healthFoodItem.SRV_USE || '';
+    // 주의사항 (INTAKE_HINT1 필드)
+    const intakeHint = healthFoodItem.INTAKE_HINT1 || '';
+    // 보관방법 (PRSRV_PD 필드)
+    const preserveMethod = healthFoodItem.PRSRV_PD || '';
+    // 성상 (SUNGSANG 필드)
+    const appearance = healthFoodItem.SUNGSANG || '';
+    // 유통기한 (DISTB_PD 필드)
+    const shelfLife = healthFoodItem.DISTB_PD || '';
     
-    // 검색 키워드로 기본 효능 설명 생성
+    // 검색 키워드로 기본 효능 설명 생성 (API 데이터가 없을 경우 대비)
     const defaultEfficacy = searchKeyword 
       ? `${searchKeyword} 관련 건강기능식품입니다. 상세 기능성 정보는 제품 라벨을 확인하세요.`
       : '건강기능식품입니다. 기능성 정보는 제품 라벨을 확인하세요.';
@@ -711,21 +731,28 @@ export class ExternalApiClient {
       itemName: productName.trim(),
       entpName: companyName.trim(),
       itemSeq: reportNo,
-      efcyQesitm: functionality || defaultEfficacy,
-      useMethodQesitm: intakeMethod || '섭취 방법은 제품 라벨을 확인하세요.',
-      atpnWarnQesitm: caution || '',
-      atpnQesitm: caution || '주의사항은 제품 라벨을 확인하세요.',
+      // 주요 기능성을 효능으로 사용
+      efcyQesitm: mainFunction || defaultEfficacy,
+      // 섭취량 및 섭취방법
+      useMethodQesitm: servingUse || '섭취 방법은 제품 라벨을 확인하세요.',
+      // 주의사항
+      atpnWarnQesitm: intakeHint || '',
+      atpnQesitm: intakeHint || '주의사항은 제품 라벨을 확인하세요.',
+      // 상호작용
       intrcQesitm: '의약품과 함께 복용 시 전문가와 상담하세요.',
+      // 이상반응
       seQesitm: '이상반응 발생 시 섭취를 중단하고 전문가와 상담하세요.',
-      depositMethodQesitm: healthFoodItem.CSTDY_MTHD || '서늘하고 건조한 곳에 보관하세요.',
+      // 보관방법
+      depositMethodQesitm: preserveMethod || '서늘하고 건조한 곳에 보관하세요.',
       itemImage: '',
       // 건강기능식품 표시
       _isHealthFunctionalFood: true,
       _source: '건강기능식품정보API',
       // 추가 정보
-      _rawMaterial: healthFoodItem.RAWMTRL_NM || healthFoodItem.rawmtrl_nm || '',
-      _shelfLife: healthFoodItem.POG_DAYCNT || '',
+      _appearance: appearance, // 성상
+      _shelfLife: shelfLife, // 유통기한
       _registDate: healthFoodItem.REGIST_DT || '',
+      _baseStandard: healthFoodItem.BASE_STANDARD || '', // 기준규격
       // 원본 데이터 보존
       _originalData: healthFoodItem,
     };
