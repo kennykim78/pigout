@@ -658,13 +658,22 @@ export class ExternalApiClient {
 
       const body = response.data?.body;
       if (body?.items) {
-        const items = Array.isArray(body.items) ? body.items : 
-                      (body.items.item ? (Array.isArray(body.items.item) ? body.items.item : [body.items.item]) : []);
+        // API 응답 구조: body.items는 배열이고, 각 요소에 item 객체가 있음
+        let items: any[] = [];
+        
+        if (Array.isArray(body.items)) {
+          // items가 배열인 경우: [{item: {...}}, {item: {...}}]
+          items = body.items.map((wrapper: any) => wrapper.item).filter(Boolean);
+        } else if (body.items.item) {
+          // items.item이 있는 경우
+          items = Array.isArray(body.items.item) ? body.items.item : [body.items.item];
+        }
         
         if (items.length > 0) {
+          console.log(`[건강기능식품] ${items.length}건 검색됨. 첫 번째 항목:`, JSON.stringify(items[0], null, 2));
           recordApiUsage('healthFoodApi', 1);
           // 건강기능식품 데이터를 e약은요 형식으로 변환
-          return items.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item));
+          return items.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, productName));
         }
       }
       
@@ -678,20 +687,31 @@ export class ExternalApiClient {
   /**
    * 건강기능식품 데이터를 e약은요 형식으로 변환
    * 기존 의약품 로직과 호환되도록 변환
+   * API가 제공하는 필드: ENTRPS(업체명), PRDUCT(제품명), STTEMNT_NO(신고번호), REGIST_DT(등록일)
    */
-  private convertHealthFoodToEasyDrugFormat(healthFoodItem: any): any {
-    // 기능성 내용 파싱
+  private convertHealthFoodToEasyDrugFormat(healthFoodItem: any, searchKeyword?: string): any {
+    // API 응답 필드 매핑 (실제 API 응답 구조에 맞춤)
+    const productName = healthFoodItem.PRDUCT || healthFoodItem.PRDLST_NM || healthFoodItem.prdlst_nm || '';
+    const companyName = healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || healthFoodItem.entrps || '';
+    const reportNo = healthFoodItem.STTEMNT_NO || healthFoodItem.PRDLST_REPORT_NO || healthFoodItem.prdlst_report_no || `HF_${Date.now()}`;
+    
+    // 기능성 내용 파싱 (API에서 제공되지 않으면 검색 키워드 기반으로 기본 설명 생성)
     const functionality = healthFoodItem.PRIMARY_FNCLTY || healthFoodItem.FNCLTY_CN || '';
     // 섭취 방법 파싱  
     const intakeMethod = healthFoodItem.INTAKE_HINT1 || healthFoodItem.NTK_MTHD || '';
     // 주의사항 파싱
     const caution = healthFoodItem.CSTDY_MTHD || healthFoodItem.IFTKN_ATNT_MATR_CN || '';
     
+    // 검색 키워드로 기본 효능 설명 생성
+    const defaultEfficacy = searchKeyword 
+      ? `${searchKeyword} 관련 건강기능식품입니다. 상세 기능성 정보는 제품 라벨을 확인하세요.`
+      : '건강기능식품입니다. 기능성 정보는 제품 라벨을 확인하세요.';
+    
     return {
-      itemName: healthFoodItem.PRDLST_NM || healthFoodItem.prdlst_nm || '',
-      entpName: healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || healthFoodItem.entrps || '',
-      itemSeq: healthFoodItem.PRDLST_REPORT_NO || healthFoodItem.prdlst_report_no || `HF_${Date.now()}`,
-      efcyQesitm: functionality || '건강기능식품입니다. 기능성 정보는 제품 라벨을 확인하세요.',
+      itemName: productName.trim(),
+      entpName: companyName.trim(),
+      itemSeq: reportNo,
+      efcyQesitm: functionality || defaultEfficacy,
       useMethodQesitm: intakeMethod || '섭취 방법은 제품 라벨을 확인하세요.',
       atpnWarnQesitm: caution || '',
       atpnQesitm: caution || '주의사항은 제품 라벨을 확인하세요.',
@@ -705,6 +725,7 @@ export class ExternalApiClient {
       // 추가 정보
       _rawMaterial: healthFoodItem.RAWMTRL_NM || healthFoodItem.rawmtrl_nm || '',
       _shelfLife: healthFoodItem.POG_DAYCNT || '',
+      _registDate: healthFoodItem.REGIST_DT || '',
       // 원본 데이터 보존
       _originalData: healthFoodItem,
     };
