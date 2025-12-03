@@ -491,4 +491,111 @@
 }
 .result2__disclaimer p:last-child {
   margin-bottom: 0;
+}
+.result2__streaming-section {
+  background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%);
+  margin: 16px 16px 0;
+  padding: 20px;
+  border-radius: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+.result2__streaming-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.result2__streaming-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #ffc107;
+  border-top-color: transparent;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.result2__streaming-message {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+.result2__streaming-stages {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.result2__streaming-stage {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 8px 12px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 500;
+  background: #fff;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+.result2__streaming-stage--waiting {
+  opacity: 0.5;
+}
+.result2__streaming-stage--loading {
+  background: #fff9c4;
+  border-color: #ffc107;
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.result2__streaming-stage--complete {
+  background: #e8f5e9;
+  border-color: #4caf50;
+}
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+.result2__streaming-stage-icon {
+  font-size: 14px;
+}
+.result2__streaming-stage-name {
+  color: #333;
+}
+.result2__error-section {
+  background: #ffebee;
+  margin: 16px 16px 0;
+  padding: 16px 20px;
+  border-radius: 12px;
+  border: 1px solid #ef5350;
+  text-align: center;
+}
+.result2__error-message {
+  font-size: 14px;
+  color: #c62828;
+  margin-bottom: 12px;
+}
+.result2__retry-btn {
+  background: #ef5350;
+  color: white;
+  border: none;
+  padding: 10px 24px;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s ease;
+}
+.result2__retry-btn:hover {
+  background: #c62828;
+}
+.result2__score-circle--loading {
+  opacity: 0.6;
+  animation: pulse 1.5s ease-in-out infinite;
 }/*# sourceMappingURL=Result2.css.map */

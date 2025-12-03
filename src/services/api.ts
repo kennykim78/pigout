@@ -286,4 +286,114 @@ export const analyzeCombined = async (data: {
   return response.data;
 };
 
+// ============================================
+// 🆕 스트리밍 분석 API (SSE)
+// ============================================
+
+export interface StreamingCallbacks {
+  onStart?: (data: { foodName: string; message: string; stages: string[] }) => void;
+  onStage?: (data: { stage: number; name: string; status: string; message: string; data?: any }) => void;
+  onPartial?: (data: { type: string; data: any }) => void;
+  onResult?: (data: { success: boolean; data: any }) => void;
+  onError?: (error: { message: string }) => void;
+  onComplete?: () => void;
+}
+
+// 스트리밍 분석 (SSE) - Result02용
+export const analyzeFoodByTextStream = (
+  foodName: string,
+  callbacks: StreamingCallbacks
+): { abort: () => void } => {
+  const savedDiseases = localStorage.getItem('selectedDiseases');
+  const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
+  const deviceId = getDeviceId();
+
+  const abortController = new AbortController();
+
+  // fetch로 SSE 연결
+  fetch(`${API_BASE_URL}/food/text-analyze-stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Device-Id': deviceId,
+    },
+    body: JSON.stringify({ foodName, diseases }),
+    signal: abortController.signal,
+  })
+    .then(async (response) => {
+      if (!response.ok) {
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('ReadableStream not supported');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        let currentEvent = '';
+        let currentData = '';
+
+        for (const line of lines) {
+          if (line.startsWith('event:')) {
+            currentEvent = line.slice(6).trim();
+          } else if (line.startsWith('data:')) {
+            currentData = line.slice(5).trim();
+            
+            if (currentEvent && currentData) {
+              try {
+                const parsedData = JSON.parse(currentData);
+                
+                switch (currentEvent) {
+                  case 'start':
+                    callbacks.onStart?.(parsedData);
+                    break;
+                  case 'stage':
+                    callbacks.onStage?.(parsedData);
+                    break;
+                  case 'partial':
+                    callbacks.onPartial?.(parsedData);
+                    break;
+                  case 'result':
+                    callbacks.onResult?.(parsedData);
+                    break;
+                  case 'error':
+                    callbacks.onError?.(parsedData);
+                    break;
+                  case 'complete':
+                    callbacks.onComplete?.();
+                    break;
+                }
+              } catch (e) {
+                console.warn('SSE 데이터 파싱 실패:', currentData);
+              }
+              currentEvent = '';
+              currentData = '';
+            }
+          }
+        }
+      }
+    })
+    .catch((error) => {
+      if (error.name !== 'AbortError') {
+        console.error('SSE 연결 오류:', error);
+        callbacks.onError?.({ message: error.message });
+      }
+    });
+
+  return {
+    abort: () => abortController.abort(),
+  };
+};
+
 export default apiClient;

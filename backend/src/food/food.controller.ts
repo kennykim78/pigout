@@ -1,5 +1,6 @@
-import { Controller, Post, Get, Body, Param, Headers, UseInterceptors, UploadedFile } from '@nestjs/common';
+import { Controller, Post, Get, Body, Param, Headers, UseInterceptors, UploadedFile, Res } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
+import { Response } from 'express';
 import { FoodService } from './food.service';
 import { SupabaseService } from '../supabase/supabase.service';
 
@@ -76,5 +77,43 @@ export class FoodController {
       data: stats,
       message: '캐시 통계 조회 완료',
     };
+  }
+
+  // 🆕 스트리밍 분석 (SSE) - 단계별 실시간 응답
+  @Post('text-analyze-stream')
+  async analyzeFoodByTextStream(
+    @Body('foodName') foodName: string,
+    @Body('diseases') diseases: string[],
+    @Headers('x-device-id') deviceId: string,
+    @Res() res: Response,
+  ) {
+    // SSE 헤더 설정
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.flushHeaders();
+
+    const sendEvent = (event: string, data: any) => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      // 스트리밍 분석 시작
+      await this.foodService.analyzeFoodByTextStream(
+        foodName,
+        diseases || [],
+        deviceId,
+        sendEvent,
+      );
+
+      // 완료 이벤트 전송
+      sendEvent('complete', { success: true });
+      res.end();
+    } catch (error) {
+      sendEvent('error', { message: error.message || '분석 중 오류가 발생했습니다.' });
+      res.end();
+    }
   }
 }

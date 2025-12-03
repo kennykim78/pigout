@@ -1079,4 +1079,295 @@ export class FoodService {
       );
     }
   }
+
+  // ============================================
+  // 🆕 스트리밍 분석 (SSE) - 단계별 실시간 응답
+  // ============================================
+  async analyzeFoodByTextStream(
+    foodName: string,
+    diseases: string[] = [],
+    deviceId: string,
+    sendEvent: (event: string, data: any) => void,
+  ) {
+    try {
+      console.log('=== 스트리밍 분석 시작 ===');
+      console.log('음식명:', foodName);
+      console.log('질병 정보:', diseases);
+
+      // 0단계: 시작 알림
+      sendEvent('start', { 
+        foodName, 
+        message: '분석을 시작합니다...',
+        stages: ['약물정보', '영양성분', '성분분석', '상호작용', '최종분석']
+      });
+
+      // 사용자 및 약물 정보 조회
+      let userId = '00000000-0000-0000-0000-000000000000';
+      if (deviceId) {
+        const foundUserId = await this.usersService.getUserIdByDeviceId(deviceId);
+        if (foundUserId) {
+          userId = foundUserId;
+        }
+      }
+
+      const supabase = this.supabaseService.getClient();
+      const { data: medicines } = await supabase
+        .from('medicine_records')
+        .select('id, name')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+
+      const medicineNames = medicines?.map((m) => m.name) || [];
+
+      // 1단계: 약물 정보 조회
+      sendEvent('stage', { 
+        stage: 1, 
+        name: '약물정보',
+        status: 'loading',
+        message: '복용 중인 약물 정보를 확인하고 있어요...'
+      });
+
+      const drugDetailsPromises = (medicines || []).map(async (medicine) => {
+        try {
+          const info = await this.externalApiClient.getMedicineInfo(medicine.name, 3);
+          const publicData = Array.isArray(info) && info.length > 0 ? info[0] : null;
+          return {
+            name: medicine.name,
+            userMedicineId: medicine.id,
+            publicData,
+            dataSource: publicData ? 'e약은요' : 'AI분석필요',
+          };
+        } catch (error) {
+          return {
+            name: medicine.name,
+            userMedicineId: medicine.id,
+            publicData: null,
+            dataSource: 'AI분석필요',
+          };
+        }
+      });
+
+      const drugDetails = await Promise.all(drugDetailsPromises);
+      
+      sendEvent('stage', { 
+        stage: 1, 
+        name: '약물정보',
+        status: 'complete',
+        message: `${drugDetails.length}개 약물 정보 확인 완료`,
+        data: { count: drugDetails.length, names: medicineNames }
+      });
+
+      // 2단계: 영양성분/건강기능식품 조회
+      sendEvent('stage', { 
+        stage: 2, 
+        name: '영양성분',
+        status: 'loading',
+        message: '영양성분 정보를 수집하고 있어요...'
+      });
+
+      let nutritionRows = [];
+      let healthFoodRows = [];
+      let publicDataFailed = false;
+
+      try {
+        [nutritionRows, healthFoodRows] = await Promise.all([
+          this.externalApiClient.getFoodNutritionPublicData({ foodName, numOfRows: 5 }),
+          this.externalApiClient.getHealthFunctionalFoodList({ productName: foodName, numOfRows: 5 }),
+        ]);
+      } catch (apiError) {
+        console.warn('[보강 데이터] API 조회 실패:', apiError.message);
+        publicDataFailed = true;
+      }
+
+      const needAINutritionData = !nutritionRows || nutritionRows.length === 0;
+      
+      sendEvent('stage', { 
+        stage: 2, 
+        name: '영양성분',
+        status: 'complete',
+        message: nutritionRows?.length > 0 
+          ? `영양성분 ${nutritionRows.length}건 확인 완료`
+          : 'AI 지식 기반으로 분석할게요',
+        data: { nutritionCount: nutritionRows?.length || 0, healthFoodCount: healthFoodRows?.length || 0 }
+      });
+
+      const supplementalPublicData = {
+        nutrition: {
+          source: nutritionRows?.length > 0 ? '식품의약품안전처 식품영양성분DB' : 'AI 지식 기반',
+          items: nutritionRows || [],
+          needAIFallback: needAINutritionData,
+        },
+        healthFunctionalFoods: {
+          source: healthFoodRows?.length > 0 ? '식품의약품안전처 건강기능식품정보' : 'AI 지식 기반',
+          items: healthFoodRows || [],
+        },
+        diseaseInfo: { source: 'AI 지식 기반', items: [] },
+        publicDataFailed,
+      };
+
+      // 3단계: AI 성분 분석 (병렬로 레시피도 조회)
+      sendEvent('stage', { 
+        stage: 3, 
+        name: '성분분석',
+        status: 'loading',
+        message: 'AI가 음식 성분을 분석하고 있어요...'
+      });
+
+      const geminiClient = await this.getGeminiClient();
+      const recipeDataPromise = this.externalApiClient.getRecipeInfo(foodName);
+      const foodAnalysis = await geminiClient.analyzeFoodComponents(foodName, diseases, supplementalPublicData);
+      
+      // 성분 분석 완료 시 바로 일부 데이터 전송
+      sendEvent('stage', { 
+        stage: 3, 
+        name: '성분분석',
+        status: 'complete',
+        message: '음식 성분 분석 완료',
+        data: {
+          components: foodAnalysis.components?.slice(0, 5) || [],
+          riskFactors: Object.keys(foodAnalysis.riskFactors || {}).filter(k => foodAnalysis.riskFactors[k])
+        }
+      });
+
+      // 🆕 일부 분석 데이터 미리 전송 (성분 정보)
+      sendEvent('partial', {
+        type: 'components',
+        data: {
+          foodComponents: foodAnalysis.components || [],
+          riskFactors: foodAnalysis.riskFactors || {},
+          riskFactorNotes: foodAnalysis.riskFactorNotes || {},
+        }
+      });
+
+      // 4단계: 약물-음식 상호작용 분석
+      sendEvent('stage', { 
+        stage: 4, 
+        name: '상호작용',
+        status: 'loading',
+        message: 'AI가 약물과의 상호작용을 분석하고 있어요...'
+      });
+
+      const interactionAnalysis = await geminiClient.analyzeDrugFoodInteractions(
+        foodName,
+        foodAnalysis,
+        drugDetails,
+        diseases
+      );
+
+      const dangerCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'danger').length || 0;
+      const cautionCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'caution').length || 0;
+
+      sendEvent('stage', { 
+        stage: 4, 
+        name: '상호작용',
+        status: 'complete',
+        message: dangerCount > 0 
+          ? `⚠️ 주의가 필요한 약물 ${dangerCount}개 발견`
+          : cautionCount > 0 
+            ? `💡 참고할 약물 ${cautionCount}개 확인`
+            : '✅ 특별한 상호작용 없음',
+        data: { dangerCount, cautionCount }
+      });
+
+      // 🆕 약물 상호작용 데이터 미리 전송
+      sendEvent('partial', {
+        type: 'interactions',
+        data: {
+          drug_food_interactions: interactionAnalysis.interactions || []
+        }
+      });
+
+      // 5단계: 최종 종합 분석
+      sendEvent('stage', { 
+        stage: 5, 
+        name: '최종분석',
+        status: 'loading',
+        message: 'AI가 최종 분석 결과를 정리하고 있어요...'
+      });
+
+      const recipeData = await recipeDataPromise;
+      const recipeApiSuccess = recipeData && recipeData.length > 0;
+
+      const { finalAnalysis, healthyRecipes } = await geminiClient.generateFinalAnalysisWithRecipes(
+        foodName,
+        foodAnalysis,
+        interactionAnalysis,
+        diseases,
+        recipeData,
+        {
+          needDetailedNutrition: needAINutritionData,
+          needDetailedRecipes: !recipeApiSuccess,
+          publicDataFailed,
+        }
+      );
+
+      const score = finalAnalysis.suitabilityScore || 50;
+
+      sendEvent('stage', { 
+        stage: 5, 
+        name: '최종분석',
+        status: 'complete',
+        message: `분석 완료! 적합도 ${score}점`,
+        data: { score }
+      });
+
+      // 데이터 소스 정리
+      const dataSourceSet = new Set<string>(['Gemini AI 분석']);
+      const apiSuccessCount = drugDetails.filter(d => d.dataSource === 'e약은요').length;
+      if (apiSuccessCount > 0) dataSourceSet.add('식품의약품안전처 e약은요 API');
+      if (nutritionRows?.length > 0) dataSourceSet.add('식품의약품안전처 식품영양성분DB');
+      if (healthFoodRows?.length > 0) dataSourceSet.add('식품의약품안전처 건강기능식품정보');
+      if (healthyRecipes?.length > 0) dataSourceSet.add('식품안전나라 조리식품 레시피DB');
+
+      // 최종 결과 전송
+      const detailedAnalysis = {
+        goodPoints: finalAnalysis.goodPoints || [],
+        badPoints: finalAnalysis.badPoints || [],
+        warnings: finalAnalysis.warnings || [],
+        expertAdvice: finalAnalysis.expertAdvice || '',
+        summary: finalAnalysis.summary || '',
+        pros: finalAnalysis.goodPoints || [],
+        cons: finalAnalysis.badPoints || [],
+        cookingTips: healthyRecipes || [],
+        medicalAnalysis: {
+          drug_food_interactions: interactionAnalysis.interactions || []
+        },
+        foodComponents: foodAnalysis.components || [],
+        riskFactors: foodAnalysis.riskFactors || {},
+        riskFactorNotes: foodAnalysis.riskFactorNotes || {},
+        publicDatasets: supplementalPublicData,
+        dataSources: Array.from(dataSourceSet),
+      };
+
+      sendEvent('result', {
+        success: true,
+        data: {
+          id: 'stream-' + Date.now(),
+          foodName,
+          score,
+          analysis: finalAnalysis.briefSummary || `${foodName}에 대한 분석 결과입니다.`,
+          detailedAnalysis,
+          createdAt: new Date().toISOString(),
+        }
+      });
+
+      // 캐시 저장 (비동기)
+      const cacheKey = this.supabaseService.generateCacheKey(foodName, diseases, medicineNames, 'full');
+      this.supabaseService.saveCachedAnalysis({
+        cacheKey,
+        foodName,
+        score,
+        analysis: finalAnalysis.briefSummary || '',
+        detailedAnalysis,
+        diseases,
+        medicines: medicineNames,
+        analysisMode: 'full',
+      }).catch(err => console.warn('[Cache] 저장 실패:', err.message));
+
+      console.log('=== 스트리밍 분석 완료 ===');
+    } catch (error) {
+      console.error('스트리밍 분석 오류:', error);
+      sendEvent('error', { message: error.message || '분석 중 오류가 발생했습니다.' });
+    }
+  }
 }

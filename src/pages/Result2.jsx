@@ -6,7 +6,8 @@ import img_travel from '../assets/images/img_travel.png';
 import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import { useLocation, useNavigate } from 'react-router-dom';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
+import { analyzeFoodByTextStream } from '../services/api';
 
 const imgsorce = 'https://img.bizthenaum.co.kr/data/img/1000000869/ori/1000000869_11.jpg';
 
@@ -18,6 +19,84 @@ const Result2 = () => {
   const [analysis, setAnalysis] = useState('');
   const [score, setScore] = useState(65);
   const [detailedAnalysis, setDetailedAnalysis] = useState(null);
+  
+  // 🆕 스트리밍 관련 상태
+  const [isStreaming, setIsStreaming] = useState(false);
+  const [streamingStages, setStreamingStages] = useState([]);
+  const [currentStage, setCurrentStage] = useState(null);
+  const [streamingMessage, setStreamingMessage] = useState('');
+  const [streamError, setStreamError] = useState(null);
+  const abortRef = useRef(null);
+
+  // 🆕 스트리밍 분석 시작 함수
+  const startStreamingAnalysis = (foodNameParam) => {
+    console.log('=== 스트리밍 분석 시작 ===', foodNameParam);
+    setIsStreaming(true);
+    setStreamError(null);
+    setStreamingStages([]);
+    
+    const { abort } = analyzeFoodByTextStream(foodNameParam, {
+      onStart: (data) => {
+        console.log('[Stream] 시작:', data);
+        setStreamingMessage(data.message);
+        setStreamingStages(data.stages.map((name, idx) => ({
+          stage: idx + 1,
+          name,
+          status: 'waiting'
+        })));
+      },
+      onStage: (data) => {
+        console.log('[Stream] 단계:', data);
+        setCurrentStage(data.stage);
+        setStreamingMessage(data.message);
+        setStreamingStages(prev => prev.map(s => 
+          s.stage === data.stage 
+            ? { ...s, status: data.status, message: data.message }
+            : s.stage < data.stage 
+              ? { ...s, status: 'complete' }
+              : s
+        ));
+      },
+      onPartial: (data) => {
+        console.log('[Stream] 부분 데이터:', data.type);
+        // 부분 데이터 수신 시 즉시 UI 업데이트
+        if (data.type === 'interactions') {
+          setDetailedAnalysis(prev => ({
+            ...prev,
+            medicalAnalysis: data.data
+          }));
+        } else if (data.type === 'components') {
+          setDetailedAnalysis(prev => ({
+            ...prev,
+            foodComponents: data.data.foodComponents,
+            riskFactors: data.data.riskFactors,
+            riskFactorNotes: data.data.riskFactorNotes,
+          }));
+        }
+      },
+      onResult: (data) => {
+        console.log('[Stream] 최종 결과:', data);
+        if (data.success && data.data) {
+          setScore(data.data.score);
+          setAnalysis(data.data.analysis);
+          setDetailedAnalysis(data.data.detailedAnalysis);
+        }
+        setIsStreaming(false);
+        setStreamingMessage('분석 완료!');
+      },
+      onError: (error) => {
+        console.error('[Stream] 오류:', error);
+        setStreamError(error.message);
+        setIsStreaming(false);
+      },
+      onComplete: () => {
+        console.log('[Stream] 완료');
+        setIsStreaming(false);
+      }
+    });
+
+    abortRef.current = abort;
+  };
 
   useEffect(() => {
     console.log('=== Result2 useEffect 실행 ===');
@@ -49,22 +128,33 @@ const Result2 = () => {
         setScore(location.state.score);
       }
       
-      if (location.state.detailedAnalysis) {
+      // 🆕 스트리밍 모드 체크
+      if (location.state.useStreaming && location.state.foodName) {
+        console.log('🚀 스트리밍 모드로 분석 시작!');
+        // 기존 detailedAnalysis가 없으면 스트리밍 시작
+        if (!location.state.detailedAnalysis) {
+          startStreamingAnalysis(location.state.foodName);
+        } else {
+          // 이미 데이터가 있으면 바로 설정
+          setDetailedAnalysis(location.state.detailedAnalysis);
+        }
+      } else if (location.state.detailedAnalysis) {
         console.log('✅✅✅ detailedAnalysis 발견!');
-        console.log('상세 분석 데이터:', location.state.detailedAnalysis);
-        console.log('pros:', location.state.detailedAnalysis.pros);
-        console.log('cons:', location.state.detailedAnalysis.cons);
-        console.log('cookingTips:', location.state.detailedAnalysis.cookingTips);
         setDetailedAnalysis(location.state.detailedAnalysis);
-        console.log('✅ setDetailedAnalysis 호출 완료');
       } else {
-        console.error('❌❌❌ detailedAnalysis 없음!');
+        console.warn('⚠️ detailedAnalysis 없음, 스트리밍 시작');
+        if (location.state.foodName) {
+          startStreamingAnalysis(location.state.foodName);
+        }
       }
       
-      // cleanup 함수: blob URL 해제
+      // cleanup 함수: blob URL 해제 및 스트리밍 중단
       return () => {
         if (blobUrl) {
           URL.revokeObjectURL(blobUrl);
+        }
+        if (abortRef.current) {
+          abortRef.current();
         }
       };
     } else {
@@ -294,7 +384,7 @@ const Result2 = () => {
           <span className="material-symbols-rounded">arrow_back</span>
         </button>
         <h1 className="result2__food-name">[ {foodName} ]</h1>
-        <p className="result2__question">자세히 분석했돼지!</p>
+        <p className="result2__question">{isStreaming ? '분석 중이돼지...' : '자세히 분석했돼지!'}</p>
         {foodImage ? (
           <img src={foodImage} alt={foodName} className="result2__header-bg"/>
         ) : (
@@ -304,17 +394,55 @@ const Result2 = () => {
         )}
       </div>
 
+      {/* 🆕 스트리밍 진행 상태 표시 */}
+      {isStreaming && (
+        <div className="result2__streaming-section">
+          <div className="result2__streaming-header">
+            <div className="result2__streaming-spinner"></div>
+            <p className="result2__streaming-message">{streamingMessage}</p>
+          </div>
+          <div className="result2__streaming-stages">
+            {streamingStages.map((stage) => (
+              <div 
+                key={stage.stage} 
+                className={`result2__streaming-stage result2__streaming-stage--${stage.status}`}
+              >
+                <span className="result2__streaming-stage-icon">
+                  {stage.status === 'complete' ? '✅' : 
+                   stage.status === 'loading' ? '⏳' : '⏸️'}
+                </span>
+                <span className="result2__streaming-stage-name">{stage.name}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* 에러 표시 */}
+      {streamError && (
+        <div className="result2__error-section">
+          <p className="result2__error-message">⚠️ {streamError}</p>
+          <button 
+            className="result2__retry-btn"
+            onClick={() => startStreamingAnalysis(foodName)}
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
+
       {/* 점수 표시 */}
       <div className="result2__score-section">
-        <div className="result2__score-circle">
-          <div className="result2__score-value">{score}</div>
+        <div className={`result2__score-circle ${isStreaming ? 'result2__score-circle--loading' : ''}`}>
+          <div className="result2__score-value">{isStreaming ? '...' : score}</div>
           <div className="result2__score-label">점</div>
         </div>
         <div className="result2__score-comment">
-          {score >= 85 && '매우 건강한 선택이에요!'}
-          {score >= 70 && score < 85 && '적당히 드시면 좋아요'}
-          {score >= 50 && score < 70 && '주의가 필요해요'}
-          {score < 50 && '가급적 피하시는게 좋아요'}
+          {isStreaming ? '점수를 계산하고 있어요...' :
+           score >= 85 ? '매우 건강한 선택이에요!' :
+           score >= 70 ? '적당히 드시면 좋아요' :
+           score >= 50 ? '주의가 필요해요' :
+           '가급적 피하시는게 좋아요'}
         </div>
       </div>
 

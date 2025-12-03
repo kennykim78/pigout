@@ -5,7 +5,6 @@ import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
-import { analyzeFoodByText } from '../services/api';
 
 const imgsorce = 'https://img.bizthenaum.co.kr/data/img/1000000869/ori/1000000869_11.jpg';
 
@@ -84,37 +83,19 @@ const Result01 = () => {
   const [fullStage, setFullStage] = useState(null); // 'collect' | 'interactions' | 'final'
 
   const handleDetailClick = async () => {
-    if (isFullLoading) return;
-    setIsFullLoading(true);
-    try {
-      console.log('[FULL] 상세 분석 요청 시작:', foodName);
-      setFullStage('collect');
-      const fullResult = await analyzeFoodByText(foodName);
-      setFullStage('final');
-      console.log('[FULL] 상세 분석 완료:', fullResult);
-
-      const fullDetailed = fullResult.data?.detailedAnalysis || fullResult.data?.analysis || {};
-      const fullScore = fullResult.data?.score || score;
-      const fullAnalysis = fullResult.data?.analysis || analysis;
-
-      navigate('/result2', {
-        state: {
-          foodName,
-          foodImage: location.state?.foodImage,
-          imageUrl: foodImage,
-          score: fullScore,
-          analysis: fullAnalysis,
-          detailedAnalysis: fullDetailed,
-          analysisId: fullResult.data?.id || analysisId,
-        },
-      });
-    } catch (error) {
-      console.error('[FULL] 상세 분석 중 오류:', error);
-      alert('상세 분석 중 오류가 발생했습니다. 다시 시도해주세요.');
-    } finally {
-      setIsFullLoading(false);
-      setFullStage(null);
-    }
+    // 스트리밍 모드로 Result2 페이지로 이동 (Result2에서 스트리밍 처리)
+    navigate('/result2', {
+      state: {
+        foodName,
+        foodImage: location.state?.foodImage,
+        imageUrl: foodImage,
+        score: score, // Result01 점수를 기본값으로 전달
+        analysis: analysis,
+        detailedAnalysis: detailedAnalysis || null, // 있으면 전달
+        analysisId: analysisId,
+        useStreaming: true, // 🆕 스트리밍 모드 플래그
+      },
+    });
   };
 
   // 데이터가 없으면 로딩 또는 안내 표시
