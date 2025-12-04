@@ -164,7 +164,12 @@ const Result2 = () => {
         hasBadPoints: da?.badPoints?.length > 0,
         hasPros: !!da?.pros,
         hasCons: !!da?.cons,
+        rawData: da,
       });
+      
+      console.log('=== 스트리밍 분기 판단 ===');
+      console.log('hasRealDetailedAnalysis:', hasRealDetailedAnalysis);
+      console.log('location.state.foodName:', location.state.foodName);
 
       if (hasRealDetailedAnalysis) {
         // 진짜 상세 분석 데이터가 있으면 그대로 사용
@@ -173,7 +178,11 @@ const Result2 = () => {
       } else if (location.state.foodName) {
         // 상세 분석 데이터가 없으면 (1차 분석만 있거나 아예 없으면) 스트리밍 시작
         console.log('🚀 상세 분석 시작! (1차 분석만 있거나 데이터 없음)');
+        console.log('→ startStreamingAnalysis 호출 직전');
         startStreamingAnalysis(location.state.foodName);
+        console.log('→ startStreamingAnalysis 호출 완료');
+      } else {
+        console.warn('⚠️ foodName이 없어서 스트리밍을 시작할 수 없습니다');
       }
       
       // cleanup 함수: blob URL 해제 및 스트리밍 중단
