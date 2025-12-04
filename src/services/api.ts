@@ -335,13 +335,20 @@ export const analyzeFoodByTextStream = (
   foodName: string,
   callbacks: StreamingCallbacks
 ): { abort: () => void } => {
+  console.log('[analyzeFoodByTextStream] 함수 호출됨');
+  console.log('[analyzeFoodByTextStream] foodName:', foodName);
+  
   const savedDiseases = localStorage.getItem('selectedDiseases');
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
   const deviceId = getDeviceId();
 
+  console.log('[analyzeFoodByTextStream] diseases:', diseases);
+  console.log('[analyzeFoodByTextStream] deviceId:', deviceId);
+
   const abortController = new AbortController();
 
   console.log('[SSE] 스트리밍 분석 요청:', { foodName, diseases, deviceId });
+  console.log('[SSE] fetch 요청 시작:', `${API_BASE_URL}/food/text-analyze-stream`);
 
   // fetch로 SSE 연결
   fetch(`${API_BASE_URL}/food/text-analyze-stream`, {

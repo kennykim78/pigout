@@ -31,7 +31,17 @@ const Result2 = () => {
 
   // 🆕 스트리밍 분석 시작 함수
   const startStreamingAnalysis = (foodNameParam) => {
-    console.log('=== 스트리밍 분석 시작 ===', foodNameParam);
+    console.log('=== startStreamingAnalysis 호출됨 ===');
+    console.log('foodNameParam:', foodNameParam);
+    console.log('typeof foodNameParam:', typeof foodNameParam);
+    
+    if (!foodNameParam || foodNameParam.trim() === '') {
+      console.error('❌ foodNameParam이 비어있음!');
+      setStreamError('음식 이름이 없습니다.');
+      return;
+    }
+    
+    console.log('✅ 스트리밍 분석 시작:', foodNameParam);
     setIsStreaming(true);
     setStreamError(null);
     setStreamingStages([]);

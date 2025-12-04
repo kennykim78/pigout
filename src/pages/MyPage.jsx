@@ -62,6 +62,9 @@ const MyPage = () => {
         id: record.id,
         foodName: record.food_name,
         score: record.score,
+        analysis: record.analysis,
+        imageUrl: record.image_url,
+        detailedAnalysis: record.detailed_analysis,
         time: new Date(record.created_at).toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
         date: new Date(record.created_at).toLocaleDateString('ko-KR', { month: 'short', day: 'numeric' }),
       }));
@@ -230,7 +233,7 @@ const MyPage = () => {
         <div className="mypage__recent-list">
           {recentRecords.length > 0 ? (
             recentRecords.map((record) => (
-              <div key={record.id} className="mypage__recent-item" onClick={() => navigate('/result01', { state: { foodName: record.foodName, score: record.score, analysisId: record.id } })}>
+              <div key={record.id} className="mypage__recent-item" onClick={() => navigate('/result01', { state: { foodName: record.foodName, score: record.score, analysis: record.analysis, imageUrl: record.imageUrl, detailedAnalysis: record.detailedAnalysis, analysisId: record.id, fromMyPage: true } })}>
                 <div className="mypage__recent-info">
                   <div className="mypage__recent-name">{record.foodName}</div>
                   <div className="mypage__recent-time">{record.date} {record.time}</div>
