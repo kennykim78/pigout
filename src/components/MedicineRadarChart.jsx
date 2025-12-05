@@ -4,14 +4,26 @@ import './MedicineRadarChart.scss';
 
 /**
  * 등록된 약품의 성분을 분석한 방사형 그래프
- * - 주요 성분별 사용 빈도 표시
+ * - AI 분석 결과 우선 사용, 없으면 하드코딩 로직으로 폴백
  * - 시각적으로 약품 구성 파악 용이
  */
-const MedicineRadarChart = ({ medicines }) => {
+const MedicineRadarChart = ({ medicines, aiAnalysis }) => {
   const chartData = useMemo(() => {
     if (!medicines || medicines.length === 0) return [];
 
-    // 성분별 사용 빈도 계산
+    // 🆕 AI 분석 결과가 있으면 우선 사용
+    if (aiAnalysis && aiAnalysis.length > 0) {
+      console.log('[MedicineRadarChart] AI 분석 데이터 사용:', aiAnalysis);
+      return aiAnalysis.map(item => ({
+        name: item.category,
+        value: Math.min(item.count * 25, 100), // 스케일링 (최대 100)
+        count: item.count,
+        medicines: item.medicines || [],
+      }));
+    }
+
+    // ⚠️ AI 분석 없으면 하드코딩 로직 사용 (폴백)
+    console.log('[MedicineRadarChart] AI 분석 없음, 하드코딩 로직 사용');
     const componentMap = {};
     const componentCategories = {
       '해열·진통': ['아세트아미노펜', '이부프로펜', '진통', '해열'],
@@ -42,7 +54,7 @@ const MedicineRadarChart = ({ medicines }) => {
     }));
 
     return data.length > 0 ? data : [];
-  }, [medicines]);
+  }, [medicines, aiAnalysis]);
 
   if (chartData.length === 0) {
     return (
@@ -56,7 +68,9 @@ const MedicineRadarChart = ({ medicines }) => {
     <div className="radar-chart-container">
       <div className="chart-header">
         <h3>📊 등록된 약품 성분 분석</h3>
-        <p className="chart-description">약품별 주요 성분 구성을 한눈에 확인하세요</p>
+        <p className="chart-description">
+          {aiAnalysis ? '🤖 AI가 분석한 약품 구성' : '약품별 주요 성분 구성을 한눈에 확인하세요'}
+        </p>
       </div>
       <ResponsiveContainer width="100%" height={300}>
         <RadarChart data={chartData} margin={{ top: 20, right: 20, bottom: 20, left: 20 }}>
@@ -79,16 +93,19 @@ const MedicineRadarChart = ({ medicines }) => {
               borderRadius: '8px',
               color: '#333',
             }}
-            formatter={(value, name, payload) => [
-              `${payload.payload.count}개 약품`,
-              '약품 수'
-            ]}
+            formatter={(value, name, payload) => {
+              const medicines = payload.payload.medicines;
+              if (medicines && medicines.length > 0) {
+                return [`${payload.payload.count}개: ${medicines.join(', ')}`, '약품'];
+              }
+              return [`${payload.payload.count}개 약품`, '약품 수'];
+            }}
           />
           <Legend />
         </RadarChart>
       </ResponsiveContainer>
       <div className="chart-footer">
-        <p>✨ 성분 다양도: {chartData.length > 0 ? '다양함' : '단일'}</p>
+        <p>✨ 성분 다양도: {chartData.length >= 3 ? '다양함' : chartData.length >= 2 ? '보통' : '단일'}</p>
       </div>
     </div>
   );

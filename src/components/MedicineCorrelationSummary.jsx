@@ -1,7 +1,51 @@
 import { useMemo } from 'react';
 import './MedicineCorrelationSummary.scss';
 
-const MedicineCorrelationSummary = ({ medicines = [] }) => {
+const MedicineCorrelationSummary = ({ medicines = [], aiAnalysis, oneLiner }) => {
+  // 🆕 AI 분석 결과 우선 사용
+  if (aiAnalysis || oneLiner) {
+    console.log('[MedicineCorrelationSummary] AI 분석 데이터 사용:', { aiAnalysis, oneLiner });
+    
+    return (
+      <div className="medicine-correlation-summary">
+        {/* AI 한줄평 표시 */}
+        {oneLiner && (
+          <div className="correlation-alert correlation-alert--ai">
+            <span className="alert-icon">🤖</span>
+            <span className="alert-text">{oneLiner}</span>
+          </div>
+        )}
+        
+        {/* AI 위험 조합 경고 */}
+        {aiAnalysis?.hasDanger && aiAnalysis?.dangerMessage && (
+          <div className="correlation-alert correlation-alert--danger">
+            <span className="alert-icon">🚨</span>
+            <span className="alert-text">{aiAnalysis.dangerMessage}</span>
+          </div>
+        )}
+
+        {/* AI 주의 조합 경고 */}
+        {aiAnalysis?.hasCaution && aiAnalysis?.cautionMessage && (
+          <div className="correlation-alert correlation-alert--caution">
+            <span className="alert-icon">⚠️</span>
+            <span className="alert-text">{aiAnalysis.cautionMessage}</span>
+          </div>
+        )}
+
+        {/* 안전 메시지 (위험/주의 없을 때) */}
+        {!aiAnalysis?.hasDanger && !aiAnalysis?.hasCaution && aiAnalysis?.safeMessage && (
+          <div className="correlation-alert correlation-alert--safe">
+            <span className="alert-icon">✅</span>
+            <span className="alert-text">{aiAnalysis.safeMessage}</span>
+          </div>
+        )}
+      </div>
+    );
+  }
+
+  // ⚠️ AI 분석 없으면 하드코딩 로직 사용 (폴백)
+  console.log('[MedicineCorrelationSummary] AI 분석 없음, 하드코딩 로직 사용');
+  
   // 상호작용 분석 결과 계산
   const correlationSummary = useMemo(() => {
     if (!medicines || medicines.length < 2) {
@@ -66,9 +110,18 @@ const MedicineCorrelationSummary = ({ medicines = [] }) => {
 
   const { hasDangerousCombination, dangerousCombo, hasCautionCombination, cautionCombo, totalMedicines } = correlationSummary;
 
-  // 위험 또는 주의 조합이 없으면 표시 안 함
-  if (!hasDangerousCombination && !hasCautionCombination) {
-    return null;
+  // 위험 또는 주의 조합이 없으면 안전 메시지 표시
+  if (!hasDangerousCombination && !hasCautionCombination && totalMedicines >= 2) {
+    return (
+      <div className="medicine-correlation-summary">
+        <div className="correlation-alert correlation-alert--safe">
+          <span className="alert-icon">✅</span>
+          <span className="alert-text">
+            현재 <strong>{totalMedicines}개 약품</strong>은 안전한 조합입니다
+          </span>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -87,15 +140,6 @@ const MedicineCorrelationSummary = ({ medicines = [] }) => {
           <span className="alert-icon">⚠️</span>
           <span className="alert-text">
             <strong>{cautionCombo}</strong> 복용 시 유의
-          </span>
-        </div>
-      )}
-
-      {!hasDangerousCombination && !hasCautionCombination && totalMedicines >= 2 && (
-        <div className="correlation-alert correlation-alert--safe">
-          <span className="alert-icon">✨</span>
-          <span className="alert-text">
-            현재 <strong>{totalMedicines}개 약품</strong>은 안전한 조합입니다
           </span>
         </div>
       )}

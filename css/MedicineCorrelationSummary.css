@@ -9,6 +9,18 @@
   border-radius: 8px;
   border-left: 4px solid;
   animation: slideIn 0.3s ease-out;
+  margin-bottom: 8px;
+}
+.medicine-correlation-summary .correlation-alert:last-child {
+  margin-bottom: 0;
+}
+.medicine-correlation-summary .correlation-alert--ai {
+  background: linear-gradient(135deg, #f0f4ff 0%, #e8f0ff 100%);
+  border-left-color: #6366f1;
+}
+.medicine-correlation-summary .correlation-alert--ai .alert-text {
+  color: #4338ca;
+  font-weight: 500;
 }
 .medicine-correlation-summary .correlation-alert--danger {
   background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);

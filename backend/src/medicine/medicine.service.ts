@@ -558,8 +558,9 @@ export class MedicineService {
 
   /**
    * 사용자의 복용 약 목록 조회
+   * @param withAnalysis true면 AI 분석 결과도 함께 반환
    */
-  async getMyMedicines(userId: string, activeOnly: boolean = true) {
+  async getMyMedicines(userId: string, activeOnly: boolean = true, withAnalysis: boolean = false) {
     let query = this.supabaseService
       .getClient()
       .from('medicine_records')
@@ -575,7 +576,78 @@ export class MedicineService {
 
     if (error) throw error;
 
-    return data;
+    // 분석 결과 미포함 시 기존 방식 반환
+    if (!withAnalysis) {
+      return data;
+    }
+
+    // 분석 결과 포함 시 AI 분석 수행
+    let analysis = null;
+    if (data && data.length >= 1) {
+      try {
+        analysis = await this.performQuickAnalysis(data);
+      } catch (err) {
+        console.warn('[AI 분석 오류]:', err.message);
+      }
+    }
+
+    return {
+      medicines: data,
+      analysis,
+    };
+  }
+
+  /**
+   * 약품 목록에 대한 빠른 AI 분석 수행
+   * (레이더 차트와 한줄평용 간략 분석)
+   */
+  private async performQuickAnalysis(medicines: any[]) {
+    const { GeminiClient } = await import('../ai/utils/gemini.client');
+    const geminiApiKey = process.env.GEMINI_API_KEY;
+    if (!geminiApiKey) {
+      console.warn('[AI 분석] GEMINI_API_KEY 미설정');
+      return null;
+    }
+
+    const geminiClient = new GeminiClient(geminiApiKey);
+
+    // 캐시에서 약품 상세 정보 조회
+    const drugDetailsPromises = medicines.map(async (medicine: any) => {
+      let itemSeq: string | null = null;
+      let entpName: string | null = null;
+      
+      try {
+        const qrData = medicine.qr_code_data ? JSON.parse(medicine.qr_code_data) : {};
+        itemSeq = qrData.itemSeq || null;
+        entpName = qrData.manufacturer || medicine.drug_class || null;
+      } catch (e) {
+        // JSON 파싱 실패 시 무시
+      }
+
+      // 캐시에서 조회
+      let cachedData = null;
+      if (itemSeq && entpName) {
+        cachedData = await this.supabaseService.getMedicineDetailCache(itemSeq, entpName);
+      }
+
+      return {
+        name: medicine.name,
+        dosage: medicine.dosage,
+        frequency: medicine.frequency,
+        efcyQesitm: cachedData?.efcyQesitm || '',
+        useMethodQesitm: cachedData?.useMethodQesitm || '',
+        atpnWarnQesitm: cachedData?.atpnWarnQesitm || '',
+        intrcQesitm: cachedData?.intrcQesitm || '',
+        seQesitm: cachedData?.seQesitm || '',
+      };
+    });
+
+    const drugDetails = await Promise.all(drugDetailsPromises);
+
+    // AI로 약물 분석 (레이더 차트용 성분 분류 + 상호작용)
+    const analysisResult = await geminiClient.analyzeForDashboard(drugDetails);
+
+    return analysisResult;
   }
 
   /**

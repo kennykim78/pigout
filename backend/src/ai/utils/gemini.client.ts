@@ -1708,4 +1708,105 @@ JSON 형식으로만 응답:
       return [];
     }
   }
+
+  /**
+   * 대시보드용 약품 분석 (레이더 차트 + 한줄평)
+   * - 성분 카테고리 분류 (레이더 차트용)
+   * - 상호작용 간략 요약 (한줄평용)
+   */
+  async analyzeForDashboard(drugDetails: any[]): Promise<{
+    componentCategories: Array<{
+      category: string;
+      count: number;
+      medicines: string[];
+    }>;
+    interactions: {
+      hasDanger: boolean;
+      dangerMessage: string | null;
+      hasCaution: boolean;
+      cautionMessage: string | null;
+      safeMessage: string;
+    };
+    oneLiner: string;
+  }> {
+    try {
+      const drugNames = drugDetails.map(d => d.name).join(', ');
+      
+      const prompt = `# Role
+당신은 약사 전문가입니다. 복용 약품을 분석하여 레이더 차트와 한줄평 데이터를 생성합니다.
+
+# Input
+복용 약물: ${drugNames}
+약물 상세:
+${JSON.stringify(drugDetails, null, 2)}
+
+# Tasks
+
+## Task 1: 성분 카테고리 분류 (레이더 차트용)
+각 약품을 다음 카테고리로 분류하세요:
+- 해열·진통 (해열제, 진통제, 소염진통제)
+- 소염·항염 (항염증제, 스테로이드)
+- 감기·기침 (감기약, 기침약, 코막힘약)
+- 소화 (소화제, 위장약, 변비약)
+- 영양·보충 (비타민, 미네랄, 영양제)
+- 항히스타민 (알레르기약, 항히스타민제)
+- 항생제 (항생물질, 항균제)
+- 심혈관 (혈압약, 심장약)
+- 정신·신경 (수면제, 안정제, 진정제)
+- 기타 (위에 해당하지 않는 약품)
+
+## Task 2: 상호작용 분석 (한줄평용)
+약품 간 위험 조합이나 주의사항을 간략히 분석하세요.
+
+## Task 3: 한줄평 생성
+현재 복용 상황을 20-40자로 요약하세요.
+
+# Output Format (JSON)
+{
+  "componentCategories": [
+    { "category": "해열·진통", "count": 2, "medicines": ["타이레놀", "부루펜"] },
+    { "category": "영양·보충", "count": 1, "medicines": ["비타민D"] }
+  ],
+  "interactions": {
+    "hasDanger": false,
+    "dangerMessage": null,
+    "hasCaution": true,
+    "cautionMessage": "아세트아미노펜과 이부프로펜은 간격을 두고 복용하세요",
+    "safeMessage": "현재 복용 약품은 대체로 안전한 조합입니다"
+  },
+  "oneLiner": "진통제 2종 복용 중, 시간 간격 유의"
+}
+
+# Constraints
+1. componentCategories에는 실제 복용 중인 약만 포함
+2. 위험/주의 조합이 없으면 해당 필드는 null
+3. oneLiner는 반드시 20-40자 사이로 작성
+4. JSON 형식으로만 응답`;
+
+      let rawText: string;
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [{ text: prompt }]);
+      }
+      
+      return this.extractJsonObject(rawText);
+    } catch (error) {
+      console.error('AI 대시보드 분석 실패:', error);
+      // 기본 응답 반환
+      return {
+        componentCategories: [],
+        interactions: {
+          hasDanger: false,
+          dangerMessage: null,
+          hasCaution: false,
+          cautionMessage: null,
+          safeMessage: '분석 정보를 가져올 수 없습니다',
+        },
+        oneLiner: '분석 중 오류가 발생했습니다',
+      };
+    }
+  }
 }

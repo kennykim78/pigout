@@ -20,6 +20,9 @@ const Medicine = () => {
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   
+  // 🆕 AI 대시보드 분석 결과 (레이더 차트 + 한줄평용)
+  const [dashboardAnalysis, setDashboardAnalysis] = useState(null);
+  
   // 건강기능식품 탭용 상태
   const [healthFoodKeyword, setHealthFoodKeyword] = useState('');
   const [healthFoodResults, setHealthFoodResults] = useState([]);
@@ -49,10 +52,20 @@ const Medicine = () => {
   const loadMedicines = async () => {
     setLoading(true);
     try {
-      const data = await getMyMedicines(true);
-      console.log('[Medicine.jsx] Loaded medicines:', data);
-      console.log('[Medicine.jsx] Medicine keys:', data?.[0] ? Object.keys(data[0]) : 'No data');
-      setMedicines(data);
+      // 🆕 분석 결과 포함 요청
+      const data = await getMyMedicines(true, true);
+      console.log('[Medicine.jsx] Loaded medicines with analysis:', data);
+      
+      // 응답이 { medicines, analysis } 형태인 경우
+      if (data && data.medicines) {
+        setMedicines(data.medicines);
+        setDashboardAnalysis(data.analysis);
+        console.log('[Medicine.jsx] Dashboard analysis:', data.analysis);
+      } else {
+        // 기존 배열 형태 응답 (분석 없음)
+        setMedicines(data);
+        setDashboardAnalysis(null);
+      }
     } catch (error) {
       console.error('Failed to load medicines:', error);
       setError('약 목록을 불러오는데 실패했습니다.');
@@ -425,14 +438,21 @@ const Medicine = () => {
             </div>
           ) : (
             <>
-              {/* 🔴 Phase 1: 약품 성분 분석 레이더 차트 */}
-              <MedicineRadarChart medicines={medicines} />
+              {/* 🔴 Phase 1: 약품 성분 분석 레이더 차트 (AI 분석 데이터 사용) */}
+              <MedicineRadarChart 
+                medicines={medicines} 
+                aiAnalysis={dashboardAnalysis?.componentCategories} 
+              />
 
               {/* 🟡 Phase 1: 복용 시간표 */}
               <MedicineSchedule medicines={medicines} />
 
-              {/* 🟢 Phase 2: 한 줄 상호작용 분석 */}
-              <MedicineCorrelationSummary medicines={medicines} />
+              {/* 🟢 Phase 2: 한 줄 상호작용 분석 (AI 분석 데이터 사용) */}
+              <MedicineCorrelationSummary 
+                medicines={medicines} 
+                aiAnalysis={dashboardAnalysis?.interactions}
+                oneLiner={dashboardAnalysis?.oneLiner}
+              />
 
               <div className="medicine__analyze-section">
                 <button

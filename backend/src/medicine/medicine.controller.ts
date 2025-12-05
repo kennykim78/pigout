@@ -99,16 +99,19 @@ export class MedicineController {
   /**
    * GET /api/medicine/my-list
    * 복용중인 약 목록 조회
+   * @param includeAnalysis 'true'면 AI 분석 결과도 함께 반환
    */
   @Get('my-list')
   async getMyMedicines(
     @Headers('x-device-id') deviceId: string,
     @Query('active') active?: string,
+    @Query('includeAnalysis') includeAnalysis?: string,
   ) {
     const userId = await this.getUserIdFromDeviceId(deviceId);
-    console.log(`[Medicine] getMyMedicines - deviceId: ${deviceId}, userId: ${userId}`);
+    console.log(`[Medicine] getMyMedicines - deviceId: ${deviceId}, userId: ${userId}, includeAnalysis: ${includeAnalysis}`);
     const activeOnly = active !== 'false';
-    return this.medicineService.getMyMedicines(userId, activeOnly);
+    const withAnalysis = includeAnalysis === 'true';
+    return this.medicineService.getMyMedicines(userId, activeOnly, withAnalysis);
   }
 
   /**

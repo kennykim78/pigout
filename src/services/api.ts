@@ -173,9 +173,10 @@ export const searchHealthFood = async (keyword: string, limit?: number) => {
 };
 
 // 내 약 목록 조회
-export const getMyMedicines = async (activeOnly: boolean = true) => {
+// @param includeAnalysis - true면 AI 분석 결과도 함께 반환
+export const getMyMedicines = async (activeOnly: boolean = true, includeAnalysis: boolean = false) => {
   const response = await apiClient.get('/medicine/my-list', {
-    params: { active: activeOnly },
+    params: { active: activeOnly, includeAnalysis: includeAnalysis ? 'true' : undefined },
   });
   return response.data;
 };
