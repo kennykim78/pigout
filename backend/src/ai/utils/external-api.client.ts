@@ -631,29 +631,39 @@ export class ExternalApiClient {
   }
 
   /**
-   * 건강기능식품 검색 (실제 공공데이터 API 또는 AI 기반)
+   * 건강기능식품 검색 (공공데이터 API 기반)
    * 
    * @param productName 제품명/원료명 키워드
    * @param numOfRows 조회할 행 수
    */
   async searchHealthFunctionalFood(productName: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      console.log(`[건강기능식품] 검색 시작: ${productName}`);
-      
-      // 📌 현재 공공데이터 포털의 건강기능식품 API는 검색 파라미터를 지원하지 않음
-      // → AI를 사용하여 실제 존재하는 건강기능식품 정보 기반으로 생성
-      // → 이는 임시 솔루션이며, 향후 공공데이터 API 개선 시 업데이트 필요
-      
-      // ⚠️ 현재: AI 기반 생성 (실제 제품 존재 여부는 보장할 수 없음)
-      // ✅ 향후: 건강기능식품 공공데이터 포털 API 또는 DB 캐시 사용으로 전환 필요
-      
       if (!productName || productName.trim() === '') {
         console.log(`[건강기능식품] 검색어 없음`);
         return [];
       }
       
-      // 현재는 AI 기반 검색만 가능
-      console.log(`[건강기능식품] AI 기반 검색 (실제 제품 데이터 아님): ${productName}`);
+      console.log(`[건강기능식품] API 검색 시작: ${productName}`);
+      
+      // 1️⃣ 건강기능식품 목록 조회 API 호출 (제품명 검색)
+      const htfsResults = await this.searchHealthFunctionalFoodByName(productName, numOfRows);
+      
+      if (htfsResults && htfsResults.length > 0) {
+        console.log(`[건강기능식품] ✅ ${htfsResults.length}건 발견 (제품명 검색)`);
+        return htfsResults;
+      }
+      
+      // 2️⃣ 건강기능식품 목록 조회 API 호출 (원료명 검색)
+      console.log(`[건강기능식품] 제품명 검색 결과 없음 - 원료명으로 재검색`);
+      const rawMaterialResults = await this.searchHealthFunctionalFoodByRawMaterial(productName, numOfRows);
+      
+      if (rawMaterialResults && rawMaterialResults.length > 0) {
+        console.log(`[건강기능식품] ✅ ${rawMaterialResults.length}건 발견 (원료명 검색)`);
+        return rawMaterialResults;
+      }
+      
+      // 3️⃣ 결과 없으면 AI 생성 데이터로 폴백 (임시)
+      console.log(`[건강기능식품] API 검색 결과 없음 - AI 기반 검색 시작`);
       const aiResults = await this.generateAIHealthFoodInfo(productName, numOfRows);
       
       if (aiResults && aiResults.length > 0) {
@@ -671,6 +681,125 @@ export class ExternalApiClient {
       return [];
     } catch (error) {
       console.error('[건강기능식품] 검색 오류:', error.message);
+      // 오류 발생 시에도 AI로 폴백
+      try {
+        const fallbackResults = await this.generateAIHealthFoodInfo(productName, numOfRows);
+        if (fallbackResults && fallbackResults.length > 0) {
+          return fallbackResults.map((item: any) => ({
+            ...item,
+            _isAIGenerated: true,
+            _fallbackFromError: true,
+          }));
+        }
+      } catch (fallbackError) {
+        console.error('[건강기능식품] AI 폴백도 실패:', fallbackError.message);
+      }
+      return [];
+    }
+  }
+
+  /**
+   * 건강기능식품 제품명으로 검색
+   * API: https://apis.data.go.kr/1471000/HtfsInfoService03/getHtfsList01
+   * 
+   * @param productName 제품명 키워드
+   * @param numOfRows 조회할 행 수
+   */
+  private async searchHealthFunctionalFoodByName(productName: string, numOfRows: number = 20): Promise<any[]> {
+    try {
+      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsList01`;
+      
+      console.log(`[건강기능식품-제품명] 조회: ${productName}`);
+      
+      // 공공데이터 포털 API 호출
+      const response = await axios.get(url, {
+        params: {
+          serviceKey: this.SERVICE_KEY,
+          prdlstNm: productName,  // 제품명
+          pageNo: 1,
+          numOfRows: numOfRows,
+          type: 'json',
+        },
+        timeout: 10000,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const body = response.data?.body;
+      if (!body) {
+        console.log(`[건강기능식품-제품명] 응답 body 없음`);
+        return [];
+      }
+      
+      // 검색 결과 파싱
+      const items = body.items || [];
+      const resultItems = Array.isArray(items) ? items : (items.item ? (Array.isArray(items.item) ? items.item : [items.item]) : []);
+      
+      if (!Array.isArray(resultItems) || resultItems.length === 0) {
+        console.log(`[건강기능식품-제품명] 검색 결과 없음: ${productName}`);
+        return [];
+      }
+      
+      console.log(`[건강기능식품-제품명] ${resultItems.length}건 검색됨`);
+      
+      // e약은요 형식으로 변환
+      return resultItems.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, 'name'));
+    } catch (error) {
+      console.error('[건강기능식품-제품명] API 호출 오류:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * 건강기능식품 원료명으로 검색
+   * API: https://apis.data.go.kr/1471000/HtfsInfoService03/getHtfsList01
+   * 
+   * @param rawMaterial 원료명 키워드
+   * @param numOfRows 조회할 행 수
+   */
+  private async searchHealthFunctionalFoodByRawMaterial(rawMaterial: string, numOfRows: number = 20): Promise<any[]> {
+    try {
+      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsList01`;
+      
+      console.log(`[건강기능식품-원료명] 조회: ${rawMaterial}`);
+      
+      // 공공데이터 포털 API 호출
+      const response = await axios.get(url, {
+        params: {
+          serviceKey: this.SERVICE_KEY,
+          rawmtrNm: rawMaterial,  // 원료명
+          pageNo: 1,
+          numOfRows: numOfRows,
+          type: 'json',
+        },
+        timeout: 10000,
+        headers: {
+          'Accept': 'application/json',
+        },
+      });
+
+      const body = response.data?.body;
+      if (!body) {
+        console.log(`[건강기능식품-원료명] 응답 body 없음`);
+        return [];
+      }
+      
+      // 검색 결과 파싱
+      const items = body.items || [];
+      const resultItems = Array.isArray(items) ? items : (items.item ? (Array.isArray(items.item) ? items.item : [items.item]) : []);
+      
+      if (!Array.isArray(resultItems) || resultItems.length === 0) {
+        console.log(`[건강기능식품-원료명] 검색 결과 없음: ${rawMaterial}`);
+        return [];
+      }
+      
+      console.log(`[건강기능식품-원료명] ${resultItems.length}건 검색됨`);
+      
+      // e약은요 형식으로 변환
+      return resultItems.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, 'rawmaterial'));
+    } catch (error) {
+      console.error('[건강기능식품-원료명] API 호출 오류:', error.message);
       return [];
     }
   }
