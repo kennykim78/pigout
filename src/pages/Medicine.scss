@@ -1516,3 +1516,179 @@
     }
   }
 }
+
+// 반응형 디자인
+@media (max-width: 768px) {
+  .medicine {
+    padding: 12px;
+
+    &__header {
+      margin-bottom: 20px;
+    }
+
+    &__title {
+      font-size: 24px;
+      margin-bottom: 8px;
+    }
+
+    &__subtitle {
+      font-size: 12px;
+    }
+
+    &__tabs {
+      gap: 6px;
+      margin-bottom: 8px;
+    }
+
+    &__tab {
+      padding: 12px 8px;
+      font-size: 13px;
+    }
+
+    &__sub-tabs {
+      padding: 8px;
+      gap: 6px;
+    }
+
+    &__sub-tab {
+      padding: 10px 8px;
+      font-size: 12px;
+    }
+
+    &__card {
+      padding: 16px;
+      margin-bottom: 10px;
+    }
+
+    &__card-title {
+      font-size: 16px;
+    }
+
+    &__card-info,
+    &__card-date {
+      font-size: 13px;
+    }
+
+    &__section {
+      padding: 16px;
+    }
+
+    &__section-title {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+
+    &__section-desc {
+      font-size: 13px;
+      margin-bottom: 16px;
+    }
+
+    &__capture-buttons {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__capture-btn {
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    &__analyze-section {
+      padding: 16px;
+    }
+
+    &__analyze-all-btn {
+      padding: 12px 20px;
+      font-size: 14px;
+    }
+
+    &__analyze-desc {
+      font-size: 11px;
+      margin-top: 8px;
+    }
+
+    &__search {
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    &__search-input {
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    &__search-btn {
+      padding: 12px;
+      font-size: 13px;
+    }
+
+    &__result-card {
+      padding: 12px;
+
+      h4 {
+        font-size: 14px;
+        margin-bottom: 6px;
+      }
+    }
+
+    &__result-manufacturer,
+    &__result-purpose {
+      font-size: 11px;
+    }
+
+    &__result-add-btn {
+      padding: 8px 16px;
+      font-size: 11px;
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .medicine {
+    padding: 8px;
+
+    &__header {
+      margin-bottom: 16px;
+    }
+
+    &__title {
+      font-size: 20px;
+    }
+
+    &__tabs {
+      gap: 4px;
+    }
+
+    &__tab {
+      padding: 10px 6px;
+      font-size: 12px;
+    }
+
+    &__card {
+      padding: 12px;
+    }
+
+    &__card-title {
+      font-size: 15px;
+    }
+
+    &__section {
+      padding: 12px;
+    }
+
+    &__section-title {
+      font-size: 15px;
+    }
+
+    &__analyze-all-btn {
+      padding: 10px 16px;
+      font-size: 13px;
+    }
+
+    &__capture-btn {
+      padding: 10px;
+      font-size: 12px;
+    }
+  }
+}
+

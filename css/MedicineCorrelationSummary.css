@@ -62,4 +62,42 @@
     opacity: 1;
     transform: translateY(0);
   }
+}
+@media (max-width: 768px) {
+  .medicine-correlation-summary {
+    margin-bottom: 16px;
+  }
+  .medicine-correlation-summary .correlation-alert {
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 6px;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-icon {
+    font-size: 16px;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-text {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+}
+@media (max-width: 480px) {
+  .medicine-correlation-summary {
+    margin-bottom: 12px;
+  }
+  .medicine-correlation-summary .correlation-alert {
+    padding: 8px 10px;
+    gap: 8px;
+    border-left-width: 3px;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-icon {
+    font-size: 14px;
+    min-width: 14px;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-text {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-text strong {
+    display: block;
+  }
 }/*# sourceMappingURL=MedicineCorrelationSummary.css.map */

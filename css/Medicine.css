@@ -1303,4 +1303,140 @@
 .medicine__add-selected-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
+}
+
+@media (max-width: 768px) {
+  .medicine {
+    padding: 12px;
+  }
+  .medicine__header {
+    margin-bottom: 20px;
+  }
+  .medicine__title {
+    font-size: 24px;
+    margin-bottom: 8px;
+  }
+  .medicine__subtitle {
+    font-size: 12px;
+  }
+  .medicine__tabs {
+    gap: 6px;
+    margin-bottom: 8px;
+  }
+  .medicine__tab {
+    padding: 12px 8px;
+    font-size: 13px;
+  }
+  .medicine__sub-tabs {
+    padding: 8px;
+    gap: 6px;
+  }
+  .medicine__sub-tab {
+    padding: 10px 8px;
+    font-size: 12px;
+  }
+  .medicine__card {
+    padding: 16px;
+    margin-bottom: 10px;
+  }
+  .medicine__card-title {
+    font-size: 16px;
+  }
+  .medicine__card-info, .medicine__card-date {
+    font-size: 13px;
+  }
+  .medicine__section {
+    padding: 16px;
+  }
+  .medicine__section-title {
+    font-size: 16px;
+    margin-bottom: 8px;
+  }
+  .medicine__section-desc {
+    font-size: 13px;
+    margin-bottom: 16px;
+  }
+  .medicine__capture-buttons {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .medicine__capture-btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+  .medicine__analyze-section {
+    padding: 16px;
+  }
+  .medicine__analyze-all-btn {
+    padding: 12px 20px;
+    font-size: 14px;
+  }
+  .medicine__analyze-desc {
+    font-size: 11px;
+    margin-top: 8px;
+  }
+  .medicine__search {
+    flex-direction: column;
+    gap: 8px;
+  }
+  .medicine__search-input {
+    padding: 12px;
+    font-size: 13px;
+  }
+  .medicine__search-btn {
+    padding: 12px;
+    font-size: 13px;
+  }
+  .medicine__result-card {
+    padding: 12px;
+  }
+  .medicine__result-card h4 {
+    font-size: 14px;
+    margin-bottom: 6px;
+  }
+  .medicine__result-manufacturer, .medicine__result-purpose {
+    font-size: 11px;
+  }
+  .medicine__result-add-btn {
+    padding: 8px 16px;
+    font-size: 11px;
+  }
+}
+@media (max-width: 480px) {
+  .medicine {
+    padding: 8px;
+  }
+  .medicine__header {
+    margin-bottom: 16px;
+  }
+  .medicine__title {
+    font-size: 20px;
+  }
+  .medicine__tabs {
+    gap: 4px;
+  }
+  .medicine__tab {
+    padding: 10px 6px;
+    font-size: 12px;
+  }
+  .medicine__card {
+    padding: 12px;
+  }
+  .medicine__card-title {
+    font-size: 15px;
+  }
+  .medicine__section {
+    padding: 12px;
+  }
+  .medicine__section-title {
+    font-size: 15px;
+  }
+  .medicine__analyze-all-btn {
+    padding: 10px 16px;
+    font-size: 13px;
+  }
+  .medicine__capture-btn {
+    padding: 10px;
+    font-size: 12px;
+  }
 }/*# sourceMappingURL=Medicine.css.map */

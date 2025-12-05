@@ -169,3 +169,98 @@
     }
   }
 }
+
+// 모바일 반응형
+@media (max-width: 768px) {
+  .medicine-schedule-container {
+    margin-bottom: 16px;
+
+    .schedule-header-main h3 {
+      font-size: 16px;
+      margin-bottom: 6px;
+    }
+
+    .schedule-subtitle {
+      font-size: 12px;
+    }
+
+    .empty-schedule {
+      padding: 30px 16px;
+    }
+
+    .schedule-grid {
+      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+      gap: 10px;
+      margin-bottom: 12px;
+    }
+
+    .schedule-block {
+      padding: 12px;
+      border-radius: 8px;
+
+      .schedule-header {
+        margin-bottom: 8px;
+        padding-bottom: 6px;
+      }
+
+      .schedule-icon {
+        font-size: 16px;
+      }
+
+      .schedule-label {
+        font-size: 12px;
+      }
+
+      .medicine-count {
+        padding: 2px 6px;
+        font-size: 11px;
+      }
+    }
+
+    .schedule-content .medicine-item {
+      font-size: 11px;
+      padding: 4px 0;
+
+      .medicine-dosage {
+        font-size: 10px;
+      }
+    }
+
+    .schedule-guide {
+      padding: 6px 10px;
+
+      .guide-text {
+        font-size: 10px;
+      }
+    }
+  }
+}
+
+@media (max-width: 480px) {
+  .medicine-schedule-container {
+    margin-bottom: 12px;
+
+    .schedule-header-main h3 {
+      font-size: 14px;
+    }
+
+    .schedule-grid {
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
+    }
+
+    .schedule-block {
+      padding: 10px;
+      border-radius: 6px;
+
+      .schedule-icon {
+        font-size: 14px;
+      }
+
+      .schedule-label {
+        font-size: 11px;
+      }
+    }
+  }
+}
+

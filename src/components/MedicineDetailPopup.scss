@@ -10,6 +10,7 @@
   align-items: center;
   z-index: 1000;
   animation: fadeIn 0.2s ease-out;
+  padding: 16px;
 }
 
 @keyframes fadeIn {
@@ -34,6 +35,13 @@
 
   @media (max-width: 600px) {
     max-height: 90vh;
+    width: 95%;
+  }
+
+  @media (max-width: 480px) {
+    max-height: 95vh;
+    width: 98%;
+    border-radius: 8px;
   }
 }
 
@@ -89,10 +97,38 @@
     justify-content: center;
     border-radius: 6px;
     transition: all 0.2s ease;
+    flex-shrink: 0;
 
     &:hover {
       background: rgba(245, 213, 71, 0.2);
       transform: scale(1.1);
+    }
+  }
+
+  @media (max-width: 600px) {
+    padding: 16px;
+    gap: 8px;
+
+    .medicine-detail-title {
+      font-size: 16px;
+    }
+
+    .medicine-detail-close {
+      font-size: 20px;
+      width: 28px;
+      height: 28px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 12px;
+
+    .medicine-detail-title {
+      font-size: 14px;
+    }
+
+    .medicine-detail-company {
+      font-size: 12px;
     }
   }
 }
@@ -195,6 +231,78 @@
       font-size: 14px;
     }
   }
+
+  @media (max-width: 600px) {
+    padding: 12px;
+
+    .medicine-detail-section {
+      margin-bottom: 12px;
+      border-radius: 6px;
+
+      .section-title {
+        padding: 10px 12px;
+        font-size: 13px;
+      }
+
+      .section-content {
+        padding: 10px 12px;
+
+        .info-row {
+          padding: 6px 0;
+          gap: 8px;
+
+          .info-label,
+          .info-value {
+            font-size: 12px;
+          }
+        }
+      }
+
+      .medicine-text {
+        font-size: 12px;
+      }
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+
+    .medicine-detail-section {
+      margin-bottom: 10px;
+
+      .section-title {
+        padding: 8px 10px;
+        font-size: 12px;
+      }
+
+      .section-content {
+        padding: 8px 10px;
+
+        .info-row {
+          padding: 4px 0;
+          gap: 6px;
+
+          .info-label,
+          .info-value {
+            font-size: 11px;
+          }
+        }
+      }
+
+      .medicine-text {
+        font-size: 11px;
+        line-height: 1.5;
+      }
+    }
+
+    .medicine-detail-empty {
+      padding: 30px 16px;
+
+      p {
+        font-size: 12px;
+      }
+    }
+  }
 }
 
 .medicine-detail-footer {
@@ -226,4 +334,23 @@
       transform: translateY(0);
     }
   }
+
+  @media (max-width: 600px) {
+    padding: 12px;
+
+    .medicine-detail-close-btn {
+      padding: 10px 12px;
+      font-size: 13px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    padding: 8px;
+
+    .medicine-detail-close-btn {
+      padding: 8px 10px;
+      font-size: 12px;
+    }
+  }
 }
+
