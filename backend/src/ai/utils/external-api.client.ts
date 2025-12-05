@@ -631,25 +631,40 @@ export class ExternalApiClient {
   }
 
   /**
-   * 건강기능식품 검색 (AI 기반)
-   * 
-   * 공공데이터 API가 검색 파라미터를 지원하지 않아 전체 목록만 반환하므로,
-   * AI를 사용하여 실제 존재하는 건강기능식품 정보를 생성
+   * 건강기능식품 검색 (실제 공공데이터 API 또는 AI 기반)
    * 
    * @param productName 제품명/원료명 키워드
    * @param numOfRows 조회할 행 수
    */
   async searchHealthFunctionalFood(productName: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      console.log(`[건강기능식품] AI 기반 검색: ${productName}`);
+      console.log(`[건강기능식품] 검색 시작: ${productName}`);
       
-      // AI가 실제 건강기능식품 정보 기반으로 생성
+      // 📌 현재 공공데이터 포털의 건강기능식품 API는 검색 파라미터를 지원하지 않음
+      // → AI를 사용하여 실제 존재하는 건강기능식품 정보 기반으로 생성
+      // → 이는 임시 솔루션이며, 향후 공공데이터 API 개선 시 업데이트 필요
+      
+      // ⚠️ 현재: AI 기반 생성 (실제 제품 존재 여부는 보장할 수 없음)
+      // ✅ 향후: 건강기능식품 공공데이터 포털 API 또는 DB 캐시 사용으로 전환 필요
+      
+      if (!productName || productName.trim() === '') {
+        console.log(`[건강기능식품] 검색어 없음`);
+        return [];
+      }
+      
+      // 현재는 AI 기반 검색만 가능
+      console.log(`[건강기능식품] AI 기반 검색 (실제 제품 데이터 아님): ${productName}`);
       const aiResults = await this.generateAIHealthFoodInfo(productName, numOfRows);
       
       if (aiResults && aiResults.length > 0) {
-        console.log(`[건강기능식품] AI 생성 완료: ${aiResults.length}건`);
-        // AI 결과는 이미 e약은요 형식이므로 그대로 반환
-        return aiResults;
+        // AI 생성 결과에 명확한 표시 추가
+        const markedResults = aiResults.map((item: any) => ({
+          ...item,
+          _isAIGenerated: true,
+          _disclaimer: '※ 이 정보는 AI가 생성한 예시 정보입니다. 실제 제품 정보는 공식 제조사 또는 판매처 확인 필요',
+        }));
+        console.log(`[건강기능식품] AI 생성 완료: ${markedResults.length}건`);
+        return markedResults;
       }
       
       console.log(`[건강기능식품] 검색 결과 없음: ${productName}`);
