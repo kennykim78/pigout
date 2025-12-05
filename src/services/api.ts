@@ -145,10 +145,10 @@ export const scanMedicineQR = async (qrData: string, dosage?: string, frequency?
 };
 
 // 약품 검색 (일반/전문 의약품)
-export const searchMedicine = async (keyword: string, limit: number = 20) => {
+export const searchMedicine = async (keyword: string, limit?: number) => {
   console.log('[API] searchMedicine 호출:', { keyword, limit });
   try {
-    const response = await apiClient.post('/medicine/search', { keyword, limit });
+    const response = await apiClient.post('/medicine/search', { keyword, ...(limit && { limit }) });
     console.log('[API] searchMedicine 응답:', response);
     console.log('[API] searchMedicine 데이터:', response.data);
     return response.data;
@@ -159,10 +159,10 @@ export const searchMedicine = async (keyword: string, limit: number = 20) => {
 };
 
 // 건강기능식품 전용 검색
-export const searchHealthFood = async (keyword: string, limit: number = 20) => {
+export const searchHealthFood = async (keyword: string, limit?: number) => {
   console.log('[API] searchHealthFood 호출:', { keyword, limit });
   try {
-    const response = await apiClient.post('/medicine/search-health-food', { keyword, limit });
+    const response = await apiClient.post('/medicine/search-health-food', { keyword, ...(limit && { limit }) });
     console.log('[API] searchHealthFood 응답:', response);
     console.log('[API] searchHealthFood 데이터:', response.data);
     return response.data;

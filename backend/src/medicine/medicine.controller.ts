@@ -57,7 +57,7 @@ export class MedicineController {
    */
   @Post('search')
   async searchMedicine(@Body() searchDto: SearchMedicineDto) {
-    return this.medicineService.searchMedicine(searchDto.keyword, searchDto.limit || 100);
+    return this.medicineService.searchMedicine(searchDto.keyword, searchDto.limit || 1000);
   }
 
   /**
@@ -66,7 +66,7 @@ export class MedicineController {
    */
   @Post('search-health-food')
   async searchHealthFood(@Body() searchDto: SearchMedicineDto) {
-    return this.medicineService.searchHealthFood(searchDto.keyword, searchDto.limit || 100);
+    return this.medicineService.searchHealthFood(searchDto.keyword, searchDto.limit || 1000);
   }
 
   /**

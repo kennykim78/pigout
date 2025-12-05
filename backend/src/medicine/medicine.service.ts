@@ -72,7 +72,7 @@ export class MedicineService {
    * 약품명, 효능(질병), 제조사로 검색 (e약은요 API 사용)
    * API 결과 없을 때 AI가 제품 유형 판단 후 올바른 탭 안내
    */
-  async searchMedicine(keyword: string, numOfRows: number = 100) {
+  async searchMedicine(keyword: string, numOfRows: number = 1000) {
     try {
       console.log(`[약품 검색] 키워드: ${keyword}, 요청 수: ${numOfRows}`);
       
@@ -199,7 +199,7 @@ export class MedicineService {
    * 의약품 검색과 분리하여 건강기능식품만 검색
    * API 결과가 없으면 AI가 제품 유형 판단 후 올바른 탭 안내 또는 정보 생성
    */
-  async searchHealthFood(keyword: string, numOfRows: number = 100) {
+  async searchHealthFood(keyword: string, numOfRows: number = 1000) {
     try {
       console.log(`[건강기능식품 검색] 키워드: ${keyword}, 요청 수: ${numOfRows}`);
       
