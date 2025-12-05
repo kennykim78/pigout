@@ -120,6 +120,14 @@
   border-radius: 20px;
   padding: 20px;
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
+  transition: all 0.3s ease;
+  cursor: pointer;
+  border: 2px solid transparent;
+}
+.medicine__card:hover {
+  transform: translateY(-4px);
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+  border-color: #f5d547;
 }
 .medicine__card-header {
   display: flex;
@@ -282,6 +290,13 @@
   border: 1px solid rgb(153, 153, 153);
   border-radius: 20px;
   padding: 15px;
+  transition: all 0.3s ease;
+  background: rgb(255, 255, 255);
+}
+.medicine__result-card:hover {
+  border-color: #f5d547;
+  box-shadow: 0 4px 12px rgba(245, 213, 71, 0.2);
+  transform: translateY(-2px);
 }
 .medicine__result-card h4 {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
@@ -298,18 +313,25 @@
 }
 .medicine__result-add-btn {
   margin-top: 10px;
-  background: rgb(255, 223, 62);
+  background: linear-gradient(135deg, #f5d547 0%, #e8c830 100%);
   color: rgb(0, 0, 0);
   border: none;
   border-radius: 20px;
-  padding: 8px 20px;
+  padding: 10px 20px;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   font-size: 12px;
   font-weight: 600;
   cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 2px 6px rgba(245, 213, 71, 0.2);
 }
 .medicine__result-add-btn:hover {
-  background: rgb(255, 214.5440414508, 11);
+  background: linear-gradient(135deg, #e8c830 0%, #dab520 100%);
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(245, 213, 71, 0.3);
+}
+.medicine__result-add-btn:active {
+  transform: translateY(0);
 }
 .medicine__loading {
   text-align: center;
@@ -325,6 +347,27 @@
   text-align: center;
   margin-bottom: 20px;
   box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+  position: relative;
+  overflow: hidden;
+}
+.medicine__analyze-section::before {
+  content: "";
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+  background-size: 50px 50px;
+  animation: pulse 15s infinite;
+}
+@keyframes pulse {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(50px);
+  }
 }
 .medicine__analyze-all-btn {
   background: rgb(255, 255, 255);
@@ -337,11 +380,17 @@
   font-weight: 900;
   cursor: pointer;
   transition: all 0.3s ease;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+  position: relative;
+  z-index: 1;
 }
 .medicine__analyze-all-btn:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  transform: translateY(-3px);
+  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+  background: #f8f9ff;
+}
+.medicine__analyze-all-btn:active:not(:disabled) {
+  transform: translateY(-1px);
 }
 .medicine__analyze-all-btn:disabled {
   opacity: 0.7;
@@ -353,6 +402,8 @@
   color: rgb(255, 255, 255);
   margin: 10px 0 0 0;
   opacity: 0.9;
+  position: relative;
+  z-index: 1;
 }
 .medicine__analysis-modal {
   position: fixed;
@@ -937,7 +988,7 @@
 }
 .medicine__capture-btn {
   flex: 1;
-  background: rgb(0, 0, 0);
+  background: linear-gradient(135deg, #333 0%, #1a1a1a 100%);
   color: rgb(255, 255, 255);
   border: none;
   border-radius: 20px;
@@ -947,19 +998,28 @@
   font-weight: 600;
   cursor: pointer;
   transition: all 0.3s ease;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 .medicine__capture-btn:hover:not(:disabled) {
-  background: rgb(38.25, 38.25, 38.25);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+  background: linear-gradient(135deg, #555 0%, #333 100%);
+}
+.medicine__capture-btn:active:not(:disabled) {
+  transform: translateY(0);
 }
 .medicine__capture-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
 .medicine__capture-btn--secondary {
-  background: rgb(153, 153, 153);
+  background: linear-gradient(135deg, #f5d547 0%, #e8c830 100%);
+  color: rgb(0, 0, 0);
+  box-shadow: 0 2px 8px rgba(245, 213, 71, 0.2);
 }
 .medicine__capture-btn--secondary:hover:not(:disabled) {
-  background: rgb(127.5, 127.5, 127.5);
+  background: linear-gradient(135deg, #e8c830 0%, #dab520 100%);
+  box-shadow: 0 4px 16px rgba(245, 213, 71, 0.3);
 }
 .medicine__analyzing {
   display: flex;

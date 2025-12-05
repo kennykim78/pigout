@@ -142,6 +142,15 @@
     border-radius: $border-radius-sm;
     padding: 20px;
     box-shadow: $shadow-default;
+    transition: all 0.3s ease;
+    cursor: pointer;
+    border: 2px solid transparent;
+
+    &:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
+      border-color: #f5d547;
+    }
   }
 
   &__card-header {
@@ -331,6 +340,14 @@
     border: 1px solid $color-gray;
     border-radius: $border-radius-sm;
     padding: 15px;
+    transition: all 0.3s ease;
+    background: $color-white;
+
+    &:hover {
+      border-color: #f5d547;
+      box-shadow: 0 4px 12px rgba(245, 213, 71, 0.2);
+      transform: translateY(-2px);
+    }
 
     h4 {
       font-family: $font-family;
@@ -351,18 +368,26 @@
 
   &__result-add-btn {
     margin-top: 10px;
-    background: $color-primary-yellow;
+    background: linear-gradient(135deg, #f5d547 0%, #e8c830 100%);
     color: $color-black;
     border: none;
     border-radius: $border-radius-sm;
-    padding: 8px 20px;
+    padding: 10px 20px;
     font-family: $font-family;
     font-size: $font-size-small;
     font-weight: $font-weight-semibold;
     cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 6px rgba(245, 213, 71, 0.2);
 
     &:hover {
-      background: darken($color-primary-yellow, 10%);
+      background: linear-gradient(135deg, #e8c830 0%, #dab520 100%);
+      transform: translateY(-1px);
+      box-shadow: 0 4px 12px rgba(245, 213, 71, 0.3);
+    }
+
+    &:active {
+      transform: translateY(0);
     }
   }
 
@@ -382,6 +407,29 @@
     text-align: center;
     margin-bottom: 20px;
     box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+    position: relative;
+    overflow: hidden;
+
+    &::before {
+      content: '';
+      position: absolute;
+      top: -50%;
+      right: -50%;
+      width: 200%;
+      height: 200%;
+      background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
+      background-size: 50px 50px;
+      animation: pulse 15s infinite;
+    }
+  }
+
+  @keyframes pulse {
+    0% {
+      transform: translateX(0);
+    }
+    100% {
+      transform: translateX(50px);
+    }
   }
 
   &__analyze-all-btn {
@@ -395,11 +443,18 @@
     font-weight: $font-weight-black;
     cursor: pointer;
     transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
+    position: relative;
+    z-index: 1;
 
     &:hover:not(:disabled) {
-      transform: translateY(-2px);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      transform: translateY(-3px);
+      box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
+      background: #f8f9ff;
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(-1px);
     }
 
     &:disabled {
@@ -414,6 +469,8 @@
     color: $color-white;
     margin: 10px 0 0 0;
     opacity: 0.9;
+    position: relative;
+    z-index: 1;
   }
 
   // Analysis modal
@@ -1094,7 +1151,7 @@
 
   &__capture-btn {
     flex: 1;
-    background: $color-black;
+    background: linear-gradient(135deg, #333 0%, #1a1a1a 100%);
     color: $color-white;
     border: none;
     border-radius: $border-radius-sm;
@@ -1104,9 +1161,16 @@
     font-weight: $font-weight-semibold;
     cursor: pointer;
     transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 
     &:hover:not(:disabled) {
-      background: lighten($color-black, 15%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
+      background: linear-gradient(135deg, #555 0%, #333 100%);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
     }
 
     &:disabled {
@@ -1115,10 +1179,13 @@
     }
 
     &--secondary {
-      background: $color-gray;
+      background: linear-gradient(135deg, #f5d547 0%, #e8c830 100%);
+      color: $color-black;
+      box-shadow: 0 2px 8px rgba(245, 213, 71, 0.2);
 
       &:hover:not(:disabled) {
-        background: darken($color-gray, 10%);
+        background: linear-gradient(135deg, #e8c830 0%, #dab520 100%);
+        box-shadow: 0 4px 16px rgba(245, 213, 71, 0.3);
       }
     }
   }
