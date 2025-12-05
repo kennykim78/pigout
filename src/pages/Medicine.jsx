@@ -1,6 +1,8 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMedicineStore } from '../store/medicineStore';
 import { getMyMedicines, scanMedicineQR, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines, analyzeMedicineImage } from '../services/api';
+import MedicineRadarChart from '../components/MedicineRadarChart';
+import MedicineSchedule from '../components/MedicineSchedule';
 import './Medicine.scss';
 
 const Medicine = () => {
@@ -512,6 +514,12 @@ const Medicine = () => {
             </div>
           ) : (
             <>
+              {/* 🔴 Phase 1: 약품 성분 분석 레이더 차트 */}
+              <MedicineRadarChart medicines={medicines} />
+
+              {/* 🟡 Phase 1: 복용 시간표 */}
+              <MedicineSchedule medicines={medicines} />
+
               <div className="medicine__analyze-section">
                 <button
                   className="medicine__analyze-all-btn"

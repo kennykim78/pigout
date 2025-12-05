@@ -1,0 +1,58 @@
+.radar-chart-container {
+  background: linear-gradient(135deg, #fffef0 0%, #fffbf0 100%);
+  border: 2px solid #f5d547;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(245, 213, 71, 0.1);
+  transition: all 0.3s ease;
+
+  &:hover {
+    box-shadow: 0 6px 16px rgba(245, 213, 71, 0.15);
+  }
+
+  &.empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-height: 200px;
+  }
+
+  .chart-header {
+    margin-bottom: 20px;
+
+    h3 {
+      margin: 0 0 8px 0;
+      color: #333;
+      font-size: 18px;
+      font-weight: 600;
+    }
+  }
+
+  .chart-description {
+    font-size: 13px;
+    color: #666;
+    margin: 0;
+  }
+
+  .empty-message {
+    color: #666;
+    font-size: 14px;
+    margin: 0;
+    text-align: center;
+  }
+
+  .chart-footer {
+    margin-top: 16px;
+    padding-top: 12px;
+    border-top: 1px solid #f5d547;
+    display: flex;
+    justify-content: flex-end;
+
+    p {
+      margin: 0;
+      font-size: 12px;
+      color: #999;
+    }
+  }
+}

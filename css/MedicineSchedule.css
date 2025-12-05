@@ -1,0 +1,143 @@
+.medicine-schedule-container {
+  margin-bottom: 24px;
+}
+.medicine-schedule-container .schedule-header-main {
+  margin-bottom: 16px;
+}
+.medicine-schedule-container .schedule-header-main h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+.medicine-schedule-container .schedule-subtitle {
+  margin: 0;
+  font-size: 13px;
+  color: #666;
+}
+.medicine-schedule-container .empty-schedule {
+  background: linear-gradient(135deg, #fffef0 0%, #fffbf0 100%);
+  border: 2px dashed #f5d547;
+  border-radius: 8px;
+  padding: 40px 20px;
+  text-align: center;
+  color: #999;
+}
+.medicine-schedule-container .empty-schedule p {
+  margin: 0;
+  font-size: 14px;
+}
+.medicine-schedule-container .schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.medicine-schedule-container .schedule-block {
+  background: linear-gradient(135deg, #fffef0 0%, #fffbf0 100%);
+  border: 2px solid #f5d547;
+  border-radius: 10px;
+  padding: 16px;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.medicine-schedule-container .schedule-block:hover {
+  box-shadow: 0 4px 12px rgba(245, 213, 71, 0.2);
+  transform: translateY(-2px);
+}
+.medicine-schedule-container .schedule-block.schedule-morning {
+  border-color: #ffc107;
+  background: linear-gradient(135deg, #fffef0 0%, #fff9e6 100%);
+}
+.medicine-schedule-container .schedule-block.schedule-afternoon {
+  border-color: #ff9800;
+  background: linear-gradient(135deg, #fff8f0 0%, #fffef0 100%);
+}
+.medicine-schedule-container .schedule-block.schedule-evening {
+  border-color: #673ab7;
+  background: linear-gradient(135deg, #f3e5f5 0%, #fffef0 100%);
+}
+.medicine-schedule-container .schedule-block .schedule-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  padding-bottom: 8px;
+  border-bottom: 1px solid rgba(245, 213, 71, 0.3);
+}
+.medicine-schedule-container .schedule-block .schedule-title {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: 600;
+  color: #333;
+}
+.medicine-schedule-container .schedule-block .schedule-icon {
+  font-size: 18px;
+}
+.medicine-schedule-container .schedule-block .schedule-label {
+  font-size: 14px;
+}
+.medicine-schedule-container .schedule-block .medicine-count {
+  background: #f5d547;
+  color: #333;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+}
+.medicine-schedule-container .schedule-content .empty-message {
+  color: #999;
+  font-size: 12px;
+  padding: 12px 0;
+  text-align: center;
+}
+.medicine-schedule-container .schedule-content .medicine-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.medicine-schedule-container .schedule-content .medicine-item {
+  font-size: 12px;
+  padding: 6px 0;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 4px;
+  border-bottom: 1px solid rgba(245, 213, 71, 0.2);
+}
+.medicine-schedule-container .schedule-content .medicine-item:last-child {
+  border-bottom: none;
+}
+.medicine-schedule-container .schedule-content .medicine-item.more {
+  justify-content: center;
+  border-bottom: none;
+  padding: 8px 0;
+}
+.medicine-schedule-container .schedule-content .medicine-item .medicine-name {
+  flex: 1;
+  color: #333;
+  font-weight: 500;
+  word-break: break-word;
+}
+.medicine-schedule-container .schedule-content .medicine-item .medicine-dosage {
+  color: #999;
+  font-size: 11px;
+  white-space: nowrap;
+  margin-left: auto;
+}
+.medicine-schedule-container .schedule-content .medicine-item .more-text {
+  color: #f5d547;
+  font-weight: 600;
+}
+.medicine-schedule-container .schedule-guide {
+  background: #f0f0f0;
+  border-radius: 8px;
+  padding: 8px 12px;
+  text-align: center;
+}
+.medicine-schedule-container .schedule-guide .guide-text {
+  margin: 0;
+  font-size: 11px;
+  color: #666;
+}/*# sourceMappingURL=MedicineSchedule.css.map */
