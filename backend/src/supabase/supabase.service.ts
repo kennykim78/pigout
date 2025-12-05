@@ -435,5 +435,158 @@ export class SupabaseService {
       return null;
     }
   }
+
+  /**
+   * 약품 단위 캐시 조회 (itemSeq + entpName 조합)
+   * 모든 사용자가 공유하는 공용 캐시
+   * @param itemSeq 약품 시리즈 코드
+   * @param entpName 제조사명
+   * @returns 캐시된 약품 정보 또는 null
+   */
+  async getMedicineDetailCache(itemSeq: string, entpName: string): Promise<any> {
+    try {
+      const cacheKey = `${itemSeq}|${entpName}`.toLowerCase().trim();
+
+      const { data, error } = await this.supabase
+        .from('medicine_detail_cache')
+        .select('*')
+        .eq('cache_key', cacheKey)
+        .single();
+
+      if (error || !data) {
+        return null;
+      }
+
+      // 캐시 만료 확인 (6개월)
+      const expiresAt = new Date(data.expires_at);
+      if (expiresAt < new Date()) {
+        console.log(`[MedicineDetailCache] 캐시 만료됨: ${itemSeq} / ${entpName}`);
+        return null;
+      }
+
+      // 히트 카운트 증가 및 마지막 조회 시간 업데이트
+      try {
+        await this.supabase
+          .from('medicine_detail_cache')
+          .update({
+            hit_count: (data.hit_count || 0) + 1,
+            last_hit_at: new Date().toISOString(),
+          })
+          .eq('id', data.id);
+      } catch (err) {
+        console.warn('[MedicineDetailCache] 히트 카운트 업데이트 실패:', err.message);
+      }
+
+      console.log(`[MedicineDetailCache] ✅ 캐시 히트: ${itemSeq} (${data.hit_count + 1}회)`);
+      
+      return data.medicine_data;
+    } catch (error) {
+      console.warn(`[MedicineDetailCache] 조회 오류:`, error.message);
+      return null;
+    }
+  }
+
+  /**
+   * 약품 단위 캐시 저장
+   * 공용 캐시: 모든 사용자가 동일 약품(itemSeq+entpName)을 조회 시 활용
+   * @param itemSeq 약품 시리즈 코드
+   * @param entpName 제조사명
+   * @param medicineData 완전한 약품 정보 (efcyQesitm, useMethodQesitm, seQesitm, etc.)
+   * @param source 데이터 출처 (e약은요, 건강기능식품, AI)
+   */
+  async saveMedicineDetailCache(
+    itemSeq: string,
+    entpName: string,
+    medicineData: any,
+    source: string = 'e약은요',
+  ): Promise<void> {
+    try {
+      const cacheKey = `${itemSeq}|${entpName}`.toLowerCase().trim();
+      const expiresAt = new Date();
+      expiresAt.setMonth(expiresAt.getMonth() + 6); // 6개월 후 만료
+
+      const { error } = await this.supabase
+        .from('medicine_detail_cache')
+        .upsert(
+          [{
+            cache_key: cacheKey,
+            item_seq: itemSeq,
+            entp_name: entpName,
+            medicine_data: medicineData,
+            source: source,
+            hit_count: 0,
+            expires_at: expiresAt.toISOString(),
+            created_at: new Date().toISOString(),
+          }],
+          {
+            onConflict: 'cache_key',
+          },
+        );
+
+      if (error) {
+        console.warn(`[MedicineDetailCache] 저장 실패:`, error.message);
+      } else {
+        console.log(`[MedicineDetailCache] 저장 완료: ${itemSeq} / ${entpName} (출처: ${source})`);
+      }
+    } catch (error) {
+      console.warn(`[MedicineDetailCache] 저장 오류:`, error.message);
+    }
+  }
+
+  /**
+   * 만료된 약품 캐시 자동 정리 (배치 작업용)
+   */
+  async cleanupExpiredMedicineCache(): Promise<number> {
+    try {
+      const { data, error } = await this.supabase
+        .from('medicine_detail_cache')
+        .delete()
+        .lt('expires_at', new Date().toISOString())
+        .select('id');
+
+      if (error) {
+        console.warn(`[MedicineDetailCache] 정리 실패:`, error.message);
+        return 0;
+      }
+
+      console.log(`[MedicineDetailCache] 만료 캐시 ${data?.length || 0}건 삭제됨`);
+      return data?.length || 0;
+    } catch (error) {
+      console.warn(`[MedicineDetailCache] 정리 오류:`, error.message);
+      return 0;
+    }
+  }
+
+  /**
+   * 약품 캐시 통계
+   */
+  async getMedicineDetailCacheStatistics(): Promise<any> {
+    try {
+      const { data, error } = await this.supabase
+        .from('medicine_detail_cache')
+        .select('item_seq, entp_name, hit_count, source, created_at');
+
+      if (error || !data) {
+        return null;
+      }
+
+      const totalEntries = data.length;
+      const totalHits = data.reduce((sum, item) => sum + (item.hit_count || 0), 0);
+      const bySource = data.reduce((acc, item) => {
+        acc[item.source] = (acc[item.source] || 0) + 1;
+        return acc;
+      }, {} as Record<string, number>);
+
+      return {
+        totalEntries,
+        totalHits,
+        apiCallsSaved: totalHits,
+        bySource,
+      };
+    } catch (error) {
+      console.warn(`[MedicineDetailCache] 통계 조회 오류:`, error.message);
+      return null;
+    }
+  }
 }
 

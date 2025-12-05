@@ -517,13 +517,53 @@ const Medicine = () => {
                 <div className="medicine__analysis-modal">
                   <div className="medicine__analysis-content">
                     <div className="medicine__analysis-header">
-                      <h2>💊 내 약 종합 분석 결과</h2>
-                      <button
-                        className="medicine__close-btn"
-                        onClick={() => setShowAnalysis(false)}
-                      >
-                        ✕
-                      </button>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
+                        <h2>💊 내 약 종합 분석 결과</h2>
+                        {/* 캐시 상태 배지 */}
+                        {analysisResult._fromCache && (
+                          <div style={{
+                            backgroundColor: '#E8F5E9',
+                            color: '#2E7D32',
+                            padding: '4px 8px',
+                            borderRadius: '4px',
+                            fontSize: '11px',
+                            fontWeight: 'bold',
+                            whiteSpace: 'nowrap'
+                          }}>
+                            🔄 캐시된 데이터
+                          </div>
+                        )}
+                      </div>
+                      <div style={{ display: 'flex', gap: '8px' }}>
+                        {/* 강제 갱신 버튼 */}
+                        {analysisResult._fromCache && (
+                          <button
+                            style={{
+                              padding: '6px 12px',
+                              backgroundColor: '#2196F3',
+                              color: 'white',
+                              border: 'none',
+                              borderRadius: '4px',
+                              cursor: 'pointer',
+                              fontSize: '12px',
+                              fontWeight: 'bold'
+                            }}
+                            onClick={() => {
+                              // 강제 갱신 로직: 분석을 다시 실행
+                              setShowAnalysis(false);
+                              handleAnalyzeAllMedicines();
+                            }}
+                          >
+                            🔄 갱신
+                          </button>
+                        )}
+                        <button
+                          className="medicine__close-btn"
+                          onClick={() => setShowAnalysis(false)}
+                        >
+                          ✕
+                        </button>
+                      </div>
                     </div>
 
                     <div className="medicine__analysis-body">
@@ -895,18 +935,40 @@ const Medicine = () => {
                       <>
                         {currentResults.map((result, index) => (
                           <div key={result.itemSeq || index} className="medicine__result-card">
-                            <h4>{result.itemName}</h4>
-                            <p className="medicine__result-manufacturer">제조사: {result.entpName}</p>
+                            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'start', gap: '8px' }}>
+                              <div style={{ flex: 1 }}>
+                                <h4 style={{ margin: '0 0 4px 0' }}>{result.itemName}</h4>
+                                <p className="medicine__result-manufacturer" style={{ margin: '0 0 8px 0' }}>
+                                  {result.entpName}
+                                </p>
+                              </div>
+                              {/* 캐시 상태 배지 */}
+                              {result._isFromCache && (
+                                <div style={{
+                                  backgroundColor: '#E8F5E9',
+                                  color: '#2E7D32',
+                                  padding: '4px 8px',
+                                  borderRadius: '4px',
+                                  fontSize: '11px',
+                                  fontWeight: 'bold',
+                                  whiteSpace: 'nowrap'
+                                }}>
+                                  🔄 캐시
+                                </div>
+                              )}
+                            </div>
+                            
+                            {/* 간략 효능 (2줄 정도) */}
                             {result.efcyQesitm && (
-                              <div className="medicine__result-efficacy">
-                                <strong style={{ color: '#4CAF50' }}>효능/효과:</strong>
-                                <p style={{ marginTop: '4px', fontSize: '13px', lineHeight: '1.5' }}>
-                                  {result.efcyQesitm.length > 150 
-                                    ? `${result.efcyQesitm.substring(0, 150)}...` 
+                              <div className="medicine__result-efficacy" style={{ marginBottom: '12px' }}>
+                                <p style={{ margin: '0', fontSize: '12px', color: '#666', lineHeight: '1.4' }}>
+                                  {result.efcyQesitm.length > 100 
+                                    ? `${result.efcyQesitm.substring(0, 100)}...` 
                                     : result.efcyQesitm}
                                 </p>
                               </div>
                             )}
+                            
                             <button
                               className="medicine__result-add-btn"
                               onClick={() => handleAddMedicine(result)}
@@ -1046,7 +1108,7 @@ const Medicine = () => {
                       <>
                         {currentResults.map((result, index) => (
                           <div key={result.itemSeq || index} className="medicine__result-card medicine__result-card--healthfood">
-                            <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap' }}>
+                            <div style={{ display: 'flex', gap: '6px', marginBottom: '8px', flexWrap: 'wrap', alignItems: 'flex-start' }}>
                               <div className="medicine__result-badge" style={{ 
                                 display: 'inline-block', 
                                 backgroundColor: '#4CAF50', 
@@ -1057,6 +1119,19 @@ const Medicine = () => {
                               }}>
                                 🥗 건강기능식품
                               </div>
+                              {result._isFromCache && (
+                                <div style={{ 
+                                  display: 'inline-block', 
+                                  backgroundColor: '#E8F5E9', 
+                                  color: '#2E7D32', 
+                                  padding: '2px 8px', 
+                                  borderRadius: '12px', 
+                                  fontSize: '11px',
+                                  fontWeight: 'bold',
+                                }}>
+                                  🔄 캐시
+                                </div>
+                              )}
                               {result._isAIGenerated && (
                                 <div style={{ 
                                   display: 'inline-block', 
@@ -1070,12 +1145,26 @@ const Medicine = () => {
                                 </div>
                               )}
                             </div>
-                            <h4>{result.itemName}</h4>
-                            <p className="medicine__result-manufacturer">제조사: {result.entpName}</p>
-                            {result._rawMaterial && (
-                              <p className="medicine__result-raw-material" style={{ fontSize: '12px', color: '#888', marginTop: '4px' }}>
-                                원료명: {result._rawMaterial}
+                            
+                            <h4 style={{ margin: '0 0 4px 0' }}>{result.itemName}</h4>
+                            <p className="medicine__result-manufacturer" style={{ margin: '0 0 8px 0' }}>
+                              {result.entpName}
+                            </p>
+                            
+                            {/* 간략 기능성 정보 */}
+                            {result.efcyQesitm && (
+                              <p style={{ margin: '0 0 8px 0', fontSize: '12px', color: '#666', lineHeight: '1.4' }}>
+                                {result.efcyQesitm.length > 100 
+                                  ? `${result.efcyQesitm.substring(0, 100)}...` 
+                                  : result.efcyQesitm}
                               </p>
+                            )}
+                            
+                            {result._rawMaterial && (
+                              <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#999' }}>
+                                주원료: {result._rawMaterial.length > 60 ? result._rawMaterial.substring(0, 60) + '...' : result._rawMaterial}
+                              </p>
+                            )}
                             )}
                             {result.efcyQesitm && (
                               <div className="medicine__result-efficacy">

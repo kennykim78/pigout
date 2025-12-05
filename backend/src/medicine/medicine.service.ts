@@ -169,7 +169,24 @@ export class MedicineService {
         depositMethodQesitm: item.depositMethodQesitm,
       }));
 
-      console.log(`[약품 검색] ${results.length}건 검색됨`);
+      // 🆕 각 약품을 공용 캐시에 저장 (itemSeq+entpName 단위)
+      for (const result of results) {
+        // API 전체 결과를 캐시에 저장
+        const fullMedicineData = uniqueResults.find(
+          (item: any) => item.itemSeq === result.itemSeq && item.entpName === result.entpName
+        );
+        
+        if (fullMedicineData) {
+          await this.supabaseService.saveMedicineDetailCache(
+            result.itemSeq,
+            result.entpName,
+            fullMedicineData,
+            '의약품(e약은요)',
+          );
+        }
+      }
+
+      console.log(`[약품 검색] ${results.length}건 검색됨, 캐시 저장 완료`);
       return results;
     } catch (error) {
       console.error('[약품 검색] 오류:', error.message);
@@ -218,7 +235,23 @@ export class MedicineService {
           _rawMaterial: item._rawMaterial || '',
         }));
         
-        console.log(`[건강기능식품 검색] ✅ ${formattedResults.length}건 검색됨`);
+        // 🆕 각 건강기능식품을 공용 캐시에 저장
+        for (const result of formattedResults) {
+          const fullData = results.find(
+            (item: any) => item.itemSeq === result.itemSeq && item.entpName === result.entpName
+          );
+          
+          if (fullData) {
+            await this.supabaseService.saveMedicineDetailCache(
+              result.itemSeq,
+              result.entpName,
+              fullData,
+              '건강기능식품',
+            );
+          }
+        }
+        
+        console.log(`[건강기능식품 검색] ✅ ${formattedResults.length}건 검색됨, 캐시 저장 완료`);
         return formattedResults;
       }
       
@@ -465,6 +498,25 @@ export class MedicineService {
       throw error;
     }
 
+    // 🆕 약품 정보를 공용 캐시에 저장 (다른 사용자도 활용 가능)
+    if (itemSeq && entpName) {
+      // API에서 완전한 약품 정보 조회 및 캐시 저장
+      try {
+        const fullMedicineInfo = await this.externalApiClient.getMedicineInfo(itemName, 1);
+        if (fullMedicineInfo && fullMedicineInfo.length > 0) {
+          const medicineData = fullMedicineInfo[0];
+          await this.supabaseService.saveMedicineDetailCache(
+            itemSeq,
+            entpName,
+            medicineData,
+            '의약품(e약은요)',
+          );
+        }
+      } catch (err) {
+        console.warn('[약 캐시 저장 오류]:', err.message);
+      }
+    }
+
     console.log(`[약 등록 완료] ID: ${data.id}`);
     return {
       success: true,
@@ -588,8 +640,40 @@ export class MedicineService {
 
     console.log(`\n[약물 상관관계 분석] 복용 중인 약물: ${medicines.length}개`);
 
-    // 2단계: 각 약물의 공공데이터 조회
+    // 2단계: 각 약물의 공공데이터 조회 (캐시 우선)
     const drugDetailsPromises = medicines.map(async (medicine: any) => {
+      // 약 이름으로 API에서 itemSeq 조회 (또는 qr_code_data에서 파싱)
+      let itemSeq: string | null = null;
+      let entpName: string | null = null;
+      
+      try {
+        const qrData = medicine.qr_code_data ? JSON.parse(medicine.qr_code_data) : {};
+        itemSeq = qrData.itemSeq || null;
+        entpName = qrData.manufacturer || medicine.drug_class || null;
+      } catch (e) {
+        // JSON 파싱 실패 시 무시
+      }
+
+      // 🆕 캐시에서 우선 조회
+      let cachedData = null;
+      if (itemSeq && entpName) {
+        cachedData = await this.supabaseService.getMedicineDetailCache(itemSeq, entpName);
+        if (cachedData) {
+          console.log(`[약물 상관관계 분석] ✅ 캐시 사용: ${medicine.name}`);
+          return {
+            name: medicine.name,
+            userMedicineId: medicine.id,
+            dosage: medicine.dosage,
+            frequency: medicine.frequency,
+            publicData: cachedData,
+            pillIdentification: null,
+            productApproval: null,
+            _fromCache: true,
+          };
+        }
+      }
+
+      // 캐시 미스 시 API 호출
       const [info, pillInfo, approvalInfo] = await Promise.all([
         this.externalApiClient.getMedicineInfo(medicine.name, 5),
         this.externalApiClient.getPillIdentificationInfo({ itemName: medicine.name, numOfRows: 3 }),
@@ -600,6 +684,16 @@ export class MedicineService {
       const pillData = Array.isArray(pillInfo) && pillInfo.length > 0 ? pillInfo[0] : null;
       const approvalData = Array.isArray(approvalInfo) && approvalInfo.length > 0 ? approvalInfo[0] : null;
 
+      // 🆕 API 결과를 캐시에 저장
+      if (publicData && publicData.itemSeq && publicData.entpName) {
+        await this.supabaseService.saveMedicineDetailCache(
+          publicData.itemSeq,
+          publicData.entpName,
+          publicData,
+          '의약품(e약은요)',
+        ).catch(err => console.warn('[캐시 저장 오류]:', err.message));
+      }
+
       return {
         name: medicine.name,
         userMedicineId: medicine.id,
@@ -608,6 +702,7 @@ export class MedicineService {
         publicData,
         pillIdentification: pillData,
         productApproval: approvalData,
+        _fromCache: false,
       };
     });
 
@@ -631,6 +726,10 @@ export class MedicineService {
     console.log(`  - 주의 필요: ${analysisResult.cautionCombinations?.length || 0}개`);
     console.log(`  - 긍정적 효과: ${analysisResult.synergisticEffects?.length || 0}개`);
 
+    // 캐시 여부 판단: 모든 약이 캐시에서 조회된 경우
+    const allFromCache = drugDetails.every((d: any) => d._fromCache === true);
+    const someFromCache = drugDetails.some((d: any) => d._fromCache === true);
+
     return {
       success: true,
       totalMedicines: medicines.length,
@@ -642,6 +741,12 @@ export class MedicineService {
         '식품의약품안전처 의약품 제품 허가정보',
         'Gemini AI 분석',
       ],
+      _fromCache: allFromCache,
+      _cacheInfo: {
+        total: medicines.length,
+        fromCache: drugDetails.filter((d: any) => d._fromCache === true).length,
+        fromAPI: drugDetails.filter((d: any) => d._fromCache === false).length,
+      },
     };
   }
 }
