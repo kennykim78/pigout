@@ -645,24 +645,16 @@ export class ExternalApiClient {
       
       console.log(`[건강기능식품] API 검색 시작: ${productName}`);
       
-      // 1️⃣ 건강기능식품 목록 조회 API 호출 (제품명 검색)
-      const htfsResults = await this.searchHealthFunctionalFoodByName(productName, numOfRows);
+      // 1️⃣ 전체 건강기능식품 목록에서 메모리 기반 검색
+      // (getHtfsList01 API는 prdlstNm 필터링을 제대로 지원하지 않으므로 전체 조회 후 필터링)
+      const htfsResults = await this.searchHealthFunctionalFoodByKeyword(productName, numOfRows);
       
       if (htfsResults && htfsResults.length > 0) {
-        console.log(`[건강기능식품] ✅ ${htfsResults.length}건 발견 (제품명 검색)`);
+        console.log(`[건강기능식품] ✅ ${htfsResults.length}건 발견`);
         return htfsResults;
       }
       
-      // 2️⃣ 건강기능식품 목록 조회 API 호출 (원료명 검색)
-      console.log(`[건강기능식품] 제품명 검색 결과 없음 - 원료명으로 재검색`);
-      const rawMaterialResults = await this.searchHealthFunctionalFoodByRawMaterial(productName, numOfRows);
-      
-      if (rawMaterialResults && rawMaterialResults.length > 0) {
-        console.log(`[건강기능식품] ✅ ${rawMaterialResults.length}건 발견 (원료명 검색)`);
-        return rawMaterialResults;
-      }
-      
-      // 3️⃣ 결과 없으면 AI 생성 데이터로 폴백 (임시)
+      // 2️⃣ 결과 없으면 AI 생성 데이터로 폴백 (임시)
       console.log(`[건강기능식품] API 검색 결과 없음 - AI 기반 검색 시작`);
       const aiResults = await this.generateAIHealthFoodInfo(productName, numOfRows);
       
@@ -699,25 +691,25 @@ export class ExternalApiClient {
   }
 
   /**
-   * 건강기능식품 제품명으로 검색
+   * 건강기능식품 전체 목록 조회 후 키워드로 검색
    * API: https://apis.data.go.kr/1471000/HtfsInfoService03/getHtfsList01
    * 
-   * @param productName 제품명 키워드
-   * @param numOfRows 조회할 행 수
+   * @param keyword 제품명/원료명 키워드
+   * @param numOfRows 반환할 행 수
    */
-  private async searchHealthFunctionalFoodByName(productName: string, numOfRows: number = 20): Promise<any[]> {
+  private async searchHealthFunctionalFoodByKeyword(keyword: string, numOfRows: number = 20): Promise<any[]> {
     try {
       const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsList01`;
       
-      console.log(`[건강기능식품-제품명] 조회: ${productName}`);
+      console.log(`[건강기능식품-검색] 키워드 검색 시작: ${keyword}`);
       
-      // 공공데이터 포털 API 호출
+      // 공공데이터 포털 API 호출 (전체 목록 조회 후 메모리에서 필터링)
+      // pageNo를 변경하여 여러 페이지 조회 가능
       const response = await axios.get(url, {
         params: {
           serviceKey: this.SERVICE_KEY,
-          prdlstNm: productName,  // 제품명
           pageNo: 1,
-          numOfRows: numOfRows,
+          numOfRows: Math.max(numOfRows * 2, 100), // 필터링을 고려해 더 많이 조회
           type: 'json',
         },
         timeout: 10000,
@@ -728,7 +720,7 @@ export class ExternalApiClient {
 
       const body = response.data?.body;
       if (!body) {
-        console.log(`[건강기능식품-제품명] 응답 body 없음`);
+        console.log(`[건강기능식품-검색] 응답 body 없음`);
         return [];
       }
       
@@ -744,76 +736,32 @@ export class ExternalApiClient {
       }
       
       if (!Array.isArray(resultItems) || resultItems.length === 0) {
-        console.log(`[건강기능식품-제품명] 검색 결과 없음: ${productName}`);
+        console.log(`[건강기능식품-검색] API 응답에서 아이템 없음`);
         return [];
       }
       
-      console.log(`[건강기능식품-제품명] ${resultItems.length}건 검색됨`);
+      console.log(`[건강기능식품-검색] API에서 ${resultItems.length}건 조회 - 키워드 필터링 시작`);
       
-      // e약은요 형식으로 변환
-      return resultItems.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, 'name'));
-    } catch (error) {
-      console.error('[건강기능식품-제품명] API 호출 오류:', error.message);
-      return [];
-    }
-  }
-
-  /**
-   * 건강기능식품 원료명으로 검색
-   * API: https://apis.data.go.kr/1471000/HtfsInfoService03/getHtfsList01
-   * 
-   * @param rawMaterial 원료명 키워드
-   * @param numOfRows 조회할 행 수
-   */
-  private async searchHealthFunctionalFoodByRawMaterial(rawMaterial: string, numOfRows: number = 20): Promise<any[]> {
-    try {
-      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsList01`;
-      
-      console.log(`[건강기능식품-원료명] 조회: ${rawMaterial}`);
-      
-      // 공공데이터 포털 API 호출
-      const response = await axios.get(url, {
-        params: {
-          serviceKey: this.SERVICE_KEY,
-          rawmtrNm: rawMaterial,  // 원료명
-          pageNo: 1,
-          numOfRows: numOfRows,
-          type: 'json',
-        },
-        timeout: 10000,
-        headers: {
-          'Accept': 'application/json',
-        },
+      // 키워드로 메모리 필터링 (제품명 기준)
+      const keywordLower = keyword.toLowerCase();
+      const filteredItems = resultItems.filter((item: any) => {
+        const productName = (item.PRDUCT || '').toLowerCase();
+        const companyName = (item.ENTRPS || '').toLowerCase();
+        return productName.includes(keywordLower) || companyName.includes(keywordLower);
       });
-
-      const body = response.data?.body;
-      if (!body) {
-        console.log(`[건강기능식품-원료명] 응답 body 없음`);
+      
+      console.log(`[건강기능식품-검색] 필터링 후: ${filteredItems.length}건`);
+      
+      if (filteredItems.length === 0) {
+        console.log(`[건강기능식품-검색] 검색 결과 없음: ${keyword}`);
         return [];
       }
       
-      // 검색 결과 파싱 (API 응답 구조: body.items[].item)
-      const items = body.items || [];
-      let resultItems: any[] = [];
-      
-      if (Array.isArray(items)) {
-        // items가 배열인 경우: items[].item 구조
-        resultItems = items
-          .map((wrapper: any) => wrapper.item)
-          .filter((item: any) => item && Object.keys(item).length > 0);
-      }
-      
-      if (!Array.isArray(resultItems) || resultItems.length === 0) {
-        console.log(`[건강기능식품-원료명] 검색 결과 없음: ${rawMaterial}`);
-        return [];
-      }
-      
-      console.log(`[건강기능식품-원료명] ${resultItems.length}건 검색됨`);
-      
-      // e약은요 형식으로 변환
-      return resultItems.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, 'rawmaterial'));
+      // 결과 개수 제한 및 e약은요 형식으로 변환
+      const limitedResults = filteredItems.slice(0, numOfRows);
+      return limitedResults.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, 'keyword'));
     } catch (error) {
-      console.error('[건강기능식품-원료명] API 호출 오류:', error.message);
+      console.error('[건강기능식품-검색] API 호출 오류:', error.message);
       return [];
     }
   }
