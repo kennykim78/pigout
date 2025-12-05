@@ -72,12 +72,12 @@ export class MedicineService {
    * 약품명, 효능(질병), 제조사로 검색 (e약은요 API 사용)
    * API 결과 없을 때 AI가 제품 유형 판단 후 올바른 탭 안내
    */
-  async searchMedicine(keyword: string) {
+  async searchMedicine(keyword: string, numOfRows: number = 100) {
     try {
-      console.log(`[약품 검색] 키워드: ${keyword}`);
+      console.log(`[약품 검색] 키워드: ${keyword}, 요청 수: ${numOfRows}`);
       
-      // limit을 충분히 크게 설정하여 모든 결과를 가져옴 (페이징은 프론트엔드에서 처리)
-      const apiLimit = 100;
+      // 사용자가 요청한 numOfRows 개수를 존중하되, 최소 100개는 조회하여 필터링 여유 확보
+      const apiLimit = Math.max(numOfRows * 2, 100);
       
       // 1. 약품명으로 검색
       let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
@@ -199,11 +199,12 @@ export class MedicineService {
    * 의약품 검색과 분리하여 건강기능식품만 검색
    * API 결과가 없으면 AI가 제품 유형 판단 후 올바른 탭 안내 또는 정보 생성
    */
-  async searchHealthFood(keyword: string) {
+  async searchHealthFood(keyword: string, numOfRows: number = 100) {
     try {
-      console.log(`[건강기능식품 검색] 키워드: ${keyword}`);
+      console.log(`[건강기능식품 검색] 키워드: ${keyword}, 요청 수: ${numOfRows}`);
       
-      const apiLimit = 100;
+      // 사용자가 요청한 numOfRows 개수를 존중하되, 최소 100개는 조회하여 필터링 여유 확보
+      const apiLimit = Math.max(numOfRows * 2, 100);
       
       // 건강기능식품 API 검색
       let results = await this.externalApiClient.searchHealthFunctionalFood(keyword, apiLimit);

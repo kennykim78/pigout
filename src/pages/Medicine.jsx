@@ -283,7 +283,8 @@ const Medicine = () => {
     setTabSuggestion(null); // 이전 안내 초기화
     try {
       console.log('[검색 시작] 키워드:', searchKeyword);
-      const response = await searchMedicine(searchKeyword);
+      // 🆕 검색 결과 수를 100으로 확대 (프론트엔드 페이지네이션으로 처리)
+      const response = await searchMedicine(searchKeyword, 100);
       console.log('[검색 완료] 결과:', response);
       
       // 탭 이동 안내가 있는 경우
@@ -316,7 +317,8 @@ const Medicine = () => {
     setHealthFoodTabSuggestion(null); // 이전 안내 초기화
     try {
       console.log('[건강기능식품 검색 시작] 키워드:', healthFoodKeyword);
-      const response = await searchHealthFood(healthFoodKeyword);
+      // 🆕 검색 결과 수를 100으로 확대 (프론트엔드 페이지네이션으로 처리)
+      const response = await searchHealthFood(healthFoodKeyword, 100);
       console.log('[건강기능식품 검색 완료] 결과:', response);
       
       // 탭 이동 안내가 있는 경우
@@ -1124,7 +1126,6 @@ const Medicine = () => {
                               <p style={{ margin: '0 0 12px 0', fontSize: '11px', color: '#999' }}>
                                 주원료: {result._rawMaterial.length > 60 ? result._rawMaterial.substring(0, 60) + '...' : result._rawMaterial}
                               </p>
-                            )}
                             )}
                             {result.efcyQesitm && (
                               <div className="medicine__result-efficacy">

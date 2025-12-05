@@ -789,8 +789,29 @@ export class ExternalApiClient {
     const companyName = healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || '';
     const reportNo = healthFoodItem.STTEMNT_NO || healthFoodItem.PRDLST_REPORT_NO || `HF_${Date.now()}`;
     
-    // 주요 기능성 (MAIN_FNCTN 필드 - 가장 중요!)
-    const mainFunction = healthFoodItem.MAIN_FNCTN || '';
+    // 🆕 기능성 정보 (우선순위: MAIN_FNCTN > RLTV_FNCTN > FRMLTN_DCL)
+    let mainFunction = '';
+    if (healthFoodItem.MAIN_FNCTN && healthFoodItem.MAIN_FNCTN.trim()) {
+      mainFunction = healthFoodItem.MAIN_FNCTN;
+    } else if (healthFoodItem.RLTV_FNCTN && healthFoodItem.RLTV_FNCTN.trim()) {
+      // 관련 기능성 정보 (RLTV_FNCTN)
+      mainFunction = healthFoodItem.RLTV_FNCTN;
+    } else if (healthFoodItem.FRMLTN_DCL && healthFoodItem.FRMLTN_DCL.trim()) {
+      // 제품 설명 (FRMLTN_DCL) - 포장 및 내용물 설명에서 기능성 추출
+      const formulation = healthFoodItem.FRMLTN_DCL;
+      // 일반적인 건강기능식품 기능성 키워드 추출
+      const functionKeywords = [
+        '혈행', '혈당', '콜레스테롤', '눈', '뼈', '관절', '소화', '면역', 
+        '피로', '항산화', '간', '혈압', '항염', '프로바이오틱스', '유산균'
+      ];
+      for (const keyword of functionKeywords) {
+        if (formulation.includes(keyword)) {
+          mainFunction = `${keyword} 관련 건강기능식품입니다.`;
+          break;
+        }
+      }
+    }
+    
     // 섭취량 및 섭취방법 (SRV_USE 필드)
     const servingUse = healthFoodItem.SRV_USE || '';
     // 주의사항 (INTAKE_HINT1 필드)
@@ -802,16 +823,16 @@ export class ExternalApiClient {
     // 유통기한 (DISTB_PD 필드)
     const shelfLife = healthFoodItem.DISTB_PD || '';
     
-    // 검색 키워드로 기본 효능 설명 생성 (API 데이터가 없을 경우 대비)
+    // 검색 키워드로 기본 효능 설명 생성 (API 데이터가 모두 없을 경우 대비)
     const defaultEfficacy = searchKeyword 
-      ? `${searchKeyword} 관련 건강기능식품입니다. 상세 기능성 정보는 제품 라벨을 확인하세요.`
-      : '건강기능식품입니다. 기능성 정보는 제품 라벨을 확인하세요.';
+      ? `${searchKeyword} 관련 건강기능식품입니다.`
+      : '건강기능식품입니다.';
     
     return {
       itemName: productName.trim(),
       entpName: companyName.trim(),
       itemSeq: reportNo,
-      // 주요 기능성을 효능으로 사용
+      // 🆕 기능성 정보 우선 표시
       efcyQesitm: mainFunction || defaultEfficacy,
       // 섭취량 및 섭취방법
       useMethodQesitm: servingUse || '섭취 방법은 제품 라벨을 확인하세요.',
