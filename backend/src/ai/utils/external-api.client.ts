@@ -1137,15 +1137,26 @@ export class ExternalApiClient {
         return [];
       }
       
-      // 검색 결과 파싱 (API 응답 구조: body.items[].item)
-      const items = body.items || [];
+      // 검색 결과 파싱 (API 응답 구조 변동 대응)
+      // - body.items 가 배열(items[].item) 또는 객체(body.items.item) 형태 모두 지원
+      // - 일부 응답은 body.items 자체가 item 오브젝트일 수 있어 방어 코드 추가
+      const items = body.items;
       let resultItems: any[] = [];
-      
+
       if (Array.isArray(items)) {
-        // items가 배열인 경우: items[].item 구조
+        // 배열일 때 items[].item 또는 items[] 형태 모두 대응
         resultItems = items
-          .map((wrapper: any) => wrapper.item)
+          .map((wrapper: any) => wrapper?.item ?? wrapper)
           .filter((item: any) => item && Object.keys(item).length > 0);
+      } else if (items?.item) {
+        // body.items.item 이 배열/객체인 경우
+        const itemBlock = items.item;
+        resultItems = Array.isArray(itemBlock)
+          ? itemBlock.filter((item: any) => item && Object.keys(item).length > 0)
+          : [itemBlock].filter((item: any) => item && Object.keys(item).length > 0);
+      } else if (items && typeof items === 'object') {
+        // body.items 가 단일 객체인 경우
+        resultItems = [items].filter((item: any) => item && Object.keys(item).length > 0);
       }
       
       if (!Array.isArray(resultItems) || resultItems.length === 0) {
@@ -1202,13 +1213,20 @@ export class ExternalApiClient {
         return [];
       }
       
-      const items = body.items || [];
+      const items = body.items;
       let resultItems: any[] = [];
       
       if (Array.isArray(items)) {
         resultItems = items
-          .map((wrapper: any) => wrapper.item)
+          .map((wrapper: any) => wrapper?.item ?? wrapper)
           .filter((item: any) => item && Object.keys(item).length > 0);
+      } else if (items?.item) {
+        const itemBlock = items.item;
+        resultItems = Array.isArray(itemBlock)
+          ? itemBlock.filter((item: any) => item && Object.keys(item).length > 0)
+          : [itemBlock].filter((item: any) => item && Object.keys(item).length > 0);
+      } else if (items && typeof items === 'object') {
+        resultItems = [items].filter((item: any) => item && Object.keys(item).length > 0);
       }
       
       if (!Array.isArray(resultItems) || resultItems.length === 0) {
