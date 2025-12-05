@@ -517,53 +517,13 @@ const Medicine = () => {
                 <div className="medicine__analysis-modal">
                   <div className="medicine__analysis-content">
                     <div className="medicine__analysis-header">
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flex: 1 }}>
-                        <h2>💊 내 약 종합 분석 결과</h2>
-                        {/* 캐시 상태 배지 */}
-                        {analysisResult._fromCache && (
-                          <div style={{
-                            backgroundColor: '#E8F5E9',
-                            color: '#2E7D32',
-                            padding: '4px 8px',
-                            borderRadius: '4px',
-                            fontSize: '11px',
-                            fontWeight: 'bold',
-                            whiteSpace: 'nowrap'
-                          }}>
-                            🔄 캐시된 데이터
-                          </div>
-                        )}
-                      </div>
-                      <div style={{ display: 'flex', gap: '8px' }}>
-                        {/* 강제 갱신 버튼 */}
-                        {analysisResult._fromCache && (
-                          <button
-                            style={{
-                              padding: '6px 12px',
-                              backgroundColor: '#2196F3',
-                              color: 'white',
-                              border: 'none',
-                              borderRadius: '4px',
-                              cursor: 'pointer',
-                              fontSize: '12px',
-                              fontWeight: 'bold'
-                            }}
-                            onClick={() => {
-                              // 강제 갱신 로직: 분석을 다시 실행
-                              setShowAnalysis(false);
-                              handleAnalyzeAllMedicines();
-                            }}
-                          >
-                            🔄 갱신
-                          </button>
-                        )}
-                        <button
-                          className="medicine__close-btn"
-                          onClick={() => setShowAnalysis(false)}
-                        >
-                          ✕
-                        </button>
-                      </div>
+                      <h2>💊 내 약 종합 분석 결과</h2>
+                      <button
+                        className="medicine__close-btn"
+                        onClick={() => setShowAnalysis(false)}
+                      >
+                        ✕
+                      </button>
                     </div>
 
                     <div className="medicine__analysis-body">

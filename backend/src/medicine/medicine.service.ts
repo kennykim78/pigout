@@ -726,9 +726,19 @@ export class MedicineService {
     console.log(`  - 주의 필요: ${analysisResult.cautionCombinations?.length || 0}개`);
     console.log(`  - 긍정적 효과: ${analysisResult.synergisticEffects?.length || 0}개`);
 
-    // 캐시 여부 판단: 모든 약이 캐시에서 조회된 경우
+    // 캐시 여부 판단 (내부 로깅용, 응답에는 포함하지 않음)
     const allFromCache = drugDetails.every((d: any) => d._fromCache === true);
-    const someFromCache = drugDetails.some((d: any) => d._fromCache === true);
+    const cacheInfo = {
+      total: medicines.length,
+      fromCache: drugDetails.filter((d: any) => d._fromCache === true).length,
+      fromAPI: drugDetails.filter((d: any) => d._fromCache === false).length,
+    };
+    
+    if (allFromCache) {
+      console.log(`[약물 상관관계 분석] 캐시에서 모든 정보 조회 (API 호출 0회)`);
+    } else {
+      console.log(`[약물 상관관계 분석] 캐시: ${cacheInfo.fromCache}개, API: ${cacheInfo.fromAPI}개`);
+    }
 
     return {
       success: true,
@@ -741,12 +751,6 @@ export class MedicineService {
         '식품의약품안전처 의약품 제품 허가정보',
         'Gemini AI 분석',
       ],
-      _fromCache: allFromCache,
-      _cacheInfo: {
-        total: medicines.length,
-        fromCache: drugDetails.filter((d: any) => d._fromCache === true).length,
-        fromAPI: drugDetails.filter((d: any) => d._fromCache === false).length,
-      },
     };
   }
 }
