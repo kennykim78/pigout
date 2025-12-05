@@ -1103,73 +1103,26 @@ export class ExternalApiClient {
    */
   private async searchHealthFunctionalFoodByKeyword(keyword: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsList01`;
-      
       console.log(`[건강기능식품-검색] 키워드 검색 시작: ${keyword}`);
       
-      // 공공데이터 포털 API 호출 (필터 파라미터 사용)
-      // ✅ 공식 파라미터: prdlst_nm(제품명), rawmtrl_nm(원료명), entrps(업체명)
+      // 🆕 callMfdsApi 활용 - 공통 파싱 로직 사용
       // 참고: https://www.data.go.kr/data/15056760/openapi.do
-      const response = await axios.get(url, {
-        params: {
-          serviceKey: this.SERVICE_KEY,
-          prdlst_nm: keyword,  // ✅ 제품명으로 필터링 (API 서버에서 처리)
-          pageNo: 1,
-          numOfRows: Math.min(numOfRows, 1000), // API 최대값 1000
-          type: 'json',
-        },
-        timeout: 10000,
-        headers: {
-          'Accept': 'application/json',
-        },
+      // getHtfsList01 API의 prdlst_nm 파라미터는 "포함 검색" 지원
+      const items = await this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
+        prdlst_nm: keyword,  // 제품명 필터
+        numOfRows: Math.min(numOfRows, 1000),
       });
-
-      const body = response.data?.body;
-      if (!body) {
-        console.log(`[건강기능식품-검색] 응답 body 없음`);
-        return [];
+      
+      console.log(`[건강기능식품-검색] 제품명 검색 결과: ${items.length}건`);
+      
+      if (items.length > 0) {
+        // API 결과 성공 - e약은요 형식으로 변환
+        return items.slice(0, numOfRows).map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, keyword));
       }
       
-      // 결과 코드 검증
-      const resultCode = response.data?.header?.resultCode;
-      if (resultCode !== '00') {
-        console.log(`[건강기능식품-검색] API 오류 코드: ${resultCode}`);
-        return [];
-      }
-      
-      // 검색 결과 파싱 (API 응답 구조 변동 대응)
-      // - body.items 가 배열(items[].item) 또는 객체(body.items.item) 형태 모두 지원
-      // - 일부 응답은 body.items 자체가 item 오브젝트일 수 있어 방어 코드 추가
-      const items = body.items;
-      let resultItems: any[] = [];
-
-      if (Array.isArray(items)) {
-        // 배열일 때 items[].item 또는 items[] 형태 모두 대응
-        resultItems = items
-          .map((wrapper: any) => wrapper?.item ?? wrapper)
-          .filter((item: any) => item && Object.keys(item).length > 0);
-      } else if (items?.item) {
-        // body.items.item 이 배열/객체인 경우
-        const itemBlock = items.item;
-        resultItems = Array.isArray(itemBlock)
-          ? itemBlock.filter((item: any) => item && Object.keys(item).length > 0)
-          : [itemBlock].filter((item: any) => item && Object.keys(item).length > 0);
-      } else if (items && typeof items === 'object') {
-        // body.items 가 단일 객체인 경우
-        resultItems = [items].filter((item: any) => item && Object.keys(item).length > 0);
-      }
-      
-      if (!Array.isArray(resultItems) || resultItems.length === 0) {
-        console.log(`[건강기능식품-검색] 제품명 검색 결과 없음, 원료명으로 재시도: ${keyword}`);
-        // 제품명으로 결과가 없으면 원료명으로 재시도
-        return await this.searchHealthFunctionalFoodByRawMaterial(keyword, numOfRows);
-      }
-      
-      console.log(`[건강기능식품-검색] API에서 ${resultItems.length}건 조회 (전체: ${body.totalCount}건)`);
-      
-      // 결과 개수 제한 및 e약은요 형식으로 변환
-      const limitedResults = resultItems.slice(0, numOfRows);
-      return limitedResults.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, 'api'));
+      // 제품명으로 결과가 없으면 원료명으로 재시도
+      console.log(`[건강기능식품-검색] 제품명 검색 결과 없음, 원료명으로 재시도: ${keyword}`);
+      return await this.searchHealthFunctionalFoodByRawMaterial(keyword, numOfRows);
     } catch (error) {
       console.error('[건강기능식품-검색] API 호출 오류:', error.message);
       return [];
@@ -1183,61 +1136,21 @@ export class ExternalApiClient {
    */
   private async searchHealthFunctionalFoodByRawMaterial(keyword: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      const url = `${this.MFDS_BASE_URL}/HtfsInfoService03/getHtfsList01`;
-      
       console.log(`[건강기능식품-검색] 원료명 검색: ${keyword}`);
       
-      const response = await axios.get(url, {
-        params: {
-          serviceKey: this.SERVICE_KEY,
-          rawmtrl_nm: keyword,  // ✅ 원료명으로 필터링
-          pageNo: 1,
-          numOfRows: Math.min(numOfRows, 1000),
-          type: 'json',
-        },
-        timeout: 10000,
-        headers: {
-          'Accept': 'application/json',
-        },
+      // 🆕 callMfdsApi 활용
+      const items = await this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
+        rawmtrl_nm: keyword,  // 원료명 필터
+        numOfRows: Math.min(numOfRows, 1000),
       });
-
-      const body = response.data?.body;
-      if (!body) {
-        console.log(`[건강기능식품-검색] 원료명 검색 응답 body 없음`);
-        return [];
+      
+      console.log(`[건강기능식품-검색] 원료명 검색 결과: ${items.length}건`);
+      
+      if (items.length > 0) {
+        return items.slice(0, numOfRows).map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, keyword));
       }
       
-      const resultCode = response.data?.header?.resultCode;
-      if (resultCode !== '00') {
-        console.log(`[건강기능식품-검색] 원료명 검색 API 오류: ${resultCode}`);
-        return [];
-      }
-      
-      const items = body.items;
-      let resultItems: any[] = [];
-      
-      if (Array.isArray(items)) {
-        resultItems = items
-          .map((wrapper: any) => wrapper?.item ?? wrapper)
-          .filter((item: any) => item && Object.keys(item).length > 0);
-      } else if (items?.item) {
-        const itemBlock = items.item;
-        resultItems = Array.isArray(itemBlock)
-          ? itemBlock.filter((item: any) => item && Object.keys(item).length > 0)
-          : [itemBlock].filter((item: any) => item && Object.keys(item).length > 0);
-      } else if (items && typeof items === 'object') {
-        resultItems = [items].filter((item: any) => item && Object.keys(item).length > 0);
-      }
-      
-      if (!Array.isArray(resultItems) || resultItems.length === 0) {
-        console.log(`[건강기능식품-검색] 원료명 검색 결과 없음: ${keyword}`);
-        return [];
-      }
-      
-      console.log(`[건강기능식품-검색] 원료명 검색 ${resultItems.length}건 조회`);
-      
-      const limitedResults = resultItems.slice(0, numOfRows);
-      return limitedResults.map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, 'api'));
+      return [];
     } catch (error) {
       console.error('[건강기능식품-검색] 원료명 검색 오류:', error.message);
       return [];
