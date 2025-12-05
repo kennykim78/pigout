@@ -116,9 +116,22 @@ export class ExternalApiClient {
 
       const items = response.data?.body?.items;
       if (!items) return [];
-      if (Array.isArray(items)) return items;
+      
+      // 🆕 응답 구조 파싱 개선
+      // 케이스 1: items가 배열 [{item: {...}}, {item: {...}}] 형태 (건강기능식품 API)
+      if (Array.isArray(items)) {
+        // items[0].item이 존재하면 item을 추출
+        if (items.length > 0 && items[0]?.item) {
+          return items.map((wrapper: any) => wrapper.item).filter(Boolean);
+        }
+        // items 자체가 결과 배열
+        return items;
+      }
+      // 케이스 2: items.item이 배열
       if (Array.isArray(items.item)) return items.item;
+      // 케이스 3: items.item이 단일 객체
       if (items.item) return [items.item];
+      // 케이스 4: items.items 배열
       return Array.isArray(items?.items) ? items.items : [];
     } catch (error) {
       console.error(`[MFDS] ${endpoint} 호출 실패:`, error.message);
@@ -1105,11 +1118,10 @@ export class ExternalApiClient {
     try {
       console.log(`[건강기능식품-검색] 키워드 검색 시작: ${keyword}`);
       
-      // 🆕 callMfdsApi 활용 - 공통 파싱 로직 사용
+      // 🆕 올바른 파라미터: Prduct (대소문자 중요!)
       // 참고: https://www.data.go.kr/data/15056760/openapi.do
-      // getHtfsList01 API의 prdlst_nm 파라미터는 "포함 검색" 지원
       const items = await this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
-        prdlst_nm: keyword,  // 제품명 필터
+        Prduct: keyword,  // ✅ 제품명 필터 (prdlst_nm이 아닌 Prduct)
         numOfRows: Math.min(numOfRows, 1000),
       });
       
@@ -1161,11 +1173,13 @@ export class ExternalApiClient {
    * 건강기능식품 데이터를 e약은요 형식으로 변환
    * 기존 의약품 로직과 호환되도록 변환
    * 
-   * getHtfsItem01 API 응답 필드:
+   * getHtfsList01 API 응답 필드 (목록조회):
    * - ENTRPS: 업체명
    * - PRDUCT: 제품명  
    * - STTEMNT_NO: 신고번호
    * - REGIST_DT: 등록일
+   * 
+   * getHtfsItem01 API 응답 필드 (상세조회):
    * - DISTB_PD: 유통기한
    * - SUNGSANG: 성상
    * - SRV_USE: 섭취량 및 섭취방법
@@ -1175,64 +1189,34 @@ export class ExternalApiClient {
    * - BASE_STANDARD: 기준규격
    */
   private convertHealthFoodToEasyDrugFormat(healthFoodItem: any, searchKeyword?: string): any {
-    // API 응답 필드 매핑 (getHtfsItem01 상세정보 API 구조에 맞춤)
+    // ✅ 목록 API (getHtfsList01) 필드 매핑
     const productName = healthFoodItem.PRDUCT || healthFoodItem.PRDLST_NM || '';
     const companyName = healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || '';
     const reportNo = healthFoodItem.STTEMNT_NO || healthFoodItem.PRDLST_REPORT_NO || `HF_${Date.now()}`;
     
-    // 🆕 기능성 정보 (우선순위: MAIN_FNCTN > RLTV_FNCTN > 원료명 기반 추론)
+    // 목록 API는 상세 정보(MAIN_FNCTN 등)가 없으므로 검색 키워드 기반 기본 정보 생성
     let mainFunction = '';
     
-    // 1순위: MAIN_FNCTN (주요 기능성)
+    // 상세 API 필드가 있으면 사용
     if (healthFoodItem.MAIN_FNCTN && healthFoodItem.MAIN_FNCTN.trim()) {
       mainFunction = healthFoodItem.MAIN_FNCTN;
-      console.log(`[변환] MAIN_FNCTN 발견: ${mainFunction.substring(0, 50)}`);
-    } 
-    // 2순위: RLTV_FNCTN (관련 기능성)
-    else if (healthFoodItem.RLTV_FNCTN && healthFoodItem.RLTV_FNCTN.trim()) {
-      mainFunction = healthFoodItem.RLTV_FNCTN;
-      console.log(`[변환] RLTV_FNCTN 발견: ${mainFunction.substring(0, 50)}`);
-    }
-    // 3순위: FRMLTN_DCL (제품 설명)에서 기능성 추출
-    else if (healthFoodItem.FRMLTN_DCL && healthFoodItem.FRMLTN_DCL.trim()) {
-      const formulation = healthFoodItem.FRMLTN_DCL;
-      const functionKeywords = [
-        '혈행', '혈당', '콜레스테롤', '눈', '뼈', '관절', '소화', '면역', 
-        '피로', '항산화', '간', '혈압', '항염', '프로바이오틱스', '유산균',
-        '항산화', '기억', '뇌', '관절', '피부', '장'
-      ];
-      for (const kw of functionKeywords) {
-        if (formulation.includes(kw)) {
-          mainFunction = `${kw} 건강 관련 제품입니다. 상세 정보는 제품 라벨을 확인하세요.`;
-          console.log(`[변환] FRMLTN_DCL에서 추출: ${kw}`);
-          break;
-        }
-      }
-    }
-    // 4순위: 원료명(RAWMTRL_NM) 기반 추론
-    if (!mainFunction && healthFoodItem.RAWMTRL_NM && healthFoodItem.RAWMTRL_NM.trim()) {
-      const rawMaterial = healthFoodItem.RAWMTRL_NM;
-      mainFunction = `${rawMaterial} 함유 건강기능식품입니다. 상세 정보는 제품 라벨을 확인하세요.`;
-      console.log(`[변환] 원료명 기반 추론: ${rawMaterial}`);
+    } else if (healthFoodItem.RAWMTRL_NM && healthFoodItem.RAWMTRL_NM.trim()) {
+      mainFunction = `${healthFoodItem.RAWMTRL_NM} 함유 건강기능식품입니다.`;
+    } else if (searchKeyword) {
+      // 검색 키워드 기반 기본 설명
+      mainFunction = `${searchKeyword} 관련 건강기능식품입니다. 상세 정보는 제품 라벨을 확인하세요.`;
+    } else {
+      mainFunction = '건강기능식품입니다. 상세 정보는 제품 라벨을 확인하세요.';
     }
     
-    // 섭취량 및 섭취방법 (SRV_USE 필드)
+    // 섭취량 및 섭취방법 (SRV_USE 필드 - 상세 API)
     const servingUse = healthFoodItem.SRV_USE || '';
-    // 주의사항 (INTAKE_HINT1 필드)
+    // 주의사항 (INTAKE_HINT1 필드 - 상세 API)
     const intakeHint = healthFoodItem.INTAKE_HINT1 || '';
-    // 보관방법 (PRSRV_PD 필드)
+    // 보관방법 (PRSRV_PD 필드 - 상세 API)
     const preserveMethod = healthFoodItem.PRSRV_PD || '';
-    // 성상 (SUNGSANG 필드)
-    const appearance = healthFoodItem.SUNGSANG || '';
-    // 유통기한 (DISTB_PD 필드)
-    const shelfLife = healthFoodItem.DISTB_PD || '';
     
-    // 기본 효능 설명 (모든 필드가 없을 경우 대비)
-    if (!mainFunction) {
-      mainFunction = '건강기능식품입니다. 상세 정보는 제품 라벨 또는 공식 제조사 정보를 확인하세요.';
-    }
-    
-    // 원료명 정보 (추가)
+    // 원료명 정보
     const rawMaterial = healthFoodItem.RAWMTRL_NM || '';
     
     // API 응답의 모든 필드를 로깅
@@ -1268,8 +1252,8 @@ export class ExternalApiClient {
       _rawMaterial: rawMaterial.trim(),  // 원료명
 
       // 추가 정보
-      _appearance: appearance, // 성상
-      _shelfLife: shelfLife, // 유통기한
+      _appearance: healthFoodItem.SUNGSANG || '', // 성상
+      _shelfLife: healthFoodItem.DISTB_PD || '', // 유통기한
       _registDate: healthFoodItem.REGIST_DT || '',
       _baseStandard: healthFoodItem.BASE_STANDARD || '', // 기준규격
       // 원본 데이터 보존
