@@ -3,6 +3,8 @@ import { useMedicineStore } from '../store/medicineStore';
 import { getMyMedicines, scanMedicineQR, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines, analyzeMedicineImage } from '../services/api';
 import MedicineRadarChart from '../components/MedicineRadarChart';
 import MedicineSchedule from '../components/MedicineSchedule';
+import MedicineCorrelationSummary from '../components/MedicineCorrelationSummary';
+import MedicineDetailPopup from '../components/MedicineDetailPopup';
 import './Medicine.scss';
 
 const Medicine = () => {
@@ -43,6 +45,8 @@ const Medicine = () => {
   const [imageAnalysisResult, setImageAnalysisResult] = useState(null);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
   const [showMedicineSelectPopup, setShowMedicineSelectPopup] = useState(false);
+  const [selectedMedicineDetail, setSelectedMedicineDetail] = useState(null);
+  const [showMedicineDetailPopup, setShowMedicineDetailPopup] = useState(false);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
@@ -520,6 +524,9 @@ const Medicine = () => {
               {/* 🟡 Phase 1: 복용 시간표 */}
               <MedicineSchedule medicines={medicines} />
 
+              {/* 🟢 Phase 2: 한 줄 상호작용 분석 */}
+              <MedicineCorrelationSummary medicines={medicines} />
+
               <div className="medicine__analyze-section">
                 <button
                   className="medicine__analyze-all-btn"
@@ -636,12 +643,23 @@ const Medicine = () => {
               )}
 
               {medicines.map((med) => (
-                <div key={med.id} className="medicine__card">
+                <div
+                  key={med.id}
+                  className="medicine__card"
+                  onClick={() => {
+                    setSelectedMedicineDetail(med);
+                    setShowMedicineDetailPopup(true);
+                  }}
+                  style={{ cursor: 'pointer' }}
+                >
                   <div className="medicine__card-header">
                     <h3 className="medicine__card-title">{med.name}</h3>
                     <button
                       className="medicine__delete-btn"
-                      onClick={() => handleDeleteMedicine(med.id)}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleDeleteMedicine(med.id);
+                      }}
                     >
                       🗑️
                     </button>
@@ -1211,6 +1229,17 @@ const Medicine = () => {
             </div>
           </section>
         </div>
+      )}
+
+      {/* 약품 상세 정보 팝업 */}
+      {showMedicineDetailPopup && (
+        <MedicineDetailPopup
+          medicine={selectedMedicineDetail}
+          onClose={() => {
+            setShowMedicineDetailPopup(false);
+            setSelectedMedicineDetail(null);
+          }}
+        />
       )}
     </div>
   );
