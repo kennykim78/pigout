@@ -80,13 +80,25 @@ export class MedicineService {
       const apiLimit = 100;
       
       // 1. 약품명으로 검색
-      const nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
+      let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
       
       // 2. 효능(질병)으로도 검색
       const efficacyResults = await this.externalApiClient.searchMedicineByEfficacy(keyword, apiLimit);
       
       // 3. 제조사로도 검색
       const manufacturerResults = await this.externalApiClient.searchMedicineByManufacturer(keyword, apiLimit);
+      
+      // 🆕 AI 생성 데이터 필터링 - AI 더미 데이터는 실제 API 결과가 있으면 제거
+      // AI 생성 데이터는 itemSeq가 "AI_"로 시작함
+      const hasRealNameResults = nameResults.some((item: any) => 
+        item.itemSeq && !item.itemSeq.startsWith('AI_')
+      );
+      
+      // 약품명 검색 결과에 AI 생성 데이터만 있고, 효능이나 제조사에서 실제 데이터가 있으면 AI 데이터 제거
+      if (!hasRealNameResults && (efficacyResults.length > 0 || manufacturerResults.length > 0)) {
+        console.log(`[약품 검색] 약품명 검색에서 AI 생성 데이터만 발견 - 제거`);
+        nameResults = [];
+      }
       
       // 4. 결과 병합 및 중복 제거 (itemSeq 기준)
       const combinedResults = [...nameResults, ...efficacyResults, ...manufacturerResults];
@@ -177,7 +189,17 @@ export class MedicineService {
       const apiLimit = 100;
       
       // 건강기능식품 API 검색
-      const results = await this.externalApiClient.searchHealthFunctionalFood(keyword, apiLimit);
+      let results = await this.externalApiClient.searchHealthFunctionalFood(keyword, apiLimit);
+      
+      // 🆕 AI 생성 데이터 필터링
+      const hasRealResults = results && results.some((item: any) => 
+        item.itemSeq && !item.itemSeq.startsWith('AI_HF_')
+      );
+      
+      if (!hasRealResults && results && results.length > 0) {
+        console.log(`[건강기능식품 검색] AI 생성 데이터만 발견 - 제거`);
+        results = [];
+      }
       
       if (results && results.length > 0) {
         // API 결과를 프론트엔드 형식으로 변환
@@ -200,9 +222,18 @@ export class MedicineService {
         return formattedResults;
       }
       
-      // API 결과 없음 - 의약품 API에서 검색해보기
+      // API 결과 없음 - 의약품 API에서 검색해보기 (AI 생성 데이터 제외)
       console.log(`[건강기능식품 검색] API 결과 없음 - 의약품 검색 시도`);
-      const medicineResults = await this.externalApiClient.getMedicineInfo(keyword, 5);
+      let medicineResults = await this.externalApiClient.getMedicineInfo(keyword, 5);
+      
+      // 의약품 검색에서 AI 데이터만 있으면 제거
+      const hasRealMedicineResults = medicineResults && medicineResults.some((item: any) => 
+        item.itemSeq && !item.itemSeq.startsWith('AI_')
+      );
+      
+      if (!hasRealMedicineResults && medicineResults && medicineResults.length > 0) {
+        medicineResults = [];
+      }
       
       if (medicineResults && medicineResults.length > 0) {
         // 의약품에서 발견됨 - 탭 이동 안내
