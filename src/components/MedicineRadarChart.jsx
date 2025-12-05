@@ -23,7 +23,7 @@ const MedicineRadarChart = ({ medicines }) => {
     };
 
     medicines.forEach(medicine => {
-      const itemName = medicine.itemName || '';
+      const itemName = medicine.itemName || medicine.name || '';
       const efcyQesitm = medicine.efcyQesitm || '';
       const searchText = `${itemName} ${efcyQesitm}`.toLowerCase();
 

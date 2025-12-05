@@ -58,6 +58,8 @@ const Medicine = () => {
     setLoading(true);
     try {
       const data = await getMyMedicines(true);
+      console.log('[Medicine.jsx] Loaded medicines:', data);
+      console.log('[Medicine.jsx] Medicine keys:', data?.[0] ? Object.keys(data[0]) : 'No data');
       setMedicines(data);
     } catch (error) {
       console.error('Failed to load medicines:', error);
@@ -653,7 +655,7 @@ const Medicine = () => {
                   style={{ cursor: 'pointer' }}
                 >
                   <div className="medicine__card-header">
-                    <h3 className="medicine__card-title">{med.name}</h3>
+                    <h3 className="medicine__card-title">{med.itemName || med.name || '약품명 미확인'}</h3>
                     <button
                       className="medicine__delete-btn"
                       onClick={(e) => {

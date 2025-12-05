@@ -21,8 +21,8 @@ const MedicineCorrelationSummary = ({ medicines = [] }) => {
       { drug1: '비타민K', drug2: '항응고제' },
     ];
 
-    // 약품명 추출 (itemName 또는 name)
-    const medicineNames = medicines.map(m => m.itemName || m.name || '').filter(Boolean);
+    // 약품명 추출 (itemName 또는 name, 둘 다 지원)
+    const medicineNames = medicines.map(m => (m.itemName || m.name || '')).filter(Boolean);
 
     // 위험한 조합 찾기
     let hasDangerousCombination = false;

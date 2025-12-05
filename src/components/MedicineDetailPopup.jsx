@@ -14,6 +14,11 @@ const MedicineDetailPopup = ({ medicine, onClose }) => {
     intrcQesitm = '',
     seQesitm = '',
     depositMethodQesitm = '',
+    // DB에서 저장된 필드명 지원
+    name = itemName,
+    dosage = useMethodQesitm,
+    frequency = '',
+    qr_code_data = '',
   } = medicine;
 
   return (
@@ -22,7 +27,7 @@ const MedicineDetailPopup = ({ medicine, onClose }) => {
         {/* 헤더 */}
         <div className="medicine-detail-header">
           <div>
-            <h2 className="medicine-detail-title">{itemName || '약품명 미확인'}</h2>
+            <h2 className="medicine-detail-title">{itemName || name || '약품명 미확인'}</h2>
             <p className="medicine-detail-company">{entpName || '제조사 미확인'}</p>
           </div>
           <button className="medicine-detail-close" onClick={onClose}>
@@ -56,11 +61,11 @@ const MedicineDetailPopup = ({ medicine, onClose }) => {
           )}
 
           {/* 용법 */}
-          {useMethodQesitm && (
+          {(useMethodQesitm || dosage || frequency) && (
             <div className="medicine-detail-section">
               <h3 className="section-title">📋 용법</h3>
               <div className="section-content">
-                <p className="medicine-text">{useMethodQesitm}</p>
+                <p className="medicine-text">{useMethodQesitm || dosage || frequency || '기본 용법'}</p>
               </div>
             </div>
           )}

@@ -17,7 +17,7 @@ const MedicineSchedule = ({ medicines }) => {
     };
 
     medicines.forEach(medicine => {
-      const useMethod = (medicine.useMethodQesitm || '').toLowerCase();
+      const useMethod = (medicine.useMethodQesitm || medicine.dosage || '').toLowerCase();
       
       // 복용 시간 추론
       if (useMethod.includes('아침') || useMethod.includes('아침식사') || useMethod.includes('아침 복용')) {
@@ -50,9 +50,9 @@ const MedicineSchedule = ({ medicines }) => {
           <ul className="medicine-list">
             {medicines.slice(0, 3).map((medicine, idx) => (
               <li key={idx} className="medicine-item">
-                <span className="medicine-name">{medicine.itemName}</span>
+                <span className="medicine-name">{medicine.itemName || medicine.name || '약품명 미확인'}</span>
                 <span className="medicine-dosage">
-                  {medicine.useMethodQesitm ? medicine.useMethodQesitm.split(',')[0] : '1회 1정'}
+                  {medicine.useMethodQesitm ? medicine.useMethodQesitm.split(',')[0] : (medicine.dosage || medicine.frequency || '1회 1정')}
                 </span>
               </li>
             ))}

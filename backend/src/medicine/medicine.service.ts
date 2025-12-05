@@ -32,29 +32,58 @@ export class MedicineService {
     }
 
     // medicine_list에서 약품 정보 조회 (코드 기준)
+    let medicineData = null;
     let medicineId = null;
     if (parsed.medicineCode) {
       const { data: medicine } = await client
         .from('medicine_list')
-        .select('id')
+        .select('*')
         .eq('medicine_code', parsed.medicineCode)
         .single();
 
       if (medicine) {
         medicineId = medicine.id;
+        medicineData = medicine;
       }
     }
 
-    // 사용자 약 기록 저장
+    // API에서 약품 정보 검색 (상세 정보 얻기 위해)
+    let apiMedicineData: any = null;
+    try {
+      const searchResults = await this.searchMedicine(parsed.medicineName, 1);
+      if (Array.isArray(searchResults) && searchResults.length > 0) {
+        apiMedicineData = searchResults[0];
+      } else if (searchResults && typeof searchResults === 'object' && 'results' in searchResults) {
+        const results = (searchResults as any).results;
+        if (Array.isArray(results) && results.length > 0) {
+          apiMedicineData = results[0];
+        }
+      }
+    } catch (error) {
+      console.log('[scanQrCode] API 검색 실패:', (error as any).message);
+    }
+
+    // 사용자 약 기록 저장 (API 데이터와 DB 데이터 모두 저장)
     const { data, error } = await client
       .from('medicine_records')
       .insert({
         user_id: userId,
+        // DB 저장용 기본 필드
         name: parsed.medicineName,
         dosage: dosage || null,
         frequency: frequency || null,
         qr_code_data: qrData,
         is_active: true,
+        // API 데이터 저장 (상세 정보)
+        item_name: apiMedicineData?.itemName || parsed.medicineName,
+        efcy_qesitm: apiMedicineData?.efcyQesitm || '',
+        use_method_qesitm: apiMedicineData?.useMethodQesitm || '',
+        atpn_warn_qesitm: apiMedicineData?.atpnWarnQesitm || '',
+        intrc_qesitm: apiMedicineData?.intrcQesitm || '',
+        se_qesitm: apiMedicineData?.seQesitm || '',
+        deposit_method_qesitm: apiMedicineData?.depositMethodQesitm || '',
+        entp_name: apiMedicineData?.entpName || '',
+        item_seq: apiMedicineData?.itemSeq || '',
       })
       .select()
       .single();
