@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMedicineStore } from '../store/medicineStore';
-import { getMyMedicines, scanMedicineQR, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines, analyzeMedicineImage } from '../services/api';
+import { getMyMedicines, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines, analyzeMedicineImage } from '../services/api';
 import MedicineRadarChart from '../components/MedicineRadarChart';
 import MedicineSchedule from '../components/MedicineSchedule';
 import MedicineCorrelationSummary from '../components/MedicineCorrelationSummary';
@@ -9,9 +9,6 @@ import './Medicine.scss';
 
 const Medicine = () => {
   const { medicines, setMedicines, addMedicine: addToStore, deleteMedicine: removeFromStore, isLoading, setLoading, setError } = useMedicineStore();
-  const [showQrScanner, setShowQrScanner] = useState(false);
-  const [scanMode, setScanMode] = useState('manual'); // 'camera' or 'manual'
-  const [qrInput, setQrInput] = useState('');
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState([]);
   const [hasSearched, setHasSearched] = useState(false);
@@ -32,11 +29,6 @@ const Medicine = () => {
   // 탭 이동 안내 상태
   const [tabSuggestion, setTabSuggestion] = useState(null);
   const [healthFoodTabSuggestion, setHealthFoodTabSuggestion] = useState(null);
-  
-  // QR 스캔 결과 상태
-  const [scannedMedicine, setScannedMedicine] = useState(null);
-  const [isProcessingQR, setIsProcessingQR] = useState(false);
-  const [qrScanError, setQrScanError] = useState('');
   
   // 📸 AI 이미지 분석 상태
   const [showImageCapture, setShowImageCapture] = useState(false);
@@ -67,99 +59,6 @@ const Medicine = () => {
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleQrScan = async (qrData) => {
-    const data = qrData || qrInput;
-    if (!data.trim()) {
-      alert('QR 데이터를 입력하세요.');
-      return;
-    }
-
-    setLoading(true);
-    try {
-      const result = await scanMedicineQR(data);
-      addToStore(result.medicineRecord);
-      setQrInput('');
-      setShowQrScanner(false);
-      setScanMode('manual');
-      setScannedMedicine(null);
-      alert(`${result.parsedInfo.medicineName} 추가 완료!`);
-      await loadMedicines();
-    } catch (error) {
-      console.error('QR scan failed:', error);
-      alert(error.response?.data?.message || 'QR 스캔에 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // 카메라로 QR 인식 시 호출
-  const handleCameraScan = async (result) => {
-    if (result && result[0]?.rawValue && !isProcessingQR) {
-      const qrData = result[0].rawValue;
-      console.log('[QR 인식됨]', qrData);
-      
-      setIsProcessingQR(true);
-      setQrScanError('');
-      
-      try {
-        // QR 데이터로 약 정보 조회
-        const scanResult = await scanMedicineQR(qrData);
-        console.log('[QR 스캔 결과]', scanResult);
-        
-        // 스캔된 약 정보 저장 (등록 확인용)
-        setScannedMedicine({
-          qrData,
-          parsedInfo: scanResult.parsedInfo,
-          medicineRecord: scanResult.medicineRecord
-        });
-      } catch (error) {
-        console.error('QR 처리 실패:', error);
-        setQrScanError(error.response?.data?.message || 'QR 코드를 인식할 수 없습니다. 다시 시도해주세요.');
-        setIsProcessingQR(false);
-      }
-    }
-  };
-
-  // QR 스캔 결과에서 약 등록
-  const handleAddScannedMedicine = async () => {
-    if (!scannedMedicine) return;
-    
-    setLoading(true);
-    try {
-      addToStore(scannedMedicine.medicineRecord);
-      alert(`${scannedMedicine.parsedInfo.medicineName} 추가 완료!`);
-      await loadMedicines();
-      
-      // 초기화
-      setScannedMedicine(null);
-      setShowQrScanner(false);
-      setScanMode('manual');
-      setIsProcessingQR(false);
-      setActiveTab('list');
-    } catch (error) {
-      console.error('약 추가 실패:', error);
-      alert('약 추가에 실패했습니다.');
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // QR 스캐너 닫기
-  const handleCloseQrScanner = () => {
-    setShowQrScanner(false);
-    setScanMode('manual');
-    setScannedMedicine(null);
-    setIsProcessingQR(false);
-    setQrScanError('');
-  };
-
-  // 다시 스캔하기
-  const handleRescan = () => {
-    setScannedMedicine(null);
-    setIsProcessingQR(false);
-    setQrScanError('');
   };
 
   // 📸 이미지 파일 선택 핸들러
@@ -251,11 +150,17 @@ const Medicine = () => {
 
     for (const medicine of medicinesToAdd) {
       try {
+        // apiMatch가 있으면 모든 API 필드를 포함, 없으면 감지된 기본 정보만
         const medicineData = medicine.apiMatch ? {
           itemName: medicine.apiMatch.itemName,
           entpName: medicine.apiMatch.entpName,
           itemSeq: medicine.apiMatch.itemSeq,
           efcyQesitm: medicine.apiMatch.efcyQesitm,
+          useMethodQesitm: medicine.apiMatch.useMethodQesitm,
+          atpnWarnQesitm: medicine.apiMatch.atpnWarnQesitm,
+          intrcQesitm: medicine.apiMatch.intrcQesitm,
+          seQesitm: medicine.apiMatch.seQesitm,
+          depositMethodQesitm: medicine.apiMatch.depositMethodQesitm,
         } : {
           itemName: medicine.detectedName,
           entpName: medicine.manufacturer || '(정보 없음)',

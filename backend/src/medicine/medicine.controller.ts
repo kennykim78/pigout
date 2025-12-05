@@ -93,15 +93,7 @@ export class MedicineController {
   ) {
     const userId = await this.getUserIdFromDeviceId(deviceId);
     console.log(`[Medicine] addMedicine - deviceId: ${deviceId}, userId: ${userId}`);
-    return this.medicineService.addMedicineFromSearch(
-      userId,
-      medicineData.itemName,
-      medicineData.entpName,
-      medicineData.itemSeq,
-      medicineData.efcyQesitm,
-      medicineData.dosage,
-      medicineData.frequency,
-    );
+    return this.medicineService.addMedicineFromSearch(userId, medicineData);
   }
 
   /**

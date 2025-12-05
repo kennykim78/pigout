@@ -493,33 +493,45 @@ export class MedicineService {
    */
   async addMedicineFromSearch(
     userId: string,
-    itemName: string,
-    entpName: string,
-    itemSeq?: string,
-    efcyQesitm?: string,
-    dosage?: string,
-    frequency?: string,
+    medicineData: any,
   ) {
     const client = this.supabaseService.getClient();
 
+    const itemName = medicineData.itemName || medicineData.name;
+    const entpName = medicineData.entpName || medicineData.manufacturer;
+    const itemSeq = medicineData.itemSeq;
+
     console.log(`[약 등록] ${itemName} (${entpName})`);
 
-    // 사용자 약 기록 저장 (현재 DB 스키마에 맞춤)
+    // 완전한 약 정보를 DB에 저장 (API 필드 + DB 필드)
+    const recordData = {
+      user_id: userId,
+      name: itemName,
+      item_name: itemName,  // API 필드: 약품명
+      drug_class: entpName,
+      entp_name: entpName,  // API 필드: 제조사
+      dosage: medicineData.dosage || null,
+      frequency: medicineData.frequency || null,
+      // API 상세 정보 필드
+      item_seq: itemSeq || null,
+      efcy_qesitm: medicineData.efcyQesitm || null,  // 효능
+      use_method_qesitm: medicineData.useMethodQesitm || null,  // 용법
+      atpn_warn_qesitm: medicineData.atpnWarnQesitm || null,  // 주의사항
+      intrc_qesitm: medicineData.intrcQesitm || null,  // 상호작용
+      se_qesitm: medicineData.seQesitm || null,  // 부작용
+      deposit_method_qesitm: medicineData.depositMethodQesitm || null,  // 보관방법
+      // QR 데이터 (이전 호환성)
+      qr_code_data: JSON.stringify({
+        itemSeq: itemSeq,
+        efficacy: medicineData.efcyQesitm,
+        manufacturer: entpName,
+      }),
+      is_active: true,
+    };
+
     const { data, error } = await client
       .from('medicine_records')
-      .insert({
-        user_id: userId,
-        name: itemName,
-        drug_class: entpName, // 제조사 정보를 drug_class에 임시 저장
-        dosage: dosage || null,
-        frequency: frequency || null,
-        qr_code_data: JSON.stringify({
-          itemSeq: itemSeq,
-          efficacy: efcyQesitm,
-          manufacturer: entpName,
-        }),
-        is_active: true,
-      })
+      .insert(recordData)
       .select()
       .single();
 
@@ -530,15 +542,14 @@ export class MedicineService {
 
     // 🆕 약품 정보를 공용 캐시에 저장 (다른 사용자도 활용 가능)
     if (itemSeq && entpName) {
-      // API에서 완전한 약품 정보 조회 및 캐시 저장
       try {
         const fullMedicineInfo = await this.externalApiClient.getMedicineInfo(itemName, 1);
         if (fullMedicineInfo && fullMedicineInfo.length > 0) {
-          const medicineData = fullMedicineInfo[0];
+          const apiData = fullMedicineInfo[0];
           await this.supabaseService.saveMedicineDetailCache(
             itemSeq,
             entpName,
-            medicineData,
+            apiData,
             '의약품(e약은요)',
           );
         }
