@@ -732,9 +732,16 @@ export class ExternalApiClient {
         return [];
       }
       
-      // 검색 결과 파싱
+      // 검색 결과 파싱 (API 응답 구조: body.items[].item)
       const items = body.items || [];
-      const resultItems = Array.isArray(items) ? items : (items.item ? (Array.isArray(items.item) ? items.item : [items.item]) : []);
+      let resultItems: any[] = [];
+      
+      if (Array.isArray(items)) {
+        // items가 배열인 경우: items[].item 구조
+        resultItems = items
+          .map((wrapper: any) => wrapper.item)
+          .filter((item: any) => item && Object.keys(item).length > 0);
+      }
       
       if (!Array.isArray(resultItems) || resultItems.length === 0) {
         console.log(`[건강기능식품-제품명] 검색 결과 없음: ${productName}`);
@@ -785,9 +792,16 @@ export class ExternalApiClient {
         return [];
       }
       
-      // 검색 결과 파싱
+      // 검색 결과 파싱 (API 응답 구조: body.items[].item)
       const items = body.items || [];
-      const resultItems = Array.isArray(items) ? items : (items.item ? (Array.isArray(items.item) ? items.item : [items.item]) : []);
+      let resultItems: any[] = [];
+      
+      if (Array.isArray(items)) {
+        // items가 배열인 경우: items[].item 구조
+        resultItems = items
+          .map((wrapper: any) => wrapper.item)
+          .filter((item: any) => item && Object.keys(item).length > 0);
+      }
       
       if (!Array.isArray(resultItems) || resultItems.length === 0) {
         console.log(`[건강기능식품-원료명] 검색 결과 없음: ${rawMaterial}`);
