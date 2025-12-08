@@ -215,6 +215,15 @@ const MedicineRadarChart = ({ medicines }) => {
       datasets
     };
 
+    // 💾 Tooltip에서 사용할 원시 데이터를 바인딩 (클로저 문제 해결)
+    const rawDataForTooltip = {
+      avgSideEffectCount,
+      maxInteractionCount,
+      avgDailyFrequency,
+      maxDailyFrequency,
+      totalMedicineCount
+    };
+
     const options = {
       responsive: true,
       maintainAspectRatio: false,
@@ -250,17 +259,17 @@ const MedicineRadarChart = ({ medicines }) => {
               const label = context.label;
               const value = context.parsed.r.toFixed(1);
               
-              // 원시 데이터 표시
+              // 원시 데이터 표시 (바인딩된 객체 사용)
               if (label.includes('평균 부작용')) {
-                return `${value}점 (평균 ${avgSideEffectCount.toFixed(1)}개 문구)`;
+                return `${value}점 (평균 ${rawDataForTooltip.avgSideEffectCount.toFixed(1)}개 문구)`;
               } else if (label.includes('최대 상호작용')) {
-                return `${value}점 (최대 ${maxInteractionCount}개 위험)`;
+                return `${value}점 (최대 ${rawDataForTooltip.maxInteractionCount}개 위험)`;
               } else if (label.includes('평균 복용')) {
-                return `${value}점 (평균 1일 ${avgDailyFrequency.toFixed(1)}회)`;
+                return `${value}점 (평균 1일 ${rawDataForTooltip.avgDailyFrequency.toFixed(1)}회)`;
               } else if (label.includes('최대 복용')) {
-                return `${value}점 (최대 1일 ${maxDailyFrequency}회)`;
+                return `${value}점 (최대 1일 ${rawDataForTooltip.maxDailyFrequency}회)`;
               } else if (label.includes('관리 용이성')) {
-                return `${value}점 (총 ${totalMedicineCount}개 약품)`;
+                return `${value}점 (총 ${rawDataForTooltip.totalMedicineCount}개 약품)`;
               }
               return `${value}점`;
             },
