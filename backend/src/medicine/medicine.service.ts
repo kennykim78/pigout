@@ -108,34 +108,43 @@ export class MedicineService {
       // 사용자가 요청한 numOfRows 개수를 존중하되, 최소 100개는 조회하여 필터링 여유 확보
       const apiLimit = Math.max(numOfRows * 2, 100);
       
-      // 1. 약품명으로 검색
+      // 1️⃣ 약품명으로 검색 (1차 - 필수)
       let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
       
-      // 2. 효능(질병)으로도 검색
-      const efficacyResults = await this.externalApiClient.searchMedicineByEfficacy(keyword, apiLimit);
-      
-      // 3. 제조사로도 검색
-      const manufacturerResults = await this.externalApiClient.searchMedicineByManufacturer(keyword, apiLimit);
-      
-      // 🆕 AI 생성 데이터 필터링 - AI 더미 데이터는 실제 API 결과가 있으면 제거
-      // AI 생성 데이터는 itemSeq가 "AI_"로 시작함
+      // 실제 데이터인지 확인 (AI 생성 데이터는 itemSeq가 "AI_"로 시작)
       const hasRealNameResults = nameResults.some((item: any) => 
         item.itemSeq && !item.itemSeq.startsWith('AI_')
       );
       
-      // 약품명 검색 결과에 AI 생성 데이터만 있고, 효능이나 제조사에서 실제 데이터가 있으면 AI 데이터 제거
-      if (!hasRealNameResults && (efficacyResults.length > 0 || manufacturerResults.length > 0)) {
-        console.log(`[약품 검색] 약품명 검색에서 AI 생성 데이터만 발견 - 제거`);
-        nameResults = [];
+      let efficacyResults: any[] = [];
+      let manufacturerResults: any[] = [];
+      
+      // 2️⃣ 약품명 검색에서 실제 결과가 없을 때만 효능/제조사 검색 (2차)
+      if (!hasRealNameResults) {
+        console.log(`[약품 검색] 약품명 검색 결과 없음 - 효능/제조사 검색 시작`);
+        
+        // 2-1. 효능(질병)으로 검색
+        efficacyResults = await this.externalApiClient.searchMedicineByEfficacy(keyword, apiLimit);
+        
+        // 2-2. 제조사로 검색
+        manufacturerResults = await this.externalApiClient.searchMedicineByManufacturer(keyword, apiLimit);
+        
+        // 약품명 검색 결과에 AI 생성 데이터만 있으면 제거
+        if (efficacyResults.length > 0 || manufacturerResults.length > 0) {
+          console.log(`[약품 검색] 약품명 AI 데이터 제거 - 효능/제조사 검색 결과 사용`);
+          nameResults = [];
+        }
+      } else {
+        console.log(`[약품 검색] 약품명 검색에서 실제 결과 발견 - 효능/제조사 검색 스킵 ⏭️`);
       }
       
-      // 4. 결과 병합 및 중복 제거 (itemSeq 기준)
+      // 3️⃣ 결과 병합 및 중복 제거 (itemSeq 기준)
       const combinedResults = [...nameResults, ...efficacyResults, ...manufacturerResults];
       const uniqueResults = Array.from(
         new Map(combinedResults.map(item => [item.itemSeq, item])).values()
       );
       
-      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건, 중복제거 후: ${uniqueResults.length}건`);
+      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건, 최종: ${uniqueResults.length}건`);
       
       if (!uniqueResults || uniqueResults.length === 0) {
         console.log(`[약품 검색] API 결과 없음 - 제품 유형 판단 시작`);

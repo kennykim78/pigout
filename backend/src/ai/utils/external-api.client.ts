@@ -1278,26 +1278,49 @@ export class ExternalApiClient {
   }
 
   /**
-   * 효능(질병)으로 약품 검색
+   * 효능(질병)으로 약품 검색 (2차 검색 용도)
+   * 약품명 검색에서 결과가 없을 때만 호출됨
    * @param efficacy 효능/질병 키워드 (예: "두통", "감기", "혈압")
    * @param numOfRows 검색 결과 수
    */
   async searchMedicineByEfficacy(efficacy: string, numOfRows: number = 20): Promise<any> {
     try {
       if (!this.SERVICE_KEY) {
-        console.warn('[e약은요] MFDS_API_KEY 미설정');
+        console.warn('[효능 검색] MFDS_API_KEY 미설정');
         return [];
       }
       
-      // 🔧 효능으로 직접 검색하지 않고, 약품명 검색으로 통합
-      // e약은요 API는 efcyQesitm 파라미터를 지원하지 않으므로, 효능 관련 검색은 약품명 검색으로 대체
-      console.log(`[효능 검색] 약품명 검색으로 통합: ${efficacy}`);
+      // ================================================================
+      // 0단계: DB 캐시 확인 (효능 검색 결과도 캐시에서 조회)
+      // ================================================================
+      if (this.supabaseService) {
+        const cachedResults = await this.supabaseService.getMedicineCached(efficacy);
+        if (cachedResults && cachedResults.length > 0) {
+          const validResults = cachedResults.filter((item: any) => 
+            item.itemName && item.itemName.trim() !== ''
+          );
+          
+          if (validResults.length > 0) {
+            console.log(`[효능 검색-캐시] ✅ DB 캐시 히트: ${efficacy} (${validResults.length}건) - API 호출 생략`);
+            return validResults;
+          }
+        }
+      }
       
-      // 효능(질병명)을 약품명으로 검색 (예: "감기" → 감기약 검색)
+      // ================================================================
+      // 1단계: 효능(질병명)을 약품명으로 검색 (e약은요 API는 효능 직접 검색 미지원)
+      // 예: "감기" → 감기 관련 약품 검색
+      // ================================================================
+      console.log(`[효능 검색] 약품명 기반 검색 시작: ${efficacy}`);
+      
       const results = await this.getMedicineInfo(efficacy, numOfRows);
       
       if (results && results.length > 0) {
-        console.log(`[효능 검색] ${results.length}건 검색됨`);
+        console.log(`[효능 검색] ✅ ${results.length}건 검색됨 - 캐시 저장`);
+        // 캐시에 저장
+        if (this.supabaseService) {
+          await this.supabaseService.saveMedicineCache(efficacy, results, '효능검색');
+        }
         return results;
       }
       
