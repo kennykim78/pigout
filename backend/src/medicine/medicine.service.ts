@@ -112,8 +112,9 @@ export class MedicineService {
       let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
       
       // 실제 데이터인지 확인 (AI 생성 데이터 제외)
+      // _isAIGenerated가 없으면 실제 데이터로 간주
       const hasRealNameResults = nameResults.some((item: any) => 
-        !item._isAIGenerated && item.itemSeq && !item.itemSeq.startsWith('AI_')
+        item._isAIGenerated !== true && item.itemSeq && !item.itemSeq.startsWith('AI_')
       );
       
       let efficacyResults: any[] = [];
@@ -140,8 +141,9 @@ export class MedicineService {
       console.log(`[약품 검색] 중복제거 후: ${uniqueResults.length}건`);
       
       // 🔒 4️⃣ 최종 필터링: AI 생성 데이터만 제거 (실제 데이터만 반환)
+      // _isAIGenerated가 명시적으로 true인 것만 제거 (undefined는 실제 데이터로 간주)
       const realResults = uniqueResults.filter((item: any) => 
-        !item._isAIGenerated  // AI 생성 데이터 제거
+        item._isAIGenerated !== true  // AI 생성 데이터만 제거
       );
       
       console.log(`[약품 검색] AI 데이터 필터링 후: ${realResults.length}건`);
