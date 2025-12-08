@@ -424,18 +424,19 @@ const Medicine = () => {
               </button>
             </div>
           ) : (
-            (() => {
-              console.log('🟢🟢🟢 [Medicine.jsx] 차트 렌더링 블록 진입!');
-              console.log('🟢🟢🟢 [Medicine.jsx] 차트에 전달할 약품 개수:', medicines.length);
-              console.log('🟢🟢🟢 [Medicine.jsx] 차트에 전달할 약품 데이터:', medicines);
+            <div>
+              <p style={{ color: 'red', fontWeight: 'bold', fontSize: '20px' }}>
+                🟢 렌더링 블록 진입 성공! 약품 개수: {medicines.length}
+              </p>
+              {console.log('🟢🟢🟢 [Medicine.jsx] 차트 렌더링 블록 진입!')}
+              {console.log('🟢🟢🟢 [Medicine.jsx] 차트에 전달할 약품 개수:', medicines.length)}
+              {console.log('🟢🟢🟢 [Medicine.jsx] 차트에 전달할 약품 데이터:', medicines)}
               
-              return (
-                <>
-                  {/* 🔴 Phase 1: 약품 성분 분석 레이더 차트 */}
-                  <MedicineRadarChart medicines={medicines} />
+              {/* 🔴 Phase 1: 약품 성분 분석 레이더 차트 */}
+              <MedicineRadarChart medicines={medicines} />
 
-                  {/* 🟡 Phase 1: 복용 시간표 */}
-                  <MedicineSchedule medicines={medicines} />
+              {/* 🟡 Phase 1: 복용 시간표 */}
+              <MedicineSchedule medicines={medicines} />
 
               {/* 🟢 Phase 2: 한 줄 상호작용 분석 */}
               <MedicineCorrelationSummary medicines={medicines} />
@@ -591,9 +592,7 @@ const Medicine = () => {
                   </p>
                 </div>
               ))}
-                </>
-              );
-            })()
+            </div>
           )}
         </div>
       )}
