@@ -42,17 +42,55 @@
     text-align: center;
   }
 
+  .chart-canvas-wrapper {
+    position: relative;
+    height: 400px;
+    width: 100%;
+    margin: 20px 0;
+    
+    canvas {
+      max-width: 100%;
+    }
+  }
+
   .chart-footer {
     margin-top: 16px;
     padding-top: 12px;
     border-top: 1px solid #f5d547;
-    display: flex;
-    justify-content: flex-end;
 
-    p {
-      margin: 0;
-      font-size: 12px;
-      color: #999;
+    .chart-legend-info {
+      p {
+        margin: 0 0 12px 0;
+        font-size: 13px;
+        color: #333;
+        
+        strong {
+          color: #f5d547;
+        }
+      }
+
+      .indicator-list {
+        list-style: none;
+        padding: 0;
+        margin: 0;
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+        gap: 8px;
+
+        li {
+          font-size: 12px;
+          color: #666;
+          padding: 6px 12px;
+          background: rgba(245, 213, 71, 0.05);
+          border-radius: 6px;
+          border-left: 3px solid #f5d547;
+
+          strong {
+            color: #333;
+            font-weight: 600;
+          }
+        }
+      }
     }
   }
 }
@@ -81,12 +119,30 @@
       font-size: 12px;
     }
 
+    .chart-canvas-wrapper {
+      height: 320px;
+      margin: 16px 0;
+    }
+
     .chart-footer {
       margin-top: 12px;
       padding-top: 10px;
 
-      p {
-        font-size: 11px;
+      .chart-legend-info {
+        p {
+          font-size: 12px;
+          margin-bottom: 10px;
+        }
+
+        .indicator-list {
+          grid-template-columns: 1fr;
+          gap: 6px;
+
+          li {
+            font-size: 11px;
+            padding: 5px 10px;
+          }
+        }
       }
     }
   }
@@ -97,6 +153,34 @@
     padding: 12px;
     margin-bottom: 16px;
     border-radius: 8px;
+
+    .chart-header {
+      h3 {
+        font-size: 15px;
+      }
+    }
+
+    .chart-canvas-wrapper {
+      height: 280px;
+      margin: 12px 0;
+    }
+
+    .chart-footer {
+      .chart-legend-info {
+        p {
+          font-size: 11px;
+        }
+
+        .indicator-list {
+          li {
+            font-size: 10px;
+            padding: 4px 8px;
+          }
+        }
+      }
+    }
+  }
+}
 
     &.empty {
       min-height: 120px;

@@ -210,9 +210,9 @@ const Medicine = () => {
         const results = Array.isArray(response) ? response : (response.results || []);
         setSearchResults(results);
         
-        // 100개 이상 결과 알럿
-        if (results.length >= 100) {
-          alert('검색결과가 100개 이상입니다.\n정확한 명칭이나, 제조사 등 세부적으로 검색바랍니다.');
+        // 200개 이상 결과 알럿
+        if (results.length >= 200) {
+          alert('검색결과가 200개 이상입니다.\n정확한 명칭이나, 제조사 등 세부적으로 검색바랍니다.');
         }
       }
     } catch (error) {
@@ -249,9 +249,9 @@ const Medicine = () => {
         const results = Array.isArray(response) ? response : (response.results || []);
         setHealthFoodResults(results);
         
-        // 100개 이상 결과 알럿
-        if (results.length >= 100) {
-          alert('검색결과가 100개 이상입니다.\n정확한 명칭이나, 제조사 등 세부적으로 검색바랍니다.');
+        // 200개 이상 결과 알럿
+        if (results.length >= 200) {
+          alert('검색결과가 200개 이상입니다.\n정확한 명칭이나, 제조사 등 세부적으로 검색바랍니다.');
         }
       }
     } catch (error) {

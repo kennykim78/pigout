@@ -6,6 +6,7 @@ import * as crypto from 'crypto';
 @Injectable()
 export class SupabaseService {
   private supabase: SupabaseClient;
+  private medicineDetailCacheAvailable = true;
 
   constructor(private configService: ConfigService) {
     const supabaseUrl = this.configService.get<string>('SUPABASE_URL') || process.env.SUPABASE_URL;
@@ -41,6 +42,21 @@ export class SupabaseService {
 
   getClient(): SupabaseClient {
     return this.supabase;
+  }
+
+  /**
+   * 약품 상세 캐시 테이블이 없을 때 캐시 기능을 조용히 비활성화하여 반복 오류를 막는다.
+   */
+  private handleMedicineDetailCacheMissing(error: any, context: string): boolean {
+    const message = String(error?.message || error || '').toLowerCase();
+    if (message.includes('medicine_detail_cache')) {
+      if (this.medicineDetailCacheAvailable) {
+        console.warn(`[MedicineDetailCache] 테이블 없음 → 캐시 비활성화 (${context}): ${message}`);
+      }
+      this.medicineDetailCacheAvailable = false;
+      return true;
+    }
+    return false;
   }
 
   // 음식 정보 저장
@@ -445,6 +461,10 @@ export class SupabaseService {
    */
   async getMedicineDetailCache(itemSeq: string, entpName: string): Promise<any> {
     try {
+      if (!this.medicineDetailCacheAvailable) {
+        return null;
+      }
+
       const cacheKey = `${itemSeq}|${entpName}`.toLowerCase().trim();
 
       const { data, error } = await this.supabase
@@ -453,7 +473,14 @@ export class SupabaseService {
         .eq('cache_key', cacheKey)
         .single();
 
-      if (error || !data) {
+      if (error) {
+        if (this.handleMedicineDetailCacheMissing(error, 'get')) {
+          return null;
+        }
+        return null;
+      }
+
+      if (!data) {
         return null;
       }
 
@@ -501,6 +528,10 @@ export class SupabaseService {
     source: string = 'e약은요',
   ): Promise<void> {
     try {
+      if (!this.medicineDetailCacheAvailable) {
+        return;
+      }
+
       const cacheKey = `${itemSeq}|${entpName}`.toLowerCase().trim();
       const expiresAt = new Date();
       expiresAt.setMonth(expiresAt.getMonth() + 6); // 6개월 후 만료
@@ -524,11 +555,17 @@ export class SupabaseService {
         );
 
       if (error) {
+        if (this.handleMedicineDetailCacheMissing(error, 'save')) {
+          return;
+        }
         console.warn(`[MedicineDetailCache] 저장 실패:`, error.message);
       } else {
         console.log(`[MedicineDetailCache] 저장 완료: ${itemSeq} / ${entpName} (출처: ${source})`);
       }
     } catch (error) {
+      if (this.handleMedicineDetailCacheMissing(error, 'save')) {
+        return;
+      }
       console.warn(`[MedicineDetailCache] 저장 오류:`, error.message);
     }
   }
@@ -538,6 +575,10 @@ export class SupabaseService {
    */
   async cleanupExpiredMedicineCache(): Promise<number> {
     try {
+      if (!this.medicineDetailCacheAvailable) {
+        return 0;
+      }
+
       const { data, error } = await this.supabase
         .from('medicine_detail_cache')
         .delete()
@@ -545,6 +586,9 @@ export class SupabaseService {
         .select('id');
 
       if (error) {
+        if (this.handleMedicineDetailCacheMissing(error, 'cleanup')) {
+          return 0;
+        }
         console.warn(`[MedicineDetailCache] 정리 실패:`, error.message);
         return 0;
       }
@@ -562,11 +606,18 @@ export class SupabaseService {
    */
   async getMedicineDetailCacheStatistics(): Promise<any> {
     try {
+      if (!this.medicineDetailCacheAvailable) {
+        return null;
+      }
+
       const { data, error } = await this.supabase
         .from('medicine_detail_cache')
         .select('item_seq, entp_name, hit_count, source, created_at');
 
       if (error || !data) {
+        if (error && this.handleMedicineDetailCacheMissing(error, 'stats')) {
+          return null;
+        }
         return null;
       }
 
