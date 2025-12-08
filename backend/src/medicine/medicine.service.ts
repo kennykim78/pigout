@@ -573,10 +573,10 @@ export class MedicineService {
     // DB 필드(snake_case)를 프론트엔드 필드(camelCase)로 변환
     // qr_code_data JSON에서 API 상세 정보 추출
     return data.map(record => {
-      let qrData = {};
+      let qrData: any = {};
       try {
         qrData = record.qr_code_data ? JSON.parse(record.qr_code_data) : {};
-      } catch (err) {
+      } catch (err: any) {
         console.warn(`[getMyMedicines] qr_code_data 파싱 실패 (ID: ${record.id}):`, err.message);
       }
 
