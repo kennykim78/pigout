@@ -131,11 +131,7 @@ export class MedicineService {
       
       console.log(`[약품 검색] 결과 - 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건`);
       
-      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건 (실제 데이터: ${hasRealResults ? '있음' : '없음'})`);
-      
-      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건 (실제 데이터: ${hasRealResults ? '있음' : '없음'}`);
-      
-      // 4️⃣ 결과 병합 및 중복 제거 (itemSeq 기준)
+      // 3️⃣ 결과 병합 및 중복 제거 (itemSeq 기준)
       const combinedResults = [...nameResults, ...efficacyResults, ...manufacturerResults];
       const uniqueResults = Array.from(
         new Map(combinedResults.map(item => [item.itemSeq, item])).values()
