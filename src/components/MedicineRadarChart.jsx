@@ -19,12 +19,26 @@ const MedicineRadarChart = ({ medicines }) => {
   console.log('🔴🔴🔴 [MedicineRadarChart] medicines 타입:', typeof medicines);
   console.log('🔴🔴🔴 [MedicineRadarChart] medicines 배열 여부:', Array.isArray(medicines));
   console.log('🔴🔴🔴 [MedicineRadarChart] medicines 길이:', medicines?.length);
+
+  // 🆘 에러 발생 시 명확히 표시
+  if (!medicines) {
+    console.error('🔴🔴🔴 [MedicineRadarChart] medicines가 undefined/null입니다!');
+    return <div className="radar-chart-container empty"><p className="empty-message">❌ 데이터 로드 실패</p></div>;
+  }
+
+  if (!Array.isArray(medicines)) {
+    console.error('🔴🔴🔴 [MedicineRadarChart] medicines가 배열이 아닙니다! 타입:', typeof medicines);
+    return <div className="radar-chart-container empty"><p className="empty-message">❌ 잘못된 데이터 형식</p></div>;
+  }
   
   /**
    * 전체 약품에 대한 종합 프로파일 계산 및 정규화 (0-100 스케일)
    */
-  const { chartData, chartOptions, detailedData } = useMemo(() => {
-    console.log('[MedicineRadarChart] useMemo 실행 시작! 받은 약품 데이터:', medicines);
+  let chartData, chartOptions, detailedData;
+  
+  try {
+    const result = useMemo(() => {
+      console.log('[MedicineRadarChart] useMemo 실행 시작! 받은 약품 데이터:', medicines);
     
     if (!medicines || medicines.length === 0) {
       console.log('[MedicineRadarChart] 약품 없음 → 빈 차트');
@@ -227,7 +241,20 @@ const MedicineRadarChart = ({ medicines }) => {
     ];
 
     return { chartData: radarData, chartOptions: null, detailedData: individualScores };
-  }, [medicines]);
+    }, [medicines]);
+    
+    chartData = result.chartData;
+    chartOptions = result.chartOptions;
+    detailedData = result.detailedData;
+  } catch (error) {
+    console.error('🔴🔴🔴 [MedicineRadarChart] useMemo 실행 중 에러 발생:', error);
+    console.error('🔴🔴🔴 [MedicineRadarChart] 에러 스택:', error.stack);
+    return (
+      <div className="radar-chart-container empty">
+        <p className="empty-message">❌ 차트 계산 중 오류 발생: {error.message}</p>
+      </div>
+    );
+  }
 
   console.log('[MedicineRadarChart] useMemo 완료 - chartData:', chartData ? '존재' : '없음');
   console.log('[MedicineRadarChart] detailedData:', detailedData);
