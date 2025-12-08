@@ -1,25 +1,6 @@
 import React, { useMemo } from 'react';
-import { Radar } from 'react-chartjs-2';
-import {
-  Chart as ChartJS,
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-  Legend
-} from 'chart.js';
+import { RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, Radar, Legend, Tooltip, ResponsiveContainer } from 'recharts';
 import './MedicineRadarChart.scss';
-
-// Chart.js 컴포넌트 등록
-ChartJS.register(
-  RadialLinearScale,
-  PointElement,
-  LineElement,
-  Filler,
-  Tooltip,
-  Legend
-);
 
 /**
  * 다수 약품 복용자를 위한 종합 위험도 방사형 그래프
@@ -206,127 +187,46 @@ const MedicineRadarChart = ({ medicines }) => {
         pointBackgroundColor: 'rgba(54, 162, 235, 1)',
         pointBorderColor: '#fff',
         pointBorderWidth: 3,
+    // 🔹 단계 4: Recharts용 데이터 포맷 변환
+    const radarData = [
+      { 
+        subject: '평균 부작용\n안전성', 
+        value: c1_normalized,
+        fullMark: 100,
+        rawValue: `평균 ${avgSideEffectCount.toFixed(1)}개 문구`,
+        category: 'C1'
+      },
+      { 
+        subject: '최대 상호작용\n안전성', 
+        value: c2_normalized,
+        fullMark: 100,
+        rawValue: `최대 ${maxInteractionCount}개 위험`,
+        category: 'C2'
+      },
+      { 
+        subject: '평균 복용\n편의성', 
+        value: c3_normalized,
+        fullMark: 100,
+        rawValue: `평균 1일 ${avgDailyFrequency.toFixed(1)}회`,
+        category: 'C3'
+      },
+      { 
+        subject: '최대 복용\n편의성', 
+        value: c4_normalized,
+        fullMark: 100,
+        rawValue: `최대 1일 ${maxDailyFrequency}회`,
+        category: 'C4'
+      },
+      { 
+        subject: '약품 관리\n용이성', 
+        value: 100 - c5_normalized,
+        fullMark: 100,
+        rawValue: `총 ${totalMedicineCount}개 약품`,
+        category: 'C5'
       }
     ];
 
-    const data = {
-      labels: [
-        '평균 부작용 안전성',     // C1 (전체 약품의 부작용 평균)
-        '최대 상호작용 안전성',   // C2 (가장 위험한 약품 기준)
-        '평균 복용 편의성',       // C3 (전체 약품의 복용 빈도 평균)
-        '최대 복용 편의성',       // C4 (가장 불편한 약품 기준)
-        '약품 관리 용이성'        // C5 (약품 개수, 적을수록 관리 쉬움)
-      ],
-      datasets
-    };
-
-    // 💾 Tooltip에서 사용할 원시 데이터를 바인딩 (클로저 문제 해결)
-    const rawDataForTooltip = {
-      avgSideEffectCount,
-      maxInteractionCount,
-      avgDailyFrequency,
-      maxDailyFrequency,
-      totalMedicineCount
-    };
-
-    const options = {
-      responsive: true,
-      maintainAspectRatio: false,
-      plugins: {
-        legend: {
-          position: 'top',
-          labels: {
-            font: {
-              size: 14,
-              family: "'Noto Sans KR', sans-serif",
-              weight: 'bold'
-            },
-            padding: 20,
-            usePointStyle: true,
-            pointStyle: 'circle',
-          }
-        },
-        tooltip: {
-          backgroundColor: 'rgba(0, 0, 0, 0.9)',
-          titleFont: {
-            size: 15,
-            family: "'Noto Sans KR', sans-serif",
-            weight: 'bold'
-          },
-          bodyFont: {
-            size: 14,
-            family: "'Noto Sans KR', sans-serif"
-          },
-          padding: 15,
-          displayColors: true,
-          callbacks: {
-            label: function(context) {
-              const label = context.label;
-              const value = context.parsed.r.toFixed(1);
-              
-              // 원시 데이터 표시 (바인딩된 객체 사용)
-              if (label.includes('평균 부작용')) {
-                return `${value}점 (평균 ${rawDataForTooltip.avgSideEffectCount.toFixed(1)}개 문구)`;
-              } else if (label.includes('최대 상호작용')) {
-                return `${value}점 (최대 ${rawDataForTooltip.maxInteractionCount}개 위험)`;
-              } else if (label.includes('평균 복용')) {
-                return `${value}점 (평균 1일 ${rawDataForTooltip.avgDailyFrequency.toFixed(1)}회)`;
-              } else if (label.includes('최대 복용')) {
-                return `${value}점 (최대 1일 ${rawDataForTooltip.maxDailyFrequency}회)`;
-              } else if (label.includes('관리 용이성')) {
-                return `${value}점 (총 ${rawDataForTooltip.totalMedicineCount}개 약품)`;
-              }
-              return `${value}점`;
-            },
-            footer: function(tooltipItems) {
-              const value = tooltipItems[0].parsed.r;
-              if (value >= 80) return '✅ 매우 안전/편리';
-              if (value >= 60) return '👍 양호';
-              if (value >= 40) return '⚠️ 보통';
-              return '🚨 주의 필요';
-            }
-          }
-        }
-      },
-      scales: {
-        r: {
-          min: 0,
-          max: 100,
-          beginAtZero: true,
-          ticks: {
-            stepSize: 20,
-            font: {
-              size: 12,
-              weight: 'bold'
-            },
-            backdropColor: 'rgba(255, 255, 255, 0.9)',
-            callback: function(value) {
-              return value;
-            }
-          },
-          pointLabels: {
-            font: {
-              size: 13,
-              family: "'Noto Sans KR', sans-serif",
-              weight: 'bold'
-            },
-            color: '#222',
-            padding: 18,
-          },
-          grid: {
-            color: 'rgba(0, 0, 0, 0.15)',
-            circular: true,
-            lineWidth: 1.5
-          },
-          angleLines: {
-            color: 'rgba(0, 0, 0, 0.15)',
-            lineWidth: 1.5
-          }
-        }
-      }
-    };
-
-    return { chartData: data, chartOptions: options, detailedData: individualScores };
+    return { chartData: radarData, chartOptions: null, detailedData: individualScores };
   }, [medicines]);
 
   console.log('[MedicineRadarChart] useMemo 완료 - chartData:', chartData ? '존재' : '없음');
@@ -341,7 +241,42 @@ const MedicineRadarChart = ({ medicines }) => {
     );
   }
 
-  console.log('[MedicineRadarChart] 차트 렌더링 시작');
+  console.log('[MedicineRadarChart] 차트 렌더링 시작 - Recharts 사용');
+
+  // Custom Tooltip for Recharts
+  const CustomTooltip = ({ active, payload }) => {
+    if (active && payload && payload.length) {
+      const data = payload[0].payload;
+      const value = data.value.toFixed(1);
+      
+      let status = '🚨 주의 필요';
+      if (value >= 80) status = '✅ 매우 안전/편리';
+      else if (value >= 60) status = '👍 양호';
+      else if (value >= 40) status = '⚠️ 보통';
+      
+      return (
+        <div style={{
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
+          color: 'white',
+          padding: '12px 16px',
+          borderRadius: '8px',
+          fontSize: '14px',
+          fontFamily: "'Noto Sans KR', sans-serif"
+        }}>
+          <p style={{ margin: '0 0 6px', fontWeight: 'bold', fontSize: '15px' }}>
+            {data.subject.replace('\n', ' ')}
+          </p>
+          <p style={{ margin: '0 0 6px' }}>
+            {value}점 ({data.rawValue})
+          </p>
+          <p style={{ margin: 0, fontSize: '13px', opacity: 0.9 }}>
+            {status}
+          </p>
+        </div>
+      );
+    }
+    return null;
+  };
 
   return (
     <div className="radar-chart-container">
@@ -351,8 +286,46 @@ const MedicineRadarChart = ({ medicines }) => {
           복용 중인 {medicines.length}개 약품을 통합 분석한 종합 지표입니다
         </p>
       </div>
-      <div className="chart-canvas-wrapper">
-        <Radar data={chartData} options={chartOptions} />
+      <div className="chart-canvas-wrapper" style={{ width: '100%', height: '500px' }}>
+        <ResponsiveContainer width="100%" height="100%">
+          <RadarChart data={chartData}>
+            <PolarGrid stroke="rgba(0, 0, 0, 0.15)" />
+            <PolarAngleAxis 
+              dataKey="subject" 
+              tick={{ 
+                fill: '#222', 
+                fontSize: 13, 
+                fontWeight: 'bold',
+                fontFamily: "'Noto Sans KR', sans-serif"
+              }}
+            />
+            <PolarRadiusAxis 
+              angle={90} 
+              domain={[0, 100]} 
+              tick={{ fontSize: 12, fontWeight: 'bold' }}
+              tickCount={6}
+            />
+            <Radar
+              name={`전체 약품 종합 프로파일 (${medicines.length}개)`}
+              dataKey="value"
+              stroke="#3498db"
+              fill="#3498db"
+              fillOpacity={0.4}
+              strokeWidth={3}
+              dot={{ fill: '#3498db', r: 5 }}
+              activeDot={{ fill: '#3498db', r: 7 }}
+            />
+            <Tooltip content={<CustomTooltip />} />
+            <Legend 
+              wrapperStyle={{
+                paddingTop: '20px',
+                fontFamily: "'Noto Sans KR', sans-serif",
+                fontWeight: 'bold',
+                fontSize: '14px'
+              }}
+            />
+          </RadarChart>
+        </ResponsiveContainer>
       </div>
       <div className="chart-footer">
         <div className="chart-legend-info">
