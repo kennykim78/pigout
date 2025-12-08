@@ -152,11 +152,6 @@ export class MedicineService {
         new Map(combinedResults.map(item => [item.itemSeq, item])).values()
       );
       
-      const combinedResults = [...nameResults, ...efficacyResults, ...manufacturerResults];
-      const uniqueResults = Array.from(
-        new Map(combinedResults.map(item => [item.itemSeq, item])).values()
-      );
-      
       console.log(`[약품 검색] 중복제거 후: ${uniqueResults.length}건`);
       
       // 🔒 4️⃣ 최종 필터링: AI 생성 데이터만 제거 (실제 데이터만 반환)
