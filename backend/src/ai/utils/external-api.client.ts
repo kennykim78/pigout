@@ -193,17 +193,20 @@ export class ExternalApiClient {
       if (this.supabaseService) {
         const cachedResults = await this.supabaseService.getMedicineCached(medicineName);
         if (cachedResults && cachedResults.length > 0) {
-          // 캐시된 데이터 유효성 검사: itemName이 비어있거나 잘못된 데이터 필터링
+          // 캐시된 데이터 유효성 검사: AI 생성 데이터는 캐시에서 제거
           const validResults = cachedResults.filter((item: any) => 
-            item.itemName && item.itemName.trim() !== ''
+            item.itemName && 
+            item.itemName.trim() !== '' &&
+            item._isAIGenerated !== true &&  // AI 생성 데이터 제외
+            !item.itemSeq?.startsWith('AI_')  // AI itemSeq 제외
           );
           
           if (validResults.length > 0) {
             console.log(`[0단계-캐시] ✅ DB 캐시 히트: ${medicineName} (${validResults.length}건) - API 호출 생략`);
             return validResults;
           } else {
-            console.log(`[0단계-캐시] ⚠️ 캐시 데이터 무효 (itemName 비어있음): ${medicineName} - API 재조회`);
-            // 무효한 캐시 삭제
+            console.log(`[0단계-캐시] ⚠️ 캐시에 AI 생성 데이터만 존재: ${medicineName} - 캐시 삭제 후 API 재조회`);
+            // AI 생성 캐시 삭제
             await this.supabaseService.deleteMedicineCache(medicineName);
           }
         }
