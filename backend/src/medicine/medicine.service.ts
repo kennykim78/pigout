@@ -491,28 +491,25 @@ export class MedicineService {
 
     console.log(`[약 등록] ${itemName} (${entpName})`);
 
-    // 완전한 약 정보를 DB에 저장 (API 필드 + DB 필드)
+    // DB 저장 (기본 필드만, API 상세 정보는 qr_code_data JSON에 저장)
     const recordData = {
       user_id: userId,
       name: itemName,
-      item_name: itemName,  // API 필드: 약품명
       drug_class: entpName,
-      entp_name: entpName,  // API 필드: 제조사
       dosage: medicineData.dosage || null,
       frequency: medicineData.frequency || null,
-      // API 상세 정보 필드
-      item_seq: itemSeq || null,
-      efcy_qesitm: medicineData.efcyQesitm || null,  // 효능
-      use_method_qesitm: medicineData.useMethodQesitm || null,  // 용법
-      atpn_warn_qesitm: medicineData.atpnWarnQesitm || null,  // 주의사항
-      intrc_qesitm: medicineData.intrcQesitm || null,  // 상호작용
-      se_qesitm: medicineData.seQesitm || null,  // 부작용
-      deposit_method_qesitm: medicineData.depositMethodQesitm || null,  // 보관방법
-      // QR 데이터 (이전 호환성)
+      // 모든 API 상세 정보를 qr_code_data JSON에 포함
       qr_code_data: JSON.stringify({
         itemSeq: itemSeq,
-        efficacy: medicineData.efcyQesitm,
-        manufacturer: entpName,
+        itemName: itemName,
+        entpName: entpName,
+        efcyQesitm: medicineData.efcyQesitm || null,
+        useMethodQesitm: medicineData.useMethodQesitm || null,
+        atpnWarnQesitm: medicineData.atpnWarnQesitm || null,
+        atpnQesitm: medicineData.atpnQesitm || null,
+        intrcQesitm: medicineData.intrcQesitm || null,
+        seQesitm: medicineData.seQesitm || null,
+        depositMethodQesitm: medicineData.depositMethodQesitm || null,
       }),
       is_active: true,
     };
@@ -574,31 +571,41 @@ export class MedicineService {
     if (error) throw error;
 
     // DB 필드(snake_case)를 프론트엔드 필드(camelCase)로 변환
-    return data.map(record => ({
-      id: record.id,
-      userId: record.user_id,
-      name: record.name,
-      itemName: record.item_name || record.name,
-      drugClass: record.drug_class,
-      entpName: record.entp_name || record.drug_class,
-      dosage: record.dosage,
-      frequency: record.frequency,
-      // API 상세 정보 필드 (camelCase 변환)
-      itemSeq: record.item_seq,
-      efcyQesitm: record.efcy_qesitm,
-      useMethodQesitm: record.use_method_qesitm,
-      atpnWarnQesitm: record.atpn_warn_qesitm,
-      atpnQesitm: record.atpn_qesitm,
-      intrcQesitm: record.intrc_qesitm,
-      seQesitm: record.se_qesitm,
-      depositMethodQesitm: record.deposit_method_qesitm,
-      qrCodeData: record.qr_code_data,
-      isActive: record.is_active,
-      createdAt: record.created_at,
-      updatedAt: record.updated_at,
-      // 차트용 추가 메타데이터
-      _hasDetailedInfo: !!(record.efcy_qesitm || record.se_qesitm || record.intrc_qesitm),
-    }));
+    // qr_code_data JSON에서 API 상세 정보 추출
+    return data.map(record => {
+      let qrData = {};
+      try {
+        qrData = record.qr_code_data ? JSON.parse(record.qr_code_data) : {};
+      } catch (err) {
+        console.warn(`[getMyMedicines] qr_code_data 파싱 실패 (ID: ${record.id}):`, err.message);
+      }
+
+      return {
+        id: record.id,
+        userId: record.user_id,
+        name: record.name,
+        itemName: qrData.itemName || record.name,
+        drugClass: record.drug_class,
+        entpName: qrData.entpName || record.drug_class,
+        dosage: record.dosage,
+        frequency: record.frequency,
+        // qr_code_data에서 API 상세 정보 추출
+        itemSeq: qrData.itemSeq,
+        efcyQesitm: qrData.efcyQesitm,
+        useMethodQesitm: qrData.useMethodQesitm,
+        atpnWarnQesitm: qrData.atpnWarnQesitm,
+        atpnQesitm: qrData.atpnQesitm,
+        intrcQesitm: qrData.intrcQesitm,
+        seQesitm: qrData.seQesitm,
+        depositMethodQesitm: qrData.depositMethodQesitm,
+        qrCodeData: record.qr_code_data,
+        isActive: record.is_active,
+        createdAt: record.created_at,
+        updatedAt: record.updated_at,
+        // 차트용 추가 메타데이터
+        _hasDetailedInfo: !!(qrData.efcyQesitm || qrData.seQesitm || qrData.intrcQesitm),
+      };
+    });
   }
 
   /**
