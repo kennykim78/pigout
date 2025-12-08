@@ -101,14 +101,14 @@ export class MedicineService {
    * 약품명, 효능(질병), 제조사로 검색 (e약은요 API 사용)
    * API 결과 없을 때 AI가 제품 유형 판단 후 올바른 탭 안내
    */
-  async searchMedicine(keyword: string, numOfRows: number = 1000) {
+  async searchMedicine(keyword: string, numOfRows: number = 200) {
     try {
       console.log(`[약품 검색] 키워드: ${keyword}, 요청 수: ${numOfRows}`);
       
-      // 식약처 API 최대값은 500 (초과 시 오류 발생)
-      const apiLimit = Math.min(Math.max(numOfRows, 100), 500);
+      // 최대값 200으로 통일 (식약처 API 안정성 및 성능 고려)
+      const apiLimit = Math.min(Math.max(numOfRows, 50), 200);
       
-      console.log(`[약품 검색] API 호출 제한: ${apiLimit}건 (최대 500)`);
+      console.log(`[약품 검색] API 호출 제한: ${apiLimit}건 (최대 200)`);
       
       // 1️⃣ 약품명으로 검색 (1차 - 우선)
       let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
@@ -152,6 +152,11 @@ export class MedicineService {
         new Map(combinedResults.map(item => [item.itemSeq, item])).values()
       );
       
+      const combinedResults = [...nameResults, ...efficacyResults, ...manufacturerResults];
+      const uniqueResults = Array.from(
+        new Map(combinedResults.map(item => [item.itemSeq, item])).values()
+      );
+      
       console.log(`[약품 검색] 중복제거 후: ${uniqueResults.length}건`);
       
       // 🔒 4️⃣ 최종 필터링: AI 생성 데이터만 제거 (실제 데이터만 반환)
@@ -162,13 +167,20 @@ export class MedicineService {
       
       console.log(`[약품 검색] AI 데이터 필터링 후: ${realResults.length}건`);
       
-      if (!realResults || realResults.length === 0) {
+      // 💡 결과가 200개 초과 시 상위 200개만 반환
+      let finalResults = realResults;
+      if (realResults.length > 200) {
+        console.log(`[약품 검색] ⚠️ 검색 결과 ${realResults.length}건 → 상위 200개만 반환`);
+        finalResults = realResults.slice(0, 200);
+      }
+      
+      if (!finalResults || finalResults.length === 0) {
         console.log(`[약품 검색] ⚠️ 실제 약품 검색 결과 없음 - 빈 배열 반환`);
         return [];
       }
 
       // API 결과를 프론트엔드 형식으로 변환 (실제 데이터만 반환)
-      const results = realResults.map((item: any) => ({
+      const results = finalResults.map((item: any) => ({
         itemSeq: item.itemSeq,
         itemName: item.itemName,
         entpName: item.entpName,
@@ -184,7 +196,7 @@ export class MedicineService {
       // 🆕 각 약품을 공용 캐시에 저장 (itemSeq+entpName 단위)
       for (const result of results) {
         // API 전체 결과를 캐시에 저장
-        const fullMedicineData = uniqueResults.find(
+        const fullMedicineData = finalResults.find(
           (item: any) => item.itemSeq === result.itemSeq && item.entpName === result.entpName
         );
         
@@ -211,12 +223,12 @@ export class MedicineService {
    * 의약품 검색과 분리하여 건강기능식품만 검색
    * API 결과가 없으면 AI가 제품 유형 판단 후 올바른 탭 안내 또는 정보 생성
    */
-  async searchHealthFood(keyword: string, numOfRows: number = 1000) {
+  async searchHealthFood(keyword: string, numOfRows: number = 200) {
     try {
       console.log(`[건강기능식품 검색] 키워드: ${keyword}, 요청 수: ${numOfRows}`);
       
-      // 사용자가 요청한 numOfRows 개수를 존중하되, 최소 100개는 조회하여 필터링 여유 확보
-      const apiLimit = Math.max(numOfRows * 2, 100);
+      // 최대값 200으로 통일 (식약처 API 안정성 및 성능 고려)
+      const apiLimit = Math.min(Math.max(numOfRows, 50), 200);
       
       // 건강기능식품 API 검색
       let results = await this.externalApiClient.searchHealthFunctionalFood(keyword, apiLimit);
@@ -232,8 +244,15 @@ export class MedicineService {
       }
       
       if (results && results.length > 0) {
+        // 💡 결과가 200개 초과 시 상위 200개만 반환
+        let limitedResults = results;
+        if (results.length > 200) {
+          console.log(`[건강기능식품 검색] ⚠️ 검색 결과 ${results.length}건 → 상위 200개만 반환`);
+          limitedResults = results.slice(0, 200);
+        }
+        
         // API 결과를 프론트엔드 형식으로 변환
-        const formattedResults = results.map((item: any) => ({
+        const formattedResults = limitedResults.map((item: any) => ({
           itemSeq: item.itemSeq,
           itemName: item.itemName,
           entpName: item.entpName,
