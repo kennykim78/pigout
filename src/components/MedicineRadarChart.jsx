@@ -38,9 +38,15 @@ const MedicineRadarChart = ({ medicines }) => {
    * 전체 약품에 대한 종합 프로파일 계산 및 정규화 (0-100 스케일)
    */
   const { chartData, chartOptions, detailedData } = useMemo(() => {
+    console.log('[MedicineRadarChart] 받은 약품 데이터:', medicines);
+    
     if (!medicines || medicines.length === 0) {
+      console.log('[MedicineRadarChart] 약품 없음 → 빈 차트');
       return { chartData: null, chartOptions: null, detailedData: [] };
     }
+    
+    console.log('[MedicineRadarChart] 약품 개수:', medicines.length);
+    console.log('[MedicineRadarChart] 첫 번째 약품 필드:', medicines[0] ? Object.keys(medicines[0]) : 'No data');
 
     /**
      * P1. 개별 약품의 부작용 위험도 계산 (원시 점수)
@@ -309,13 +315,19 @@ const MedicineRadarChart = ({ medicines }) => {
     return { chartData: data, chartOptions: options, detailedData: individualScores };
   }, [medicines]);
 
+  console.log('[MedicineRadarChart] useMemo 완료 - chartData:', chartData ? '존재' : '없음');
+  console.log('[MedicineRadarChart] detailedData:', detailedData);
+
   if (!chartData) {
+    console.log('[MedicineRadarChart] chartData 없음 → 빈 메시지 표시');
     return (
       <div className="radar-chart-container empty">
         <p className="empty-message">📊 약품을 추가하면 안전성/편의성 비교 그래프가 표시됩니다</p>
       </div>
     );
   }
+
+  console.log('[MedicineRadarChart] 차트 렌더링 시작');
 
   return (
     <div className="radar-chart-container">
