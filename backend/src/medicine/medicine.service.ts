@@ -108,20 +108,28 @@ export class MedicineService {
       // 사용자가 요청한 numOfRows 개수를 존중하되, 최소 100개는 조회하여 필터링 여유 확보
       const apiLimit = Math.max(numOfRows * 2, 100);
       
-      // 1️⃣ 약품명으로 검색 (1차)
+      // 1️⃣ 약품명으로 검색 (1차 - 우선)
       let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
       
-      // 2️⃣ 효능(질병)으로 검색 (항상 실행)
-      let efficacyResults = await this.externalApiClient.searchMedicineByEfficacy(keyword, apiLimit);
+      // 실제 데이터인지 확인 (AI 생성 데이터 제외)
+      const hasRealNameResults = nameResults.some((item: any) => 
+        !item._isAIGenerated && item.itemSeq && !item.itemSeq.startsWith('AI_')
+      );
       
-      // 3️⃣ 제조사로 검색 (항상 실행)
-      let manufacturerResults = await this.externalApiClient.searchMedicineByManufacturer(keyword, apiLimit);
+      let efficacyResults: any[] = [];
+      let manufacturerResults: any[] = [];
       
-      // 실제 데이터인지 확인 (AI 생성 데이터는 itemSeq가 "AI_"로 시작)
-      const hasRealResults = 
-        nameResults.some((item: any) => item.itemSeq && !item.itemSeq.startsWith('AI_')) ||
-        efficacyResults.some((item: any) => item.itemSeq && !item.itemSeq.startsWith('AI_')) ||
-        manufacturerResults.some((item: any) => item.itemSeq && !item.itemSeq.startsWith('AI_'));
+      // 2️⃣ 약품명 검색 결과가 없을 때만 효능/제조사 검색 (API 절약)
+      if (!hasRealNameResults) {
+        console.log(`[약품 검색] 약품명 결과 없음 → 효능/제조사 검색 시작`);
+        
+        efficacyResults = await this.externalApiClient.searchMedicineByEfficacy(keyword, apiLimit);
+        manufacturerResults = await this.externalApiClient.searchMedicineByManufacturer(keyword, apiLimit);
+      } else {
+        console.log(`[약품 검색] 약품명 성공 (${nameResults.length}건) → 효능/제조사 스킵 ⏭️ (API 절약)`);
+      }
+      
+      console.log(`[약품 검색] 결과 - 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건`);
       
       console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건 (실제 데이터: ${hasRealResults ? '있음' : '없음'})`);
       
