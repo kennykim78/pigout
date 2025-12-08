@@ -425,6 +425,9 @@ const Medicine = () => {
             </div>
           ) : (
             <>
+              {console.log('[Medicine.jsx] 차트에 전달할 약품 개수:', medicines.length)}
+              {console.log('[Medicine.jsx] 차트에 전달할 약품 데이터:', medicines)}
+              
               {/* 🔴 Phase 1: 약품 성분 분석 레이더 차트 */}
               <MedicineRadarChart medicines={medicines} />
 
