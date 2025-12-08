@@ -34,11 +34,16 @@ ChartJS.register(
  * C5. 총 복용 약품 개수 (독립적인 축으로 활용)
  */
 const MedicineRadarChart = ({ medicines }) => {
+  console.log('🔴🔴🔴 [MedicineRadarChart] 컴포넌트 렌더링 시작! medicines:', medicines);
+  console.log('🔴🔴🔴 [MedicineRadarChart] medicines 타입:', typeof medicines);
+  console.log('🔴🔴🔴 [MedicineRadarChart] medicines 배열 여부:', Array.isArray(medicines));
+  console.log('🔴🔴🔴 [MedicineRadarChart] medicines 길이:', medicines?.length);
+  
   /**
    * 전체 약품에 대한 종합 프로파일 계산 및 정규화 (0-100 스케일)
    */
   const { chartData, chartOptions, detailedData } = useMemo(() => {
-    console.log('[MedicineRadarChart] 받은 약품 데이터:', medicines);
+    console.log('[MedicineRadarChart] useMemo 실행 시작! 받은 약품 데이터:', medicines);
     
     if (!medicines || medicines.length === 0) {
       console.log('[MedicineRadarChart] 약품 없음 → 빈 차트');
