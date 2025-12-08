@@ -108,43 +108,32 @@ export class MedicineService {
       // 사용자가 요청한 numOfRows 개수를 존중하되, 최소 100개는 조회하여 필터링 여유 확보
       const apiLimit = Math.max(numOfRows * 2, 100);
       
-      // 1️⃣ 약품명으로 검색 (1차 - 필수)
+      // 1️⃣ 약품명으로 검색 (1차)
       let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
       
+      // 2️⃣ 효능(질병)으로 검색 (항상 실행)
+      let efficacyResults = await this.externalApiClient.searchMedicineByEfficacy(keyword, apiLimit);
+      
+      // 3️⃣ 제조사로 검색 (항상 실행)
+      let manufacturerResults = await this.externalApiClient.searchMedicineByManufacturer(keyword, apiLimit);
+      
       // 실제 데이터인지 확인 (AI 생성 데이터는 itemSeq가 "AI_"로 시작)
-      const hasRealNameResults = nameResults.some((item: any) => 
-        item.itemSeq && !item.itemSeq.startsWith('AI_')
-      );
+      const hasRealResults = 
+        nameResults.some((item: any) => item.itemSeq && !item.itemSeq.startsWith('AI_')) ||
+        efficacyResults.some((item: any) => item.itemSeq && !item.itemSeq.startsWith('AI_')) ||
+        manufacturerResults.some((item: any) => item.itemSeq && !item.itemSeq.startsWith('AI_'));
       
-      let efficacyResults: any[] = [];
-      let manufacturerResults: any[] = [];
+      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건 (실제 데이터: ${hasRealResults ? '있음' : '없음'})`);
       
-      // 2️⃣ 약품명 검색에서 실제 결과가 없을 때만 효능/제조사 검색 (2차)
-      if (!hasRealNameResults) {
-        console.log(`[약품 검색] 약품명 검색 결과 없음 - 효능/제조사 검색 시작`);
-        
-        // 2-1. 효능(질병)으로 검색
-        efficacyResults = await this.externalApiClient.searchMedicineByEfficacy(keyword, apiLimit);
-        
-        // 2-2. 제조사로 검색
-        manufacturerResults = await this.externalApiClient.searchMedicineByManufacturer(keyword, apiLimit);
-        
-        // 약품명 검색 결과에 AI 생성 데이터만 있으면 제거
-        if (efficacyResults.length > 0 || manufacturerResults.length > 0) {
-          console.log(`[약품 검색] 약품명 AI 데이터 제거 - 효능/제조사 검색 결과 사용`);
-          nameResults = [];
-        }
-      } else {
-        console.log(`[약품 검색] 약품명 검색에서 실제 결과 발견 - 효능/제조사 검색 스킵 ⏭️`);
-      }
+      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건 (실제 데이터: ${hasRealResults ? '있음' : '없음'}`);
       
-      // 3️⃣ 결과 병합 및 중복 제거 (itemSeq 기준)
+      // 4️⃣ 결과 병합 및 중복 제거 (itemSeq 기준)
       const combinedResults = [...nameResults, ...efficacyResults, ...manufacturerResults];
       const uniqueResults = Array.from(
         new Map(combinedResults.map(item => [item.itemSeq, item])).values()
       );
       
-      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건, 중복제거 후: ${uniqueResults.length}건`);
+      console.log(`[약품 검색] 중복제거 후: ${uniqueResults.length}건`);
       
       // 🔒 4️⃣ 최종 필터링: AI 생성 데이터만 제거 (실제 데이터만 반환)
       const realResults = uniqueResults.filter((item: any) => 

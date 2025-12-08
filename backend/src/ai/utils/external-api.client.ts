@@ -1291,9 +1291,9 @@ export class ExternalApiClient {
   }
 
   /**
-   * 효능(질병)으로 약품 검색 (2차 검색 용도)
-   * 약품명 검색에서 결과가 없을 때만 호출됨
-   * @param efficacy 효능/질병 키워드 (예: "두통", "감기", "혈압")
+   * 효능(질병)으로 약품 검색
+   * 허가정보 API와 e약은요 API에서 효능 필드로 검색
+   * @param efficacy 효능/질병 키워드 (예: "두통", "감기", "고혈압")
    * @param numOfRows 검색 결과 수
    */
   async searchMedicineByEfficacy(efficacy: string, numOfRows: number = 20): Promise<any> {
@@ -1306,8 +1306,9 @@ export class ExternalApiClient {
       // ================================================================
       // 0단계: DB 캐시 확인 (효능 검색 결과도 캐시에서 조회)
       // ================================================================
+      const cacheKey = `efficacy_${efficacy}`;
       if (this.supabaseService) {
-        const cachedResults = await this.supabaseService.getMedicineCached(efficacy);
+        const cachedResults = await this.supabaseService.getMedicineCached(cacheKey);
         if (cachedResults && cachedResults.length > 0) {
           const validResults = cachedResults.filter((item: any) => 
             item.itemName && item.itemName.trim() !== ''
@@ -1320,21 +1321,100 @@ export class ExternalApiClient {
         }
       }
       
-      // ================================================================
-      // 1단계: 효능(질병명)을 약품명으로 검색 (e약은요 API는 효능 직접 검색 미지원)
-      // 예: "감기" → 감기 관련 약품 검색
-      // ================================================================
-      console.log(`[효능 검색] 약품명 기반 검색 시작: ${efficacy}`);
+      console.log(`[효능 검색] 시작: ${efficacy}`);
+      let allResults: any[] = [];
       
-      const results = await this.getMedicineInfo(efficacy, numOfRows);
+      // ================================================================
+      // 1단계: 의약품 허가정보 API에서 효능 검색
+      // ================================================================
+      try {
+        console.log(`[1단계-허가정보-효능] 효능 검색: ${efficacy}`);
+        const approvalUrl = `${this.MFDS_BASE_URL}/C003/getDrbkPrdlstInfoInq01`;
+        
+        const response = await axios.get(approvalUrl, {
+          params: {
+            serviceKey: this.SERVICE_KEY,
+            efcy_qesitm: efficacy,  // 효능 필드로 검색
+            numOfRows: numOfRows,
+            pageNo: 1,
+            type: 'json',
+          },
+          timeout: 15000,
+        });
+        
+        if (response.data?.body?.items && response.data.body.items.length > 0) {
+          const items = response.data.body.items;
+          console.log(`[1단계-허가정보-효능] ✅ ${items.length}건 검색됨`);
+          
+          const formattedResults = items.map((item: any) => ({
+            itemSeq: item.ITEM_SEQ || item.itemSeq,
+            itemName: item.ITEM_NAME || item.itemName,
+            entpName: item.ENTP_NAME || item.entpName,
+            efcyQesitm: item.EE_DOC_DATA || item.efcyQesitm || item.EFCY_QESITM || '',
+            useMethodQesitm: item.UD_DOC_DATA || item.useMethodQesitm || '',
+            atpnWarnQesitm: item.NB_DOC_DATA || item.atpnWarnQesitm || '',
+            atpnQesitm: item.NB_DOC_DATA || item.atpnQesitm || '',
+            intrcQesitm: '',
+            seQesitm: '',
+            depositMethodQesitm: item.STORAGE_METHOD || item.depositMethodQesitm || '',
+            _source: '허가정보-효능검색',
+          }));
+          
+          allResults.push(...formattedResults);
+        }
+      } catch (step1Error) {
+        console.warn(`[1단계-허가정보-효능] API 오류:`, step1Error.message);
+      }
       
-      if (results && results.length > 0) {
-        console.log(`[효능 검색] ✅ ${results.length}건 검색됨 - 캐시 저장`);
+      // ================================================================
+      // 2단계: e약은요 API에서 효능 검색
+      // ================================================================
+      if (canUseApi('eDrugApi')) {
+        try {
+          console.log(`[2단계-e약은요-효능] 효능 검색: ${efficacy}`);
+          const eDrugUrl = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
+          
+          const response = await axios.get(eDrugUrl, {
+            params: {
+              serviceKey: this.SERVICE_KEY,
+              efcyQesitm: efficacy,  // 효능 필드로 검색
+              numOfRows: numOfRows,
+              pageNo: 1,
+              type: 'json',
+            },
+            timeout: 15000,
+          });
+          
+          if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
+            recordApiUsage('eDrugApi', 1);
+            const items = response.data.body.items;
+            console.log(`[2단계-e약은요-효능] ✅ ${items.length}건 검색됨`);
+            
+            // e약은요 API 결과 추가 (중복은 나중에 제거됨)
+            const formattedResults = items.map((item: any) => ({
+              ...item,
+              _source: 'e약은요-효능검색',
+            }));
+            
+            allResults.push(...formattedResults);
+          }
+        } catch (step2Error) {
+          console.warn(`[2단계-e약은요-효능] API 오류:`, step2Error.message);
+        }
+      }
+      
+      // ================================================================
+      // 3단계: 결과 캐시 저장 및 반환
+      // ================================================================
+      if (allResults.length > 0) {
+        console.log(`[효능 검색] ✅ 총 ${allResults.length}건 검색됨 - 캐시 저장`);
+        
         // 캐시에 저장
         if (this.supabaseService) {
-          await this.supabaseService.saveMedicineCache(efficacy, results, '효능검색');
+          await this.supabaseService.saveMedicineCache(cacheKey, allResults, '효능검색');
         }
-        return results;
+        
+        return allResults;
       }
       
       console.log(`[효능 검색] 검색 결과 없음`);
