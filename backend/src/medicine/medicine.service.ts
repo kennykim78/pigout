@@ -105,8 +105,10 @@ export class MedicineService {
     try {
       console.log(`[약품 검색] 키워드: ${keyword}, 요청 수: ${numOfRows}`);
       
-      // 사용자가 요청한 numOfRows 개수를 존중하되, 최소 100개는 조회하여 필터링 여유 확보
-      const apiLimit = Math.max(numOfRows * 2, 100);
+      // 식약처 API 최대값은 500 (초과 시 오류 발생)
+      const apiLimit = Math.min(Math.max(numOfRows, 100), 500);
+      
+      console.log(`[약품 검색] API 호출 제한: ${apiLimit}건 (최대 500)`);
       
       // 1️⃣ 약품명으로 검색 (1차 - 우선)
       let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
