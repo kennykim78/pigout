@@ -1285,40 +1285,26 @@ export class ExternalApiClient {
   async searchMedicineByEfficacy(efficacy: string, numOfRows: number = 20): Promise<any> {
     try {
       if (!this.SERVICE_KEY) {
-        console.warn('[e약은요] MFDS_API_KEY 미설정 - Mock 데이터 사용');
+        console.warn('[e약은요] MFDS_API_KEY 미설정');
         return [];
       }
-      const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
       
-      console.log(`[e약은요] 효능 검색: ${efficacy}`);
+      // 🔧 효능으로 직접 검색하지 않고, 약품명 검색으로 통합
+      // e약은요 API는 efcyQesitm 파라미터를 지원하지 않으므로, 효능 관련 검색은 약품명 검색으로 대체
+      console.log(`[효능 검색] 약품명 검색으로 통합: ${efficacy}`);
       
-      const response = await axios.get(url, {
-        params: {
-          serviceKey: this.SERVICE_KEY,
-          efcyQesitm: efficacy,
-          numOfRows: numOfRows,
-          pageNo: 1,
-          type: 'json',
-        },
-        timeout: 15000,
-        headers: {
-          'Accept': 'application/json',
-        },
-      });
-
-      if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
-        console.log(`[e약은요-효능] ${response.data.body.totalCount}건 검색됨`);
-        return response.data.body.items;
+      // 효능(질병명)을 약품명으로 검색 (예: "감기" → 감기약 검색)
+      const results = await this.getMedicineInfo(efficacy, numOfRows);
+      
+      if (results && results.length > 0) {
+        console.log(`[효능 검색] ${results.length}건 검색됨`);
+        return results;
       }
-
-      console.log(`[e약은요-효능] 검색 결과 없음`);
+      
+      console.log(`[효능 검색] 검색 결과 없음`);
       return [];
     } catch (error) {
-      console.error('[e약은요-효능] API error:', error.message);
-      if (error.response) {
-        console.error('응답 상태:', error.response.status);
-        console.error('응답 데이터:', error.response.data);
-      }
+      console.error('[효능 검색] API error:', error.message);
       return [];
     }
   }
