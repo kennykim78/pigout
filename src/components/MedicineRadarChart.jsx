@@ -22,181 +22,189 @@ ChartJS.register(
 );
 
 /**
- * 의약품 안전성/복용 편의성 비교 방사형 그래프
+ * 다수 약품 복용자를 위한 종합 위험도 방사형 그래프
  * 
- * 5가지 핵심 지표:
- * P1. 부작용 위험도 (낮을수록 안전)
- * P2. 상호작용 위험 (낮을수록 안전)
- * P3. 복용 편의성 (높을수록 좋음)
- * P4. 안전성 점수 (높을수록 안전)
- * P5. 신뢰도 (높을수록 신뢰)
+ * 🎯 목적: 6개 이상 약품 복용 시 전체적인 위험도를 단일 프로파일로 시각화
+ * 
+ * 5가지 종합 지표 (C1~C5):
+ * C1. 평균 부작용 위험도 (전체 약품의 부작용 평균)
+ * C2. 최대 상호작용 위험 개수 (가장 위험한 약품 기준)
+ * C3. 평균 일일 투여량 (전체 약품의 복용 빈도 평균)
+ * C4. 최대 복용 빈도 (가장 자주 복용하는 약품 기준)
+ * C5. 총 복용 약품 개수 (독립적인 축으로 활용)
  */
 const MedicineRadarChart = ({ medicines }) => {
   /**
-   * 약품별 정량적 지표 계산 및 정규화 (0-100 스케일)
+   * 전체 약품에 대한 종합 프로파일 계산 및 정규화 (0-100 스케일)
    */
-  const { chartData, chartOptions } = useMemo(() => {
+  const { chartData, chartOptions, detailedData } = useMemo(() => {
     if (!medicines || medicines.length === 0) {
-      return { chartData: null, chartOptions: null };
+      return { chartData: null, chartOptions: null, detailedData: [] };
     }
 
-    // 최대 3개 약품만 비교 (가독성 유지)
-    const topMedicines = medicines.slice(0, 3);
-
     /**
-     * P1. 부작용 위험도 계산
-     * - 부작용 문구 개수 기반
-     * - 정규화: 많을수록 낮은 점수 (역정규화)
+     * P1. 개별 약품의 부작용 위험도 계산 (원시 점수)
+     * - 부작용 문구 개수 기반 (0-20개 범위)
+     * - 낮을수록 안전
      */
-    const calculateSideEffectRisk = (medicine) => {
+    const calculateSideEffectCount = (medicine) => {
       const seQesitm = medicine.seQesitm || '';
       const atpnWarnQesitm = medicine.atpnWarnQesitm || '';
       
-      if (!seQesitm && !atpnWarnQesitm) {
-        // 정보 없으면 중간값 (50점)
-        return 50;
-      }
+      if (!seQesitm && !atpnWarnQesitm) return 5; // 정보 없으면 중간값
       
       const sideEffectCount = (seQesitm + atpnWarnQesitm).split(/[,.\n]/g).filter(s => s.trim()).length;
-      
-      // 0-20개 범위를 0-100 역정규화 (부작용 많으면 낮은 점수)
-      return Math.max(0, 100 - Math.min(sideEffectCount * 5, 100));
+      return Math.min(sideEffectCount, 20); // 최대 20개로 제한
     };
 
     /**
-     * P2. 상호작용 위험 계산
-     * - DUR 정보나 상호작용 문구 개수 기반
-     * - 정규화: 많을수록 낮은 점수 (역정규화)
+     * P2. 개별 약품의 상호작용 위험 개수 (원시 점수)
+     * - DUR 정보나 상호작용 문구 개수 기반 (0-15개 범위)
+     * - 낮을수록 안전
      */
-    const calculateInteractionRisk = (medicine) => {
+    const calculateInteractionCount = (medicine) => {
       const intrcQesitm = medicine.intrcQesitm || '';
       const atpnQesitm = medicine.atpnQesitm || '';
       
-      if (!intrcQesitm && !atpnQesitm) {
-        // 정보 없으면 중간값 (50점)
-        return 50;
-      }
+      if (!intrcQesitm && !atpnQesitm) return 3; // 정보 없으면 중간값
       
       const interactionCount = (intrcQesitm + atpnQesitm).split(/[,.\n]/g).filter(s => s.trim()).length;
-      
-      // 0-15개 범위를 0-100 역정규화
-      return Math.max(0, 100 - Math.min(interactionCount * 7, 100));
+      return Math.min(interactionCount, 15); // 최대 15개로 제한
     };
 
     /**
-     * P3. 복용 편의성 계산
-     * - 복용 빈도가 적을수록 높은 점수
-     * - 1일 1회 = 100점, 1일 4회 이상 = 25점
+     * P3. 개별 약품의 일일 복용 빈도 (원시 점수)
+     * - 1일 N회 형태로 추출 (1-6회 범위)
+     * - 낮을수록 편리
      */
-    const calculateConvenience = (medicine) => {
+    const calculateDailyFrequency = (medicine) => {
       const useMethod = medicine.useMethodQesitm || '';
       
-      if (!useMethod) {
-        // 정보 없으면 중간값 (60점)
-        return 60;
-      }
+      if (!useMethod) return 2; // 정보 없으면 기본 2회
       
       // 복용 빈도 추출 (1일 N회)
       const frequencyMatch = useMethod.match(/1일\s*(\d+)\s*회/);
-      const dailyFreq = frequencyMatch ? parseInt(frequencyMatch[1]) : 2; // 기본 2회
+      const dailyFreq = frequencyMatch ? parseInt(frequencyMatch[1]) : 2;
       
-      // 1회=100, 2회=75, 3회=50, 4회 이상=25
-      if (dailyFreq === 1) return 100;
-      if (dailyFreq === 2) return 75;
-      if (dailyFreq === 3) return 50;
-      return 25;
+      return Math.min(dailyFreq, 6); // 최대 6회로 제한
     };
 
     /**
-     * P4. 안전성 점수 계산
-     * - 허가일자 기반 (오래된 약일수록 검증됨)
-     * - 전문의약품 여부
+     * P4. 개별 약품의 시장 진입 연수 (원시 점수)
+     * - 허가일자 기반 (0-30년 범위)
+     * - 높을수록 검증됨
      */
-    const calculateSafety = (medicine) => {
-      let score = 50; // 기본 점수
-      
-      // 시장 진입 연수 (오래될수록 높은 점수)
+    const calculateMarketYears = (medicine) => {
       const itemSeq = medicine.itemSeq || '';
       const yearMatch = itemSeq.match(/^(\d{4})/);
-      if (yearMatch) {
-        const approvalYear = parseInt(yearMatch[1]);
-        const currentYear = new Date().getFullYear();
-        const yearsInMarket = currentYear - approvalYear;
-        score += Math.min(yearsInMarket * 2, 50); // 최대 +50점
-      }
       
-      return Math.min(score, 100);
+      if (!yearMatch) return 10; // 정보 없으면 기본 10년
+      
+      const approvalYear = parseInt(yearMatch[1]);
+      const currentYear = new Date().getFullYear();
+      const yearsInMarket = currentYear - approvalYear;
+      
+      return Math.max(0, Math.min(yearsInMarket, 30)); // 0-30년 범위
     };
 
-    /**
-     * P5. 신뢰도 계산
-     * - 제조사 신뢰도, 효능 정보 완성도
-     */
-    const calculateReliability = (medicine) => {
-      let score = 0;
-      
-      // 효능 정보가 상세할수록 높은 점수
-      const efcyQesitm = medicine.efcyQesitm || '';
-      if (efcyQesitm.length > 200) score += 40;
-      else if (efcyQesitm.length > 100) score += 25;
-      else if (efcyQesitm.length > 50) score += 10;
-      
-      // 사용법 정보 완성도
-      const useMethodQesitm = medicine.useMethodQesitm || '';
-      if (useMethodQesitm.length > 100) score += 30;
-      else if (useMethodQesitm.length > 50) score += 15;
-      
-      // 보관 정보 완성도
-      const depositMethodQesitm = medicine.depositMethodQesitm || '';
-      if (depositMethodQesitm.length > 0) score += 30;
-      
-      // 최소 점수 보장 (정보가 전혀 없어도 20점)
-      return Math.max(Math.min(score, 100), 20);
-    };
-
-    // 각 약품별 5가지 지표 계산
-    const datasets = topMedicines.map((medicine, index) => {
-      const colors = [
-        { border: 'rgba(245, 213, 71, 1)', bg: 'rgba(245, 213, 71, 0.3)' },     // 노란색
-        { border: 'rgba(75, 192, 192, 1)', bg: 'rgba(75, 192, 192, 0.3)' },     // 청록색
-        { border: 'rgba(255, 99, 132, 1)', bg: 'rgba(255, 99, 132, 0.3)' }      // 빨간색
-      ];
-
-      const p1 = calculateSideEffectRisk(medicine);
-      const p2 = calculateInteractionRisk(medicine);
-      const p3 = calculateConvenience(medicine);
-      const p4 = calculateSafety(medicine);
-      const p5 = calculateReliability(medicine);
-
-      console.log(`[차트 데이터] ${medicine.itemName || medicine.name}:`, {
-        부작용안전성: p1,
-        상호작용안전성: p2,
-        복용편의성: p3,
-        시장안전성: p4,
-        정보신뢰도: p5,
-      });
+    // 🔹 단계 1: 각 약품별 개별 지표 계산 (P1~P4)
+    const individualScores = medicines.map(medicine => {
+      const p1_sideEffectCount = calculateSideEffectCount(medicine);
+      const p2_interactionCount = calculateInteractionCount(medicine);
+      const p3_dailyFrequency = calculateDailyFrequency(medicine);
+      const p4_marketYears = calculateMarketYears(medicine);
 
       return {
-        label: medicine.itemName || medicine.name || `약품 ${index + 1}`,
-        data: [p1, p2, p3, p4, p5],
-        borderColor: colors[index].border,
-        backgroundColor: colors[index].bg,
-        borderWidth: 2,
-        pointRadius: 5,
-        pointHoverRadius: 7,
-        pointBackgroundColor: colors[index].border,
-        pointBorderColor: '#fff',
-        pointBorderWidth: 2,
+        name: medicine.itemName || medicine.name || '약품명 미확인',
+        p1_sideEffectCount,
+        p2_interactionCount,
+        p3_dailyFrequency,
+        p4_marketYears,
+        medicine // 원본 데이터 보관 (테이블용)
       };
     });
 
+    console.log('[종합 프로파일] 개별 약품 원시 점수:', individualScores);
+
+    // 🔹 단계 2: 종합 프로파일 계산 (C1~C5)
+    const totalMedicines = individualScores.length;
+
+    // C1. 평균 부작용 위험도 (P1의 평균)
+    const avgSideEffectCount = individualScores.reduce((sum, s) => sum + s.p1_sideEffectCount, 0) / totalMedicines;
+
+    // C2. 최대 상호작용 위험 개수 (P2의 최대값)
+    const maxInteractionCount = Math.max(...individualScores.map(s => s.p2_interactionCount));
+
+    // C3. 평균 일일 복용 빈도 (P3의 평균)
+    const avgDailyFrequency = individualScores.reduce((sum, s) => sum + s.p3_dailyFrequency, 0) / totalMedicines;
+
+    // C4. 최대 복용 빈도 (P3의 최대값)
+    const maxDailyFrequency = Math.max(...individualScores.map(s => s.p3_dailyFrequency));
+
+    // C5. 총 복용 약품 개수
+    const totalMedicineCount = totalMedicines;
+
+    console.log('[종합 프로파일] 원시 종합 지표:', {
+      C1_평균부작용위험도: avgSideEffectCount.toFixed(2),
+      C2_최대상호작용위험: maxInteractionCount,
+      C3_평균일일복용빈도: avgDailyFrequency.toFixed(2),
+      C4_최대복용빈도: maxDailyFrequency,
+      C5_총약품개수: totalMedicineCount
+    });
+
+    // 🔹 단계 3: 정규화 (0-100 스케일로 변환, Min-Max Scaling)
+    // C1: 평균 부작용 위험도 (0-20개 → 100-0점, 역정규화)
+    const c1_normalized = Math.max(0, 100 - (avgSideEffectCount / 20) * 100);
+
+    // C2: 최대 상호작용 위험 (0-15개 → 100-0점, 역정규화)
+    const c2_normalized = Math.max(0, 100 - (maxInteractionCount / 15) * 100);
+
+    // C3: 평균 일일 복용 빈도 (1-6회 → 100-0점, 역정규화)
+    const c3_normalized = Math.max(0, 100 - ((avgDailyFrequency - 1) / 5) * 100);
+
+    // C4: 최대 복용 빈도 (1-6회 → 100-0점, 역정규화)
+    const c4_normalized = Math.max(0, 100 - ((maxDailyFrequency - 1) / 5) * 100);
+
+    // C5: 총 약품 개수 (1-10개 → 0-100점, 정정규화, 많을수록 관리 부담 증가)
+    const c5_normalized = Math.min(100, ((totalMedicineCount - 1) / 9) * 100);
+
+    console.log('[종합 프로파일] 정규화 점수 (0-100):', {
+      C1_평균부작용안전성: c1_normalized.toFixed(1),
+      C2_최대상호작용안전성: c2_normalized.toFixed(1),
+      C3_평균복용편의성: c3_normalized.toFixed(1),
+      C4_최대복용편의성: c4_normalized.toFixed(1),
+      C5_관리부담도: c5_normalized.toFixed(1)
+    });
+
+    // 🔹 단계 4: 차트 데이터 생성 (단일 면적)
+    const datasets = [
+      {
+        label: `전체 약품 종합 프로파일 (${totalMedicines}개)`,
+        data: [
+          c1_normalized,  // C1: 평균 부작용 안전성
+          c2_normalized,  // C2: 최대 상호작용 안전성
+          c3_normalized,  // C3: 평균 복용 편의성
+          c4_normalized,  // C4: 최대 복용 편의성
+          100 - c5_normalized  // C5: 약품 관리 용이성 (적을수록 관리 쉬움)
+        ],
+        borderColor: 'rgba(54, 162, 235, 1)',      // 파란색
+        backgroundColor: 'rgba(54, 162, 235, 0.3)', // 파란색 투명
+        borderWidth: 3,
+        pointRadius: 6,
+        pointHoverRadius: 8,
+        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
+        pointBorderColor: '#fff',
+        pointBorderWidth: 3,
+      }
+    ];
+
     const data = {
       labels: [
-        '부작용 안전성',     // P1 (높을수록 부작용 적음)
-        '상호작용 안전성',   // P2 (높을수록 상호작용 적음)
-        '복용 편의성',       // P3 (높을수록 편리)
-        '시장 안전성',       // P4 (높을수록 검증됨)
-        '정보 신뢰도'        // P5 (높을수록 정보 완전)
+        '평균 부작용 안전성',     // C1 (전체 약품의 부작용 평균)
+        '최대 상호작용 안전성',   // C2 (가장 위험한 약품 기준)
+        '평균 복용 편의성',       // C3 (전체 약품의 복용 빈도 평균)
+        '최대 복용 편의성',       // C4 (가장 불편한 약품 기준)
+        '약품 관리 용이성'        // C5 (약품 개수, 적을수록 관리 쉬움)
       ],
       datasets
     };
@@ -209,38 +217,53 @@ const MedicineRadarChart = ({ medicines }) => {
           position: 'top',
           labels: {
             font: {
-              size: 13,
+              size: 14,
               family: "'Noto Sans KR', sans-serif",
-              weight: '500'
+              weight: 'bold'
             },
-            padding: 15,
+            padding: 20,
             usePointStyle: true,
             pointStyle: 'circle',
           }
         },
         tooltip: {
-          backgroundColor: 'rgba(0, 0, 0, 0.85)',
+          backgroundColor: 'rgba(0, 0, 0, 0.9)',
           titleFont: {
-            size: 14,
+            size: 15,
             family: "'Noto Sans KR', sans-serif",
             weight: 'bold'
           },
           bodyFont: {
-            size: 13,
+            size: 14,
             family: "'Noto Sans KR', sans-serif"
           },
-          padding: 12,
+          padding: 15,
           displayColors: true,
           callbacks: {
             label: function(context) {
-              return `${context.dataset.label}: ${context.parsed.r.toFixed(1)}점`;
+              const label = context.label;
+              const value = context.parsed.r.toFixed(1);
+              
+              // 원시 데이터 표시
+              if (label.includes('평균 부작용')) {
+                return `${value}점 (평균 ${avgSideEffectCount.toFixed(1)}개 문구)`;
+              } else if (label.includes('최대 상호작용')) {
+                return `${value}점 (최대 ${maxInteractionCount}개 위험)`;
+              } else if (label.includes('평균 복용')) {
+                return `${value}점 (평균 1일 ${avgDailyFrequency.toFixed(1)}회)`;
+              } else if (label.includes('최대 복용')) {
+                return `${value}점 (최대 1일 ${maxDailyFrequency}회)`;
+              } else if (label.includes('관리 용이성')) {
+                return `${value}점 (총 ${totalMedicineCount}개 약품)`;
+              }
+              return `${value}점`;
             },
             footer: function(tooltipItems) {
               const value = tooltipItems[0].parsed.r;
-              if (value >= 80) return '✅ 매우 우수';
+              if (value >= 80) return '✅ 매우 안전/편리';
               if (value >= 60) return '👍 양호';
               if (value >= 40) return '⚠️ 보통';
-              return '⚠️ 주의 필요';
+              return '🚨 주의 필요';
             }
           }
         }
@@ -253,9 +276,10 @@ const MedicineRadarChart = ({ medicines }) => {
           ticks: {
             stepSize: 20,
             font: {
-              size: 11
+              size: 12,
+              weight: 'bold'
             },
-            backdropColor: 'rgba(255, 255, 255, 0.8)',
+            backdropColor: 'rgba(255, 255, 255, 0.9)',
             callback: function(value) {
               return value;
             }
@@ -266,21 +290,23 @@ const MedicineRadarChart = ({ medicines }) => {
               family: "'Noto Sans KR', sans-serif",
               weight: 'bold'
             },
-            color: '#333',
-            padding: 15,
+            color: '#222',
+            padding: 18,
           },
           grid: {
-            color: 'rgba(0, 0, 0, 0.1)',
-            circular: true
+            color: 'rgba(0, 0, 0, 0.15)',
+            circular: true,
+            lineWidth: 1.5
           },
           angleLines: {
-            color: 'rgba(0, 0, 0, 0.1)'
+            color: 'rgba(0, 0, 0, 0.15)',
+            lineWidth: 1.5
           }
         }
       }
     };
 
-    return { chartData: data, chartOptions: options };
+    return { chartData: data, chartOptions: options, detailedData: individualScores };
   }, [medicines]);
 
   if (!chartData) {
@@ -294,9 +320,9 @@ const MedicineRadarChart = ({ medicines }) => {
   return (
     <div className="radar-chart-container">
       <div className="chart-header">
-        <h3>📊 약품 안전성 & 복용 편의성 비교</h3>
+        <h3>📊 전체 약품 종합 위험도 프로파일</h3>
         <p className="chart-description">
-          {medicines.length}개 약품을 5가지 핵심 지표로 비교 분석합니다
+          복용 중인 {medicines.length}개 약품을 통합 분석한 종합 지표입니다
         </p>
       </div>
       <div className="chart-canvas-wrapper">
@@ -304,19 +330,67 @@ const MedicineRadarChart = ({ medicines }) => {
       </div>
       <div className="chart-footer">
         <div className="chart-legend-info">
-          <p>💡 <strong>높을수록 좋음:</strong> 모든 지표는 0-100점 스케일로 정규화됩니다</p>
+          <p>💡 <strong>5가지 종합 지표 설명</strong> (모두 0-100점, 높을수록 안전/편리)</p>
           <ul className="indicator-list">
-            <li>🛡️ <strong>부작용 안전성:</strong> 부작용 정보가 적을수록 높음</li>
-            <li>⚠️ <strong>상호작용 안전성:</strong> 다른 약과 상호작용이 적을수록 높음</li>
-            <li>💊 <strong>복용 편의성:</strong> 하루 복용 횟수가 적을수록 높음</li>
-            <li>✅ <strong>시장 안전성:</strong> 시장 출시 연수가 오래될수록 높음 (검증됨)</li>
-            <li>📋 <strong>정보 신뢰도:</strong> 약품 정보가 상세할수록 높음</li>
+            <li>
+              <strong>🛡️ 평균 부작용 안전성:</strong> 전체 약품의 부작용 문구 평균
+              <span className="raw-value"> (평균 {detailedData.reduce((sum, d) => sum + d.p1_sideEffectCount, 0) / detailedData.length}개)</span>
+            </li>
+            <li>
+              <strong>⚠️ 최대 상호작용 안전성:</strong> 가장 위험한 약품의 상호작용 개수
+              <span className="raw-value"> (최대 {Math.max(...detailedData.map(d => d.p2_interactionCount))}개)</span>
+            </li>
+            <li>
+              <strong>💊 평균 복용 편의성:</strong> 전체 약품의 일일 복용 횟수 평균
+              <span className="raw-value"> (평균 1일 {(detailedData.reduce((sum, d) => sum + d.p3_dailyFrequency, 0) / detailedData.length).toFixed(1)}회)</span>
+            </li>
+            <li>
+              <strong>🔄 최대 복용 편의성:</strong> 가장 자주 복용하는 약품 기준
+              <span className="raw-value"> (최대 1일 {Math.max(...detailedData.map(d => d.p3_dailyFrequency))}회)</span>
+            </li>
+            <li>
+              <strong>📋 약품 관리 용이성:</strong> 총 복용 약품 개수
+              <span className="raw-value"> (총 {detailedData.length}개)</span>
+            </li>
           </ul>
-          {medicines.length === 1 && (
-            <p className="single-medicine-note">
-              ℹ️ 1개 약품만 등록되어 있습니다. 다른 약품을 추가하면 비교 분석이 가능합니다.
-            </p>
-          )}
+        </div>
+
+        {/* 개별 약품 상세 정보 테이블 */}
+        <div className="medicine-detail-table">
+          <h4>📋 개별 약품 상세 정보 (원시 데이터)</h4>
+          <div className="table-wrapper">
+            <table>
+              <thead>
+                <tr>
+                  <th>약품명</th>
+                  <th>부작용 문구</th>
+                  <th>상호작용 위험</th>
+                  <th>1일 복용 횟수</th>
+                  <th>시장 진입 연수</th>
+                </tr>
+              </thead>
+              <tbody>
+                {detailedData.map((data, index) => (
+                  <tr key={index}>
+                    <td className="medicine-name">{data.name}</td>
+                    <td className={data.p1_sideEffectCount > 10 ? 'warning' : ''}>
+                      {data.p1_sideEffectCount}개
+                    </td>
+                    <td className={data.p2_interactionCount > 8 ? 'warning' : ''}>
+                      {data.p2_interactionCount}개
+                    </td>
+                    <td className={data.p3_dailyFrequency > 3 ? 'warning' : ''}>
+                      {data.p3_dailyFrequency}회
+                    </td>
+                    <td>{data.p4_marketYears}년</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+          <p className="table-note">
+            ⚠️ <strong>주의:</strong> 노란색 배경은 평균 이상의 위험/불편 요소를 나타냅니다.
+          </p>
         </div>
       </div>
     </div>
