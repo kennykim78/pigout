@@ -111,11 +111,23 @@ export class MedicineService {
       // 1️⃣ 약품명으로 검색 (1차 - 우선)
       let nameResults = await this.externalApiClient.getMedicineInfo(keyword, apiLimit);
       
+      console.log(`[약품 검색-디버그] nameResults 개수: ${nameResults.length}`);
+      if (nameResults.length > 0) {
+        console.log(`[약품 검색-디버그] 첫 번째 결과 샘플:`, {
+          itemSeq: nameResults[0].itemSeq,
+          itemName: nameResults[0].itemName,
+          _isAIGenerated: nameResults[0]._isAIGenerated,
+          _source: nameResults[0]._source,
+        });
+      }
+      
       // 실제 데이터인지 확인 (AI 생성 데이터 제외)
       // _isAIGenerated가 없으면 실제 데이터로 간주
       const hasRealNameResults = nameResults.some((item: any) => 
         item._isAIGenerated !== true && item.itemSeq && !item.itemSeq.startsWith('AI_')
       );
+      
+      console.log(`[약품 검색-디버그] hasRealNameResults: ${hasRealNameResults}`);
       
       let efficacyResults: any[] = [];
       let manufacturerResults: any[] = [];
