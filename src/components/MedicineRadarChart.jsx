@@ -51,6 +51,12 @@ const MedicineRadarChart = ({ medicines }) => {
     const calculateSideEffectRisk = (medicine) => {
       const seQesitm = medicine.seQesitm || '';
       const atpnWarnQesitm = medicine.atpnWarnQesitm || '';
+      
+      if (!seQesitm && !atpnWarnQesitm) {
+        // 정보 없으면 중간값 (50점)
+        return 50;
+      }
+      
       const sideEffectCount = (seQesitm + atpnWarnQesitm).split(/[,.\n]/g).filter(s => s.trim()).length;
       
       // 0-20개 범위를 0-100 역정규화 (부작용 많으면 낮은 점수)
@@ -65,6 +71,12 @@ const MedicineRadarChart = ({ medicines }) => {
     const calculateInteractionRisk = (medicine) => {
       const intrcQesitm = medicine.intrcQesitm || '';
       const atpnQesitm = medicine.atpnQesitm || '';
+      
+      if (!intrcQesitm && !atpnQesitm) {
+        // 정보 없으면 중간값 (50점)
+        return 50;
+      }
+      
       const interactionCount = (intrcQesitm + atpnQesitm).split(/[,.\n]/g).filter(s => s.trim()).length;
       
       // 0-15개 범위를 0-100 역정규화
@@ -74,10 +86,15 @@ const MedicineRadarChart = ({ medicines }) => {
     /**
      * P3. 복용 편의성 계산
      * - 복용 빈도가 적을수록 높은 점수
-     * - 1일 1회 = 100점, 1일 4회 이상 = 0점
+     * - 1일 1회 = 100점, 1일 4회 이상 = 25점
      */
     const calculateConvenience = (medicine) => {
       const useMethod = medicine.useMethodQesitm || '';
+      
+      if (!useMethod) {
+        // 정보 없으면 중간값 (60점)
+        return 60;
+      }
       
       // 복용 빈도 추출 (1일 N회)
       const frequencyMatch = useMethod.match(/1일\s*(\d+)\s*회/);
@@ -103,7 +120,8 @@ const MedicineRadarChart = ({ medicines }) => {
       const yearMatch = itemSeq.match(/^(\d{4})/);
       if (yearMatch) {
         const approvalYear = parseInt(yearMatch[1]);
-        const yearsInMarket = 2025 - approvalYear;
+        const currentYear = new Date().getFullYear();
+        const yearsInMarket = currentYear - approvalYear;
         score += Math.min(yearsInMarket * 2, 50); // 최대 +50점
       }
       
@@ -132,31 +150,43 @@ const MedicineRadarChart = ({ medicines }) => {
       const depositMethodQesitm = medicine.depositMethodQesitm || '';
       if (depositMethodQesitm.length > 0) score += 30;
       
-      return Math.min(score, 100);
+      // 최소 점수 보장 (정보가 전혀 없어도 20점)
+      return Math.max(Math.min(score, 100), 20);
     };
 
     // 각 약품별 5가지 지표 계산
     const datasets = topMedicines.map((medicine, index) => {
       const colors = [
-        { border: 'rgba(245, 213, 71, 1)', bg: 'rgba(245, 213, 71, 0.2)' },     // 노란색
-        { border: 'rgba(75, 192, 192, 1)', bg: 'rgba(75, 192, 192, 0.2)' },     // 청록색
-        { border: 'rgba(255, 99, 132, 1)', bg: 'rgba(255, 99, 132, 0.2)' }      // 빨간색
+        { border: 'rgba(245, 213, 71, 1)', bg: 'rgba(245, 213, 71, 0.3)' },     // 노란색
+        { border: 'rgba(75, 192, 192, 1)', bg: 'rgba(75, 192, 192, 0.3)' },     // 청록색
+        { border: 'rgba(255, 99, 132, 1)', bg: 'rgba(255, 99, 132, 0.3)' }      // 빨간색
       ];
+
+      const p1 = calculateSideEffectRisk(medicine);
+      const p2 = calculateInteractionRisk(medicine);
+      const p3 = calculateConvenience(medicine);
+      const p4 = calculateSafety(medicine);
+      const p5 = calculateReliability(medicine);
+
+      console.log(`[차트 데이터] ${medicine.itemName || medicine.name}:`, {
+        부작용안전성: p1,
+        상호작용안전성: p2,
+        복용편의성: p3,
+        시장안전성: p4,
+        정보신뢰도: p5,
+      });
 
       return {
         label: medicine.itemName || medicine.name || `약품 ${index + 1}`,
-        data: [
-          calculateSideEffectRisk(medicine),     // P1: 부작용 위험 (역)
-          calculateInteractionRisk(medicine),    // P2: 상호작용 위험 (역)
-          calculateConvenience(medicine),        // P3: 복용 편의성
-          calculateSafety(medicine),             // P4: 안전성 점수
-          calculateReliability(medicine)         // P5: 신뢰도
-        ],
+        data: [p1, p2, p3, p4, p5],
         borderColor: colors[index].border,
         backgroundColor: colors[index].bg,
         borderWidth: 2,
-        pointRadius: 4,
-        pointHoverRadius: 6,
+        pointRadius: 5,
+        pointHoverRadius: 7,
+        pointBackgroundColor: colors[index].border,
+        pointBorderColor: '#fff',
+        pointBorderWidth: 2,
       };
     });
 
@@ -179,21 +209,24 @@ const MedicineRadarChart = ({ medicines }) => {
           position: 'top',
           labels: {
             font: {
-              size: 12,
-              family: "'Noto Sans KR', sans-serif"
+              size: 13,
+              family: "'Noto Sans KR', sans-serif",
+              weight: '500'
             },
             padding: 15,
             usePointStyle: true,
+            pointStyle: 'circle',
           }
         },
         tooltip: {
-          backgroundColor: 'rgba(0, 0, 0, 0.8)',
+          backgroundColor: 'rgba(0, 0, 0, 0.85)',
           titleFont: {
             size: 14,
-            family: "'Noto Sans KR', sans-serif"
+            family: "'Noto Sans KR', sans-serif",
+            weight: 'bold'
           },
           bodyFont: {
-            size: 12,
+            size: 13,
             family: "'Noto Sans KR', sans-serif"
           },
           padding: 12,
@@ -201,6 +234,13 @@ const MedicineRadarChart = ({ medicines }) => {
           callbacks: {
             label: function(context) {
               return `${context.dataset.label}: ${context.parsed.r.toFixed(1)}점`;
+            },
+            footer: function(tooltipItems) {
+              const value = tooltipItems[0].parsed.r;
+              if (value >= 80) return '✅ 매우 우수';
+              if (value >= 60) return '👍 양호';
+              if (value >= 40) return '⚠️ 보통';
+              return '⚠️ 주의 필요';
             }
           }
         }
@@ -211,22 +251,23 @@ const MedicineRadarChart = ({ medicines }) => {
           max: 100,
           beginAtZero: true,
           ticks: {
-            stepSize: 25,
+            stepSize: 20,
             font: {
-              size: 10
+              size: 11
             },
+            backdropColor: 'rgba(255, 255, 255, 0.8)',
             callback: function(value) {
               return value;
             }
           },
           pointLabels: {
             font: {
-              size: 12,
+              size: 13,
               family: "'Noto Sans KR', sans-serif",
               weight: 'bold'
             },
             color: '#333',
-            padding: 10,
+            padding: 15,
           },
           grid: {
             color: 'rgba(0, 0, 0, 0.1)',
@@ -255,7 +296,7 @@ const MedicineRadarChart = ({ medicines }) => {
       <div className="chart-header">
         <h3>📊 약품 안전성 & 복용 편의성 비교</h3>
         <p className="chart-description">
-          5가지 핵심 지표로 약품을 비교 분석합니다 (최대 3개)
+          {medicines.length}개 약품을 5가지 핵심 지표로 비교 분석합니다
         </p>
       </div>
       <div className="chart-canvas-wrapper">
@@ -271,6 +312,11 @@ const MedicineRadarChart = ({ medicines }) => {
             <li>✅ <strong>시장 안전성:</strong> 시장 출시 연수가 오래될수록 높음 (검증됨)</li>
             <li>📋 <strong>정보 신뢰도:</strong> 약품 정보가 상세할수록 높음</li>
           </ul>
+          {medicines.length === 1 && (
+            <p className="single-medicine-note">
+              ℹ️ 1개 약품만 등록되어 있습니다. 다른 약품을 추가하면 비교 분석이 가능합니다.
+            </p>
+          )}
         </div>
       </div>
     </div>

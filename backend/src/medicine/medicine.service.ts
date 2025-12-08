@@ -560,6 +560,7 @@ export class MedicineService {
 
   /**
    * 사용자의 복용 약 목록 조회
+   * DB의 snake_case 필드를 camelCase로 변환하여 반환
    */
   async getMyMedicines(userId: string, activeOnly: boolean = true) {
     let query = this.supabaseService
@@ -577,7 +578,32 @@ export class MedicineService {
 
     if (error) throw error;
 
-    return data;
+    // DB 필드(snake_case)를 프론트엔드 필드(camelCase)로 변환
+    return data.map(record => ({
+      id: record.id,
+      userId: record.user_id,
+      name: record.name,
+      itemName: record.item_name || record.name,
+      drugClass: record.drug_class,
+      entpName: record.entp_name || record.drug_class,
+      dosage: record.dosage,
+      frequency: record.frequency,
+      // API 상세 정보 필드 (camelCase 변환)
+      itemSeq: record.item_seq,
+      efcyQesitm: record.efcy_qesitm,
+      useMethodQesitm: record.use_method_qesitm,
+      atpnWarnQesitm: record.atpn_warn_qesitm,
+      atpnQesitm: record.atpn_qesitm,
+      intrcQesitm: record.intrc_qesitm,
+      seQesitm: record.se_qesitm,
+      depositMethodQesitm: record.deposit_method_qesitm,
+      qrCodeData: record.qr_code_data,
+      isActive: record.is_active,
+      createdAt: record.created_at,
+      updatedAt: record.updated_at,
+      // 차트용 추가 메타데이터
+      _hasDetailedInfo: !!(record.efcy_qesitm || record.se_qesitm || record.intrc_qesitm),
+    }));
   }
 
   /**
