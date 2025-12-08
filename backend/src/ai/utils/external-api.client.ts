@@ -300,17 +300,30 @@ export class ExternalApiClient {
       }
 
       // ================================================================
-      // 3단계: 모든 API에서 검색 실패 - AI가 대체
+      // 3단계: 모든 API에서 검색 실패 - AI가 대체 (마크 처리)
       // (건강기능식품은 별도 탭에서 검색하므로 여기서 제외)
       // ================================================================
       console.log(`[API 검색 실패] 모든 단계에서 결과 없음 - AI가 정보 생성: ${medicineName}`);
       const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
-      await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
-      return aiResults;
+      
+      // 🔖 AI 생성 데이터에 마크 추가 (최종 필터링 용도)
+      const markedAiResults = aiResults.map((item: any) => ({
+        ...item,
+        _isAIGenerated: true,  // AI 생성 데이터 표시
+        _source: 'AI생성',
+      }));
+      
+      await this.saveMedicineToCache(medicineName, markedAiResults, 'AI생성');
+      return markedAiResults;
       
     } catch (error) {
       console.error('[getMedicineInfo] 오류 발생 - AI 대체:', error.message);
-      return this.generateAIMedicineInfo(medicineName, numOfRows);
+      const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
+      // 에러 발생 시 AI 결과도 마크 처리
+      return aiResults.map((item: any) => ({
+        ...item,
+        _isAIGenerated: true,
+      }));
     }
   }
 

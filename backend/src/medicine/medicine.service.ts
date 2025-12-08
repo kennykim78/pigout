@@ -144,57 +144,22 @@ export class MedicineService {
         new Map(combinedResults.map(item => [item.itemSeq, item])).values()
       );
       
-      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건, 최종: ${uniqueResults.length}건`);
+      console.log(`[약품 검색] 약품명: ${nameResults.length}건, 효능: ${efficacyResults.length}건, 제조사: ${manufacturerResults.length}건, 중복제거 후: ${uniqueResults.length}건`);
       
-      if (!uniqueResults || uniqueResults.length === 0) {
-        console.log(`[약품 검색] API 결과 없음 - 제품 유형 판단 시작`);
-        
-        // 건강기능식품 API에서 검색해보기
-        const healthFoodResults = await this.externalApiClient.searchHealthFunctionalFood(keyword, 5);
-        
-        if (healthFoodResults && healthFoodResults.length > 0) {
-          // 건강기능식품에서 발견됨 - 탭 이동 안내
-          console.log(`[약품 검색] ✅ 건강기능식품 탭에서 ${healthFoodResults.length}건 발견 - 탭 이동 안내`);
-          return {
-            results: [],
-            suggestion: {
-              type: 'wrongTab',
-              correctTab: 'healthfood',
-              message: `"${keyword}"은(는) 건강기능식품입니다. 건강기능식품 탭에서 검색해주세요.`,
-              foundCount: healthFoodResults.length,
-            }
-          };
-        }
-        
-        // AI에게 제품 유형 판단 요청
-        const productType = await this.externalApiClient.classifyProductType(keyword);
-        console.log(`[약품 검색] AI 제품 유형 판단: ${productType}`);
-        
-        if (productType === 'healthFood') {
-          return {
-            results: [],
-            suggestion: {
-              type: 'wrongTab',
-              correctTab: 'healthfood',
-              message: `"${keyword}"은(는) 건강기능식품으로 보입니다. 건강기능식품 탭에서 검색해주세요.`,
-              foundCount: 0,
-            }
-          };
-        }
-        
-        // 의약품이 맞는데 없는 경우 - DB 검색 시도
-        const { data, error } = await this.supabaseService
-          .getClient()
-          .from('medicine_list')
-          .select('id, name, manufacturer, purpose, side_effects')
-          .ilike('name', `%${keyword}%`);
-
-        if (error) throw error;
-        return data || [];
+      // 🔒 4️⃣ 최종 필터링: AI 생성 데이터만 제거 (실제 데이터만 반환)
+      const realResults = uniqueResults.filter((item: any) => 
+        !item._isAIGenerated  // AI 생성 데이터 제거
+      );
+      
+      console.log(`[약품 검색] AI 데이터 필터링 후: ${realResults.length}건`);
+      
+      if (!realResults || realResults.length === 0) {
+        console.log(`[약품 검색] ⚠️ 실제 약품 검색 결과 없음 - 빈 배열 반환`);
+        return [];
       }
 
-      // API 결과를 프론트엔드 형식으로 변환 (limit 제한 없이 모든 결과 반환)
-      const results = uniqueResults.map((item: any) => ({
+      // API 결과를 프론트엔드 형식으로 변환 (실제 데이터만 반환)
+      const results = realResults.map((item: any) => ({
         itemSeq: item.itemSeq,
         itemName: item.itemName,
         entpName: item.entpName,
