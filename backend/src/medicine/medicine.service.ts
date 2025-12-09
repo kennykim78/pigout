@@ -587,8 +587,8 @@ export class MedicineService {
     if (error) throw error;
 
     // DB 필드(snake_case)를 프론트엔드 필드(camelCase)로 변환
-    // qr_code_data JSON에서 API 상세 정보 추출
-    return data.map(record => {
+    // qr_code_data JSON과 DB 직접 필드 모두 확인
+    return data.map((record, index) => {
       let qrData: any = {};
       try {
         qrData = record.qr_code_data ? JSON.parse(record.qr_code_data) : {};
@@ -596,31 +596,49 @@ export class MedicineService {
         console.warn(`[getMyMedicines] qr_code_data 파싱 실패 (ID: ${record.id}):`, err.message);
       }
 
-      return {
+      const result = {
         id: record.id,
         userId: record.user_id,
         name: record.name,
-        itemName: qrData.itemName || record.name,
+        itemName: record.item_name || qrData.itemName || record.name,
         drugClass: record.drug_class,
-        entpName: qrData.entpName || record.drug_class,
+        entpName: record.entp_name || qrData.entpName || record.drug_class,
         dosage: record.dosage,
         frequency: record.frequency,
-        // qr_code_data에서 API 상세 정보 추출
-        itemSeq: qrData.itemSeq,
-        efcyQesitm: qrData.efcyQesitm,
-        useMethodQesitm: qrData.useMethodQesitm,
-        atpnWarnQesitm: qrData.atpnWarnQesitm,
+        // DB 직접 필드 우선, qr_code_data는 대체
+        itemSeq: record.item_seq || qrData.itemSeq,
+        efcyQesitm: record.efcy_qesitm || qrData.efcyQesitm,
+        useMethodQesitm: record.use_method_qesitm || qrData.useMethodQesitm,
+        atpnWarnQesitm: record.atpn_warn_qesitm || qrData.atpnWarnQesitm,
         atpnQesitm: qrData.atpnQesitm,
-        intrcQesitm: qrData.intrcQesitm,
-        seQesitm: qrData.seQesitm,
-        depositMethodQesitm: qrData.depositMethodQesitm,
+        intrcQesitm: record.intrc_qesitm || qrData.intrcQesitm,
+        seQesitm: record.se_qesitm || qrData.seQesitm,
+        depositMethodQesitm: record.deposit_method_qesitm || qrData.depositMethodQesitm,
         qrCodeData: record.qr_code_data,
         isActive: record.is_active,
         createdAt: record.created_at,
         updatedAt: record.updated_at,
         // 차트용 추가 메타데이터
-        _hasDetailedInfo: !!(qrData.efcyQesitm || qrData.seQesitm || qrData.intrcQesitm),
+        _hasDetailedInfo: !!(
+          record.efcy_qesitm || qrData.efcyQesitm || 
+          record.se_qesitm || qrData.seQesitm || 
+          record.intrc_qesitm || qrData.intrcQesitm
+        ),
       };
+
+      // 첫 번째 약품의 상세 정보 로그
+      if (index === 0) {
+        console.log(`[getMyMedicines] 첫 번째 약품 (${result.itemName}):`, {
+          'DB efcy_qesitm': record.efcy_qesitm ? `있음(${record.efcy_qesitm.length}자)` : 'null',
+          'DB use_method_qesitm': record.use_method_qesitm ? `있음(${record.use_method_qesitm.length}자)` : 'null',
+          'DB atpn_warn_qesitm': record.atpn_warn_qesitm ? `있음(${record.atpn_warn_qesitm.length}자)` : 'null',
+          '최종 efcyQesitm': result.efcyQesitm ? `있음(${result.efcyQesitm.length}자)` : 'null',
+          '최종 useMethodQesitm': result.useMethodQesitm ? `있음(${result.useMethodQesitm.length}자)` : 'null',
+          '최종 atpnWarnQesitm': result.atpnWarnQesitm ? `있음(${result.atpnWarnQesitm.length}자)` : 'null',
+        });
+      }
+
+      return result;
     });
   }
 
