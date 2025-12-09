@@ -228,61 +228,10 @@ export class ExternalApiClient {
       }
       
       // ================================================================
-      // 1단계: 의약품 허가정보 API 검색 (일반/전문 의약품 모두 검색 가능)
-      // ================================================================
-      console.log(`[1단계-허가정보] 의약품 조회 (일반/전문): ${medicineName}`);
-      
-      try {
-        const approvalResults = await this.getDrugApprovalInfo({
-          itemName: medicineName,
-          numOfRows: numOfRows,
-        });
-        
-        if (approvalResults && approvalResults.length > 0) {
-          recordApiUsage('eDrugApi', 1);
-          
-          // 🔍 원본 API 응답 확인
-          console.log(`🔍 [허가정보-원본] 첫 번째 결과:`, {
-            ITEM_NAME: approvalResults[0].ITEM_NAME,
-            EE_DOC_DATA: approvalResults[0].EE_DOC_DATA ? `있음(${approvalResults[0].EE_DOC_DATA.length}자)` : 'null',
-            UD_DOC_DATA: approvalResults[0].UD_DOC_DATA ? `있음(${approvalResults[0].UD_DOC_DATA.length}자)` : 'null',
-            NB_DOC_DATA: approvalResults[0].NB_DOC_DATA ? `있음(${approvalResults[0].NB_DOC_DATA.length}자)` : 'null',
-          });
-          
-          // 허가정보 API 결과를 e약은요 형식으로 변환
-          const formattedResults = approvalResults.map((item: any) => ({
-            itemSeq: item.ITEM_SEQ || item.itemSeq,
-            itemName: item.ITEM_NAME || item.itemName,
-            entpName: item.ENTP_NAME || item.entpName,
-            efcyQesitm: item.EE_DOC_DATA || item.eeDocData || item.CHART || '',
-            useMethodQesitm: item.UD_DOC_DATA || item.udDocData || '',
-            atpnWarnQesitm: item.NB_DOC_DATA || item.nbDocData || '',
-            atpnQesitm: item.NB_DOC_DATA || item.nbDocData || '',
-            intrcQesitm: '',
-            seQesitm: '',
-            depositMethodQesitm: item.STORAGE_METHOD || item.storageMethod || '',
-            _source: '허가정보',
-          }));
-          
-          console.log(`✅ [허가정보-변환후] 첫 번째 결과:`, {
-            itemName: formattedResults[0].itemName,
-            efcyQesitm: formattedResults[0].efcyQesitm ? `있음(${formattedResults[0].efcyQesitm.length}자)` : 'null',
-            useMethodQesitm: formattedResults[0].useMethodQesitm ? `있음(${formattedResults[0].useMethodQesitm.length}자)` : 'null',
-          });
-          
-          console.log(`[1단계-허가정보] ✅ ${formattedResults.length}건 검색됨 - 캐시 저장 후 반환`);
-          await this.saveMedicineToCache(medicineName, formattedResults, '허가정보');
-          return formattedResults;
-        }
-      } catch (step1Error) {
-        console.warn(`[1단계-허가정보] API 오류:`, step1Error.message);
-      }
-
-      // ================================================================
-      // 2단계: e약은요 API 검색 (일반의약품)
+      // 1단계: e약은요 API 검색 (일반의약품 - 상세정보 포함) 🔥 우선순위 상승
       // ================================================================
       if (!canUseApi('eDrugApi')) {
-        console.log(`[2단계] API 한도 초과 - AI 대체`);
+        console.log(`[1단계] API 한도 초과 - AI 대체`);
         const aiResults = await this.generateAIMedicineInfo(medicineName, numOfRows);
         await this.saveMedicineToCache(medicineName, aiResults, 'AI생성');
         return aiResults;
@@ -290,7 +239,7 @@ export class ExternalApiClient {
 
       const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
       
-      console.log(`[2단계-e약은요] 일반의약품 조회: ${medicineName}`);
+      console.log(`[1단계-e약은요] 일반의약품 조회 (상세정보 포함): ${medicineName}`);
       
       try {
         const response = await axios.get(url, {
@@ -321,12 +270,64 @@ export class ExternalApiClient {
             });
           }
           
-          console.log(`[2단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 캐시 저장 후 반환`);
+          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 캐시 저장 후 반환`);
           await this.saveMedicineToCache(medicineName, results, 'e약은요');
           return results;
         }
+      } catch (step1Error) {
+        console.warn(`[1단계-e약은요] API 오류:`, step1Error.message);
+      }
+
+      // ================================================================
+      // 2단계: 의약품 허가정보 API 검색 (전문의약품, 문서 ID만 반환)
+      // ================================================================
+      console.log(`[2단계-허가정보] 전문의약품 조회 (기본정보만): ${medicineName}`);
+      
+      try {
+        const approvalResults = await this.getDrugApprovalInfo({
+          itemName: medicineName,
+          numOfRows: numOfRows,
+        });
+        
+        if (approvalResults && approvalResults.length > 0) {
+          recordApiUsage('eDrugApi', 1);
+          
+          // 🔍 원본 API 응답 확인
+          console.log(`🔍 [허가정보-원본] 첫 번째 결과:`, {
+            ITEM_NAME: approvalResults[0].ITEM_NAME,
+            EE_DOC_DATA: approvalResults[0].EE_DOC_DATA ? `있음(${approvalResults[0].EE_DOC_DATA.length}자)` : 'null',
+            UD_DOC_DATA: approvalResults[0].UD_DOC_DATA ? `있음(${approvalResults[0].UD_DOC_DATA.length}자)` : 'null',
+            EE_DOC_ID: approvalResults[0].EE_DOC_ID || 'null',
+            UD_DOC_ID: approvalResults[0].UD_DOC_ID || 'null',
+          });
+          
+          // ⚠️ 허가정보 API는 문서 ID만 반환 - 상세 내용은 별도 API 필요
+          // 현재는 기본 안내 메시지 사용
+          const formattedResults = approvalResults.map((item: any) => ({
+            itemSeq: item.ITEM_SEQ || item.itemSeq,
+            itemName: item.ITEM_NAME || item.itemName,
+            entpName: item.ENTP_NAME || item.entpName,
+            efcyQesitm: item.EE_DOC_DATA || '효능효과 정보는 의사/약사와 상담하세요.',
+            useMethodQesitm: item.UD_DOC_DATA || '성인: 증상에 따라 적량을 복용하세요. 정확한 용법은 의사/약사와 상담하세요.',
+            atpnWarnQesitm: item.NB_DOC_DATA || '',
+            atpnQesitm: item.NB_DOC_DATA || '',
+            intrcQesitm: '',
+            seQesitm: '',
+            depositMethodQesitm: item.STORAGE_METHOD || item.storageMethod || '',
+            _source: '허가정보',
+            _hasDocIdOnly: true, // 문서 ID만 있음 표시
+          }));
+          
+          console.log(`✅ [허가정보-변환후] useMethodQesitm:`, 
+            formattedResults[0].useMethodQesitm ? `있음(${formattedResults[0].useMethodQesitm.length}자)` : 'null'
+          );
+          
+          console.log(`[2단계-허가정보] ✅ ${formattedResults.length}건 검색됨 (기본 안내 메시지 포함)`);
+          await this.saveMedicineToCache(medicineName, formattedResults, '허가정보');
+          return formattedResults;
+        }
       } catch (step2Error) {
-        console.warn(`[2단계-e약은요] API 오류:`, step2Error.message);
+        console.warn(`[2단계-허가정보] API 오류:`, step2Error.message);
       }
 
       // ================================================================
