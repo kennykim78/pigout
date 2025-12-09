@@ -27,9 +27,15 @@ const MedicineSchedule = ({ medicines }) => {
       console.log('  - dosage:', medicine.dosage);
       console.log('  - 병합된 텍스트:', useMethod);
       
-      // 복용 횟수 파악
-      const dailyFrequency = useMethod.match(/1일\s*(\d+)\s*회/) || useMethod.match(/(\d+)\s*회/);
-      const timesPerDay = dailyFrequency ? parseInt(dailyFrequency[1]) : 1;
+      // 복용 횟수 파악 (차트와 동일한 로직 사용)
+      let timesPerDay = 2; // 기본값: 1일 2회 (정보 없으면)
+      
+      if (useMethod) {
+        const dailyFrequency = useMethod.match(/1일\s*(\d+)\s*회/) || useMethod.match(/(\d+)\s*회/);
+        if (dailyFrequency) {
+          timesPerDay = parseInt(dailyFrequency[1]);
+        }
+      }
       
       console.log('  - 감지된 복용 횟수:', timesPerDay, '회/일');
       
