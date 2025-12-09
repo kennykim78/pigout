@@ -37,23 +37,10 @@ const MedicineDetailPopup = ({ medicine, onClose }) => {
 
         {/* 바디 - 스크롤 영역 */}
         <div className="medicine-detail-body">
-          {/* 기본 정보 */}
-          {itemSeq && (
-            <div className="medicine-detail-section">
-              <h3 className="section-title">📊 기본 정보</h3>
-              <div className="section-content">
-                <div className="info-row">
-                  <span className="info-label">약품 코드:</span>
-                  <span className="info-value">{itemSeq}</span>
-                </div>
-              </div>
-            </div>
-          )}
-
           {/* 효능 */}
           {efcyQesitm && (
-            <div className="medicine-detail-section">
-              <h3 className="section-title">💊 효능</h3>
+            <div className="medicine-detail-section highlight">
+              <h3 className="section-title">💊 효능·효과</h3>
               <div className="section-content">
                 <p className="medicine-text">{efcyQesitm}</p>
               </div>
@@ -62,8 +49,8 @@ const MedicineDetailPopup = ({ medicine, onClose }) => {
 
           {/* 용법 */}
           {(useMethodQesitm || dosage || frequency) && (
-            <div className="medicine-detail-section">
-              <h3 className="section-title">📋 용법</h3>
+            <div className="medicine-detail-section highlight">
+              <h3 className="section-title">📋 용법·용량</h3>
               <div className="section-content">
                 <p className="medicine-text">{useMethodQesitm || dosage || frequency || '기본 용법'}</p>
               </div>
