@@ -5,6 +5,7 @@ import MedicineRadarChart from '../components/MedicineRadarChart';
 import MedicineSchedule from '../components/MedicineSchedule';
 import MedicineCorrelationSummary from '../components/MedicineCorrelationSummary';
 import MedicineDetailPopup from '../components/MedicineDetailPopup';
+import ImageSourceModal from '../components/ImageSourceModal';
 import './Medicine.scss';
 
 const Medicine = () => {
@@ -39,6 +40,7 @@ const Medicine = () => {
   const [showMedicineSelectPopup, setShowMedicineSelectPopup] = useState(false);
   const [selectedMedicineDetail, setSelectedMedicineDetail] = useState(null);
   const [showMedicineDetailPopup, setShowMedicineDetailPopup] = useState(false);
+  const [showImageSourceModal, setShowImageSourceModal] = useState(false);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
@@ -64,7 +66,16 @@ const Medicine = () => {
   // 📸 이미지 파일 선택 핸들러
   const handleImageFileSelect = async (event) => {
     const file = event.target.files?.[0];
-    if (!file) return;
+    if (!file) {
+      console.log('[이미지 선택] 파일 없음');
+      return;
+    }
+
+    console.log('[이미지 선택] 파일 정보:', {
+      name: file.name,
+      type: file.type,
+      size: file.size,
+    });
 
     // 파일을 Base64로 변환
     const reader = new FileReader();
@@ -72,8 +83,13 @@ const Medicine = () => {
       const base64Data = reader.result.split(',')[1]; // data:image/... 부분 제거
       const mimeType = file.type || 'image/jpeg';
       
+      console.log('[이미지 선택] Base64 변환 완료, mimeType:', mimeType);
+      
       setCapturedImage(reader.result);
       await analyzeImageWithAI(base64Data, mimeType);
+    };
+    reader.onerror = (error) => {
+      console.error('[이미지 선택] 파일 읽기 실패:', error);
     };
     reader.readAsDataURL(file);
   };
@@ -84,22 +100,26 @@ const Medicine = () => {
     setImageAnalysisResult(null);
     
     try {
-      console.log('[이미지 분석] 시작');
+      console.log('[이미지 분석] 시작 - Base64 길이:', base64Data.length, 'MIME:', mimeType);
       const result = await analyzeMedicineImage(base64Data, mimeType);
       console.log('[이미지 분석] 결과:', result);
       
       setImageAnalysisResult(result);
       
       if (result.success && result.verifiedMedicines?.length > 0) {
+        console.log('[이미지 분석] 검증된 약품 개수:', result.verifiedMedicines.length);
         // 감지된 약품이 있으면 선택 팝업 표시
         setSelectedMedicines(result.verifiedMedicines.map(m => m.verified)); // 검증된 약품만 기본 선택
         setShowMedicineSelectPopup(true);
+      } else {
+        console.warn('[이미지 분석] 검증된 약품 없음');
       }
     } catch (error) {
       console.error('[이미지 분석] 실패:', error);
+      console.error('[이미지 분석] 에러 상세:', error.response?.data);
       setImageAnalysisResult({
         success: false,
-        message: '이미지 분석에 실패했습니다. 다시 시도해주세요.',
+        message: error.response?.data?.message || '이미지 분석에 실패했습니다. 다시 시도해주세요.',
         detectedMedicines: [],
         verifiedMedicines: [],
       });
@@ -604,7 +624,6 @@ const Medicine = () => {
             <p className="medicine__section-desc">
               약 봉지, 처방전, 알약 등을 촬영하면 AI가 자동으로 인식합니다
             </p>
-            
             <div className="medicine__capture-buttons">
               {/* 숨겨진 파일 입력들 */}
               <input
@@ -624,19 +643,13 @@ const Medicine = () => {
               />
               
               <button
-                className="medicine__capture-btn"
-                onClick={() => cameraInputRef.current?.click()}
+                className="medicine__capture-btn medicine__capture-btn--primary"
+                onClick={() => setShowImageSourceModal(true)}
                 disabled={isAnalyzingImage}
               >
-                📷 카메라로 촬영
+                📷 촬영하기
               </button>
-              <button
-                className="medicine__capture-btn medicine__capture-btn--secondary"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={isAnalyzingImage}
-              >
-                🖼️ 갤러리에서 선택
-              </button>
+            </div>tton>
             </div>
 
             {/* 이미지 분석 중 */}
@@ -1155,6 +1168,20 @@ const Medicine = () => {
           }}
         />
       )}
+
+      {/* 이미지 소스 선택 모달 */}
+      <ImageSourceModal
+        isOpen={showImageSourceModal}
+        onClose={() => setShowImageSourceModal(false)}
+        onSelectCamera={() => {
+          setShowImageSourceModal(false);
+          cameraInputRef.current?.click();
+        }}
+        onSelectGallery={() => {
+          setShowImageSourceModal(false);
+          fileInputRef.current?.click();
+        }}
+      />
     </div>
   );
 };
