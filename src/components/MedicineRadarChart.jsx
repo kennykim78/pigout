@@ -336,67 +336,23 @@ const MedicineRadarChart = ({ medicines }) => {
         </ResponsiveContainer>
       </div>
       <div className="chart-footer">
-        <div className="chart-legend-info">
-          <p>💡 <strong>5가지 종합 지표 설명</strong> (모두 0-100점, 높을수록 안전/편리)</p>
-          <ul className="indicator-list">
-            <li>
-              <strong>🛡️ 평균 부작용 안전성:</strong> 전체 약품의 부작용 문구 평균
-              <span className="raw-value"> (평균 {detailedData.reduce((sum, d) => sum + d.p1_sideEffectCount, 0) / detailedData.length}개)</span>
-            </li>
-            <li>
-              <strong>⚠️ 최대 상호작용 안전성:</strong> 가장 위험한 약품의 상호작용 개수
-              <span className="raw-value"> (최대 {Math.max(...detailedData.map(d => d.p2_interactionCount))}개)</span>
-            </li>
-            <li>
-              <strong>💊 평균 복용 편의성:</strong> 전체 약품의 일일 복용 횟수 평균
-              <span className="raw-value"> (평균 1일 {(detailedData.reduce((sum, d) => sum + d.p3_dailyFrequency, 0) / detailedData.length).toFixed(1)}회)</span>
-            </li>
-            <li>
-              <strong>🔄 최대 복용 편의성:</strong> 가장 자주 복용하는 약품 기준
-              <span className="raw-value"> (최대 1일 {Math.max(...detailedData.map(d => d.p3_dailyFrequency))}회)</span>
-            </li>
-            <li>
-              <strong>📋 약품 관리 용이성:</strong> 총 복용 약품 개수
-              <span className="raw-value"> (총 {detailedData.length}개)</span>
-            </li>
-          </ul>
-        </div>
-
-        {/* 개별 약품 상세 정보 테이블 */}
-        <div className="medicine-detail-table">
-          <h4>📋 개별 약품 상세 정보 (원시 데이터)</h4>
-          <div className="table-wrapper">
-            <table>
-              <thead>
-                <tr>
-                  <th>약품명</th>
-                  <th>부작용 문구</th>
-                  <th>상호작용 위험</th>
-                  <th>1일 복용 횟수</th>
-                  <th>시장 진입 연수</th>
-                </tr>
-              </thead>
-              <tbody>
-                {detailedData.map((data, index) => (
-                  <tr key={index}>
-                    <td className="medicine-name">{data.name}</td>
-                    <td className={data.p1_sideEffectCount > 10 ? 'warning' : ''}>
-                      {data.p1_sideEffectCount}개
-                    </td>
-                    <td className={data.p2_interactionCount > 8 ? 'warning' : ''}>
-                      {data.p2_interactionCount}개
-                    </td>
-                    <td className={data.p3_dailyFrequency > 3 ? 'warning' : ''}>
-                      {data.p3_dailyFrequency}회
-                    </td>
-                    <td>{data.p4_marketYears}년</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-          <p className="table-note">
-            ⚠️ <strong>주의:</strong> 노란색 배경은 평균 이상의 위험/불편 요소를 나타냅니다.
+        <div className="chart-summary">
+          <p className="summary-text">
+            {(() => {
+              // 전체 평균 점수 계산
+              const avgScore = chartData.reduce((sum, item) => sum + item.value, 0) / chartData.length;
+              
+              // 가장 낮은 점수의 지표 찾기
+              const lowestItem = chartData.reduce((min, item) => item.value < min.value ? item : min);
+              
+              if (avgScore >= 70) {
+                return `✅ 전반적으로 안전하고 편리합니다. 현재 복용 방식을 유지하세요.`;
+              } else if (avgScore >= 50) {
+                return `⚠️ ${lowestItem.subject.replace('\n', ' ')}에 주의가 필요합니다.`;
+              } else {
+                return `🚨 ${lowestItem.subject.replace('\n', ' ')} 개선을 권장합니다. 의사와 상담하세요.`;
+              }
+            })()}
           </p>
         </div>
       </div>
