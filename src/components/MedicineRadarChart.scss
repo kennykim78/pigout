@@ -290,36 +290,3 @@
     }
   }
 }
-
-    &.empty {
-      min-height: 120px;
-    }
-
-    .chart-header {
-      margin-bottom: 12px;
-
-      h3 {
-        font-size: 14px;
-        margin-bottom: 4px;
-      }
-    }
-
-    .chart-description {
-      font-size: 11px;
-    }
-
-    .empty-message {
-      font-size: 12px;
-    }
-
-    .chart-footer {
-      margin-top: 10px;
-      padding-top: 8px;
-
-      p {
-        font-size: 10px;
-      }
-    }
-  }
-}
-
