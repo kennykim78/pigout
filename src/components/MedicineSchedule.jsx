@@ -17,18 +17,37 @@ const MedicineSchedule = ({ medicines }) => {
     };
 
     medicines.forEach(medicine => {
-      const useMethod = (medicine.useMethodQesitm || medicine.dosage || '').toLowerCase();
+      const useMethod = (medicine.useMethodQesitm || medicine.dosage || medicine.frequency || '').toLowerCase();
+      
+      // 복용 횟수 파악
+      const dailyFrequency = useMethod.match(/1일\s*(\d+)\s*회/) || useMethod.match(/(\d+)\s*회/);
+      const timesPerDay = dailyFrequency ? parseInt(dailyFrequency[1]) : 1;
       
       // 복용 시간 추론
-      if (useMethod.includes('아침') || useMethod.includes('아침식사') || useMethod.includes('아침 복용')) {
-        scheduleMap.morning.push(medicine);
-      } else if (useMethod.includes('저녁') || useMethod.includes('저녁식사')) {
-        scheduleMap.evening.push(medicine);
-      } else if (useMethod.includes('점심') || useMethod.includes('오후')) {
-        scheduleMap.afternoon.push(medicine);
+      const hasMorning = useMethod.includes('아침') || useMethod.includes('기상');
+      const hasAfternoon = useMethod.includes('점심') || useMethod.includes('오후');
+      const hasEvening = useMethod.includes('저녁') || useMethod.includes('취침');
+      
+      // 시간대가 명시된 경우
+      if (hasMorning || hasAfternoon || hasEvening) {
+        if (hasMorning) scheduleMap.morning.push(medicine);
+        if (hasAfternoon) scheduleMap.afternoon.push(medicine);
+        if (hasEvening) scheduleMap.evening.push(medicine);
       } else {
-        // 기본값: 아침에 배정
-        scheduleMap.morning.push(medicine);
+        // 시간대가 명시되지 않은 경우 → 횟수에 따라 자동 배정
+        if (timesPerDay >= 3) {
+          // 1일 3회 이상: 오전, 오후, 저녁
+          scheduleMap.morning.push(medicine);
+          scheduleMap.afternoon.push(medicine);
+          scheduleMap.evening.push(medicine);
+        } else if (timesPerDay === 2) {
+          // 1일 2회: 오전, 저녁
+          scheduleMap.morning.push(medicine);
+          scheduleMap.evening.push(medicine);
+        } else {
+          // 1일 1회 또는 불명확: 오전
+          scheduleMap.morning.push(medicine);
+        }
       }
     });
 
