@@ -182,19 +182,6 @@ const MedicineRadarChart = ({ medicines }) => {
       C5_관리부담도: c5_normalized.toFixed(1)
     });
 
-    // 🔹 단계 4: 차트 데이터 생성 (단일 면적)
-    const datasets = [
-      {
-        label: `전체 약품 종합 프로파일 (${totalMedicines}개)`,
-        data: [
-    console.log('[종합 프로파일] 정규화 점수 (0-100):', {
-      C1_평균부작용안전성: c1_normalized.toFixed(1),
-      C2_최대상호작용안전성: c2_normalized.toFixed(1),
-      C3_평균복용편의성: c3_normalized.toFixed(1),
-      C4_최대복용편의성: c4_normalized.toFixed(1),
-      C5_관리부담도: c5_normalized.toFixed(1)
-    });
-
     // 🔹 단계 4: Recharts용 데이터 포맷 변환
     const radarData = [
       { 
