@@ -10,29 +10,50 @@ const MedicineSchedule = ({ medicines }) => {
   const schedule = useMemo(() => {
     if (!medicines || medicines.length === 0) return { morning: [], afternoon: [], evening: [] };
 
+    console.log('🕐 [MedicineSchedule] 복용시간표 계산 시작, 약품 개수:', medicines.length);
+
     const scheduleMap = {
       morning: [],    // 오전 6-12시
       afternoon: [],  // 오후 12-18시
       evening: [],    // 저녁 18-24시
     };
 
-    medicines.forEach(medicine => {
+    medicines.forEach((medicine, idx) => {
       const useMethod = (medicine.useMethodQesitm || medicine.dosage || medicine.frequency || '').toLowerCase();
+      
+      console.log(`🕐 [약품 ${idx + 1}] ${medicine.itemName}`);
+      console.log('  - useMethodQesitm:', medicine.useMethodQesitm);
+      console.log('  - frequency:', medicine.frequency);
+      console.log('  - dosage:', medicine.dosage);
+      console.log('  - 병합된 텍스트:', useMethod);
       
       // 복용 횟수 파악
       const dailyFrequency = useMethod.match(/1일\s*(\d+)\s*회/) || useMethod.match(/(\d+)\s*회/);
       const timesPerDay = dailyFrequency ? parseInt(dailyFrequency[1]) : 1;
+      
+      console.log('  - 감지된 복용 횟수:', timesPerDay, '회/일');
       
       // 복용 시간 추론
       const hasMorning = useMethod.includes('아침') || useMethod.includes('기상');
       const hasAfternoon = useMethod.includes('점심') || useMethod.includes('오후');
       const hasEvening = useMethod.includes('저녁') || useMethod.includes('취침');
       
+      console.log('  - 시간대 명시:', { 아침: hasMorning, 점심: hasAfternoon, 저녁: hasEvening });
+      
       // 시간대가 명시된 경우
       if (hasMorning || hasAfternoon || hasEvening) {
-        if (hasMorning) scheduleMap.morning.push(medicine);
-        if (hasAfternoon) scheduleMap.afternoon.push(medicine);
-        if (hasEvening) scheduleMap.evening.push(medicine);
+        if (hasMorning) {
+          scheduleMap.morning.push(medicine);
+          console.log('  → 오전에 배정');
+        }
+        if (hasAfternoon) {
+          scheduleMap.afternoon.push(medicine);
+          console.log('  → 오후에 배정');
+        }
+        if (hasEvening) {
+          scheduleMap.evening.push(medicine);
+          console.log('  → 저녁에 배정');
+        }
       } else {
         // 시간대가 명시되지 않은 경우 → 횟수에 따라 자동 배정
         if (timesPerDay >= 3) {
@@ -40,15 +61,24 @@ const MedicineSchedule = ({ medicines }) => {
           scheduleMap.morning.push(medicine);
           scheduleMap.afternoon.push(medicine);
           scheduleMap.evening.push(medicine);
+          console.log('  → 오전, 오후, 저녁에 배정 (1일 3회 이상)');
         } else if (timesPerDay === 2) {
           // 1일 2회: 오전, 저녁
           scheduleMap.morning.push(medicine);
           scheduleMap.evening.push(medicine);
+          console.log('  → 오전, 저녁에 배정 (1일 2회)');
         } else {
           // 1일 1회 또는 불명확: 오전
           scheduleMap.morning.push(medicine);
+          console.log('  → 오전에만 배정 (1일 1회 또는 불명확)');
         }
       }
+    });
+
+    console.log('🕐 [MedicineSchedule] 최종 시간표:', {
+      오전: scheduleMap.morning.length + '개',
+      오후: scheduleMap.afternoon.length + '개',
+      저녁: scheduleMap.evening.length + '개'
     });
 
     return scheduleMap;
