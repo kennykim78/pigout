@@ -50,17 +50,33 @@ export class MedicineService {
     // API에서 약품 정보 검색 (상세 정보 얻기 위해)
     let apiMedicineData: any = null;
     try {
+      console.log(`🔍 [scanQrCode] API 검색 시작: ${parsed.medicineName}`);
       const searchResults = await this.searchMedicine(parsed.medicineName, 1);
+      console.log(`📦 [scanQrCode] searchResults 타입:`, typeof searchResults, '배열:', Array.isArray(searchResults));
+      
       if (Array.isArray(searchResults) && searchResults.length > 0) {
         apiMedicineData = searchResults[0];
+        console.log(`✅ [scanQrCode] API 데이터 획득:`, {
+          itemName: apiMedicineData?.itemName,
+          efcyQesitm: apiMedicineData?.efcyQesitm ? `${apiMedicineData.efcyQesitm.substring(0, 50)}...` : 'null',
+          useMethodQesitm: apiMedicineData?.useMethodQesitm ? `${apiMedicineData.useMethodQesitm.substring(0, 50)}...` : 'null',
+          _source: apiMedicineData?._source,
+        });
       } else if (searchResults && typeof searchResults === 'object' && 'results' in searchResults) {
         const results = (searchResults as any).results;
         if (Array.isArray(results) && results.length > 0) {
           apiMedicineData = results[0];
+          console.log(`✅ [scanQrCode] API 데이터 획득 (results 속성):`, {
+            itemName: apiMedicineData?.itemName,
+            efcyQesitm: apiMedicineData?.efcyQesitm ? `${apiMedicineData.efcyQesitm.substring(0, 50)}...` : 'null',
+            useMethodQesitm: apiMedicineData?.useMethodQesitm ? `${apiMedicineData.useMethodQesitm.substring(0, 50)}...` : 'null',
+          });
         }
+      } else {
+        console.warn(`⚠️ [scanQrCode] API 검색 결과 없음`);
       }
     } catch (error) {
-      console.log('[scanQrCode] API 검색 실패:', (error as any).message);
+      console.error('❌ [scanQrCode] API 검색 실패:', (error as any).message);
     }
 
     // 사용자 약 기록 저장 (API 데이터와 DB 데이터 모두 저장)

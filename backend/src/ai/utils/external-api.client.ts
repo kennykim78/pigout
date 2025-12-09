@@ -240,6 +240,15 @@ export class ExternalApiClient {
         
         if (approvalResults && approvalResults.length > 0) {
           recordApiUsage('eDrugApi', 1);
+          
+          // 🔍 원본 API 응답 확인
+          console.log(`🔍 [허가정보-원본] 첫 번째 결과:`, {
+            ITEM_NAME: approvalResults[0].ITEM_NAME,
+            EE_DOC_DATA: approvalResults[0].EE_DOC_DATA ? `있음(${approvalResults[0].EE_DOC_DATA.length}자)` : 'null',
+            UD_DOC_DATA: approvalResults[0].UD_DOC_DATA ? `있음(${approvalResults[0].UD_DOC_DATA.length}자)` : 'null',
+            NB_DOC_DATA: approvalResults[0].NB_DOC_DATA ? `있음(${approvalResults[0].NB_DOC_DATA.length}자)` : 'null',
+          });
+          
           // 허가정보 API 결과를 e약은요 형식으로 변환
           const formattedResults = approvalResults.map((item: any) => ({
             itemSeq: item.ITEM_SEQ || item.itemSeq,
@@ -254,6 +263,13 @@ export class ExternalApiClient {
             depositMethodQesitm: item.STORAGE_METHOD || item.storageMethod || '',
             _source: '허가정보',
           }));
+          
+          console.log(`✅ [허가정보-변환후] 첫 번째 결과:`, {
+            itemName: formattedResults[0].itemName,
+            efcyQesitm: formattedResults[0].efcyQesitm ? `있음(${formattedResults[0].efcyQesitm.length}자)` : 'null',
+            useMethodQesitm: formattedResults[0].useMethodQesitm ? `있음(${formattedResults[0].useMethodQesitm.length}자)` : 'null',
+          });
+          
           console.log(`[1단계-허가정보] ✅ ${formattedResults.length}건 검색됨 - 캐시 저장 후 반환`);
           await this.saveMedicineToCache(medicineName, formattedResults, '허가정보');
           return formattedResults;
@@ -294,6 +310,17 @@ export class ExternalApiClient {
         if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
           recordApiUsage('eDrugApi', 1);
           const results = response.data.body.items;
+          
+          // 🔍 e약은요 API 원본 응답 확인
+          if (results.length > 0) {
+            console.log(`🔍 [e약은요-원본] 첫 번째 결과:`, {
+              itemName: results[0].itemName,
+              efcyQesitm: results[0].efcyQesitm ? `있음(${results[0].efcyQesitm.length}자)` : 'null',
+              useMethodQesitm: results[0].useMethodQesitm ? `있음(${results[0].useMethodQesitm.length}자)` : 'null',
+              atpnWarnQesitm: results[0].atpnWarnQesitm ? `있음(${results[0].atpnWarnQesitm.length}자)` : 'null',
+            });
+          }
+          
           console.log(`[2단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 캐시 저장 후 반환`);
           await this.saveMedicineToCache(medicineName, results, 'e약은요');
           return results;
