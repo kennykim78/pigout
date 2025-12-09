@@ -32,140 +32,200 @@
     }
   }
 
-  .schedule-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  // 슬라이더 컨테이너
+  .schedule-slider {
+    display: flex;
+    align-items: center;
     gap: 12px;
+    margin-bottom: 16px;
+    position: relative;
+  }
+
+  // 이전/다음 버튼
+  .schedule-nav-btn {
+    background: #f5d547;
+    border: none;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    font-size: 24px;
+    font-weight: bold;
+    color: #333;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    flex-shrink: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    box-shadow: 0 2px 8px rgba(245, 213, 71, 0.3);
+
+    &:hover {
+      background: #f5e071;
+      transform: scale(1.1);
+      box-shadow: 0 4px 12px rgba(245, 213, 71, 0.4);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  // 현재 시간대 표시 영역
+  .schedule-current {
+    flex: 1;
+    background: linear-gradient(135deg, #fffef0 0%, #fffbf0 100%);
+    border: 2px solid #f5d547;
+    border-radius: 12px;
+    padding: 20px;
+    min-height: 140px;
+    box-shadow: 0 2px 8px rgba(245, 213, 71, 0.1);
+  }
+
+  .schedule-time-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding-bottom: 12px;
+    border-bottom: 1px solid rgba(245, 213, 71, 0.3);
+  }
+
+  .schedule-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  .schedule-time-info {
+    flex: 1;
+
+    .schedule-label {
+      margin: 0 0 4px 0;
+      font-size: 18px;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .schedule-time {
+      margin: 0;
+      font-size: 13px;
+      color: #666;
+    }
+  }
+
+  .medicine-count {
+    background: #f5d547;
+    color: #333;
+    padding: 4px 12px;
+    border-radius: 16px;
+    font-size: 13px;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  // 약품 태그 컨테이너 (가로 나열)
+  .medicine-tags {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+    min-height: 40px;
+  }
+
+  // 개별 약품 태그
+  .medicine-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    background: white;
+    border: 1px solid #f5d547;
+    border-radius: 20px;
+    padding: 6px 14px;
+    transition: all 0.2s ease;
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.05);
+
+    &:hover {
+      background: #fffef0;
+      border-color: #f5e071;
+      box-shadow: 0 2px 6px rgba(245, 213, 71, 0.2);
+      transform: translateY(-1px);
+    }
+
+    .medicine-tag-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .medicine-tag-dosage {
+      font-size: 12px;
+      color: #666;
+      background: rgba(245, 213, 71, 0.2);
+      padding: 2px 8px;
+      border-radius: 10px;
+    }
+  }
+
+  .empty-message {
+    color: #999;
+    font-size: 14px;
+    text-align: center;
+    padding: 20px;
+  }
+
+  // 시간대 인디케이터 (하단 탭)
+  .schedule-indicators {
+    display: flex;
+    justify-content: center;
+    gap: 8px;
     margin-bottom: 16px;
   }
 
-  .schedule-block {
-    background: linear-gradient(135deg, #fffef0 0%, #fffbf0 100%);
-    border: 2px solid #f5d547;
-    border-radius: 10px;
-    padding: 16px;
-    transition: all 0.3s ease;
+  .schedule-indicator {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 8px 16px;
     cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    font-size: 13px;
+    color: #666;
 
     &:hover {
-      box-shadow: 0 4px 12px rgba(245, 213, 71, 0.2);
-      transform: translateY(-2px);
+      border-color: #f5d547;
+      background: #fffef0;
     }
 
-    &.schedule-morning {
-      border-color: #ffc107;
-      background: linear-gradient(135deg, #fffef0 0%, #fff9e6 100%);
-    }
-
-    &.schedule-afternoon {
-      border-color: #ff9800;
-      background: linear-gradient(135deg, #fff8f0 0%, #fffef0 100%);
-    }
-
-    &.schedule-evening {
-      border-color: #673ab7;
-      background: linear-gradient(135deg, #f3e5f5 0%, #fffef0 100%);
-    }
-
-    .schedule-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 12px;
-      padding-bottom: 8px;
-      border-bottom: 1px solid rgba(245, 213, 71, 0.3);
-    }
-
-    .schedule-title {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      font-weight: 600;
-      color: #333;
-    }
-
-    .schedule-icon {
-      font-size: 18px;
-    }
-
-    .schedule-label {
-      font-size: 14px;
-    }
-
-    .medicine-count {
+    &.active {
       background: #f5d547;
+      border-color: #f5d547;
       color: #333;
-      padding: 2px 8px;
-      border-radius: 12px;
-      font-size: 12px;
       font-weight: 600;
-    }
-  }
-
-  .schedule-content {
-    .empty-message {
-      color: #999;
-      font-size: 12px;
-      padding: 12px 0;
-      text-align: center;
+      box-shadow: 0 2px 6px rgba(245, 213, 71, 0.3);
     }
 
-    .medicine-list {
-      list-style: none;
-      padding: 0;
-      margin: 0;
+    .indicator-icon {
+      font-size: 16px;
     }
 
-    .medicine-item {
-      font-size: 12px;
-      padding: 6px 0;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 4px;
-      border-bottom: 1px solid rgba(245, 213, 71, 0.2);
-
-      &:last-child {
-        border-bottom: none;
-      }
-
-      &.more {
-        justify-content: center;
-        border-bottom: none;
-        padding: 8px 0;
-      }
-
-      .medicine-name {
-        flex: 1;
-        color: #333;
-        font-weight: 500;
-        word-break: break-word;
-      }
-
-      .medicine-dosage {
-        color: #999;
-        font-size: 11px;
-        white-space: nowrap;
-        margin-left: auto;
-      }
-
-      .more-text {
-        color: #f5d547;
-        font-weight: 600;
-      }
+    .indicator-label {
+      font-size: 13px;
     }
   }
 
   .schedule-guide {
-    background: #f0f0f0;
-    border-radius: 8px;
-    padding: 8px 12px;
-    text-align: center;
+    background: rgba(54, 162, 235, 0.05);
+    border-left: 3px solid #36a2eb;
+    border-radius: 6px;
+    padding: 12px 16px;
+    margin-top: 8px;
 
     .guide-text {
       margin: 0;
-      font-size: 11px;
-      color: #666;
+      font-size: 12px;
+      color: #555;
+      line-height: 1.5;
     }
   }
 }
@@ -173,64 +233,57 @@
 // 모바일 반응형
 @media (max-width: 768px) {
   .medicine-schedule-container {
-    margin-bottom: 16px;
-
     .schedule-header-main h3 {
       font-size: 16px;
-      margin-bottom: 6px;
     }
 
-    .schedule-subtitle {
-      font-size: 12px;
+    .schedule-nav-btn {
+      width: 36px;
+      height: 36px;
+      font-size: 20px;
     }
 
-    .empty-schedule {
-      padding: 30px 16px;
+    .schedule-current {
+      padding: 16px;
+      min-height: 120px;
     }
 
-    .schedule-grid {
-      grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
-      gap: 10px;
+    .schedule-time-header {
       margin-bottom: 12px;
+      padding-bottom: 10px;
     }
 
-    .schedule-block {
-      padding: 12px;
-      border-radius: 8px;
+    .schedule-icon {
+      font-size: 28px;
+    }
 
-      .schedule-header {
-        margin-bottom: 8px;
-        padding-bottom: 6px;
-      }
+    .schedule-time-info .schedule-label {
+      font-size: 16px;
+    }
 
-      .schedule-icon {
-        font-size: 16px;
-      }
+    .medicine-tag {
+      padding: 5px 12px;
 
-      .schedule-label {
+      .medicine-tag-name {
         font-size: 12px;
       }
 
-      .medicine-count {
-        padding: 2px 6px;
+      .medicine-tag-dosage {
         font-size: 11px;
+        padding: 1px 6px;
       }
     }
 
-    .schedule-content .medicine-item {
-      font-size: 11px;
-      padding: 4px 0;
+    .schedule-indicator {
+      padding: 6px 12px;
+      gap: 4px;
 
-      .medicine-dosage {
-        font-size: 10px;
+      .indicator-icon {
+        font-size: 14px;
       }
-    }
 
-    .schedule-guide {
-      padding: 6px 10px;
-
-      .guide-text {
-        font-size: 10px;
+      .indicator-label {
+        font-size: 12px;
       }
     }
   }
@@ -238,27 +291,34 @@
 
 @media (max-width: 480px) {
   .medicine-schedule-container {
-    margin-bottom: 12px;
-
-    .schedule-header-main h3 {
-      font-size: 14px;
+    .schedule-nav-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 18px;
     }
 
-    .schedule-grid {
-      grid-template-columns: 1fr 1fr;
-      gap: 8px;
+    .schedule-current {
+      padding: 12px;
     }
 
-    .schedule-block {
-      padding: 10px;
-      border-radius: 6px;
+    .schedule-icon {
+      font-size: 24px;
+    }
 
-      .schedule-icon {
-        font-size: 14px;
-      }
+    .medicine-tag {
+      padding: 4px 10px;
+      font-size: 11px;
+    }
 
-      .schedule-label {
-        font-size: 11px;
+    .schedule-indicators {
+      gap: 6px;
+    }
+
+    .schedule-indicator {
+      padding: 5px 10px;
+
+      .indicator-label {
+        display: none; // 아이콘만 표시
       }
     }
   }
