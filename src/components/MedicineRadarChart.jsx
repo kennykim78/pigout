@@ -187,20 +187,14 @@ const MedicineRadarChart = ({ medicines }) => {
       {
         label: `전체 약품 종합 프로파일 (${totalMedicines}개)`,
         data: [
-          c1_normalized,  // C1: 평균 부작용 안전성
-          c2_normalized,  // C2: 최대 상호작용 안전성
-          c3_normalized,  // C3: 평균 복용 편의성
-          c4_normalized,  // C4: 최대 복용 편의성
-          100 - c5_normalized  // C5: 약품 관리 용이성 (적을수록 관리 쉬움)
-        ],
-        borderColor: 'rgba(54, 162, 235, 1)',      // 파란색
-        backgroundColor: 'rgba(54, 162, 235, 0.3)', // 파란색 투명
-        borderWidth: 3,
-        pointRadius: 6,
-        pointHoverRadius: 8,
-        pointBackgroundColor: 'rgba(54, 162, 235, 1)',
-        pointBorderColor: '#fff',
-        pointBorderWidth: 3,
+    console.log('[종합 프로파일] 정규화 점수 (0-100):', {
+      C1_평균부작용안전성: c1_normalized.toFixed(1),
+      C2_최대상호작용안전성: c2_normalized.toFixed(1),
+      C3_평균복용편의성: c3_normalized.toFixed(1),
+      C4_최대복용편의성: c4_normalized.toFixed(1),
+      C5_관리부담도: c5_normalized.toFixed(1)
+    });
+
     // 🔹 단계 4: Recharts용 데이터 포맷 변환
     const radarData = [
       { 
