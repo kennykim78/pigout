@@ -649,7 +649,6 @@ const Medicine = () => {
               >
                 📷 촬영하기
               </button>
-            </div>tton>
             </div>
 
             {/* 이미지 분석 중 */}
