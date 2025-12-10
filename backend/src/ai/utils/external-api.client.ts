@@ -1149,15 +1149,17 @@ export class ExternalApiClient {
    */
   private async searchHealthFunctionalFoodByKeyword(keyword: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      console.log(`[건강기능식품-검색] 키워드 검색 시작: ${keyword}`);
+      console.log(`[건강기능식품-검색] 키워드 검색 시작: ${keyword}, 요청 수: ${numOfRows}`);
       
-      // 🆕 callMfdsApi 활용 - 공통 파싱 로직 사용
+      // 🔥 API 공식 문서 파라미터 사용
       // 참고: https://www.data.go.kr/data/15056760/openapi.do
-      // getHtfsList01 API의 prdlst_nm 파라미터는 "포함 검색" 지원
+      // Prduct: 제품명 (포함 검색)
       const items = await this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
-        prdlst_nm: keyword,  // 제품명 필터
-        numOfRows: Math.min(numOfRows, 1000),
+        Prduct: keyword,  // ✅ 제품명 필터 (올바른 파라미터명)
+        numOfRows: Math.min(numOfRows, 1000),  // 최대 1000건
       });
+      
+      console.log(`[건강기능식품-검색] API 호출 완료 - URL 파라미터: Prduct=${keyword}, numOfRows=${Math.min(numOfRows, 1000)}`);
       
       console.log(`[건강기능식품-검색] 제품명 검색 결과: ${items.length}건`);
       
@@ -1182,13 +1184,16 @@ export class ExternalApiClient {
    */
   private async searchHealthFunctionalFoodByRawMaterial(keyword: string, numOfRows: number = 20): Promise<any[]> {
     try {
-      console.log(`[건강기능식품-검색] 원료명 검색: ${keyword}`);
+      console.log(`[건강기능식품-검색] 원료명 검색: ${keyword}, 요청 수: ${numOfRows}`);
       
-      // 🆕 callMfdsApi 활용
+      // 🔥 API 공식 문서 파라미터 사용
+      // Rawmtrl: 원료명 (포함 검색)
       const items = await this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
-        rawmtrl_nm: keyword,  // 원료명 필터
-        numOfRows: Math.min(numOfRows, 1000),
+        Rawmtrl: keyword,  // ✅ 원료명 필터 (올바른 파라미터명)
+        numOfRows: Math.min(numOfRows, 1000),  // 최대 1000건
       });
+      
+      console.log(`[건강기능식품-검색] API 호출 완료 - URL 파라미터: Rawmtrl=${keyword}, numOfRows=${Math.min(numOfRows, 1000)}`);
       
       console.log(`[건강기능식품-검색] 원료명 검색 결과: ${items.length}건`);
       
@@ -2004,9 +2009,9 @@ export class ExternalApiClient {
     }
     
     const result = await this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
-      prdlst_nm: params.productName,
-      rawmtrl_nm: params.rawMaterialName,
-      entrps: params.companyName,
+      Prduct: params.productName,      // ✅ 제품명
+      Rawmtrl: params.rawMaterialName, // ✅ 원료명
+      Entrps: params.companyName,      // ✅ 업체명
       pageNo: params.pageNo,
       numOfRows: params.numOfRows,
     });
