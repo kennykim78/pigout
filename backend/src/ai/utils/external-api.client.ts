@@ -101,24 +101,48 @@ export class ExternalApiClient {
     }
 
     const url = `${this.MFDS_BASE_URL}/${endpoint}`;
+    const finalParams = this.buildMfdsParams(params);
+    
+    console.log(`[MFDS-API] 요청: ${endpoint}`);
+    console.log(`[MFDS-API] URL: ${url}`);
+    console.log(`[MFDS-API] 파라미터:`, finalParams);
+    
     try {
       const response = await axios.get(url, {
-        params: this.buildMfdsParams(params),
+        params: finalParams,
         timeout: 15000,
         headers: { Accept: 'application/json' },
       });
 
       const header = response.data?.header;
+      console.log(`[MFDS-API] 응답 헤더:`, header);
+      
       if (header?.resultCode !== '00') {
         console.warn(`[MFDS] ${endpoint} resultCode=${header?.resultCode} message=${header?.resultMsg}`);
         return [];
       }
 
       const items = response.data?.body?.items;
-      if (!items) return [];
-      if (Array.isArray(items)) return items;
-      if (Array.isArray(items.item)) return items.item;
-      if (items.item) return [items.item];
+      console.log(`[MFDS-API] items 타입:`, typeof items, 'Array:', Array.isArray(items));
+      
+      if (!items) {
+        console.log(`[MFDS-API] items 없음`);
+        return [];
+      }
+      if (Array.isArray(items)) {
+        console.log(`[MFDS-API] ✅ 배열 반환: ${items.length}건`);
+        return items;
+      }
+      if (Array.isArray(items.item)) {
+        console.log(`[MFDS-API] ✅ items.item 배열 반환: ${items.item.length}건`);
+        return items.item;
+      }
+      if (items.item) {
+        console.log(`[MFDS-API] ✅ items.item 단일 객체 반환`);
+        return [items.item];
+      }
+      
+      console.log(`[MFDS-API] items 구조 확인 불가`);
       return Array.isArray(items?.items) ? items.items : [];
     } catch (error) {
       console.error(`[MFDS] ${endpoint} 호출 실패:`, error.message);
