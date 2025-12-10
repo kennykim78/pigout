@@ -263,7 +263,7 @@ export class ExternalApiClient {
 
       const url = `${this.MFDS_BASE_URL}/DrbEasyDrugInfoService/getDrbEasyDrugList`;
       
-      console.log(`[1단계-e약은요] 일반의약품 조회 (상세정보 포함): ${medicineName}`);
+      console.log(`[1단계-e약은요] 일반의약품 조회 (기본 정보만): ${medicineName}`);
       
       try {
         const response = await axios.get(url, {
@@ -282,19 +282,17 @@ export class ExternalApiClient {
 
         if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
           recordApiUsage('eDrugApi', 1);
-          const results = response.data.body.items;
+          const rawResults = response.data.body.items;
           
-          // 🔍 e약은요 API 원본 응답 확인
-          if (results.length > 0) {
-            console.log(`🔍 [e약은요-목록] 첫 번째 결과:`, {
-              itemName: results[0].itemName,
-              itemSeq: results[0].itemSeq,
-              efcyQesitm: results[0].efcyQesitm ? `있음(${results[0].efcyQesitm.length}자)` : 'null',
-              useMethodQesitm: results[0].useMethodQesitm ? `있음(${results[0].useMethodQesitm.length}자)` : 'null',
-            });
-          }
+          // ✅ 검색 시에는 기본 정보만 반환 (상세 정보는 등록 시점에 조회)
+          const results = rawResults.map((item: any) => ({
+            itemSeq: item.itemSeq,
+            itemName: item.itemName,
+            entpName: item.entpName,
+            _source: 'e약은요(목록)',
+          }));
           
-          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 (목록만) - 캐시 저장 후 반환`);
+          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 (기본정보만) - 캐시 저장 후 반환`);
           await this.saveMedicineToCache(medicineName, results, 'e약은요');
           return results;
         }
@@ -324,27 +322,19 @@ export class ExternalApiClient {
             UD_DOC_DATA: approvalResults[0].UD_DOC_DATA ? `있음(${approvalResults[0].UD_DOC_DATA.length}자)` : 'null',
           });
           
-          // 목록 데이터만 포맷팅 (상세정보는 등록 시점에 조회)
+          // ✅ 검색 시에는 기본 정보만 반환 (상세정보는 등록 시점에 조회)
           const formattedResults = approvalResults.map((item: any) => {
             return {
               itemSeq: item.ITEM_SEQ || item.item_seq,
               itemName: item.ITEM_NAME || item.itemName,
               entpName: item.ENTP_NAME || item.entpName,
-              efcyQesitm: item.EE_DOC_DATA || '',
-              useMethodQesitm: item.UD_DOC_DATA || '',
-              atpnWarnQesitm: item.NB_DOC_DATA || '',
-              atpnQesitm: item.NB_DOC_DATA || '',
-              intrcQesitm: '',
-              seQesitm: item.SE_DOC_DATA || '',
-              depositMethodQesitm: item.STORAGE_METHOD || item.storageMethod || '',
               _source: '허가정보(목록)',
             };
           });
           
           console.log(`✅ [허가정보-최종] 첫 번째 결과:`, {
             itemName: formattedResults[0].itemName,
-            efcyQesitm: formattedResults[0].efcyQesitm ? `있음(${formattedResults[0].efcyQesitm.length}자)` : 'null',
-            useMethodQesitm: formattedResults[0].useMethodQesitm ? `있음(${formattedResults[0].useMethodQesitm.length}자)` : 'null',
+            entpName: formattedResults[0].entpName,
             _source: formattedResults[0]._source,
           });
           
@@ -1105,6 +1095,33 @@ export class ExternalApiClient {
   }
 
   /**
+   * ✅ 건강기능식품 상세 정보 조회 (등록 시 사용)
+   * itemSeq(신고번호)로 상세 정보를 조회
+   */
+  async getHealthFoodDetail(itemSeq: string): Promise<any> {
+    try {
+      console.log(`[건강기능식품-상세] 조회 시작: ${itemSeq}`);
+      
+      // HtfsInfoService03/getHtfsList01 API로 신고번호 검색
+      const items = await this.callMfdsApi('HtfsInfoService03/getHtfsList01', {
+        sttemnt_no: itemSeq,  // 신고번호로 검색
+        numOfRows: 1,
+      });
+      
+      if (items && items.length > 0) {
+        console.log(`[건강기능식품-상세] ✅ 상세정보 조회 완료`);
+        return this.convertHealthFoodToEasyDrugFormat(items[0]);
+      }
+      
+      console.log(`[건강기능식품-상세] ⚠️ 상세정보 없음`);
+      return null;
+    } catch (error) {
+      console.error('[건강기능식품-상세] 조회 오류:', error.message);
+      return null;
+    }
+  }
+
+  /**
    * 건강기능식품 검색 (공공데이터 API 기반)
    * 
    * @param productName 제품명/원료명 키워드
@@ -1188,8 +1205,8 @@ export class ExternalApiClient {
       console.log(`[건강기능식품-검색] 제품명 검색 결과: ${items.length}건`);
       
       if (items.length > 0) {
-        // API 결과 성공 - e약은요 형식으로 변환
-        return items.slice(0, numOfRows).map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, keyword));
+        // ✅ 검색 시에는 기본 정보만 반환 (상세 정보는 등록 시점에 조회)
+        return items.slice(0, numOfRows).map((item: any) => this.convertHealthFoodToBasicFormat(item));
       }
       
       // 제품명으로 결과가 없으면 원료명으로 재시도
@@ -1230,7 +1247,8 @@ export class ExternalApiClient {
       console.log(`[건강기능식품-검색] 원료명 검색 결과: ${items.length}건`);
       
       if (items.length > 0) {
-        return items.slice(0, numOfRows).map((item: any) => this.convertHealthFoodToEasyDrugFormat(item, keyword));
+        // ✅ 검색 시에는 기본 정보만 반환
+        return items.slice(0, numOfRows).map((item: any) => this.convertHealthFoodToBasicFormat(item));
       }
       
       return [];
@@ -1307,7 +1325,27 @@ export class ExternalApiClient {
   }
 
   /**
-   * 건강기능식품 데이터를 e약은요 형식으로 변환
+   * ✅ 건강기능식품 데이터를 기본 정보만 반환 (검색 시 사용)
+   * 상세 정보는 등록 시점에 별도 API로 조회
+   */
+  private convertHealthFoodToBasicFormat(healthFoodItem: any): any {
+    const itemData = healthFoodItem.item || healthFoodItem;
+    
+    const productName = itemData.PRDUCT || itemData.PRDLST_NM || '';
+    const companyName = itemData.ENTRPS || itemData.BSSH_NM || '';
+    const reportNo = itemData.STTEMNT_NO || itemData.PRDLST_REPORT_NO || `HF_${Date.now()}`;
+    
+    return {
+      itemName: productName.trim(),
+      entpName: companyName.trim(),
+      itemSeq: reportNo,
+      _isHealthFunctionalFood: true,
+      _source: '식품의약품안전처 건강기능식품정보 API',
+    };
+  }
+
+  /**
+   * 건강기능식품 데이터를 e약은요 형식으로 변환 (등록 시 상세 정보 조회용)
    * 기존 의약품 로직과 호환되도록 변환
    * 
    * getHtfsItem01 API 응답 필드:

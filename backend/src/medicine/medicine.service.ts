@@ -213,18 +213,12 @@ export class MedicineService {
         return [];
       }
 
-      // API 결과를 프론트엔드 형식으로 변환 (실제 데이터만 반환)
+      // ✅ 검색 시에는 기본 정보만 반환 (상세 정보는 등록 시점에 조회)
       const results = finalResults.map((item: any) => ({
         itemSeq: item.itemSeq,
         itemName: item.itemName,
         entpName: item.entpName,
-        efcyQesitm: item.efcyQesitm,
-        useMethodQesitm: item.useMethodQesitm,
-        atpnWarnQesitm: item.atpnWarnQesitm,
-        atpnQesitm: item.atpnQesitm,
-        intrcQesitm: item.intrcQesitm,
-        seQesitm: item.seQesitm,
-        depositMethodQesitm: item.depositMethodQesitm,
+        // 상세 정보는 등록 시점에 API로 조회
       }));
 
       // 🆕 각 약품을 공용 캐시에 저장 (itemSeq+entpName 단위)
@@ -285,18 +279,11 @@ export class MedicineService {
           limitedResults = results.slice(0, 200);
         }
         
-        // API 결과를 프론트엔드 형식으로 변환
+        // ✅ 검색 시에는 기본 정보만 반환 (상세 정보는 등록 시점에 조회)
         const formattedResults = limitedResults.map((item: any) => ({
           itemSeq: item.itemSeq,
           itemName: item.itemName,
           entpName: item.entpName,
-          efcyQesitm: item.efcyQesitm,
-          useMethodQesitm: item.useMethodQesitm,
-          atpnWarnQesitm: item.atpnWarnQesitm,
-          atpnQesitm: item.atpnQesitm,
-          intrcQesitm: item.intrcQesitm,
-          seQesitm: item.seQesitm,
-          depositMethodQesitm: item.depositMethodQesitm,
           _isHealthFunctionalFood: true,
           _rawMaterial: item._rawMaterial || '',
         }));
@@ -530,31 +517,65 @@ export class MedicineService {
 
     console.log(`[약 등록] ${itemName} (${entpName}), itemSeq: ${itemSeq}`);
 
-    // 🔥 등록 시점에 상세정보 조회 (효능/용법이 없거나 짧은 경우)
+    // 🔥 등록 시점에 상세정보 조회 (검색 시에는 기본 정보만 받았으므로 항상 조회)
     let detailedData = { ...medicineData };
     
-    const needsDetailFetch = (
-      (!detailedData.efcyQesitm || detailedData.efcyQesitm.length < 50 || 
-       detailedData.efcyQesitm.includes('의사/약사와 상담')) &&
-      itemSeq
-    );
+    // ✅ 검색 결과에 상세 정보가 없으면 무조건 API 조회
+    const needsDetailFetch = !detailedData.efcyQesitm || 
+                            !detailedData.useMethodQesitm ||
+                            detailedData.efcyQesitm.length < 50;
 
-    if (needsDetailFetch) {
-      console.log(`[약 등록] 상세정보 부족 → API 조회: ${itemSeq}`);
+    if (needsDetailFetch && itemSeq) {
+      console.log(`[약 등록] 상세정보 조회 시작 → itemSeq: ${itemSeq}`);
       try {
-        const detailApiData = await this.externalApiClient.getDrugApprovalDetail(itemSeq);
-        if (detailApiData) {
-          detailedData.efcyQesitm = detailApiData.EE_DOC_DATA || detailedData.efcyQesitm;
-          detailedData.useMethodQesitm = detailApiData.UD_DOC_DATA || detailedData.useMethodQesitm;
-          detailedData.atpnWarnQesitm = detailApiData.NB_DOC_DATA || detailedData.atpnWarnQesitm;
-          detailedData.seQesitm = detailApiData.SE_DOC_DATA || detailedData.seQesitm;
-          detailedData.depositMethodQesitm = detailApiData.DEPOSIT_METHOD_QESITM || detailedData.depositMethodQesitm;
-          
-          console.log(`✅ [약 등록] 상세정보 조회 완료:`, {
-            efcyQesitm: detailedData.efcyQesitm ? `있음(${detailedData.efcyQesitm.length}자)` : 'null',
-            useMethodQesitm: detailedData.useMethodQesitm ? `있음(${detailedData.useMethodQesitm.length}자)` : 'null',
-          });
+        // 건강기능식품인 경우
+        if (detailedData._isHealthFunctionalFood) {
+          const healthFoodDetail = await this.externalApiClient.getHealthFoodDetail(itemSeq);
+          if (healthFoodDetail) {
+            detailedData.efcyQesitm = healthFoodDetail.efcyQesitm || detailedData.efcyQesitm;
+            detailedData.useMethodQesitm = healthFoodDetail.useMethodQesitm || detailedData.useMethodQesitm;
+            detailedData.atpnWarnQesitm = healthFoodDetail.atpnWarnQesitm || detailedData.atpnWarnQesitm;
+            detailedData.atpnQesitm = healthFoodDetail.atpnQesitm || detailedData.atpnQesitm;
+            detailedData.intrcQesitm = healthFoodDetail.intrcQesitm || detailedData.intrcQesitm;
+            detailedData.seQesitm = healthFoodDetail.seQesitm || detailedData.seQesitm;
+            detailedData.depositMethodQesitm = healthFoodDetail.depositMethodQesitm || detailedData.depositMethodQesitm;
+            
+            console.log(`✅ [약 등록] 건강기능식품 상세정보 조회 완료`);
+          }
+        } else {
+          // 의약품인 경우
+          // 1️⃣ e약은요 API 상세정보 조회 시도
+          const eDrugDetail = await this.externalApiClient.getMedicineInfo(itemName, 1);
+          if (eDrugDetail && eDrugDetail.length > 0 && eDrugDetail[0].itemSeq === itemSeq) {
+            const detail = eDrugDetail[0];
+            if (detail.efcyQesitm) detailedData.efcyQesitm = detail.efcyQesitm;
+            if (detail.useMethodQesitm) detailedData.useMethodQesitm = detail.useMethodQesitm;
+            if (detail.atpnWarnQesitm) detailedData.atpnWarnQesitm = detail.atpnWarnQesitm;
+            if (detail.atpnQesitm) detailedData.atpnQesitm = detail.atpnQesitm;
+            if (detail.intrcQesitm) detailedData.intrcQesitm = detail.intrcQesitm;
+            if (detail.seQesitm) detailedData.seQesitm = detail.seQesitm;
+            if (detail.depositMethodQesitm) detailedData.depositMethodQesitm = detail.depositMethodQesitm;
+            
+            console.log(`✅ [약 등록] e약은요 상세정보 조회 완료`);
+          } else {
+            // 2️⃣ 허가정보 API 상세정보 조회
+            const detailApiData = await this.externalApiClient.getDrugApprovalDetail(itemSeq);
+            if (detailApiData) {
+              detailedData.efcyQesitm = detailApiData.EE_DOC_DATA || detailedData.efcyQesitm;
+              detailedData.useMethodQesitm = detailApiData.UD_DOC_DATA || detailedData.useMethodQesitm;
+              detailedData.atpnWarnQesitm = detailApiData.NB_DOC_DATA || detailedData.atpnWarnQesitm;
+              detailedData.seQesitm = detailApiData.SE_DOC_DATA || detailedData.seQesitm;
+              detailedData.depositMethodQesitm = detailApiData.DEPOSIT_METHOD_QESITM || detailedData.depositMethodQesitm;
+              
+              console.log(`✅ [약 등록] 허가정보 상세정보 조회 완료`);
+            }
+          }
         }
+        
+        console.log(`✅ [약 등록] 최종 상세정보:`, {
+          efcyQesitm: detailedData.efcyQesitm ? `있음(${detailedData.efcyQesitm.length}자)` : 'null',
+          useMethodQesitm: detailedData.useMethodQesitm ? `있음(${detailedData.useMethodQesitm.length}자)` : 'null',
+        });
       } catch (detailError) {
         console.warn(`⚠️ [약 등록] 상세정보 조회 실패:`, detailError.message);
       }
