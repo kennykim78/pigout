@@ -56,6 +56,29 @@ export class MedicineService {
       
       if (Array.isArray(searchResults) && searchResults.length > 0) {
         apiMedicineData = searchResults[0];
+        
+        // 🔥 QR 스캔 시점에 상세정보 조회 (효능/용법이 부족한 경우)
+        const needsDetail = (
+          (!apiMedicineData.efcyQesitm || apiMedicineData.efcyQesitm.length < 50) &&
+          apiMedicineData.itemSeq
+        );
+        
+        if (needsDetail) {
+          console.log(`[scanQrCode] 상세정보 부족 → API 조회: ${apiMedicineData.itemSeq}`);
+          try {
+            const detailData = await this.externalApiClient.getDrugApprovalDetail(apiMedicineData.itemSeq);
+            if (detailData) {
+              apiMedicineData.efcyQesitm = detailData.EE_DOC_DATA || apiMedicineData.efcyQesitm;
+              apiMedicineData.useMethodQesitm = detailData.UD_DOC_DATA || apiMedicineData.useMethodQesitm;
+              apiMedicineData.atpnWarnQesitm = detailData.NB_DOC_DATA || apiMedicineData.atpnWarnQesitm;
+              apiMedicineData.seQesitm = detailData.SE_DOC_DATA || apiMedicineData.seQesitm;
+              console.log(`✅ [scanQrCode] 상세정보 조회 완료`);
+            }
+          } catch (detailError) {
+            console.warn(`⚠️ [scanQrCode] 상세정보 조회 실패:`, detailError.message);
+          }
+        }
+        
         console.log(`✅ [scanQrCode] API 데이터 획득:`, {
           itemName: apiMedicineData?.itemName,
           efcyQesitm: apiMedicineData?.efcyQesitm ? `${apiMedicineData.efcyQesitm.substring(0, 50)}...` : 'null',
@@ -505,7 +528,37 @@ export class MedicineService {
     const entpName = medicineData.entpName || medicineData.manufacturer;
     const itemSeq = medicineData.itemSeq;
 
-    console.log(`[약 등록] ${itemName} (${entpName})`);
+    console.log(`[약 등록] ${itemName} (${entpName}), itemSeq: ${itemSeq}`);
+
+    // 🔥 등록 시점에 상세정보 조회 (효능/용법이 없거나 짧은 경우)
+    let detailedData = { ...medicineData };
+    
+    const needsDetailFetch = (
+      (!detailedData.efcyQesitm || detailedData.efcyQesitm.length < 50 || 
+       detailedData.efcyQesitm.includes('의사/약사와 상담')) &&
+      itemSeq
+    );
+
+    if (needsDetailFetch) {
+      console.log(`[약 등록] 상세정보 부족 → API 조회: ${itemSeq}`);
+      try {
+        const detailApiData = await this.externalApiClient.getDrugApprovalDetail(itemSeq);
+        if (detailApiData) {
+          detailedData.efcyQesitm = detailApiData.EE_DOC_DATA || detailedData.efcyQesitm;
+          detailedData.useMethodQesitm = detailApiData.UD_DOC_DATA || detailedData.useMethodQesitm;
+          detailedData.atpnWarnQesitm = detailApiData.NB_DOC_DATA || detailedData.atpnWarnQesitm;
+          detailedData.seQesitm = detailApiData.SE_DOC_DATA || detailedData.seQesitm;
+          detailedData.depositMethodQesitm = detailApiData.DEPOSIT_METHOD_QESITM || detailedData.depositMethodQesitm;
+          
+          console.log(`✅ [약 등록] 상세정보 조회 완료:`, {
+            efcyQesitm: detailedData.efcyQesitm ? `있음(${detailedData.efcyQesitm.length}자)` : 'null',
+            useMethodQesitm: detailedData.useMethodQesitm ? `있음(${detailedData.useMethodQesitm.length}자)` : 'null',
+          });
+        }
+      } catch (detailError) {
+        console.warn(`⚠️ [약 등록] 상세정보 조회 실패:`, detailError.message);
+      }
+    }
 
     // DB 저장 (기본 필드만, API 상세 정보는 qr_code_data JSON에 저장)
     const recordData = {
@@ -519,13 +572,13 @@ export class MedicineService {
         itemSeq: itemSeq,
         itemName: itemName,
         entpName: entpName,
-        efcyQesitm: medicineData.efcyQesitm || null,
-        useMethodQesitm: medicineData.useMethodQesitm || null,
-        atpnWarnQesitm: medicineData.atpnWarnQesitm || null,
-        atpnQesitm: medicineData.atpnQesitm || null,
-        intrcQesitm: medicineData.intrcQesitm || null,
-        seQesitm: medicineData.seQesitm || null,
-        depositMethodQesitm: medicineData.depositMethodQesitm || null,
+        efcyQesitm: detailedData.efcyQesitm || null,
+        useMethodQesitm: detailedData.useMethodQesitm || null,
+        atpnWarnQesitm: detailedData.atpnWarnQesitm || null,
+        atpnQesitm: detailedData.atpnQesitm || null,
+        intrcQesitm: detailedData.intrcQesitm || null,
+        seQesitm: detailedData.seQesitm || null,
+        depositMethodQesitm: detailedData.depositMethodQesitm || null,
       }),
       is_active: true,
     };
@@ -541,19 +594,15 @@ export class MedicineService {
       throw error;
     }
 
-    // 🆕 약품 정보를 공용 캐시에 저장 (다른 사용자도 활용 가능)
+    // 🆕 약품 정보를 공용 캐시에 저장 (상세정보 포함)
     if (itemSeq && entpName) {
       try {
-        const fullMedicineInfo = await this.externalApiClient.getMedicineInfo(itemName, 1);
-        if (fullMedicineInfo && fullMedicineInfo.length > 0) {
-          const apiData = fullMedicineInfo[0];
-          await this.supabaseService.saveMedicineDetailCache(
-            itemSeq,
-            entpName,
-            apiData,
-            '의약품(e약은요)',
-          );
-        }
+        await this.supabaseService.saveMedicineDetailCache(
+          itemSeq,
+          entpName,
+          detailedData,
+          '의약품(등록시조회)',
+        );
       } catch (err) {
         console.warn('[약 캐시 저장 오류]:', err.message);
       }

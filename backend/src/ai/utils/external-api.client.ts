@@ -258,49 +258,19 @@ export class ExternalApiClient {
 
         if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
           recordApiUsage('eDrugApi', 1);
-          let results = response.data.body.items;
+          const results = response.data.body.items;
           
           // 🔍 e약은요 API 원본 응답 확인
           if (results.length > 0) {
-            console.log(`🔍 [e약은요-원본] 첫 번째 결과:`, {
+            console.log(`🔍 [e약은요-목록] 첫 번째 결과:`, {
               itemName: results[0].itemName,
               itemSeq: results[0].itemSeq,
               efcyQesitm: results[0].efcyQesitm ? `있음(${results[0].efcyQesitm.length}자)` : 'null',
               useMethodQesitm: results[0].useMethodQesitm ? `있음(${results[0].useMethodQesitm.length}자)` : 'null',
-              atpnWarnQesitm: results[0].atpnWarnQesitm ? `있음(${results[0].atpnWarnQesitm.length}자)` : 'null',
             });
-            
-            // 🔥 효능/용법이 짧거나 없으면 상세정보 API 추가 호출 (상위 5개만)
-            const needsDetailCheck = results.slice(0, 5).filter((item: any) => {
-              const hasShortEfcy = !item.efcyQesitm || item.efcyQesitm.length < 50;
-              const hasShortMethod = !item.useMethodQesitm || item.useMethodQesitm.length < 30;
-              return (hasShortEfcy || hasShortMethod) && item.itemSeq;
-            });
-            
-            if (needsDetailCheck.length > 0) {
-              console.log(`⚠️ [e약은요] ${needsDetailCheck.length}건 상세정보 부족 → 상세 API 추가 호출`);
-              
-              for (const item of needsDetailCheck) {
-                try {
-                  const detailData = await this.getDrugApprovalDetail(item.itemSeq);
-                  if (detailData) {
-                    // 상세 API 데이터로 보강
-                    item.efcyQesitm = detailData.EE_DOC_DATA || item.efcyQesitm;
-                    item.useMethodQesitm = detailData.UD_DOC_DATA || item.useMethodQesitm;
-                    item.atpnWarnQesitm = detailData.NB_DOC_DATA || item.atpnWarnQesitm;
-                    item.seQesitm = detailData.SE_DOC_DATA || item.seQesitm;
-                    item._enhancedWithDetail = true;
-                    
-                    console.log(`✅ [e약은요-보강] ${item.itemName} 상세정보 추가됨`);
-                  }
-                } catch (detailError) {
-                  console.warn(`⚠️ [e약은요-보강] ${item.itemName} 상세조회 실패:`, detailError.message);
-                }
-              }
-            }
           }
           
-          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 캐시 저장 후 반환`);
+          console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 (목록만) - 캐시 저장 후 반환`);
           await this.saveMedicineToCache(medicineName, results, 'e약은요');
           return results;
         }
@@ -330,34 +300,22 @@ export class ExternalApiClient {
             UD_DOC_DATA: approvalResults[0].UD_DOC_DATA ? `있음(${approvalResults[0].UD_DOC_DATA.length}자)` : 'null',
           });
           
-          // 🔥 상세정보 API 추가 호출 (효능, 용법 실제 텍스트 획득)
-          // ✅ 모든 결과에 대해 상세정보 조회 (최대 10개로 제한)
-          const formattedResults = await Promise.all(
-            approvalResults.slice(0, 10).map(async (item: any) => {  // 상위 10개 상세 조회
-              let detailData = null;
-              
-              // itemSeq가 있으면 상세정보 조회
-              const itemSeq = item.ITEM_SEQ || item.item_seq;
-              if (itemSeq) {
-                detailData = await this.getDrugApprovalDetail(itemSeq);
-              }
-              
-              return {
-                itemSeq: itemSeq,
-                itemName: item.ITEM_NAME || item.itemName,
-                entpName: item.ENTP_NAME || item.entpName,
-                efcyQesitm: detailData?.EE_DOC_DATA || item.EE_DOC_DATA || '효능효과 정보는 의사/약사와 상담하세요.',
-                useMethodQesitm: detailData?.UD_DOC_DATA || item.UD_DOC_DATA || '성인: 증상에 따라 적량을 복용하세요. 정확한 용법은 의사/약사와 상담하세요.',
-                atpnWarnQesitm: detailData?.NB_DOC_DATA || item.NB_DOC_DATA || '',
-                atpnQesitm: detailData?.NB_DOC_DATA || item.NB_DOC_DATA || '',
-                intrcQesitm: '',
-                seQesitm: detailData?.SE_DOC_DATA || '',
-                depositMethodQesitm: detailData?.DEPOSIT_METHOD_QESITM || item.STORAGE_METHOD || item.storageMethod || '',
-                _source: '허가정보+상세',
-                _hasDetailData: !!detailData,
-              };
-            })
-          );
+          // 목록 데이터만 포맷팅 (상세정보는 등록 시점에 조회)
+          const formattedResults = approvalResults.map((item: any) => {
+            return {
+              itemSeq: item.ITEM_SEQ || item.item_seq,
+              itemName: item.ITEM_NAME || item.itemName,
+              entpName: item.ENTP_NAME || item.entpName,
+              efcyQesitm: item.EE_DOC_DATA || '',
+              useMethodQesitm: item.UD_DOC_DATA || '',
+              atpnWarnQesitm: item.NB_DOC_DATA || '',
+              atpnQesitm: item.NB_DOC_DATA || '',
+              intrcQesitm: '',
+              seQesitm: item.SE_DOC_DATA || '',
+              depositMethodQesitm: item.STORAGE_METHOD || item.storageMethod || '',
+              _source: '허가정보(목록)',
+            };
+          });
           
           console.log(`✅ [허가정보-최종] 첫 번째 결과:`, {
             itemName: formattedResults[0].itemName,
