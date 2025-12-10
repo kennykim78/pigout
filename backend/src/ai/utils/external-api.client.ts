@@ -258,16 +258,46 @@ export class ExternalApiClient {
 
         if (response.data?.header?.resultCode === '00' && response.data?.body?.items) {
           recordApiUsage('eDrugApi', 1);
-          const results = response.data.body.items;
+          let results = response.data.body.items;
           
           // 🔍 e약은요 API 원본 응답 확인
           if (results.length > 0) {
             console.log(`🔍 [e약은요-원본] 첫 번째 결과:`, {
               itemName: results[0].itemName,
+              itemSeq: results[0].itemSeq,
               efcyQesitm: results[0].efcyQesitm ? `있음(${results[0].efcyQesitm.length}자)` : 'null',
               useMethodQesitm: results[0].useMethodQesitm ? `있음(${results[0].useMethodQesitm.length}자)` : 'null',
               atpnWarnQesitm: results[0].atpnWarnQesitm ? `있음(${results[0].atpnWarnQesitm.length}자)` : 'null',
             });
+            
+            // 🔥 효능/용법이 짧거나 없으면 상세정보 API 추가 호출 (상위 5개만)
+            const needsDetailCheck = results.slice(0, 5).filter((item: any) => {
+              const hasShortEfcy = !item.efcyQesitm || item.efcyQesitm.length < 50;
+              const hasShortMethod = !item.useMethodQesitm || item.useMethodQesitm.length < 30;
+              return (hasShortEfcy || hasShortMethod) && item.itemSeq;
+            });
+            
+            if (needsDetailCheck.length > 0) {
+              console.log(`⚠️ [e약은요] ${needsDetailCheck.length}건 상세정보 부족 → 상세 API 추가 호출`);
+              
+              for (const item of needsDetailCheck) {
+                try {
+                  const detailData = await this.getDrugApprovalDetail(item.itemSeq);
+                  if (detailData) {
+                    // 상세 API 데이터로 보강
+                    item.efcyQesitm = detailData.EE_DOC_DATA || item.efcyQesitm;
+                    item.useMethodQesitm = detailData.UD_DOC_DATA || item.useMethodQesitm;
+                    item.atpnWarnQesitm = detailData.NB_DOC_DATA || item.atpnWarnQesitm;
+                    item.seQesitm = detailData.SE_DOC_DATA || item.seQesitm;
+                    item._enhancedWithDetail = true;
+                    
+                    console.log(`✅ [e약은요-보강] ${item.itemName} 상세정보 추가됨`);
+                  }
+                } catch (detailError) {
+                  console.warn(`⚠️ [e약은요-보강] ${item.itemName} 상세조회 실패:`, detailError.message);
+                }
+              }
+            }
           }
           
           console.log(`[1단계-e약은요] ✅ ${response.data.body.totalCount}건 검색됨 - 캐시 저장 후 반환`);
@@ -301,8 +331,9 @@ export class ExternalApiClient {
           });
           
           // 🔥 상세정보 API 추가 호출 (효능, 용법 실제 텍스트 획득)
+          // ✅ 모든 결과에 대해 상세정보 조회 (최대 10개로 제한)
           const formattedResults = await Promise.all(
-            approvalResults.slice(0, 3).map(async (item: any) => {  // 상위 3개만 상세 조회 (API 절약)
+            approvalResults.slice(0, 10).map(async (item: any) => {  // 상위 10개 상세 조회
               let detailData = null;
               
               // itemSeq가 있으면 상세정보 조회
