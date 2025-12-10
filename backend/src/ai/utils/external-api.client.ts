@@ -1324,31 +1324,31 @@ export class ExternalApiClient {
    * - BASE_STANDARD: 기준규격
    */
   private convertHealthFoodToEasyDrugFormat(healthFoodItem: any, searchKeyword?: string): any {
-    // 🔍 원본 데이터 로그 출력 (API 응답 필드 확인용)
-    console.log(`[변환-원본] API 응답 데이터:`, JSON.stringify(healthFoodItem).substring(0, 500));
-    console.log(`[변환-원본] 사용 가능한 필드:`, Object.keys(healthFoodItem));
+    // ✅ API 응답 구조: { item: { ENTRPS, PRDUCT, ... } }
+    // 실제 데이터는 healthFoodItem.item 내부에 존재
+    const itemData = healthFoodItem.item || healthFoodItem;
     
-    // API 응답 필드 매핑 (getHtfsItem01 상세정보 API 구조에 맞춤)
-    const productName = healthFoodItem.PRDUCT || healthFoodItem.PRDLST_NM || '';
-    const companyName = healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || '';
-    const reportNo = healthFoodItem.STTEMNT_NO || healthFoodItem.PRDLST_REPORT_NO || `HF_${Date.now()}`;
+    // API 응답 필드 매핑 (getHtfsList01 목록 API 구조)
+    const productName = itemData.PRDUCT || itemData.PRDLST_NM || '';
+    const companyName = itemData.ENTRPS || itemData.BSSH_NM || '';
+    const reportNo = itemData.STTEMNT_NO || itemData.PRDLST_REPORT_NO || `HF_${Date.now()}`;
     
     // 🆕 기능성 정보 (우선순위: MAIN_FNCTN > RLTV_FNCTN > 원료명 기반 추론)
     let mainFunction = '';
     
     // 1순위: MAIN_FNCTN (주요 기능성)
-    if (healthFoodItem.MAIN_FNCTN && healthFoodItem.MAIN_FNCTN.trim()) {
-      mainFunction = healthFoodItem.MAIN_FNCTN;
+    if (itemData.MAIN_FNCTN && itemData.MAIN_FNCTN.trim()) {
+      mainFunction = itemData.MAIN_FNCTN;
       console.log(`[변환] MAIN_FNCTN 발견: ${mainFunction.substring(0, 50)}`);
     } 
     // 2순위: RLTV_FNCTN (관련 기능성)
-    else if (healthFoodItem.RLTV_FNCTN && healthFoodItem.RLTV_FNCTN.trim()) {
-      mainFunction = healthFoodItem.RLTV_FNCTN;
+    else if (itemData.RLTV_FNCTN && itemData.RLTV_FNCTN.trim()) {
+      mainFunction = itemData.RLTV_FNCTN;
       console.log(`[변환] RLTV_FNCTN 발견: ${mainFunction.substring(0, 50)}`);
     }
     // 3순위: FRMLTN_DCL (제품 설명)에서 기능성 추출
-    else if (healthFoodItem.FRMLTN_DCL && healthFoodItem.FRMLTN_DCL.trim()) {
-      const formulation = healthFoodItem.FRMLTN_DCL;
+    else if (itemData.FRMLTN_DCL && itemData.FRMLTN_DCL.trim()) {
+      const formulation = itemData.FRMLTN_DCL;
       const functionKeywords = [
         '혈행', '혈당', '콜레스테롤', '눈', '뼈', '관절', '소화', '면역', 
         '피로', '항산화', '간', '혈압', '항염', '프로바이오틱스', '유산균',
@@ -1363,22 +1363,22 @@ export class ExternalApiClient {
       }
     }
     // 4순위: 원료명(RAWMTRL_NM) 기반 추론
-    if (!mainFunction && healthFoodItem.RAWMTRL_NM && healthFoodItem.RAWMTRL_NM.trim()) {
-      const rawMaterial = healthFoodItem.RAWMTRL_NM;
+    if (!mainFunction && itemData.RAWMTRL_NM && itemData.RAWMTRL_NM.trim()) {
+      const rawMaterial = itemData.RAWMTRL_NM;
       mainFunction = `${rawMaterial} 함유 건강기능식품입니다. 상세 정보는 제품 라벨을 확인하세요.`;
       console.log(`[변환] 원료명 기반 추론: ${rawMaterial}`);
     }
     
     // 섭취량 및 섭취방법 (SRV_USE 필드)
-    const servingUse = healthFoodItem.SRV_USE || '';
+    const servingUse = itemData.SRV_USE || '';
     // 주의사항 (INTAKE_HINT1 필드)
-    const intakeHint = healthFoodItem.INTAKE_HINT1 || '';
+    const intakeHint = itemData.INTAKE_HINT1 || '';
     // 보관방법 (PRSRV_PD 필드)
-    const preserveMethod = healthFoodItem.PRSRV_PD || '';
+    const preserveMethod = itemData.PRSRV_PD || '';
     // 성상 (SUNGSANG 필드)
-    const appearance = healthFoodItem.SUNGSANG || '';
+    const appearance = itemData.SUNGSANG || '';
     // 유통기한 (DISTB_PD 필드)
-    const shelfLife = healthFoodItem.DISTB_PD || '';
+    const shelfLife = itemData.DISTB_PD || '';
     
     // 기본 효능 설명 (모든 필드가 없을 경우 대비)
     if (!mainFunction) {
@@ -1386,7 +1386,7 @@ export class ExternalApiClient {
     }
     
     // 원료명 정보 (추가)
-    const rawMaterial = healthFoodItem.RAWMTRL_NM || '';
+    const rawMaterial = itemData.RAWMTRL_NM || '';
     
     // API 응답의 모든 필드를 로깅
     console.log(`[변환] 상세 정보:`, {
