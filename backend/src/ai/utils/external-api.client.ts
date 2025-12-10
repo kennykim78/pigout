@@ -321,7 +321,7 @@ export class ExternalApiClient {
             itemName: formattedResults[0].itemName,
             efcyQesitm: formattedResults[0].efcyQesitm ? `있음(${formattedResults[0].efcyQesitm.length}자)` : 'null',
             useMethodQesitm: formattedResults[0].useMethodQesitm ? `있음(${formattedResults[0].useMethodQesitm.length}자)` : 'null',
-            _hasDetailData: formattedResults[0]._hasDetailData,
+            _source: formattedResults[0]._source,
           });
           
           console.log(`[2단계-허가정보] ✅ ${formattedResults.length}건 검색됨 (상세정보 포함)`);
