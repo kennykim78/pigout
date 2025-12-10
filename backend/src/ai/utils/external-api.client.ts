@@ -1324,6 +1324,10 @@ export class ExternalApiClient {
    * - BASE_STANDARD: 기준규격
    */
   private convertHealthFoodToEasyDrugFormat(healthFoodItem: any, searchKeyword?: string): any {
+    // 🔍 원본 데이터 로그 출력 (API 응답 필드 확인용)
+    console.log(`[변환-원본] API 응답 데이터:`, JSON.stringify(healthFoodItem).substring(0, 500));
+    console.log(`[변환-원본] 사용 가능한 필드:`, Object.keys(healthFoodItem));
+    
     // API 응답 필드 매핑 (getHtfsItem01 상세정보 API 구조에 맞춤)
     const productName = healthFoodItem.PRDUCT || healthFoodItem.PRDLST_NM || '';
     const companyName = healthFoodItem.ENTRPS || healthFoodItem.BSSH_NM || '';
