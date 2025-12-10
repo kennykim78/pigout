@@ -1170,7 +1170,15 @@ export class ExternalApiClient {
       
       // 제품명으로 결과가 없으면 원료명으로 재시도
       console.log(`[건강기능식품-검색] 제품명 검색 결과 없음, 원료명으로 재시도: ${keyword}`);
-      return await this.searchHealthFunctionalFoodByRawMaterial(keyword, numOfRows);
+      const rawMaterialResults = await this.searchHealthFunctionalFoodByRawMaterial(keyword, numOfRows);
+      
+      // 원료명 검색도 결과 없으면 수입식품 검색
+      if (rawMaterialResults.length === 0) {
+        console.log(`[건강기능식품-검색] 원료명 검색 결과 없음, 수입식품 검색 시작: ${keyword}`);
+        return await this.searchImportedFood(keyword, numOfRows);
+      }
+      
+      return rawMaterialResults;
     } catch (error) {
       console.error('[건강기능식품-검색] API 호출 오류:', error.message);
       return [];
@@ -1206,6 +1214,72 @@ export class ExternalApiClient {
       console.error('[건강기능식품-검색] 원료명 검색 오류:', error.message);
       return [];
     }
+  }
+
+  /**
+   * 수입식품 허가사항 검색 (건강기능식품 결과 없을 때 추가 검색)
+   * API: ImportFoodPrmisnInfoService202508/getImrtsCnfirmList04
+   * @param keyword 제품명 키워드
+   * @param numOfRows 반환할 행 수
+   */
+  private async searchImportedFood(keyword: string, numOfRows: number = 20): Promise<any[]> {
+    try {
+      console.log(`[수입식품-검색] 허가사항 검색: ${keyword}, 요청 수: ${numOfRows}`);
+      
+      // 수입식품 허가사항 API 호출
+      // 참고: https://www.data.go.kr/data/15058273/openapi.do
+      const items = await this.callMfdsApi('ImportFoodPrmisnInfoService202508/getImrtsCnfirmList04', {
+        prdlstNm: keyword,  // 제품명 (품목명)
+        numOfRows: Math.min(numOfRows, 1000),
+      });
+      
+      console.log(`[수입식품-검색] API 호출 완료 - 결과: ${items.length}건`);
+      
+      if (items.length > 0) {
+        return items.slice(0, numOfRows).map((item: any) => this.convertImportedFoodToHealthFoodFormat(item, keyword));
+      }
+      
+      return [];
+    } catch (error) {
+      console.error('[수입식품-검색] 검색 오류:', error.message);
+      return [];
+    }
+  }
+
+  /**
+   * 수입식품 데이터를 건강기능식품 형식으로 변환
+   * @param importedFoodItem 수입식품 API 응답 데이터
+   * @param searchKeyword 검색 키워드
+   */
+  private convertImportedFoodToHealthFoodFormat(importedFoodItem: any, searchKeyword?: string): any {
+    // 수입식품 API 응답 필드 매핑
+    const productName = importedFoodItem.PRDLST_NM || importedFoodItem.prdlstNm || '';
+    const companyName = importedFoodItem.BSSH_NM || importedFoodItem.bsshNm || '';
+    const reportNo = importedFoodItem.PRDLST_REPORT_NO || importedFoodItem.prdlstReportNo || `IF_${Date.now()}`;
+    const nationNm = importedFoodItem.NATION_NM || importedFoodItem.nationNm || '';
+    
+    console.log(`[수입식품-변환] 제품: ${productName}, 업체: ${companyName}, 국가: ${nationNm}`);
+    
+    return {
+      itemName: productName.trim(),
+      entpName: companyName.trim(),
+      itemSeq: reportNo,
+      // 수입식품 정보
+      efcyQesitm: `${nationNm ? `${nationNm}에서 ` : ''}수입된 식품입니다. 상세 정보는 제품 라벨을 확인하세요.`,
+      useMethodQesitm: '제품 라벨의 섭취량 및 섭취방법을 참고하세요.',
+      atpnWarnQesitm: '과다섭취는 피하고, 이상반응 시 섭취를 중단하세요.',
+      atpnQesitm: '의약품 복용 시 전문가와 상담하세요.',
+      intrcQesitm: '다른 의약품과의 상호작용에 대해 전문가와 상담하세요.',
+      seQesitm: '이상반응 발생 시 즉시 섭취를 중단하고 의료 전문가와 상담하세요.',
+      depositMethodQesitm: '직사광선을 피하고 서늘하고 건조한 곳에 보관하세요.',
+      itemImage: '',
+      // 수입식품 메타데이터
+      _isHealthFunctionalFood: true,
+      _isImportedFood: true,
+      _source: '식품의약품안전처 수입식품 허가정보 API',
+      _nationNm: nationNm.trim(),
+      _originalData: importedFoodItem,
+    };
   }
 
   /**
