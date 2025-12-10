@@ -6,8 +6,14 @@ async function bootstrap() {
     console.log('[BOOT] Starting Nest application bootstrap...');
     const app = await NestFactory.create(AppModule, {
       logger: ['error', 'warn', 'log'],
+      bodyParser: true,
     });
     console.log('[BOOT] NestFactory.create completed');
+
+    // 🔥 Request body 크기 제한 증가 (이미지 업로드 대응)
+    app.use(require('express').json({ limit: '50mb' }));
+    app.use(require('express').urlencoded({ limit: '50mb', extended: true }));
+    console.log('[BOOT] Body parser limits set to 50mb');
 
     // CORS 설정 - 여러 환경 지원
     const allowedOrigins = [
