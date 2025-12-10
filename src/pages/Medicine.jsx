@@ -63,6 +63,52 @@ const Medicine = () => {
     }
   };
 
+  // 📸 이미지 압축 함수 (최대 1920px, 품질 0.8)
+  const compressImage = (file) => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        const img = new Image();
+        img.onload = () => {
+          const canvas = document.createElement('canvas');
+          let width = img.width;
+          let height = img.height;
+          
+          // 최대 크기 1920px로 제한 (비율 유지)
+          const maxSize = 1920;
+          if (width > maxSize || height > maxSize) {
+            if (width > height) {
+              height = (height / width) * maxSize;
+              width = maxSize;
+            } else {
+              width = (width / height) * maxSize;
+              height = maxSize;
+            }
+          }
+          
+          canvas.width = width;
+          canvas.height = height;
+          const ctx = canvas.getContext('2d');
+          ctx.drawImage(img, 0, 0, width, height);
+          
+          // JPEG 품질 0.8로 압축
+          canvas.toBlob(
+            (blob) => {
+              console.log('[이미지 압축] 원본:', file.size, '압축:', blob.size, '비율:', Math.round((blob.size / file.size) * 100) + '%');
+              resolve(blob);
+            },
+            'image/jpeg',
+            0.8
+          );
+        };
+        img.onerror = reject;
+        img.src = e.target.result;
+      };
+      reader.onerror = reject;
+      reader.readAsDataURL(file);
+    });
+  };
+
   // 📸 이미지 파일 선택 핸들러
   const handleImageFileSelect = async (event) => {
     const file = event.target.files?.[0];
@@ -77,13 +123,28 @@ const Medicine = () => {
       size: file.size,
     });
 
+    // 🔥 이미지 압축 (5MB 이상인 경우)
+    let processedFile = file;
+    if (file.size > 5 * 1024 * 1024) {
+      console.log('[이미지 압축] 시작... 원본 크기:', file.size);
+      try {
+        const compressedBlob = await compressImage(file);
+        processedFile = new File([compressedBlob], file.name, { type: 'image/jpeg' });
+        console.log('[이미지 압축] 완료 - 압축 크기:', processedFile.size);
+      } catch (error) {
+        console.error('[이미지 압축] 실패:', error);
+        alert('이미지 압축에 실패했습니다. 다시 시도해주세요.');
+        return;
+      }
+    }
+
     // 파일을 Base64로 변환
     const reader = new FileReader();
     reader.onloadend = async () => {
       const base64Data = reader.result.split(',')[1]; // data:image/... 부분 제거
-      const mimeType = file.type || 'image/jpeg';
+      const mimeType = processedFile.type || 'image/jpeg';
       
-      console.log('[이미지 선택] Base64 변환 완료, mimeType:', mimeType);
+      console.log('[이미지 선택] Base64 변환 완료, mimeType:', mimeType, 'Base64 길이:', base64Data.length);
       
       setCapturedImage(reader.result);
       await analyzeImageWithAI(base64Data, mimeType);
@@ -91,7 +152,7 @@ const Medicine = () => {
     reader.onerror = (error) => {
       console.error('[이미지 선택] 파일 읽기 실패:', error);
     };
-    reader.readAsDataURL(file);
+    reader.readAsDataURL(processedFile);
   };
 
   // 📸 AI로 이미지 분석
