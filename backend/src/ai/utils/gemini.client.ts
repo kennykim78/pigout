@@ -1778,4 +1778,165 @@ JSON 형식으로만 응답:
       };
     }
   }
+
+  /**
+   * 개별 약품 정보를 분석하고 보완 (공공데이터 불완전시 보충)
+   * @param medicineName 약품명
+   * @param publicData 공공데이터 (e약은요 API 결과)
+   * @returns 분석된 약품 정보
+   */
+  async analyzeMedicineInfo(
+    medicineName: string,
+    publicData?: any
+  ): Promise<{
+    name: string;
+    efficacy: string;
+    usage: string;
+    sideEffects: string;
+    precautions: string;
+    interactions: string;
+    storageMethod: string;
+    components: Array<{ name: string; description: string }>;
+    dataCompleteness: 'complete' | 'partial' | 'ai_enhanced';
+  }> {
+    try {
+      const publicDataStr = publicData ? JSON.stringify(publicData, null, 2) : '공공데이터 없음';
+
+      const prompt = `당신은 의약품 정보 분석 전문가입니다.
+
+주어진 약품 정보를 분석하고, 공공데이터가 불완전한 경우 보완해주세요.
+
+약품명: ${medicineName}
+
+공공데이터 (e약은요 API):
+${publicDataStr}
+
+---
+
+# 분석 지침
+
+1. **효능효과 (Efficacy)**
+   - 공공데이터에 있으면 그대로 사용
+   - 없거나 불명확하면 약품명과 일반적인 성분정보로 유추
+   - 정확한 의학적 설명 (100자 이상)
+
+2. **용법용량 (Usage)**
+   - 공공데이터에 있으면 그대로 사용
+   - 없으면 약품 유형별 표준 용법 제시 (예: 성인 1회 1정, 1일 3회)
+
+3. **이상반응/부작용 (Side Effects)**
+   - 공공데이터에 있으면 정렬
+   - 없으면 약품 유형별 일반적인 부작용 나열
+
+4. **주의사항 (Precautions)**
+   - 공공데이터에 있으면 정렬
+   - 없으면 약품 유형별 기본 주의사항 추가
+
+5. **상호작용 (Interactions)**
+   - 공공데이터에 있으면 정렬
+   - 없으면 주요 상호작용 약물 제시
+
+6. **보관방법 (Storage)**
+   - 공공데이터에 있으면 그대로 사용
+   - 없으면 표준 보관 방법: "직사광선을 피하고 실온(15-30°C)의 건조한 곳에 보관"
+
+7. **주요 성분 (Components)**
+   - 공공데이터에서 추출 또는 약품명으로 유추
+   - 각 성분의 역할 설명 추가
+
+---
+
+# 데이터 완성도 판정
+- **complete**: 공공데이터에서 모든 필드 완성
+- **partial**: 공공데이터가 일부만 제공
+- **ai_enhanced**: AI가 상당 부분 보완
+
+JSON 형식으로만 응답:
+
+{
+  "name": "${medicineName}",
+  "efficacy": "효능효과 설명 (100자 이상)",
+  "usage": "용법용량 설명",
+  "sideEffects": "부작용 목록 (쉼표 구분)",
+  "precautions": "주의사항 목록 (쉼표 구분)",
+  "interactions": "상호작용 정보 (쉼표 구분 또는 '제한적 상호작용' 표시)",
+  "storageMethod": "보관방법",
+  "components": [
+    { "name": "성분명", "description": "역할 설명" },
+    ...
+  ],
+  "dataCompleteness": "complete" | "partial" | "ai_enhanced"
+}`;
+
+      let rawText: string;
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [{ text: prompt }]);
+      }
+
+      return this.extractJsonObject(rawText);
+    } catch (error) {
+      console.error('[AI] 약품 정보 분석 실패:', error.message);
+      return {
+        name: medicineName,
+        efficacy: '정보 없음',
+        usage: '정보 없음',
+        sideEffects: '정보 없음',
+        precautions: '정보 없음',
+        interactions: '정보 없음',
+        storageMethod: '정보 없음',
+        components: [],
+        dataCompleteness: 'partial',
+      };
+    }
+  }
+
+  /**
+   * 여러 약품의 정보를 일괄 분석
+   * @param medicines 약품 목록 (name, publicData 포함)
+   * @returns 분석된 약품 정보 배열
+   */
+  async analyzeMedicineInfoBatch(
+    medicines: Array<{ name: string; publicData?: any }>
+  ): Promise<
+    Array<{
+      name: string;
+      efficacy: string;
+      usage: string;
+      sideEffects: string;
+      precautions: string;
+      interactions: string;
+      storageMethod: string;
+      components: Array<{ name: string; description: string }>;
+      dataCompleteness: 'complete' | 'partial' | 'ai_enhanced';
+    }>
+  > {
+    console.log(`[AI] ${medicines.length}개 약품 일괄 분석 시작...`);
+
+    const results = await Promise.all(
+      medicines.map((med) =>
+        this.analyzeMedicineInfo(med.name, med.publicData).catch((err) => {
+          console.warn(`[AI] ${med.name} 분석 실패:`, err.message);
+          return {
+            name: med.name,
+            efficacy: '정보 없음',
+            usage: '정보 없음',
+            sideEffects: '정보 없음',
+            precautions: '정보 없음',
+            interactions: '정보 없음',
+            storageMethod: '정보 없음',
+            components: [],
+            dataCompleteness: 'partial' as const,
+          };
+        })
+      )
+    );
+
+    console.log(`[AI] ${medicines.length}개 약품 분석 완료`);
+    return results;
+  }
 }
+

@@ -9,6 +9,7 @@ import MedicineTimingOptimizer from '../components/MedicineTimingOptimizer';
 import DosageBasedRiskAnalyzer from '../components/DosageBasedRiskAnalyzer';
 import MedicineDetailPopup from '../components/MedicineDetailPopup';
 import ImageSourceModal from '../components/ImageSourceModal';
+import MedicineAnalyzedInfo from '../components/MedicineAnalyzedInfo';
 import './Medicine.scss';
 
 const Medicine = () => {

@@ -801,6 +801,22 @@ export class MedicineService {
     const geminiClient = new GeminiClient(geminiApiKey);
 
     console.log(`[약물 상관관계 분석] AI 분석 시작...`);
+    
+    // 🆕 Step 1: 각 약품의 정보를 AI가 분석 및 보완
+    console.log(`[약물 상관관계 분석] Step 1: 각 약품 정보 분석 및 보완...`);
+    const medicineInfoBatch = medicines.map(m => {
+      const qrData = m.qr_code_data ? JSON.parse(m.qr_code_data) : {};
+      return {
+        name: m.name,
+        publicData: qrData,
+      };
+    });
+    
+    const analyzedMedicineInfo = await geminiClient.analyzeMedicineInfoBatch(medicineInfoBatch);
+    console.log(`[약물 상관관계 분석] ✅ ${analyzedMedicineInfo.length}개 약품 분석 완료`);
+    
+    // Step 2: 약물 상호작용 분석
+    console.log(`[약물 상관관계 분석] Step 2: 약물 상호작용 분석...`);
     const analysisResult = await geminiClient.analyzeAllDrugInteractions(drugDetails);
 
     console.log(`[약물 상관관계 분석] 완료`);
@@ -879,10 +895,17 @@ export class MedicineService {
     return {
       success: true,
       totalMedicines: medicines.length,
-      medicines: medicines.map(m => ({ id: m.id, name: m.name, dosage: m.dosage, frequency: m.frequency })),
+      medicines: medicines.map((m, idx) => ({ 
+        id: m.id, 
+        name: m.name, 
+        dosage: m.dosage, 
+        frequency: m.frequency,
+        // 🆕 AI 분석 약품 정보 추가
+        analyzedInfo: analyzedMedicineInfo[idx],
+      })),
       analysis: {
         ...analysisResult,
-        interactions, // 🆕 네트워크 도표용 interactions 추가
+        interactions, // 네트워크 도표용 interactions
       },
       dataSources: [
         '식품의약품안전처 e약은요 API',
