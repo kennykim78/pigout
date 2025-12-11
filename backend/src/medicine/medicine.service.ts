@@ -808,6 +808,60 @@ export class MedicineService {
     console.log(`  - 주의 필요: ${analysisResult.cautionCombinations?.length || 0}개`);
     console.log(`  - 긍정적 효과: ${analysisResult.synergisticEffects?.length || 0}개`);
 
+    // 🆕 네트워크 도표용 interactions 배열 변환
+    // Gemini의 결과를 네트워크 도표가 이해할 수 있는 format으로 변환
+    const interactions = [];
+    
+    // 위험한 조합
+    (analysisResult.dangerousCombinations || []).forEach((combo: any) => {
+      // 약물명으로 medicines 배열에서 해당 약물 찾기
+      const med1 = medicines.find(m => m.name === combo.drug1);
+      const med2 = medicines.find(m => m.name === combo.drug2);
+      
+      if (med1 && med2) {
+        interactions.push({
+          medicines: [med1.id, med2.id],
+          riskLevel: 'danger',
+          description: combo.interaction,
+          recommendation: combo.recommendation,
+        });
+      }
+    });
+    
+    // 주의 필요 조합
+    (analysisResult.cautionCombinations || []).forEach((combo: any) => {
+      const med1 = medicines.find(m => m.name === combo.drug1);
+      const med2 = medicines.find(m => m.name === combo.drug2);
+      
+      if (med1 && med2) {
+        interactions.push({
+          medicines: [med1.id, med2.id],
+          riskLevel: 'caution',
+          description: combo.interaction,
+          recommendation: combo.recommendation,
+        });
+      }
+    });
+    
+    // 긍정적 효과
+    (analysisResult.synergisticEffects || []).forEach((effect: any) => {
+      // synergistic effects는 2개 이상의 약물이 포함될 수 있음
+      const medicineIds = effect.drugs
+        .map((drugName: string) => medicines.find(m => m.name === drugName)?.id)
+        .filter(Boolean);
+      
+      if (medicineIds.length >= 2) {
+        interactions.push({
+          medicines: medicineIds.slice(0, 2), // 네트워크 도표는 2개 약물 기준
+          riskLevel: 'safe',
+          description: effect.benefit,
+          recommendation: effect.description,
+        });
+      }
+    });
+
+    console.log(`[약물 상관관계 분석] 네트워크 도표용 interactions 생성: ${interactions.length}개`);
+
     // 캐시 여부 판단 (내부 로깅용, 응답에는 포함하지 않음)
     const allFromCache = drugDetails.every((d: any) => d._fromCache === true);
     const cacheInfo = {
@@ -826,7 +880,10 @@ export class MedicineService {
       success: true,
       totalMedicines: medicines.length,
       medicines: medicines.map(m => ({ id: m.id, name: m.name, dosage: m.dosage, frequency: m.frequency })),
-      analysis: analysisResult,
+      analysis: {
+        ...analysisResult,
+        interactions, // 🆕 네트워크 도표용 interactions 추가
+      },
       dataSources: [
         '식품의약품안전처 e약은요 API',
         '식품의약품안전처 의약품 낱알식별 정보',
