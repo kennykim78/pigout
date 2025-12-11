@@ -666,27 +666,23 @@ JSON 형식:
    */
   private async callWithRetry(
     fn: () => Promise<string>,
-    maxRetries: number = 3
+    maxRetries: number = 4
   ): Promise<string> {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         return await fn();
       } catch (error: any) {
-        // Axios 에러: error.response?.status
-        // Gemini SDK 에러: error.status
         const status = error.response?.status || error.status;
         const isRateLimitError = status === 429 || error.message?.includes('429');
-        
-        // 429: Too Many Requests - 재시도 가능
+
         if (isRateLimitError && attempt < maxRetries) {
-          const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // exponential backoff
-          console.warn(`[Gemini] Rate limit 도달 (429), ${delay}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
-          await new Promise(resolve => setTimeout(resolve, delay));
+          const delay = Math.pow(2, attempt) * 1000 + Math.random() * 500; // exponential backoff with jitter
+          console.warn(`[Gemini] Rate limit (429) – ${delay.toFixed(0)}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
+          await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
-        
-        // 다른 에러는 즉시 throw
-        console.warn(`[Gemini] 재시도 불가능한 에러: status=${status}, attempt=${attempt}`);
+
+        console.warn(`[Gemini] 재시도 불가 또는 최대 재시도 초과: status=${status}, attempt=${attempt}`);
         throw error;
       }
     }
@@ -739,56 +735,37 @@ JSON 형식:
         }
       }
       
-      const prompt = `당신은 20년 경력의 영양학 박사(Ph.D. in Nutrition Science)이자 식품 성분 분석 전문가입니다.
-
+      const prompt = `영양 분석 요청
 음식: ${foodName}
-사용자 질병: ${diseaseList}
+질병: ${diseaseList}
+공개데이터 요약: ${nutritionSummary}
 
-공개데이터: ${nutritionSummary}
-
----
-
-이 음식의 주요 성분을 분석하고:
-1. components: 주요 성분 5~10개 (name, amount, description)
-2. riskFactors: 약물 상호작용 위험 요소 (true/false)
-3. nutritionSummary: 영양학적 평가 (200자 이상, 질병과 연결)
-4. riskFactorNotes: 위험 요소별 근거
-
-JSON만 응답:
-
+JSON만 반환:
 {
   "components": [
-    { "name": "성분명", "amount": "함량", "description": "설명" }
+    {"name": "성분", "amount": "함량", "description": "50자 이상 설명"}
   ],
   "riskFactors": {
-    "alcohol": false,
-    "highSodium": false,
-    "highPotassium": false,
-    "caffeine": false,
-    "citrus": false,
-    "grapefruit": false,
-    "dairy": false,
-    "highFat": false,
-    "vitaminK": false,
-    "tyramine": false
+    "alcohol": false, "highSodium": false, "highPotassium": false,
+    "caffeine": false, "citrus": false, "grapefruit": false,
+    "dairy": false, "highFat": false, "vitaminK": false, "tyramine": false
   },
   "riskFactorNotes": {},
-  "nutritionSummary": "..."
+  "nutritionSummary": "200자 이상 요약 (질병과 연결)"
 }`;
 
       let rawText: string;
       try {
-        // 🆕 재시도 로직 적용
         rawText = await this.callWithRetry(async () => {
           const result = await this.proModel.generateContent(prompt);
           const response = await result.response;
           return response.text();
-        });
+        }, 4);
       } catch (sdkError) {
-        // 🆕 SDK 실패 시 REST API 재시도
+        console.warn('[Gemini] pro 모델 실패, flash로 fallback 시도:', sdkError.message);
         rawText = await this.callWithRetry(async () => {
-          return await this.callV1GenerateContent('gemini-2.5-pro', [{ text: prompt }]);
-        });
+          return await this.callV1GenerateContent('gemini-1.5-flash', [{ text: prompt }]);
+        }, 4);
       }
       
       const parsed = this.extractJsonObject(rawText);
