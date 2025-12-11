@@ -801,7 +801,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [ { text: prompt } ]);
+        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       const parsed = this.extractJsonObject(rawText);
@@ -906,7 +906,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [ { text: prompt } ]);
+        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       return this.extractJsonObject(rawText);
@@ -1024,7 +1024,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [ { text: prompt } ]);
+        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       const parsed = this.extractJsonObject(rawText);
@@ -1269,7 +1269,7 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [ { text: prompt } ]);
+        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       const parsed = this.extractJsonObject(rawText);
@@ -1468,7 +1468,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.0-flash-exp', [ { text: prompt } ]);
+        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       return this.extractJsonObject(rawText);
