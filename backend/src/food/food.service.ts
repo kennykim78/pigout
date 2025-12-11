@@ -1120,7 +1120,7 @@ export class FoodService {
       const supabase = this.supabaseService.getClient();
       const { data: medicines } = await supabase
         .from('medicine_records')
-        .select('id, name')
+        .select('id, name, item_seq, entp_name, efcy_qesitm, use_method_qesitm, atpn_warn_qesitm, atpn_qesitm, intrc_qesitm, se_qesitm, deposit_method_qesitm, qr_code_data')
         .eq('user_id', userId)
         .eq('is_active', true);
 

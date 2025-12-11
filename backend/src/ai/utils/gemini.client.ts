@@ -1749,7 +1749,7 @@ JSON 형식으로만 응답:
    * @param publicData 공공데이터 (e약은요 API 결과)
    * @returns 분석된 약품 정보
    */
-  private async analyzeMedicineInfo(
+  async analyzeMedicineInfo(
     medicineName: string,
     publicData?: any
   ): Promise<{

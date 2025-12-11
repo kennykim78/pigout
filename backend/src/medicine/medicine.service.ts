@@ -486,7 +486,21 @@ export class MedicineService {
       console.warn(`⚠️ [약 등록] AI 성분 추출 실패:`, componentError.message);
     }
 
-    // DB 저장 (기본 필드만, API 상세 정보는 qr_code_data JSON에 저장)
+    // 🧠 등록 시점 AI 약품 정보 분석 (공공데이터를 보강하여 캐시)
+    let aiAnalyzedInfo: any = null;
+    try {
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      if (geminiApiKey) {
+        const { GeminiClient } = await import('../ai/utils/gemini.client');
+        const geminiClient = new GeminiClient(geminiApiKey);
+        aiAnalyzedInfo = await geminiClient.analyzeMedicineInfo(itemName, detailedData);
+        console.log(`✅ [약 등록] AI 약품 정보 분석 완료 (요약 저장)`);
+      }
+    } catch (aiErr) {
+      console.warn('⚠️ [약 등록] AI 약품 정보 분석 실패:', aiErr.message);
+    }
+
+    // DB 저장 (기본 필드만, API 상세 정보와 AI 분석은 qr_code_data JSON에 저장)
     const recordData = {
       user_id: userId,
       name: itemName,
@@ -509,6 +523,8 @@ export class MedicineService {
         mainIngredient: componentData.mainIngredient,
         drugClass: componentData.drugClass,
         components: componentData.components,
+        // 🆕 AI 약품 상세 분석 캐시
+        aiAnalyzedInfo,
       }),
       is_active: true,
     };
