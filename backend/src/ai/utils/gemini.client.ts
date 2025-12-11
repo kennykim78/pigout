@@ -762,9 +762,9 @@ JSON만 반환:
           return response.text();
         }, 4);
       } catch (sdkError) {
-        console.warn('[Gemini] pro 모델 실패, flash로 fallback 시도:', sdkError.message);
+        console.warn('[Gemini] pro 모델 실패, 2.5-flash로 fallback 시도:', sdkError.message);
         rawText = await this.callWithRetry(async () => {
-          return await this.callV1GenerateContent('gemini-1.5-flash', [{ text: prompt }]);
+          return await this.callV1GenerateContent('gemini-2.5-flash', [{ text: prompt }]);
         }, 4);
       }
       
