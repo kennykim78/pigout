@@ -70,12 +70,25 @@ export class MedicineService {
       console.log(`[약품 검색] 중복제거 후: ${uniqueResults.length}건`);
       
       // 🔒 4️⃣ 최종 필터링: AI 생성 데이터만 제거 (실제 데이터만 반환)
-      // _isAIGenerated가 명시적으로 true인 것만 제거 (undefined는 실제 데이터로 간주)
-      const realResults = uniqueResults.filter((item: any) => 
-        item._isAIGenerated !== true  // AI 생성 데이터만 제거
-      );
+      // 두 가지 방식으로 AI 데이터 감지:
+      // 1. _isAIGenerated 플래그 (명시적 마킹)
+      // 2. itemSeq 패턴 (AI_MED_*, AI_HF_*, AI_*) - 정규식 체크
+      const isAIGenerated = (item: any) => {
+        if (item._isAIGenerated === true) return true;  // 명시적 플래그
+        if (typeof item.itemSeq === 'string') {
+          return /^AI_/.test(item.itemSeq);  // itemSeq가 "AI_"로 시작하면 AI 데이터
+        }
+        return false;
+      };
+
+      const realResults = uniqueResults.filter((item: any) => !isAIGenerated(item));
       
-      console.log(`[약품 검색] AI 데이터 필터링 후: ${realResults.length}건`);
+      // 📊 필터링 상세 로그
+      const aiCount = uniqueResults.length - realResults.length;
+      if (aiCount > 0) {
+        console.log(`[약품 검색] AI 데이터 필터링: ${aiCount}건 제거`);
+      }
+      console.log(`[약품 검색] AI 데이터 필터링 후: ${realResults.length}건 (실제 약품)`);
       
       // 💡 결과가 200개 초과 시 상위 200개만 반환
       let finalResults = realResults;
