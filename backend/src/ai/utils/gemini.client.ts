@@ -785,7 +785,7 @@ JSON만 반환:
   async analyzeDrugFoodInteractions(
     foodName: string,
     foodAnalysis: any,
-    drugDetails: Array<{ name: string; publicData: any }>,
+    drugDetails: Array<{ name: string; analyzedInfo?: any; publicData?: any }>,
     diseases: string[]
   ): Promise<{
     interactions: Array<{
@@ -802,35 +802,54 @@ JSON만 반환:
       const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
       const components = foodAnalysis.components || [];
       const riskFactors = foodAnalysis.riskFactors || {};
+
+      // 약품 정보를 요약 형식으로 변환 (캐시된 AI 분석 우선 사용)
+      const medicinesSummary = drugDetails.map((drug) => {
+        if (drug.analyzedInfo) {
+          // 등록 시 저장된 AI 분석 사용 (이미 요약됨)
+          return {
+            name: drug.name,
+            efficacy: drug.analyzedInfo.efficacy || '정보 없음',
+            usage: drug.analyzedInfo.usage || '정보 없음',
+            sideEffects: drug.analyzedInfo.sideEffects || '정보 없음',
+            precautions: drug.analyzedInfo.precautions || '정보 없음',
+            interactions: drug.analyzedInfo.interactions || '정보 없음',
+            components: drug.analyzedInfo.components || [],
+          };
+        } else if (drug.publicData) {
+          // 공공데이터 요약 (필수 필드만)
+          return {
+            name: drug.name,
+            efficacy: drug.publicData.efcyQesitm ? drug.publicData.efcyQesitm.substring(0, 200) + '...' : '정보 없음',
+            precautions: drug.publicData.atpnQesitm ? drug.publicData.atpnQesitm.substring(0, 150) + '...' : '정보 없음',
+            interactions: drug.publicData.intrcQesitm ? drug.publicData.intrcQesitm.substring(0, 150) + '...' : '정보 없음',
+            sideEffects: drug.publicData.seQesitm ? drug.publicData.seQesitm.substring(0, 100) + '...' : '정보 없음',
+          };
+        } else {
+          return { name: drug.name, note: 'AI 분석 필요' };
+        }
+      });
       
       const prompt = `당신은 약물-음식 상호작용 분석 전문가입니다.
 
 음식: ${foodName}
 사용자 질병: ${diseaseList}
 
-AI가 분석한 음식 성분:
+음식 성분:
 ${JSON.stringify(components, null, 2)}
 
-AI가 파악한 위험 요소:
+음식 위험 요소:
 ${JSON.stringify(riskFactors, null, 2)}
 
-사용자가 복용 중인 약물 및 식품의약품안전처(e약은요) 공공데이터:
-${JSON.stringify(drugDetails, null, 2)}
-
-**중요**: 식품의약품안전처 공공데이터의 다음 필드를 정확히 분석하세요:
-- atpnQesitm: 주의사항
-- atpnWarnQesitm: 경고사항
-- intrcQesitm: 상호작용
-- seQesitm: 부작용
-- useMethodQesitm: 복용방법
-- efcyQesitm: 효능효과
+복용 약물 정보 (요약):
+${JSON.stringify(medicinesSummary, null, 2)}
 
 각 약물에 대해 다음을 판단하세요:
 
-1. 음식 성분과 약물 공공데이터를 직접 비교
-   - 예: 음식에 "알코올 5%" → 약물 atpnWarnQesitm에 "음주 시 간 손상" 명시 → danger
-   - 예: 음식에 "나트륨 800mg" → 약물이 고혈압약이고 atpnQesitm에 "염분 섭취 제한" → caution
-   - 예: 음식에 "자몽" → 약물 intrcQesitm에 "자몽주스와 병용 금지" → danger
+1. 음식 성분과 약물 정보를 직접 비교
+   - 예: 음식에 "알코올 5%" → 약물 주의사항에 "음주 시 간 손상" 명시 → danger
+   - 예: 음식에 "나트륨 800mg" → 약물이 고혈압약이고 주의사항에 "염분 섭취 제한" → caution
+   - 예: 음식에 "자몽" → 약물 상호작용에 "자몽주스와 병용 금지" → danger
 
 2. risk_level 판정 기준:
    - danger: 공공데이터에 명확한 금기사항이나 위험 경고가 있는 경우
@@ -842,8 +861,8 @@ ${JSON.stringify(drugDetails, null, 2)}
 4. interaction_description: 음식과 약물의 상호작용 설명 (80자 이상)
    * 음식 성분 위주로 설명 (예: "소주의 알코올 성분이 타이레놀과 함께 섭취 시 간 손상을 유발합니다")
    * 약 자체의 설명은 제외 (예: "타이레놀은 해열진통제로..." 같은 설명 금지)
-5. evidence_from_public_data: "식품의약품안전처 분석 결과: ..." 형태로 작성
-  * 직접적인 문구가 없으면, 관련 문장을 요약하여 근거로 제시 ("식품의약품안전처 분석 결과, '음주 후 복용 금지' 경고가 명시되어 있습니다")
+5. evidence_from_public_data: 약물 정보에서 발견된 근거 작성
+  * 직접적인 문구가 없으면 관련 내용을 요약하여 제시
   * "찾을 수 없다"와 같은 표현 금지
 
 6. recommendation: 음식 섭취 권장사항 (50자 이상, 구체적인 행동 지침)
@@ -856,7 +875,7 @@ JSON 형식으로만 응답:
       "risk_level": "danger",
       "matched_components": ["알코올"],
       "interaction_description": "소주의 알코올 성분이 타이레놀과 함께 섭취 시 간 손상 위험을 크게 증가시킵니다",
-      "evidence_from_public_data": "e약은요 경고사항: '음주 시 간 손상 위험'",
+      "evidence_from_public_data": "약물 주의사항: '음주 시 간 손상 위험'",
       "recommendation": "음주 후 최소 6시간 간격 유지, 가능하면 당일 복용 금지"
     },
     ...
