@@ -284,7 +284,8 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "start:dev": "nodemon --exec ts-node src/main.ts",
     "build": "tsc",
-    "start": "node dist/main.js"
+    "start": "node dist/main.js",
+    "clear-cache": "ts-node scripts/clear-cache.ts"
   },
   "keywords": [],
   "author": "",
