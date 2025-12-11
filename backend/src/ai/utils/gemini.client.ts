@@ -918,13 +918,19 @@ JSON 형식으로만 응답:
   "summary": "총 3개 약물 중 1개 위험(danger), 1개 주의(caution), 1개 안전(safe). 음주와 고염식 주의 필요"
 }`;
 
+      // 🔄 재시도 로직 적용 (429 에러 대응)
       let rawText: string;
       try {
-        const result = await this.proModel.generateContent(prompt);
-        const response = await result.response;
-        rawText = response.text();
+        rawText = await this.callWithRetry(async () => {
+          const result = await this.proModel.generateContent(prompt);
+          const response = await result.response;
+          return response.text();
+        });
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+        console.warn('[analyzeDrugFoodInteractions] SDK 실패, V1 API로 폴백:', sdkError.message);
+        rawText = await this.callWithRetry(async () => {
+          return await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+        });
       }
       
       return this.extractJsonObject(rawText);
