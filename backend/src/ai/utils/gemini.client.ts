@@ -661,6 +661,34 @@ JSON 형식:
   /**
    * [2단계] AI가 음식 성분을 자유롭게 분석
    */
+  /**
+   * 재시도 로직을 포함한 API 호출 (Rate Limiting 대응)
+   */
+  private async callWithRetry(
+    fn: () => Promise<string>,
+    maxRetries: number = 3
+  ): Promise<string> {
+    for (let attempt = 0; attempt <= maxRetries; attempt++) {
+      try {
+        return await fn();
+      } catch (error: any) {
+        const status = error.response?.status;
+        
+        // 429: Too Many Requests - 재시도 가능
+        if (status === 429 && attempt < maxRetries) {
+          const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // exponential backoff
+          console.warn(`[Gemini] Rate limit 도달, ${delay}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
+          await new Promise(resolve => setTimeout(resolve, delay));
+          continue;
+        }
+        
+        // 다른 에러는 즉시 throw
+        throw error;
+      }
+    }
+    throw new Error('Max retries exceeded');
+  }
+
   async analyzeFoodComponents(
     foodName: string,
     diseases: string[],
@@ -690,95 +718,47 @@ JSON 형식:
   }> {
     try {
       const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
-      const nutritionDump = publicDatasets?.nutrition
-        ? JSON.stringify(publicDatasets.nutrition, null, 2)
-        : '데이터 없음';
-      const healthFoodDump = publicDatasets?.healthFunctionalFoods
-        ? JSON.stringify(publicDatasets.healthFunctionalFoods, null, 2)
-        : '데이터 없음';
-      const diseaseDump = publicDatasets?.diseaseInfo
-        ? JSON.stringify(publicDatasets.diseaseInfo, null, 2)
-        : '데이터 없음';
       
-      const prompt = `# Role Definition
-당신은 20년 경력의 **'영양학 박사(Ph.D. in Nutrition Science)'**이자 **'식품 성분 분석 전문가'**입니다.
-당신의 목표는 음식의 성분을 단순히 나열하는 것이 아니라, **각 영양소가 사용자의 건강에 어떤 긍정적/부정적 영향을 미치는지 구체적으로 설명**하는 것입니다.
+      // 🆕 공개데이터 다이제스트 (전체가 아닌 필요한 부분만)
+      let nutritionSummary = '데이터 없음';
+      if (publicDatasets?.nutrition?.items && Array.isArray(publicDatasets.nutrition.items)) {
+        const item = publicDatasets.nutrition.items[0];
+        if (item) {
+          const calories = item.AMT_NUM1 || '정보 없음';
+          const protein = item.AMT_NUM3 || '정보 없음';
+          const fat = item.AMT_NUM4 || '정보 없음';
+          const carbs = item.AMT_NUM5 || '정보 없음';
+          const sodium = item.AMT_NUM13 || '정보 없음';
+          const foodName = item.FOOD_NM_KR || '음식';
+          
+          nutritionSummary = `[${foodName}] 100g당: 에너지 ${calories}kcal, 단백질 ${protein}g, 지방 ${fat}g, 탄수화물 ${carbs}g, 나트륨 ${sodium}mg`;
+        }
+      }
+      
+      const prompt = `당신은 20년 경력의 영양학 박사(Ph.D. in Nutrition Science)이자 식품 성분 분석 전문가입니다.
+
+음식: ${foodName}
+사용자 질병: ${diseaseList}
+
+공개데이터: ${nutritionSummary}
 
 ---
 
-# Input Data Context
-**분석 대상 음식:** ${foodName}
-**사용자 질병:** ${diseaseList}
+이 음식의 주요 성분을 분석하고:
+1. components: 주요 성분 5~10개 (name, amount, description)
+2. riskFactors: 약물 상호작용 위험 요소 (true/false)
+3. nutritionSummary: 영양학적 평가 (200자 이상, 질병과 연결)
+4. riskFactorNotes: 위험 요소별 근거
 
-**참고 가능한 공공데이터:**
-- 식품의약품안전처 식품영양성분DB: ${nutritionDump}
-- 식품의약품안전처 건강기능식품정보: ${healthFoodDump}
-- 건강보험심사평가원 질병정보서비스: ${diseaseDump}
+JSON만 응답:
 
----
-
-# Analysis Logic (Chain of Thought)
-
-## Step 1. 성분 분석 (Component Analysis)
-음식의 주요 성분을 층위별로 분석하세요:
-- **단일 식품:** 영양소별로 분석 (예: 사과 → 식이섬유, 비타민C, 당류)
-- **복합 음식:** 파트별로 분석 (예: 피자 → [도우] 탄수화물, [소스] 토마토/나트륨, [토핑] 단백질/지방)
-- 공공데이터(식약처, USDA)에 기반하되, 없으면 일반적인 범위 제시
-
-## Step 2. 건강 영향 평가 (Health Impact)
-각 성분이 사용자의 질병에 미치는 영향을 구체적으로 설명:
-- ✅ **긍정적 영향:** 이 영양소가 질병 관리에 도움이 되는 이유
-- ⚠️ **부정적 영향:** 이 성분이 질병을 악화시킬 수 있는 메커니즘
-
-## Step 3. 위험 요소 탐지 (Risk Factor Detection)
-약물과 상호작용할 수 있는 성분을 찾아내세요:
-- 고나트륨, 고칼륨, 비타민K, 티라민, 자몽, 알코올 등
-- 각 위험 요소가 **왜 문제인지** 구체적인 근거 제시
-
----
-
-# Output Format
-음식의 주요 성분을 자유롭게 분석하세요. 단일 식품이 아니더라도, "도우/소스/토핑"처럼 구성 요소를 층위별로 나누고 각 층위의 대표 성분을 찾아내세요. 식품의약품안전처, USDA, 식품영양성분표, 일반 레시피 등 공신력 있는 데이터에 기반해 추론하고, 정확한 수치가 없으면 일반적인 범위를 제시하세요.
-
-1. components (배열): 음식에 포함된 주요 성분 5~12개
-  - 복합 음식(예: 페퍼로니 피자, 비빔밥, 햄버거 등)은 "[도우] 밀가루", "[소스] 토마토", "[토핑] 페퍼로니"처럼 파트별 접두사를 붙이세요
-  - name: 성분명 (예: "[도우] 정제 탄수화물", "[토핑] 가공육 (페퍼로니)", "[치즈] 포화지방")
-  - amount: 대략적인 함량 (예: "탄수화물 45g", "나트륨 1,200mg", "포화지방 하루 권장량의 60%" 등)
-  - description: 성분 설명 및 건강 영향 (50자 이상, 질병/약물과 연결될 수 있는 근거 포함)
-
-2. riskFactors (객체): 약물과 상호작용 가능한 위험 성분
-  - 성분이 실제로 포함되어 있으면 true, 아니면 false (레시피상 일반적으로 포함되는 경우라도 true)
-  - 고정된 8가지에 제한하지 말고, 필요하면 새로운 필드 추가
-  - 각 위험 성분에 대한 근거는 별도 객체 riskFactorNotes에 "필드명": "근거" 형태로 작성하세요
-   - 예시:
-     * alcohol: 알코올 포함 여부
-     * highSodium: 나트륨 하루 권장량 30% 이상
-     * highPotassium: 칼륨 함량 높음
-     * caffeine: 카페인 포함
-     * citrus: 감귤류 포함
-     * grapefruit: 자몽 포함
-     * dairy: 유제품 포함
-     * highFat: 지방 함량 높음
-     * vitaminK: 비타민K 풍부 채소
-     * tyramine: 티라민 함유 식품 (치즈, 발효식품 등)
-     * 기타 필요한 성분 추가
-
-3. nutritionSummary: 영양학적 종합 평가 (200자 이상, 사용자 질병/약물과 연결 가능한 핵심 포인트 요약)
-
-4. riskFactorNotes: 위험 성분별 근거 (객체)
-  - key: riskFactors와 동일한 필드명
-  - value: 해당 성분이 왜 문제인지 50자 이상으로 설명
-
-JSON 형식으로만 응답:
 {
   "components": [
-    { "name": "알코올", "amount": "5%", "description": "간 기능에 영향..." },
-    { "name": "나트륨", "amount": "800mg", "description": "혈압 상승 가능..." },
-    ...
+    { "name": "성분명", "amount": "함량", "description": "설명" }
   ],
   "riskFactors": {
-    "alcohol": true,
-    "highSodium": true,
+    "alcohol": false,
+    "highSodium": false,
     "highPotassium": false,
     "caffeine": false,
     "citrus": false,
@@ -788,20 +768,23 @@ JSON 형식으로만 응답:
     "vitaminK": false,
     "tyramine": false
   },
-  "riskFactorNotes": {
-    "alcohol": "도우를 제외한 소스/토핑에 알코올 없음",
-    "highSodium": "페퍼로니와 치즈, 토마토 소스가 1회 섭취 시 나트륨 약 1,600mg 제공"
-  },
-  "nutritionSummary": "해당 음식은..."
+  "riskFactorNotes": {},
+  "nutritionSummary": "..."
 }`;
 
       let rawText: string;
       try {
-        const result = await this.proModel.generateContent(prompt);
-        const response = await result.response;
-        rawText = response.text();
+        // 🆕 재시도 로직 적용
+        rawText = await this.callWithRetry(async () => {
+          const result = await this.proModel.generateContent(prompt);
+          const response = await result.response;
+          return response.text();
+        });
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+        // 🆕 SDK 실패 시 REST API 재시도
+        rawText = await this.callWithRetry(async () => {
+          return await this.callV1GenerateContent('gemini-2.5-pro', [{ text: prompt }]);
+        });
       }
       
       const parsed = this.extractJsonObject(rawText);
@@ -1785,7 +1768,7 @@ JSON 형식으로만 응답:
    * @param publicData 공공데이터 (e약은요 API 결과)
    * @returns 분석된 약품 정보
    */
-  async analyzeMedicineInfo(
+  private async analyzeMedicineInfo(
     medicineName: string,
     publicData?: any
   ): Promise<{
@@ -1901,19 +1884,17 @@ JSON 형식으로만 응답:
    */
   async analyzeMedicineInfoBatch(
     medicines: Array<{ name: string; publicData?: any }>
-  ): Promise<
-    Array<{
-      name: string;
-      efficacy: string;
-      usage: string;
-      sideEffects: string;
-      precautions: string;
-      interactions: string;
-      storageMethod: string;
-      components: Array<{ name: string; description: string }>;
-      dataCompleteness: 'complete' | 'partial' | 'ai_enhanced';
-    }>
-  > {
+  ): Promise<Array<{
+    name: string;
+    efficacy: string;
+    usage: string;
+    sideEffects: string;
+    precautions: string;
+    interactions: string;
+    storageMethod: string;
+    components: Array<{ name: string; description: string }>;
+    dataCompleteness: 'complete' | 'partial' | 'ai_enhanced';
+  }>> {
     console.log(`[AI] ${medicines.length}개 약품 일괄 분석 시작...`);
 
     const results = await Promise.all(
