@@ -1,6 +1,5 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
-import { QrParser } from './utils/qr-parser';
 import { ExternalApiClient } from '../ai/utils/external-api.client';
 
 @Injectable()
@@ -11,129 +10,6 @@ export class MedicineService {
   ) {
     // 의약품 검색 캐싱을 위해 SupabaseService 주입
     this.externalApiClient.setSupabaseService(supabaseService);
-  }
-
-  /**
-   * QR 코드 스캔하여 약 정보 저장
-   */
-  async scanQrCode(userId: string, qrData: string, dosage?: string, frequency?: string) {
-    const client = this.supabaseService.getClient();
-
-    // QR 데이터 유효성 검증
-    if (!QrParser.validate(qrData)) {
-      throw new BadRequestException('유효하지 않은 QR 코드입니다.');
-    }
-
-    // QR 데이터 파싱
-    const parsed = QrParser.parse(qrData);
-
-    if (!parsed.medicineName) {
-      throw new BadRequestException('약품명을 추출할 수 없습니다.');
-    }
-
-    // medicine_list에서 약품 정보 조회 (코드 기준)
-    let medicineData = null;
-    let medicineId = null;
-    if (parsed.medicineCode) {
-      const { data: medicine } = await client
-        .from('medicine_list')
-        .select('*')
-        .eq('medicine_code', parsed.medicineCode)
-        .single();
-
-      if (medicine) {
-        medicineId = medicine.id;
-        medicineData = medicine;
-      }
-    }
-
-    // API에서 약품 정보 검색 (상세 정보 얻기 위해)
-    let apiMedicineData: any = null;
-    try {
-      console.log(`🔍 [scanQrCode] API 검색 시작: ${parsed.medicineName}`);
-      const searchResults = await this.searchMedicine(parsed.medicineName, 1);
-      console.log(`📦 [scanQrCode] searchResults 타입:`, typeof searchResults, '배열:', Array.isArray(searchResults));
-      
-      if (Array.isArray(searchResults) && searchResults.length > 0) {
-        apiMedicineData = searchResults[0];
-        
-        // 🔥 QR 스캔 시점에 상세정보 조회 (효능/용법이 부족한 경우)
-        const needsDetail = (
-          (!apiMedicineData.efcyQesitm || apiMedicineData.efcyQesitm.length < 50) &&
-          apiMedicineData.itemSeq
-        );
-        
-        if (needsDetail) {
-          console.log(`[scanQrCode] 상세정보 부족 → API 조회: ${apiMedicineData.itemSeq}`);
-          try {
-            const detailData = await this.externalApiClient.getDrugApprovalDetail(apiMedicineData.itemSeq);
-            if (detailData) {
-              apiMedicineData.efcyQesitm = detailData.EE_DOC_DATA || apiMedicineData.efcyQesitm;
-              apiMedicineData.useMethodQesitm = detailData.UD_DOC_DATA || apiMedicineData.useMethodQesitm;
-              apiMedicineData.atpnWarnQesitm = detailData.NB_DOC_DATA || apiMedicineData.atpnWarnQesitm;
-              apiMedicineData.seQesitm = detailData.SE_DOC_DATA || apiMedicineData.seQesitm;
-              console.log(`✅ [scanQrCode] 상세정보 조회 완료`);
-            }
-          } catch (detailError) {
-            console.warn(`⚠️ [scanQrCode] 상세정보 조회 실패:`, detailError.message);
-          }
-        }
-        
-        console.log(`✅ [scanQrCode] API 데이터 획득:`, {
-          itemName: apiMedicineData?.itemName,
-          efcyQesitm: apiMedicineData?.efcyQesitm ? `${apiMedicineData.efcyQesitm.substring(0, 50)}...` : 'null',
-          useMethodQesitm: apiMedicineData?.useMethodQesitm ? `${apiMedicineData.useMethodQesitm.substring(0, 50)}...` : 'null',
-          _source: apiMedicineData?._source,
-        });
-      } else if (searchResults && typeof searchResults === 'object' && 'results' in searchResults) {
-        const results = (searchResults as any).results;
-        if (Array.isArray(results) && results.length > 0) {
-          apiMedicineData = results[0];
-          console.log(`✅ [scanQrCode] API 데이터 획득 (results 속성):`, {
-            itemName: apiMedicineData?.itemName,
-            efcyQesitm: apiMedicineData?.efcyQesitm ? `${apiMedicineData.efcyQesitm.substring(0, 50)}...` : 'null',
-            useMethodQesitm: apiMedicineData?.useMethodQesitm ? `${apiMedicineData.useMethodQesitm.substring(0, 50)}...` : 'null',
-          });
-        }
-      } else {
-        console.warn(`⚠️ [scanQrCode] API 검색 결과 없음`);
-      }
-    } catch (error) {
-      console.error('❌ [scanQrCode] API 검색 실패:', (error as any).message);
-    }
-
-    // 사용자 약 기록 저장 (API 데이터와 DB 데이터 모두 저장)
-    const { data, error } = await client
-      .from('medicine_records')
-      .insert({
-        user_id: userId,
-        // DB 저장용 기본 필드
-        name: parsed.medicineName,
-        dosage: dosage || null,
-        frequency: frequency || null,
-        qr_code_data: qrData,
-        is_active: true,
-        // API 데이터 저장 (상세 정보)
-        item_name: apiMedicineData?.itemName || parsed.medicineName,
-        efcy_qesitm: apiMedicineData?.efcyQesitm || '',
-        use_method_qesitm: apiMedicineData?.useMethodQesitm || '',
-        atpn_warn_qesitm: apiMedicineData?.atpnWarnQesitm || '',
-        intrc_qesitm: apiMedicineData?.intrcQesitm || '',
-        se_qesitm: apiMedicineData?.seQesitm || '',
-        deposit_method_qesitm: apiMedicineData?.depositMethodQesitm || '',
-        entp_name: apiMedicineData?.entpName || '',
-        item_seq: apiMedicineData?.itemSeq || '',
-      })
-      .select()
-      .single();
-
-    if (error) throw error;
-
-    return {
-      success: true,
-      medicineRecord: data,
-      parsedInfo: parsed,
-    };
   }
 
   /**
@@ -405,17 +281,18 @@ export class MedicineService {
 
       const detectedMedicines = analysisResult.medicines;
 
-      // 감지된 약품들에 대해 공공데이터 API로 검증 및 상세 정보 조회
+      // 🆕 감지된 약품들에 대해 공공데이터 API로 검증만 수행 (상세정보는 제외)
+      // 상세정보(효능, 용법 등)는 사용자가 등록 시점에 조회
       const verifiedMedicines = [];
 
       for (const medicine of detectedMedicines) {
         console.log(`[약품 이미지 분석] 검증 중: ${medicine.name}`);
         
-        // e약은요 API로 약품 검색
+        // e약은요 API로 약품 검색 - 약품명/제조사만 가져오고 상세정보는 제외
         const apiResults = await this.externalApiClient.getMedicineInfo(medicine.name, 3);
         
         if (apiResults && apiResults.length > 0) {
-          // API에서 찾은 결과
+          // API에서 찾은 결과 - 약품명/제조사만 포함 (효능/용법은 나중에 등록 시 조회)
           const matched = apiResults[0];
           verifiedMedicines.push({
             detectedName: medicine.name,
@@ -426,11 +303,8 @@ export class MedicineService {
               itemSeq: matched.itemSeq,
               itemName: matched.itemName,
               entpName: matched.entpName,
-              efcyQesitm: matched.efcyQesitm,
-              useMethodQesitm: matched.useMethodQesitm,
-              atpnQesitm: matched.atpnQesitm,
-              intrcQesitm: matched.intrcQesitm,
-              seQesitm: matched.seQesitm,
+              // 🆕 상세 정보는 제외 (등록 시 조회)
+              // efcyQesitm, useMethodQesitm, atpnQesitm, intrcQesitm, seQesitm 제외
             },
             shape: medicine.shape,
             color: medicine.color,
@@ -454,11 +328,7 @@ export class MedicineService {
                 itemSeq: matched.ITEM_SEQ,
                 itemName: matched.ITEM_NAME,
                 entpName: matched.ENTP_NAME,
-                efcyQesitm: matched.CLASS_NAME || '',
-                useMethodQesitm: '',
-                atpnQesitm: '',
-                intrcQesitm: '',
-                seQesitm: '',
+                // 🆕 상세 정보는 제외 (등록 시 조회)
               },
               shape: medicine.shape || matched.DRUG_SHAPE,
               color: medicine.color || matched.COLOR_CLASS1,
@@ -581,6 +451,28 @@ export class MedicineService {
       }
     }
 
+    // 🆕 AI를 통한 약물 성분 추출 (분석 컴포넌트에서 사용)
+    let componentData = { mainIngredient: itemName, drugClass: '알 수 없음', components: [] };
+    try {
+      const { GeminiClient } = await import('../ai/utils/gemini.client');
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      if (geminiApiKey) {
+        const geminiClient = new GeminiClient(geminiApiKey);
+        componentData = await geminiClient.extractMedicineComponents(
+          itemName,
+          detailedData.efcyQesitm,
+          entpName
+        );
+        console.log(`✅ [약 등록] AI 성분 추출 완료:`, {
+          mainIngredient: componentData.mainIngredient,
+          drugClass: componentData.drugClass,
+          componentsCount: componentData.components.length,
+        });
+      }
+    } catch (componentError) {
+      console.warn(`⚠️ [약 등록] AI 성분 추출 실패:`, componentError.message);
+    }
+
     // DB 저장 (기본 필드만, API 상세 정보는 qr_code_data JSON에 저장)
     const recordData = {
       user_id: userId,
@@ -588,7 +480,7 @@ export class MedicineService {
       drug_class: entpName,
       dosage: medicineData.dosage || null,
       frequency: medicineData.frequency || null,
-      // 모든 API 상세 정보를 qr_code_data JSON에 포함
+      // 모든 API 상세 정보를 qr_code_data JSON에 포함 (🆕 성분 정보 추가)
       qr_code_data: JSON.stringify({
         itemSeq: itemSeq,
         itemName: itemName,
@@ -600,6 +492,10 @@ export class MedicineService {
         intrcQesitm: detailedData.intrcQesitm || null,
         seQesitm: detailedData.seQesitm || null,
         depositMethodQesitm: detailedData.depositMethodQesitm || null,
+        // 🆕 AI 추출 성분 정보
+        mainIngredient: componentData.mainIngredient,
+        drugClass: componentData.drugClass,
+        components: componentData.components,
       }),
       is_active: true,
     };
@@ -688,12 +584,17 @@ export class MedicineService {
         isActive: record.is_active,
         createdAt: record.created_at,
         updatedAt: record.updated_at,
+        // 🆕 AI 추출 성분 정보 (분석 컴포넌트용)
+        mainIngredient: qrData.mainIngredient || null,
+        medicineClass: qrData.drugClass || null,
+        components: qrData.components || [],
         // 차트용 추가 메타데이터
         _hasDetailedInfo: !!(
           record.efcy_qesitm || qrData.efcyQesitm || 
           record.se_qesitm || qrData.seQesitm || 
           record.intrc_qesitm || qrData.intrcQesitm
         ),
+        _hasComponents: !!(qrData.components && qrData.components.length > 0),
       };
 
       // 첫 번째 약품의 상세 정보 로그
@@ -705,6 +606,8 @@ export class MedicineService {
           '최종 efcyQesitm': result.efcyQesitm ? `있음(${result.efcyQesitm.length}자)` : 'null',
           '최종 useMethodQesitm': result.useMethodQesitm ? `있음(${result.useMethodQesitm.length}자)` : 'null',
           '최종 atpnWarnQesitm': result.atpnWarnQesitm ? `있음(${result.atpnWarnQesitm.length}자)` : 'null',
+          '🆕 mainIngredient': result.mainIngredient || 'null',
+          '🆕 components 개수': result.components?.length || 0,
         });
       }
 

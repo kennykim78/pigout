@@ -134,16 +134,6 @@ export const getFoodAnalysis = async (id: string) => {
 // 약 관리 API
 // ============================================
 
-// QR 코드 스캔
-export const scanMedicineQR = async (qrData: string, dosage?: string, frequency?: string) => {
-  const response = await apiClient.post('/medicine/scan-qr', {
-    qrData,
-    dosage,
-    frequency,
-  });
-  return response.data;
-};
-
 // 약품 검색 (일반/전문 의약품)
 export const searchMedicine = async (keyword: string, limit?: number) => {
   console.log('[API] searchMedicine 호출:', { keyword, limit });
@@ -209,6 +199,12 @@ export const addMedicine = async (medicineData: {
   efcyQesitm?: string;
   dosage?: string;
   frequency?: string;
+  useMethodQesitm?: string;
+  atpnWarnQesitm?: string;
+  intrcQesitm?: string;
+  seQesitm?: string;
+  depositMethodQesitm?: string;
+  isHealthFood?: boolean;
 }) => {
   const response = await apiClient.post('/medicine/add', medicineData);
   return response.data;

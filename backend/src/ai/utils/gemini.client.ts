@@ -1708,4 +1708,74 @@ JSON 형식으로만 응답:
       return [];
     }
   }
+
+  /**
+   * 🆕 약물/건강기능식품 성분 추출
+   * 약물명과 효능 정보를 바탕으로 주요 성분(활성성분)을 추출
+   */
+  async extractMedicineComponents(
+    itemName: string,
+    efcyQesitm?: string,
+    entpName?: string
+  ): Promise<{
+    components: Array<{ name: string; category: string; description: string }>;
+    mainIngredient: string;
+    drugClass: string;
+  }> {
+    try {
+      const prompt = `당신은 약학 전문가입니다. 다음 의약품/건강기능식품의 주요 성분(활성성분)을 추출해주세요.
+
+## 약품 정보
+- 제품명: ${itemName}
+- 제조사: ${entpName || '알 수 없음'}
+- 효능/효과: ${efcyQesitm || '정보 없음'}
+
+## 요청사항
+1. 이 약품의 **주요 활성성분** 1~5개를 추출하세요
+2. 각 성분의 약리학적 분류(카테고리)를 명시하세요
+3. 성분별 간단한 설명을 추가하세요
+
+## 응답 형식 (JSON)
+\`\`\`json
+{
+  "mainIngredient": "주요 성분명 (예: 아세트아미노펜)",
+  "drugClass": "약품 분류 (예: 해열진통제, 소화제, 비타민제 등)",
+  "components": [
+    {
+      "name": "성분명 (한글)",
+      "category": "분류 (예: NSAIDs, 비타민, 미네랄, 프로바이오틱스 등)",
+      "description": "간단한 설명 (20자 이내)"
+    }
+  ]
+}
+\`\`\`
+
+**중요**: 정확한 성분 정보를 알 수 없는 경우, 제품명/효능에서 유추되는 대표 성분을 제시하세요.
+반드시 JSON 형식으로만 응답하세요.`;
+
+      let rawText: string;
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+      }
+
+      const parsed = this.extractJsonObject(rawText);
+      
+      return {
+        mainIngredient: parsed.mainIngredient || itemName,
+        drugClass: parsed.drugClass || '일반의약품',
+        components: parsed.components || [{ name: itemName, category: '알 수 없음', description: '성분 정보 없음' }],
+      };
+    } catch (error) {
+      console.error('[AI] 약물 성분 추출 실패:', error.message);
+      return {
+        mainIngredient: itemName,
+        drugClass: '알 수 없음',
+        components: [{ name: itemName, category: '알 수 없음', description: '성분 추출 실패' }],
+      };
+    }
+  }
 }

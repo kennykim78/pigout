@@ -247,6 +247,32 @@ const Medicine = () => {
     setSelectedMedicines(imageAnalysisResult.verifiedMedicines.map(() => selectAll));
   };
 
+  // 📸 이미지 인식 약품 상세정보 조회 (등록 시점에만 호출)
+  const fetchMedicineDetailForRegistration = async (itemSeq, itemName) => {
+    if (!itemSeq && !itemName) return null;
+
+    try {
+      // itemSeq가 있으면 그것을 우선 사용, 없으면 itemName으로 검색
+      const keyword = itemSeq || itemName;
+      const response = await searchMedicine(keyword, 1);
+      const results = Array.isArray(response) ? response : (response?.results || []);
+      
+      if (results.length === 0) return null;
+
+      // itemSeq가 있는 경우 정확 매칭 시도
+      if (itemSeq) {
+        const exactMatch = results.find((item) => item.itemSeq === itemSeq);
+        if (exactMatch) return exactMatch;
+      }
+      
+      // 그 외에는 첫 번째 결과 사용
+      return results[0];
+    } catch (error) {
+      console.error('[이미지 등록] 상세정보 조회 실패:', error);
+      return null;
+    }
+  };
+
   // 📸 선택한 약품들 일괄 등록
   const handleAddSelectedMedicines = async () => {
     if (!imageAnalysisResult?.verifiedMedicines) return;
@@ -279,21 +305,36 @@ const Medicine = () => {
 
     for (const medicine of medicinesToAdd) {
       try {
-        // apiMatch가 있으면 모든 API 필드를 포함, 없으면 감지된 기본 정보만
-        const medicineData = medicine.apiMatch ? {
-          itemName: medicine.apiMatch.itemName,
-          entpName: medicine.apiMatch.entpName,
-          itemSeq: medicine.apiMatch.itemSeq,
-          efcyQesitm: medicine.apiMatch.efcyQesitm,
-          useMethodQesitm: medicine.apiMatch.useMethodQesitm,
-          atpnWarnQesitm: medicine.apiMatch.atpnWarnQesitm,
-          intrcQesitm: medicine.apiMatch.intrcQesitm,
-          seQesitm: medicine.apiMatch.seQesitm,
-          depositMethodQesitm: medicine.apiMatch.depositMethodQesitm,
-        } : {
-          itemName: medicine.detectedName,
-          entpName: medicine.manufacturer || '(정보 없음)',
+        // API Match 데이터가 있으면 사용, 없으면 AI 감지 데이터 기본값 사용
+        const baseItemSeq = medicine.apiMatch?.itemSeq;
+        const baseItemName = medicine.apiMatch?.itemName || medicine.detectedName;
+        const baseEntpName = medicine.apiMatch?.entpName || medicine.manufacturer || '(정보 없음)';
+
+        console.log(`[이미지 등록] ${baseItemName} 상세정보 조회 시작 (itemSeq: ${baseItemSeq})`);
+        
+        // 등록 직전에 API에서 최신 상세 정보 조회
+        const detailData = await fetchMedicineDetailForRegistration(baseItemSeq, baseItemName);
+
+        const medicineData = {
+          itemName: detailData?.itemName || baseItemName,
+          entpName: detailData?.entpName || baseEntpName,
+          itemSeq: detailData?.itemSeq || baseItemSeq,
+          // 🆕 상세 정보는 등록 시점에서만 조회
+          efcyQesitm: detailData?.efcyQesitm,
+          useMethodQesitm: detailData?.useMethodQesitm,
+          atpnWarnQesitm: detailData?.atpnWarnQesitm,
+          intrcQesitm: detailData?.intrcQesitm,
+          seQesitm: detailData?.seQesitm,
+          depositMethodQesitm: detailData?.depositMethodQesitm,
+          isHealthFood: addSubTab === 'healthfood', // 🆕 의약품 vs 건강기능식품 구분
         };
+
+        console.log(`[이미지 등록] ${baseItemName} 등록 데이터:`, {
+          itemName: medicineData.itemName,
+          entpName: medicineData.entpName,
+          hasEfcyQesitm: !!medicineData.efcyQesitm,
+          hasUseMethod: !!medicineData.useMethodQesitm,
+        });
 
         await addMedicineAPI(medicineData);
         successCount++;
@@ -591,7 +632,7 @@ const Medicine = () => {
     <div className="medicine">
       <header className="medicine__header">
         <h1 className="medicine__title">복용 중인 약</h1>
-        <p className="medicine__subtitle">QR 코드 스캔 또는 직접 검색하여 등록하세요</p>
+        <p className="medicine__subtitle">촬영, 검색 또는 직접 입력하여 등록하세요</p>
       </header>
 
       <div className="medicine__tabs">
@@ -1031,16 +1072,6 @@ const Medicine = () => {
                               <span className="medicine__badge">{medicine.type}</span>
                             )}
                           </div>
-                          {medicine.shape && (
-                            <p className="medicine__select-detail">
-                              형태: {medicine.shape} {medicine.color && `/ 색상: ${medicine.color}`}
-                            </p>
-                          )}
-                          {medicine.apiMatch?.efcyQesitm && (
-                            <p className="medicine__select-efficacy">
-                              효능: {medicine.apiMatch.efcyQesitm.substring(0, 80)}...
-                            </p>
-                          )}
                         </div>
                       </div>
                     ))}

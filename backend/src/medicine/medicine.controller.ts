@@ -1,6 +1,5 @@
 import { Controller, Get, Post, Delete, Patch, Body, Param, Query, Headers } from '@nestjs/common';
 import { MedicineService } from './medicine.service';
-import { ScanQrDto } from './dtos/scan-qr.dto';
 import { SearchMedicineDto } from './dtos/search-medicine.dto';
 import { AnalyzeInteractionDto } from './dtos/analyze-interaction.dto';
 import { AnalyzeAllMedicinesDto } from './dtos/analyze-all-medicines.dto';
@@ -30,25 +29,6 @@ export class MedicineController {
     // 기기가 등록되지 않은 경우 자동 등록
     const newUser = await this.usersService.findOrCreateByDeviceId(deviceId);
     return newUser.id;
-  }
-
-  /**
-   * POST /api/medicine/scan-qr
-   * QR 코드 스캔하여 약 정보 저장
-   */
-  @Post('scan-qr')
-  async scanQr(
-    @Headers('x-device-id') deviceId: string,
-    @Body() scanDto: ScanQrDto,
-  ) {
-    const userId = await this.getUserIdFromDeviceId(deviceId);
-    console.log(`[Medicine] scanQr - deviceId: ${deviceId}, userId: ${userId}`);
-    return this.medicineService.scanQrCode(
-      userId,
-      scanDto.qrData,
-      scanDto.dosage,
-      scanDto.frequency,
-    );
   }
 
   /**
