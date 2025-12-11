@@ -672,17 +672,21 @@ JSON 형식:
       try {
         return await fn();
       } catch (error: any) {
-        const status = error.response?.status;
+        // Axios 에러: error.response?.status
+        // Gemini SDK 에러: error.status
+        const status = error.response?.status || error.status;
+        const isRateLimitError = status === 429 || error.message?.includes('429');
         
         // 429: Too Many Requests - 재시도 가능
-        if (status === 429 && attempt < maxRetries) {
+        if (isRateLimitError && attempt < maxRetries) {
           const delay = Math.pow(2, attempt) * 1000 + Math.random() * 1000; // exponential backoff
-          console.warn(`[Gemini] Rate limit 도달, ${delay}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
+          console.warn(`[Gemini] Rate limit 도달 (429), ${delay}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
           await new Promise(resolve => setTimeout(resolve, delay));
           continue;
         }
         
         // 다른 에러는 즉시 throw
+        console.warn(`[Gemini] 재시도 불가능한 에러: status=${status}, attempt=${attempt}`);
         throw error;
       }
     }
