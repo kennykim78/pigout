@@ -145,11 +145,46 @@
     transition: all 0.3s ease;
     cursor: pointer;
     border: 2px solid transparent;
+    position: relative;
+    overflow: hidden;
 
     &:hover {
       transform: translateY(-4px);
       box-shadow: 0 8px 24px rgba(0, 0, 0, 0.12);
       border-color: #f5d547;
+    }
+
+    // 🆕 의약품/건강기능식품 구분 스타일
+    &--medicine {
+      border-left: 5px solid #FF6B6B; // 의약품: 빨간색
+      background: linear-gradient(135deg, rgba(255, 107, 107, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+
+    &--healthfood {
+      border-left: 5px solid #51CF66; // 건강기능식품: 초록색
+      background: linear-gradient(135deg, rgba(81, 207, 102, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+    }
+  }
+
+  // 🆕 약품 타입 배지
+  &__type-badge {
+    display: inline-block;
+    padding: 6px 12px;
+    border-radius: 20px;
+    font-size: $font-size-small;
+    font-weight: $font-weight-semibold;
+    margin-bottom: 12px;
+
+    &--medicine {
+      background: rgba(255, 107, 107, 0.15);
+      color: #FF6B6B;
+      border: 1px solid #FF6B6B;
+    }
+
+    &--healthfood {
+      background: rgba(81, 207, 102, 0.15);
+      color: #51CF66;
+      border: 1px solid #51CF66;
     }
   }
 

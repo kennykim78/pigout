@@ -1,0 +1,387 @@
+@import '../styles/variables';
+
+.food-drug-matrix {
+  margin: 16px;
+  padding: 16px;
+  background: $color-white;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  &__header {
+    margin-bottom: 16px;
+    
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: $font-size-large;
+      color: $color-black;
+      font-weight: 700;
+    }
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-size: $font-size-small;
+    color: #666;
+    line-height: 1.4;
+  }
+
+  &__empty {
+    padding: 32px 16px;
+    text-align: center;
+    color: #999;
+    font-size: $font-size-medium;
+    background: rgba(0, 0, 0, 0.01);
+    border-radius: 8px;
+  }
+
+  /* 범례 */
+  &__legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+  }
+
+  &__legend-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    font-size: $font-size-small;
+  }
+
+  &__legend-color {
+    width: 16px;
+    height: 16px;
+    border-radius: 3px;
+    flex-shrink: 0;
+
+    &--danger {
+      background: rgba(244, 67, 54, 0.8);
+    }
+
+    &--caution {
+      background: rgba(255, 152, 0, 0.8);
+    }
+
+    &--safe {
+      background: rgba(76, 175, 80, 0.8);
+    }
+
+    &--none {
+      background: rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  &__legend-label {
+    color: #333;
+    font-weight: 500;
+  }
+
+  /* 테이블 컨테이너 */
+  &__scroll-container {
+    overflow-x: auto;
+    margin-bottom: 16px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    background: $color-white;
+  }
+
+  /* 테이블 */
+  &__table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: $font-size-small;
+
+    thead {
+      background: rgba(0, 0, 0, 0.03);
+    }
+
+    th, td {
+      padding: 8px;
+      text-align: center;
+      border: 1px solid rgba(0, 0, 0, 0.08);
+    }
+
+    th {
+      font-weight: 600;
+      color: #333;
+      height: 60px;
+    }
+
+    td {
+      height: 40px;
+    }
+  }
+
+  &__corner-cell {
+    text-align: left;
+    background: rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    min-width: 100px;
+  }
+
+  &__header-cell {
+    position: relative;
+    background: rgba(0, 0, 0, 0.05);
+    max-width: 80px;
+  }
+
+  &__header-text {
+    writing-mode: vertical-rl;
+    text-orientation: mixed;
+    word-break: break-word;
+    font-size: 11px;
+    transform: rotate(180deg);
+    white-space: normal;
+  }
+
+  &__row-header {
+    text-align: left;
+    background: rgba(0, 0, 0, 0.05);
+    font-weight: 600;
+    max-width: 100px;
+  }
+
+  &__row-header-content {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  /* 셀 */
+  &__cell {
+    background: #f5f5f5;
+    cursor: default;
+    transition: all 0.2s ease;
+    font-size: $font-size-medium;
+
+    &--danger {
+      background: rgba(244, 67, 54, 0.15);
+      border-color: rgba(244, 67, 54, 0.4);
+      font-weight: 600;
+
+      &:hover {
+        background: rgba(244, 67, 54, 0.25);
+        box-shadow: inset 0 0 0 2px rgba(244, 67, 54, 0.5);
+      }
+    }
+
+    &--caution {
+      background: rgba(255, 152, 0, 0.12);
+      border-color: rgba(255, 152, 0, 0.3);
+      font-weight: 600;
+
+      &:hover {
+        background: rgba(255, 152, 0, 0.2);
+        box-shadow: inset 0 0 0 2px rgba(255, 152, 0, 0.4);
+      }
+    }
+
+    &--safe {
+      background: rgba(76, 175, 80, 0.1);
+      border-color: rgba(76, 175, 80, 0.3);
+
+      &:hover {
+        background: rgba(76, 175, 80, 0.15);
+        box-shadow: inset 0 0 0 2px rgba(76, 175, 80, 0.4);
+      }
+    }
+
+    &--none {
+      background: #f9f9f9;
+      color: #999;
+
+      &:hover {
+        background: #f0f0f0;
+      }
+    }
+  }
+
+  &__cell-content {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100%;
+    width: 100%;
+  }
+
+  /* 상세 정보 섹션 */
+  &__details {
+    margin-top: 16px;
+    padding-top: 16px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  &__details-title {
+    margin: 0 0 12px 0;
+    font-size: $font-size-medium;
+    color: $color-black;
+    font-weight: 600;
+  }
+
+  &__details-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__detail-item {
+    padding: 12px;
+    border-radius: 8px;
+    border-left: 4px solid;
+
+    &--danger {
+      background: rgba(244, 67, 54, 0.08);
+      border-left-color: #f14444;
+    }
+
+    &--caution {
+      background: rgba(255, 152, 0, 0.08);
+      border-left-color: #ffa100;
+    }
+  }
+
+  &__detail-header {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    flex-wrap: wrap;
+    margin-bottom: 8px;
+    font-weight: 600;
+    color: #333;
+    font-size: $font-size-small;
+  }
+
+  &__detail-icon {
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  &__detail-medicines {
+    flex: 1;
+    min-width: 100px;
+    word-break: break-word;
+  }
+
+  &__detail-separator {
+    color: #999;
+    font-weight: 400;
+  }
+
+  &__detail-components {
+    flex: 1;
+    min-width: 100px;
+    word-break: break-word;
+  }
+
+  &__detail-description {
+    margin: 8px 0 0 0;
+    font-size: $font-size-small;
+    color: #555;
+    line-height: 1.5;
+  }
+
+  &__detail-recommendation {
+    margin: 8px 0 0 0;
+    padding: 8px;
+    background: rgba(255, 255, 255, 0.6);
+    border-radius: 4px;
+    font-size: $font-size-small;
+    color: #333;
+    line-height: 1.5;
+  }
+
+  /* 사용 방법 */
+  &__guide {
+    margin-top: 16px;
+    padding: 12px;
+    background: rgba(66, 165, 245, 0.05);
+    border-left: 3px solid rgba(66, 165, 245, 0.5);
+    border-radius: 4px;
+  }
+
+  &__guide-title {
+    margin: 0 0 8px 0;
+    font-size: $font-size-small;
+    color: #333;
+    font-weight: 600;
+  }
+
+  &__guide-list {
+    margin: 0;
+    padding: 0 0 0 20px;
+    font-size: $font-size-small;
+    color: #555;
+    line-height: 1.6;
+
+    li {
+      margin: 4px 0;
+    }
+  }
+
+  /* 반응형 */
+  @media (max-width: 768px) {
+    margin: 12px;
+    padding: 12px;
+
+    &__table {
+      font-size: 11px;
+
+      th, td {
+        padding: 6px;
+        height: auto;
+      }
+
+      th {
+        height: 50px;
+      }
+
+      td {
+        height: 35px;
+      }
+    }
+
+    &__header-text {
+      font-size: 10px;
+    }
+
+    &__legend {
+      gap: 8px;
+      padding: 8px;
+    }
+
+    &__legend-item {
+      font-size: 11px;
+      flex: 1 1 calc(50% - 4px);
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__scroll-container {
+      overflow: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    &__table {
+      min-width: 600px;
+    }
+
+    &__detail-header {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 4px;
+    }
+
+    &__legend {
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    &__legend-item {
+      flex: 1 1 100%;
+    }
+  }
+}

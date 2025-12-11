@@ -11,7 +11,7 @@
   gap: 8px;
 }
 .analysis-dashboard__icon {
-  font-size: 20px;
+  font-size: 18px;
 }
 .analysis-dashboard__charts {
   display: flex;
@@ -26,7 +26,7 @@
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
 .analysis-chart__title {
-  font-size: 15px;
+  font-size: 14px;
   font-weight: 600;
   color: #333;
   margin-bottom: 12px;
@@ -56,14 +56,14 @@
 }
 .analysis-chart--pie .analysis-chart__center-number {
   display: block;
-  font-size: 28px;
+  font-size: 18px;
   font-weight: 700;
   color: #333;
   line-height: 1;
 }
 .analysis-chart--pie .analysis-chart__center-text {
   display: block;
-  font-size: 11px;
+  font-size: 12px;
   color: #888;
   margin-top: 4px;
 }
@@ -87,7 +87,7 @@
   transition: width 0.5s ease;
 }
 .analysis-chart--balance .analysis-chart__score-text {
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
   white-space: nowrap;
 }
@@ -151,7 +151,7 @@
   margin-bottom: 4px;
 }
 .analysis-chart__tooltip-value {
-  font-size: 11px;
+  font-size: 10px;
 }
 .analysis-chart__tooltip-value.detected {
   color: #ff8a80;

@@ -30,7 +30,7 @@
 }
 .select-option__title {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 600;
   color: rgb(0, 0, 0);
   text-align: center;
@@ -69,7 +69,7 @@
   border-radius: 60px;
   padding: 15px 80px 15px 20px;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   color: rgb(0, 0, 0);
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
@@ -95,7 +95,7 @@
   border: none;
   border-radius: 30px;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   color: rgb(255, 255, 255);
   cursor: pointer;
@@ -126,7 +126,7 @@
   border-radius: 60px;
   padding: 15px 20px;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   color: rgb(0, 0, 0);
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);
@@ -151,7 +151,7 @@
   border: none;
   border-radius: 60px;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   color: rgb(255, 255, 255);
   box-shadow: 0 4px 4px rgba(0, 0, 0, 0.25);

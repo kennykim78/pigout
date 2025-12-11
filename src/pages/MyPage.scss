@@ -45,7 +45,7 @@
 
   &__title {
     font-family: $font-family;
-    font-size: 24px;
+    font-size: $font-size-large;
     font-weight: $font-weight-black;
     color: $color-black;
     margin: 0;
@@ -87,7 +87,7 @@
 
   &__profile-name {
     font-family: $font-family;
-    font-size: 20px;
+    font-size: $font-size-medium;
     font-weight: $font-weight-black;
     color: $color-black;
     margin: 0 0 4px 0;
@@ -154,7 +154,7 @@
 
   &__stat-value {
     font-family: $font-family;
-    font-size: 28px;
+    font-size: $font-size-large;
     font-weight: $font-weight-black;
     color: $color-black;
   }

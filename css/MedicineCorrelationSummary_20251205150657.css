@@ -1,0 +1,103 @@
+.medicine-correlation-summary {
+  margin-bottom: 20px;
+}
+.medicine-correlation-summary .correlation-alert {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-radius: 8px;
+  border-left: 4px solid;
+  animation: slideIn 0.3s ease-out;
+}
+.medicine-correlation-summary .correlation-alert--danger {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffe8e8 100%);
+  border-left-color: #ff4444;
+}
+.medicine-correlation-summary .correlation-alert--danger .alert-text {
+  color: #c41e3a;
+}
+.medicine-correlation-summary .correlation-alert--danger .alert-text strong {
+  color: #ff4444;
+  font-weight: 700;
+}
+.medicine-correlation-summary .correlation-alert--caution {
+  background: linear-gradient(135deg, #fffbf0 0%, #fff9e6 100%);
+  border-left-color: #ff9800;
+}
+.medicine-correlation-summary .correlation-alert--caution .alert-text {
+  color: #e67e22;
+}
+.medicine-correlation-summary .correlation-alert--caution .alert-text strong {
+  color: #ff9800;
+  font-weight: 700;
+}
+.medicine-correlation-summary .correlation-alert--safe {
+  background: linear-gradient(135deg, #f0fff4 0%, #e8ffe8 100%);
+  border-left-color: #4caf50;
+}
+.medicine-correlation-summary .correlation-alert--safe .alert-text {
+  color: #2e7d32;
+}
+.medicine-correlation-summary .correlation-alert--safe .alert-text strong {
+  color: #4caf50;
+  font-weight: 700;
+}
+.medicine-correlation-summary .correlation-alert .alert-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.medicine-correlation-summary .correlation-alert .alert-text {
+  font-size: 13px;
+  flex: 1;
+  line-height: 1.4;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateY(-4px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+@media (max-width: 768px) {
+  .medicine-correlation-summary {
+    margin-bottom: 16px;
+  }
+  .medicine-correlation-summary .correlation-alert {
+    padding: 10px 12px;
+    gap: 10px;
+    border-radius: 6px;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-icon {
+    font-size: 16px;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-text {
+    font-size: 12px;
+    line-height: 1.3;
+  }
+}
+@media (max-width: 480px) {
+  .medicine-correlation-summary {
+    margin-bottom: 12px;
+  }
+  .medicine-correlation-summary .correlation-alert {
+    padding: 8px 10px;
+    gap: 8px;
+    border-left-width: 3px;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-icon {
+    font-size: 14px;
+    min-width: 14px;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-text {
+    font-size: 11px;
+    line-height: 1.3;
+  }
+  .medicine-correlation-summary .correlation-alert .alert-text strong {
+    display: block;
+  }
+}/*# sourceMappingURL=MedicineCorrelationSummary_20251205150657.css.map */

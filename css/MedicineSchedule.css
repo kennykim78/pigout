@@ -12,7 +12,7 @@
 }
 .medicine-schedule-container .schedule-subtitle {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
 }
 .medicine-schedule-container .empty-schedule {
@@ -40,7 +40,7 @@
   border-radius: 50%;
   width: 40px;
   height: 40px;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: bold;
   color: #333;
   cursor: pointer;
@@ -77,7 +77,7 @@
   border-bottom: 1px solid rgba(245, 213, 71, 0.3);
 }
 .medicine-schedule-container .schedule-icon {
-  font-size: 32px;
+  font-size: 18px;
   flex-shrink: 0;
 }
 .medicine-schedule-container .schedule-time-info {
@@ -91,7 +91,7 @@
 }
 .medicine-schedule-container .schedule-time-info .schedule-time {
   margin: 0;
-  font-size: 13px;
+  font-size: 12px;
   color: #666;
 }
 .medicine-schedule-container .medicine-count {
@@ -99,9 +99,42 @@
   color: #333;
   padding: 4px 12px;
   border-radius: 16px;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 600;
   flex-shrink: 0;
+}
+.medicine-schedule-container .schedule-risk-indicator {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+.medicine-schedule-container .schedule-risk-indicator--safe {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+}
+.medicine-schedule-container .schedule-risk-indicator--caution {
+  background: rgba(255, 152, 0, 0.2);
+  color: #e65100;
+  animation: pulse 2s ease-in-out infinite;
+}
+.medicine-schedule-container .schedule-risk-indicator--danger {
+  background: rgba(244, 67, 54, 0.2);
+  color: #c62828;
+  animation: pulse 1s ease-in-out infinite;
+}
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
 }
 .medicine-schedule-container .medicine-tags {
   display: flex;
@@ -201,7 +234,7 @@
   .medicine-schedule-container .schedule-nav-btn {
     width: 36px;
     height: 36px;
-    font-size: 20px;
+    font-size: 16px;
   }
   .medicine-schedule-container .schedule-current {
     padding: 16px;
@@ -212,7 +245,7 @@
     padding-bottom: 10px;
   }
   .medicine-schedule-container .schedule-icon {
-    font-size: 28px;
+    font-size: 18px;
   }
   .medicine-schedule-container .schedule-time-info .schedule-label {
     font-size: 16px;

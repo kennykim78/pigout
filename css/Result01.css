@@ -19,7 +19,7 @@
   transition: background-color 0.2s ease;
 }
 .result01__back-btn .material-symbols-rounded {
-  font-size: 28px;
+  font-size: 18px;
   color: rgb(255, 255, 255);
 }
 .result01__back-btn:hover {
@@ -48,7 +48,7 @@
 }
 .result01__food-name {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 40px;
+  font-size: 18px;
   font-weight: 600;
   color: rgb(255, 255, 255);
   text-align: center;
@@ -59,7 +59,7 @@
 }
 .result01__question {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 24px;
+  font-size: 18px;
   font-weight: 600;
   color: rgb(255, 255, 255);
   text-align: center;
@@ -149,14 +149,14 @@
 }
 .result01__score-label {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 16px;
+  font-size: 14px;
   font-weight: 500;
   color: rgb(255, 255, 255);
   margin: 0 0 8px 0;
 }
 .result01__score-value {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 96px;
+  font-size: 48px;
   font-weight: 900;
   color: rgb(255, 255, 255);
   line-height: 1.2;
@@ -172,7 +172,7 @@
 }
 .result01__score-comment {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   color: rgb(255, 255, 255);
   line-height: 1.4;
@@ -206,7 +206,7 @@
 }
 .result01__info-card p {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   color: rgb(0, 0, 0);
   line-height: 1.5;
@@ -216,7 +216,7 @@
   border-radius: 60px;
   padding: 15px 20px;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 20px;
+  font-size: 16px;
   font-weight: 500;
   border: none;
   cursor: pointer;
@@ -262,7 +262,7 @@
 }
 .result01__full-title {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 30px;
+  font-size: 18px;
   font-weight: 900;
   margin: 0 0 24px 0;
   color: rgb(0, 0, 0);

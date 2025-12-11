@@ -1,0 +1,108 @@
+.radar-chart-container {
+  background: linear-gradient(135deg, #fffef0 0%, #fffbf0 100%);
+  border: 2px solid #f5d547;
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 24px;
+  box-shadow: 0 4px 12px rgba(245, 213, 71, 0.1);
+  transition: all 0.3s ease;
+}
+.radar-chart-container:hover {
+  box-shadow: 0 6px 16px rgba(245, 213, 71, 0.15);
+}
+.radar-chart-container.empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 200px;
+}
+.radar-chart-container .chart-header {
+  margin-bottom: 20px;
+}
+.radar-chart-container .chart-header h3 {
+  margin: 0 0 8px 0;
+  color: #333;
+  font-size: 18px;
+  font-weight: 600;
+}
+.radar-chart-container .chart-description {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+.radar-chart-container .empty-message {
+  color: #666;
+  font-size: 14px;
+  margin: 0;
+  text-align: center;
+}
+.radar-chart-container .chart-footer {
+  margin-top: 16px;
+  padding-top: 12px;
+  border-top: 1px solid #f5d547;
+  display: flex;
+  justify-content: flex-end;
+}
+.radar-chart-container .chart-footer p {
+  margin: 0;
+  font-size: 12px;
+  color: #999;
+}
+
+@media (max-width: 768px) {
+  .radar-chart-container {
+    padding: 16px;
+    margin-bottom: 20px;
+    border-radius: 10px;
+  }
+  .radar-chart-container.empty {
+    min-height: 150px;
+  }
+  .radar-chart-container .chart-header {
+    margin-bottom: 16px;
+  }
+  .radar-chart-container .chart-header h3 {
+    font-size: 16px;
+    margin-bottom: 6px;
+  }
+  .radar-chart-container .chart-description {
+    font-size: 12px;
+  }
+  .radar-chart-container .chart-footer {
+    margin-top: 12px;
+    padding-top: 10px;
+  }
+  .radar-chart-container .chart-footer p {
+    font-size: 11px;
+  }
+}
+@media (max-width: 480px) {
+  .radar-chart-container {
+    padding: 12px;
+    margin-bottom: 16px;
+    border-radius: 8px;
+  }
+  .radar-chart-container.empty {
+    min-height: 120px;
+  }
+  .radar-chart-container .chart-header {
+    margin-bottom: 12px;
+  }
+  .radar-chart-container .chart-header h3 {
+    font-size: 14px;
+    margin-bottom: 4px;
+  }
+  .radar-chart-container .chart-description {
+    font-size: 11px;
+  }
+  .radar-chart-container .empty-message {
+    font-size: 12px;
+  }
+  .radar-chart-container .chart-footer {
+    margin-top: 10px;
+    padding-top: 8px;
+  }
+  .radar-chart-container .chart-footer p {
+    font-size: 10px;
+  }
+}/*# sourceMappingURL=MedicineRadarChart_20251205150709.css.map */

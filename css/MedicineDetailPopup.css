@@ -78,12 +78,12 @@
 .medicine-detail-header .medicine-detail-company {
   margin: 0;
   color: #999;
-  font-size: 13px;
+  font-size: 12px;
 }
 .medicine-detail-header .medicine-detail-close {
   background: none;
   border: none;
-  font-size: 24px;
+  font-size: 18px;
   cursor: pointer;
   color: #333;
   padding: 0;
@@ -109,7 +109,7 @@
     font-size: 16px;
   }
   .medicine-detail-header .medicine-detail-close {
-    font-size: 20px;
+    font-size: 18px;
     width: 28px;
     height: 28px;
   }
@@ -161,6 +161,23 @@
   color: #333;
   font-weight: 700;
 }
+.medicine-detail-body .medicine-detail-section--warning {
+  border: 2px solid #ff9800;
+  box-shadow: 0 2px 12px rgba(255, 152, 0, 0.2);
+}
+.medicine-detail-body .medicine-detail-section--warning .section-title {
+  background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+  color: #fff;
+  font-weight: 700;
+}
+.medicine-detail-body .medicine-detail-section--info {
+  border: 1px solid #e0e0e0;
+  background: #fafafa;
+}
+.medicine-detail-body .medicine-detail-section--info .section-title {
+  background: #f5f5f5;
+  color: #666;
+}
 .medicine-detail-body .medicine-detail-section .section-title {
   margin: 0;
   padding: 12px 16px;
@@ -186,20 +203,78 @@
 }
 .medicine-detail-body .medicine-detail-section .section-content .info-row .info-label {
   color: #666;
-  font-size: 13px;
+  font-size: 12px;
   font-weight: 500;
   flex-shrink: 0;
 }
 .medicine-detail-body .medicine-detail-section .section-content .info-row .info-value {
   color: #333;
-  font-size: 13px;
+  font-size: 12px;
   text-align: right;
   flex: 1;
+}
+.medicine-detail-body .medicine-detail-section .section-content .interaction-warning-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 10px;
+  background: rgba(255, 152, 0, 0.1);
+  border-radius: 8px;
+  margin-bottom: 8px;
+}
+.medicine-detail-body .medicine-detail-section .section-content .interaction-warning-item:last-child {
+  margin-bottom: 0;
+}
+.medicine-detail-body .medicine-detail-section .section-content .interaction-warning-item .interaction-icon {
+  font-size: 18px;
+  flex-shrink: 0;
+}
+.medicine-detail-body .medicine-detail-section .section-content .interaction-warning-item .interaction-info {
+  flex: 1;
+}
+.medicine-detail-body .medicine-detail-section .section-content .interaction-warning-item .interaction-info strong {
+  display: block;
+  font-size: 14px;
+  color: #333;
+  margin-bottom: 4px;
+}
+.medicine-detail-body .medicine-detail-section .section-content .interaction-warning-item .interaction-info p {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+.medicine-detail-body .medicine-detail-section .section-content .other-medicines-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+.medicine-detail-body .medicine-detail-section .section-content .other-medicine-tag {
+  background: #f5d547;
+  color: #333;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+}
+.medicine-detail-body .medicine-detail-section .section-content .other-medicine-more {
+  background: #e0e0e0;
+  color: #666;
+  padding: 4px 12px;
+  border-radius: 16px;
+  font-size: 12px;
+}
+.medicine-detail-body .medicine-detail-section .section-content .no-interaction-text {
+  margin: 0;
+  font-size: 12px;
+  color: #4caf50;
+  text-align: center;
 }
 .medicine-detail-body .medicine-detail-section .medicine-text {
   margin: 0;
   color: #333;
-  font-size: 13px;
+  font-size: 12px;
   line-height: 1.6;
   white-space: pre-wrap;
   word-break: break-word;
@@ -218,6 +293,11 @@
 .medicine-detail-body .medicine-detail-empty p {
   margin: 0;
   font-size: 14px;
+}
+.medicine-detail-body .medicine-detail-empty .empty-hint {
+  margin-top: 8px;
+  font-size: 12px;
+  color: #bbb;
 }
 @media (max-width: 600px) {
   .medicine-detail-body {
@@ -324,4 +404,33 @@
     padding: 8px 10px;
     font-size: 12px;
   }
+}
+
+.medicine-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.medicine-info-item {
+  padding: 8px;
+  background: rgba(245, 213, 71, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid #f5d547;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.medicine-info-label {
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+}
+
+.medicine-info-value {
+  font-size: 13px;
+  color: #333;
+  font-weight: 600;
+  word-break: break-word;
 }/*# sourceMappingURL=MedicineDetailPopup.css.map */

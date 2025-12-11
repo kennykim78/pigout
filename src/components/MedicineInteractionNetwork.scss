@@ -1,0 +1,76 @@
+@import '../styles/variables';
+
+@import '../styles/variables';
+
+.medicine-interaction-network {
+  margin: 16px;
+  padding: 16px;
+  background: $color-white;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
+
+  .medicine-interaction-header {
+    margin-bottom: 16px;
+
+    h3 {
+      font-size: $font-size-large;
+      font-weight: 600;
+      color: $color-black;
+      margin: 0 0 4px 0;
+    }
+
+    .medicine-interaction-desc {
+      font-size: $font-size-small;
+      color: $color-gray;
+      margin: 0;
+    }
+  }
+
+  .medicine-interaction-canvas-container {
+    width: 100%;
+    height: 300px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    border-radius: 8px;
+    overflow: hidden;
+    background: rgba(0, 0, 0, 0.01);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+
+    @media (max-width: 768px) {
+      height: 250px;
+    }
+
+    @media (max-width: 480px) {
+      height: 200px;
+    }
+  }
+
+  .medicine-interaction-canvas {
+    width: 100%;
+    height: 100%;
+    display: block;
+  }
+
+  .medicine-interaction-empty,
+  .medicine-interaction-info {
+    padding: 20px;
+    text-align: center;
+    color: $color-gray;
+    font-size: $font-size-medium;
+  }
+
+  .medicine-interaction-empty {
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+    border: 1px dashed rgba(0, 0, 0, 0.1);
+  }
+
+  .medicine-interaction-info {
+    background: rgba(33, 150, 243, 0.05);
+    border-left: 3px solid #2196F3;
+    border-radius: 4px;
+    margin-top: 12px;
+  }
+}

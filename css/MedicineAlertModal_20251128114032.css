@@ -1,0 +1,95 @@
+.medicine-alert-modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 1000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.medicine-alert-modal__overlay {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.6);
+}
+.medicine-alert-modal__content {
+  position: relative;
+  background: white;
+  border-radius: 24px;
+  padding: 32px 24px;
+  width: 90%;
+  max-width: 320px;
+  text-align: center;
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+}
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.medicine-alert-modal__image {
+  width: 100px;
+  height: auto;
+  margin-bottom: 16px;
+}
+.medicine-alert-modal__title {
+  font-size: 22px;
+  font-weight: 700;
+  color: #1a1a1a;
+  margin-bottom: 12px;
+  line-height: 1.4;
+}
+.medicine-alert-modal__description {
+  font-size: 14px;
+  color: #666;
+  line-height: 1.6;
+  margin-bottom: 24px;
+}
+.medicine-alert-modal__description strong {
+  color: #e53935;
+  font-weight: 600;
+}
+.medicine-alert-modal__buttons {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.medicine-alert-modal__button {
+  width: 100%;
+  padding: 14px 20px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  border: none;
+}
+.medicine-alert-modal__button--yes {
+  background: linear-gradient(135deg, #e53935, #c62828);
+  color: white;
+}
+.medicine-alert-modal__button--yes:hover {
+  background: linear-gradient(135deg, #c62828, #b71c1c);
+  transform: translateY(-2px);
+}
+.medicine-alert-modal__button--yes:active {
+  transform: translateY(0);
+}
+.medicine-alert-modal__button--no {
+  background: #f5f5f5;
+  color: #666;
+}
+.medicine-alert-modal__button--no:hover {
+  background: #e0e0e0;
+}/*# sourceMappingURL=MedicineAlertModal_20251128114032.css.map */

@@ -1094,14 +1094,21 @@ export class FoodService {
       console.log('음식명:', foodName);
       console.log('질병 정보:', diseases);
 
-      // 0단계: 시작 알림
+      // 0단계: 시작 알림 (7단계로 세분화)
       sendEvent('start', { 
         foodName, 
         message: '분석을 시작합니다...',
-        stages: ['약물정보', '영양성분', '성분분석', '상호작용', '최종분석']
+        stages: ['준비', '약물정보', '영양성분', '성분분석', '상호작용', '레시피', '최종분석']
       });
 
-      // 사용자 및 약물 정보 조회
+      // 사용자 및 약물 정보 조회 (Stage 1: 준비)
+      sendEvent('stage', { 
+        stage: 1, 
+        name: '준비',
+        status: 'loading',
+        message: '사용자 정보를 확인하고 있어요...'
+      });
+
       let userId = '00000000-0000-0000-0000-000000000000';
       if (deviceId) {
         const foundUserId = await this.usersService.getUserIdByDeviceId(deviceId);
@@ -1118,10 +1125,18 @@ export class FoodService {
         .eq('is_active', true);
 
       const medicineNames = medicines?.map((m) => m.name) || [];
-
-      // 1단계: 약물 정보 조회
+      
       sendEvent('stage', { 
         stage: 1, 
+        name: '준비',
+        status: 'complete',
+        message: `사용자 정보 확인 완료`,
+        data: { medicineCount: medicineNames.length }
+      });
+
+      // 2단계: 약물 정보 조회
+      sendEvent('stage', { 
+        stage: 2, 
         name: '약물정보',
         status: 'loading',
         message: '복용 중인 약물 정보를 확인하고 있어요...'
@@ -1150,16 +1165,16 @@ export class FoodService {
       const drugDetails = await Promise.all(drugDetailsPromises);
       
       sendEvent('stage', { 
-        stage: 1, 
+        stage: 2, 
         name: '약물정보',
         status: 'complete',
         message: `${drugDetails.length}개 약물 정보 확인 완료`,
         data: { count: drugDetails.length, names: medicineNames }
       });
 
-      // 2단계: 영양성분/건강기능식품 조회
+      // 3단계: 영양성분/건강기능식품 조회
       sendEvent('stage', { 
-        stage: 2, 
+        stage: 3, 
         name: '영양성분',
         status: 'loading',
         message: '영양성분 정보를 수집하고 있어요...'
@@ -1182,7 +1197,7 @@ export class FoodService {
       const needAINutritionData = !nutritionRows || nutritionRows.length === 0;
       
       sendEvent('stage', { 
-        stage: 2, 
+        stage: 3, 
         name: '영양성분',
         status: 'complete',
         message: nutritionRows?.length > 0 
@@ -1205,9 +1220,9 @@ export class FoodService {
         publicDataFailed,
       };
 
-      // 3단계: AI 성분 분석 (병렬로 레시피도 조회)
+      // 4단계: AI 성분 분석 (병렬로 레시피도 조회)
       sendEvent('stage', { 
-        stage: 3, 
+        stage: 4, 
         name: '성분분석',
         status: 'loading',
         message: 'AI가 음식 성분을 분석하고 있어요...'
@@ -1219,7 +1234,7 @@ export class FoodService {
       
       // 성분 분석 완료 시 바로 일부 데이터 전송
       sendEvent('stage', { 
-        stage: 3, 
+        stage: 4, 
         name: '성분분석',
         status: 'complete',
         message: '음식 성분 분석 완료',
@@ -1239,9 +1254,9 @@ export class FoodService {
         }
       });
 
-      // 4단계: 약물-음식 상호작용 분석
+      // 5단계: 약물-음식 상호작용 분석
       sendEvent('stage', { 
-        stage: 4, 
+        stage: 5, 
         name: '상호작용',
         status: 'loading',
         message: 'AI가 약물과의 상호작용을 분석하고 있어요...'
@@ -1258,7 +1273,7 @@ export class FoodService {
       const cautionCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'caution').length || 0;
 
       sendEvent('stage', { 
-        stage: 4, 
+        stage: 5, 
         name: '상호작용',
         status: 'complete',
         message: dangerCount > 0 
@@ -1277,16 +1292,34 @@ export class FoodService {
         }
       });
 
-      // 5단계: 최종 종합 분석
+      // 6단계: 레시피 데이터 확인
       sendEvent('stage', { 
-        stage: 5, 
-        name: '최종분석',
+        stage: 6, 
+        name: '레시피',
         status: 'loading',
-        message: 'AI가 최종 분석 결과를 정리하고 있어요...'
+        message: '건강한 조리법을 찾고 있어요...'
       });
 
       const recipeData = await recipeDataPromise;
       const recipeApiSuccess = recipeData && recipeData.length > 0;
+
+      sendEvent('stage', { 
+        stage: 6, 
+        name: '레시피',
+        status: 'complete',
+        message: recipeApiSuccess 
+          ? `${recipeData.length}개 레시피 발견`
+          : 'AI가 건강한 조리법을 추천해드릴게요',
+        data: { recipeCount: recipeData?.length || 0 }
+      });
+
+      // 7단계: 최종 종합 분석
+      sendEvent('stage', { 
+        stage: 7, 
+        name: '최종분석',
+        status: 'loading',
+        message: 'AI가 최종 분석 결과를 정리하고 있어요...'
+      });
 
       const { finalAnalysis, healthyRecipes } = await geminiClient.generateFinalAnalysisWithRecipes(
         foodName,
@@ -1304,7 +1337,7 @@ export class FoodService {
       const score = finalAnalysis.suitabilityScore || 50;
 
       sendEvent('stage', { 
-        stage: 5, 
+        stage: 7, 
         name: '최종분석',
         status: 'complete',
         message: '분석이 완료되었어요!',

@@ -57,7 +57,7 @@
   transform: scale(0.98);
 }
 .image-source-modal__button .material-symbols-rounded {
-  font-size: 28px;
+  font-size: 18px;
   color: rgb(255, 161, 0);
 }
 .image-source-modal__button span:last-child {

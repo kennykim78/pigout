@@ -214,10 +214,169 @@ export const addMedicine = async (medicineData: {
   return response.data;
 };
 
-// 복용 중인 모든 약물 상관관계 종합 분석
-export const analyzeAllMedicines = async () => {
-  const response = await apiClient.post('/medicine/analyze-all');
-  return response.data;
+// 복용 시간대별 상호작용 분석 (Helper 함수)
+export const analyzeInteractionByTiming = (medicines, interactions) => {
+  if (!medicines || !interactions) return {};
+
+  const timeSlots = ['morning', 'afternoon', 'evening'];
+  const timingAnalysis = {};
+
+  timeSlots.forEach(slot => {
+    // 해당 시간대에 복용하는 약품들 필터링
+    const medicinesInSlot = medicines.filter(m => {
+      const useMethod = (m.useMethodQesitm || m.dosage || '').toLowerCase();
+      
+      const slotKeywordMap = {
+        morning: ['아침', '기상', '아침 식사'],
+        afternoon: ['점심', '오후', '점심 식사'],
+        evening: ['저녁', '취침', '저녁 식사']
+      };
+      
+      const keywords = slotKeywordMap[slot] || [];
+      return keywords.some(kw => useMethod.includes(kw)) ||
+             useMethod.includes('1일');
+    });
+
+    // 해당 시간대 약품들 간의 상호작용 찾기
+    const slotInteractions = interactions.filter(interaction => {
+      const med1InSlot = medicinesInSlot.some(m => m.itemSeq === interaction.medicines?.[0]);
+      const med2InSlot = medicinesInSlot.some(m => m.itemSeq === interaction.medicines?.[1]);
+      return med1InSlot && med2InSlot;
+    });
+
+    if (medicinesInSlot.length > 0 || slotInteractions.length > 0) {
+      timingAnalysis[slot] = {
+        medicines: medicinesInSlot,
+        interactions: slotInteractions,
+        riskLevel: slotInteractions.length > 0 
+          ? slotInteractions.some(i => i.riskLevel === 'danger') ? 'danger' : 'caution'
+          : 'safe'
+      };
+    }
+  });
+
+  return timingAnalysis;
+};
+
+// 🆕 복용 중인 모든 약물 상관관계 종합 분석 (스트리밍)
+export const analyzeAllMedicinesStream = (
+  callbacks: StreamingCallbacks
+): { abort: () => void } => {
+  console.log('[analyzeAllMedicinesStream] 함수 호출됨');
+
+  const deviceId = getDeviceId();
+  const abortController = new AbortController();
+
+  console.log('[Medicine SSE] 스트리밍 분석 요청:', { deviceId });
+  console.log('[Medicine SSE] fetch 요청 시작:', `${API_BASE_URL}/medicine/analyze-all-stream`);
+
+  fetch(`${API_BASE_URL}/medicine/analyze-all-stream`, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'X-Device-Id': deviceId,
+    },
+    body: JSON.stringify({}),
+    signal: abortController.signal,
+  })
+    .then(async (response) => {
+      console.log('[Medicine SSE] Response status:', response.status, response.ok);
+      
+      if (!response.ok) {
+        const errorText = await response.text();
+        console.error('[Medicine SSE] HTTP 오류 응답:', errorText);
+        throw new Error(`HTTP error! status: ${response.status}`);
+      }
+
+      console.log('[Medicine SSE] 연결 성공, 스트림 시작');
+
+      const reader = response.body?.getReader();
+      if (!reader) {
+        throw new Error('ReadableStream not supported');
+      }
+
+      const decoder = new TextDecoder();
+      let buffer = '';
+      
+      let currentEvent = '';
+      let currentData = '';
+
+      const processEvent = () => {
+        if (currentEvent && currentData) {
+          try {
+            console.log(`[Medicine SSE] Raw event: "${currentEvent}", data: "${currentData.substring(0, 100)}..."`);
+            const parsedData = JSON.parse(currentData);
+            console.log(`[Medicine SSE] 이벤트 수신: ${currentEvent}`, parsedData);
+            
+            switch (currentEvent) {
+              case 'start':
+                callbacks.onStart?.(parsedData);
+                break;
+              case 'stage':
+                callbacks.onStage?.(parsedData);
+                break;
+              case 'partial':
+                callbacks.onPartial?.(parsedData);
+                break;
+              case 'result':
+                callbacks.onResult?.(parsedData);
+                break;
+              case 'error':
+                callbacks.onError?.(parsedData);
+                break;
+              case 'complete':
+                callbacks.onComplete?.();
+                break;
+            }
+          } catch (e) {
+            console.warn('[Medicine SSE] 데이터 파싱 실패:', currentData, e);
+          }
+          currentEvent = '';
+          currentData = '';
+        }
+      };
+
+      while (true) {
+        const { done, value } = await reader.read();
+        
+        if (done) {
+          processEvent();
+          console.log('[Medicine SSE] 스트림 종료');
+          callbacks.onComplete?.();
+          break;
+        }
+
+        const chunk = decoder.decode(value, { stream: true });
+        console.log('[Medicine SSE] 청크 수신:', chunk.length, 'bytes');
+        
+        buffer += chunk;
+        const lines = buffer.split('\n');
+        buffer = lines.pop() || '';
+
+        for (const line of lines) {
+          console.log('[Medicine SSE] 라인:', line);
+          
+          if (line.startsWith('event:')) {
+            processEvent();
+            currentEvent = line.slice(6).trim();
+          } else if (line.startsWith('data:')) {
+            currentData = line.slice(5).trim();
+          } else if (line === '') {
+            processEvent();
+          }
+        }
+      }
+    })
+    .catch((error) => {
+      if (error.name !== 'AbortError') {
+        console.error('[Medicine SSE] 연결 오류:', error);
+        callbacks.onError?.({ message: error.message });
+      }
+    });
+
+  return {
+    abort: () => abortController.abort(),
+  };
 };
 
 // 📸 약품 이미지 분석 (AI 기반)

@@ -16,16 +16,19 @@ $font-weight-medium: 500;
 $font-weight-semibold: 600;
 $font-weight-black: 900;
 
-// Font Sizes
+// Font Sizes (최소 12px, 최대 18px 제한)
+$font-size-xs: 10px;
 $font-size-small: 12px;
-$font-size-base: 16px;
-$font-size-medium: 20px;
-$font-size-large: 24px;
-$font-size-xlarge: 30px;
-$font-size-xxlarge: 40px;
-$font-size-huge: 62px;
-$font-size-massive: 70px;
-$font-size-score: 96px;
+$font-size-base: 14px;
+$font-size-medium: 16px;
+$font-size-large: 18px;
+// 레거시 호환용 (모두 18px로 매핑)
+$font-size-xlarge: 18px;
+$font-size-xxlarge: 18px;
+$font-size-huge: 18px;
+$font-size-massive: 18px;
+// 점수 표시용 (예외: 큰 숫자 표시 필요)
+$font-size-score: 48px;
 
 // Spacing
 $spacing-xs: 10px;

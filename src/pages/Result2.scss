@@ -34,7 +34,7 @@
     transition: background-color 0.2s ease;
 
     .material-symbols-rounded {
-      font-size: 28px;
+      font-size: $font-size-large;
       color: $color-white;
     }
 
@@ -61,7 +61,7 @@
       
       span {
         color: #fff;
-        font-size: 18px;
+        font-size: $font-size-large;
       }
     }
   }
@@ -110,7 +110,7 @@
 
   &__score-value {
     font-family: $font-family;
-    font-size: 56px;
+    font-size: $font-size-score;
     font-weight: $font-weight-black;
     color: $color-primary-orange;
     line-height: 1;
@@ -118,7 +118,7 @@
 
   &__score-label {
     font-family: $font-family;
-    font-size: $font-size-large;
+    font-size: $font-size-base;
     font-weight: $font-weight-semibold;
     color: $color-black;
   }
@@ -143,7 +143,7 @@
 
   &__medicine-alert-title {
     font-family: $font-family;
-    font-size: $font-size-xlarge;
+    font-size: $font-size-large;
     font-weight: $font-weight-black;
     color: $color-white;
     margin: 0 0 16px;
@@ -154,7 +154,7 @@
   }
 
   &__medicine-alert-icon {
-    font-size: 28px;
+    font-size: $font-size-large;
   }
 
   &__medicine-list {
@@ -269,7 +269,7 @@
   }
 
   &__analysis-icon {
-    font-size: 24px;
+    font-size: $font-size-large;
   }
 
   &__analysis-list {
@@ -322,7 +322,7 @@
   }
 
   &__expert-icon {
-    font-size: 24px;
+    font-size: $font-size-large;
   }
 
   &__expert-content {
@@ -351,7 +351,7 @@
 
   &__tips-title {
     font-family: $font-family;
-    font-size: $font-size-xlarge;
+    font-size: $font-size-large;
     font-weight: $font-weight-black;
     color: $color-black;
     margin: 0;
@@ -361,7 +361,7 @@
   }
 
   &__tips-emoji {
-    font-size: 28px;
+    font-size: $font-size-large;
   }
 
   &__tips-pig {
@@ -425,7 +425,7 @@
   }
 
   &__risk-icon {
-    font-size: 24px;
+    font-size: $font-size-large;
   }
 
   &__risk-subtitle {
@@ -516,7 +516,7 @@
   }
 
   &__summary-icon {
-    font-size: 24px;
+    font-size: $font-size-large;
   }
 
   &__summary-content {
@@ -585,15 +585,15 @@
   }
 
   // ========================================
-  // 🆕 스트리밍 진행 상태 UI (개선)
+  // 🆕 스트리밍 진행 상태 UI (미니멀 디자인)
   // ========================================
   &__streaming-section {
-    background: linear-gradient(135deg, #fff8e1 0%, #fff3c4 100%);
+    background: $color-white;
     margin: 16px 16px 0;
     padding: 20px;
     border-radius: 16px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
-    border: 2px solid rgba(255, 193, 7, 0.4);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    border: 1px solid rgba(0, 0, 0, 0.06);
   }
 
   &__streaming-header {
@@ -604,10 +604,10 @@
   }
 
   &__streaming-spinner {
-    width: 40px;
-    height: 40px;
-    border: 4px solid #ffc107;
-    border-top-color: transparent;
+    width: 36px;
+    height: 36px;
+    border: 3px solid $color-primary-yellow;
+    border-top-color: $color-black;
     border-radius: 50%;
     animation: spin 0.8s linear infinite;
     flex-shrink: 0;
@@ -622,18 +622,17 @@
   }
 
   &__streaming-title {
-    font-size: 18px;
-    font-weight: 800;
-    color: #333;
+    font-size: $font-size-medium;
+    font-weight: 700;
+    color: $color-black;
     margin: 0 0 4px;
   }
 
   &__streaming-message {
-    font-size: 14px;
+    font-size: $font-size-small;
     font-weight: 500;
-    color: #666;
+    color: $color-gray;
     margin: 0;
-    animation: fadeInOut 2s ease-in-out infinite;
   }
 
   @keyframes fadeInOut {
@@ -651,134 +650,104 @@
 
   &__streaming-progress-bar {
     flex: 1;
-    height: 8px;
-    background: rgba(255, 255, 255, 0.8);
-    border-radius: 4px;
+    height: 6px;
+    background: rgba(0, 0, 0, 0.08);
+    border-radius: 3px;
     overflow: hidden;
-    box-shadow: inset 0 1px 2px rgba(0, 0, 0, 0.1);
   }
 
   &__streaming-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ffc107 0%, #ff9800 100%);
-    border-radius: 4px;
+    background: $color-black;
+    border-radius: 3px;
     transition: width 0.5s ease-out;
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.4) 50%,
-        transparent 100%
-      );
-      animation: shimmer 1.5s infinite;
-    }
-  }
-
-  @keyframes shimmer {
-    0% { transform: translateX(-100%); }
-    100% { transform: translateX(100%); }
   }
 
   &__streaming-progress-text {
-    font-size: 14px;
+    font-size: $font-size-small;
     font-weight: 700;
-    color: #ff9800;
-    min-width: 45px;
+    color: $color-black;
+    min-width: 40px;
     text-align: right;
   }
 
-  // 단계별 상태
+  // 단계별 상태 (미니멀)
   &__streaming-stages {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 
   &__streaming-stage {
     display: flex;
     align-items: center;
     gap: 10px;
-    padding: 10px 14px;
-    border-radius: 12px;
-    font-size: 14px;
+    padding: 8px 12px;
+    border-radius: 8px;
+    font-size: $font-size-small;
     font-weight: 500;
-    background: #fff;
-    border: 1px solid #e0e0e0;
-    transition: all 0.3s ease;
+    background: rgba(0, 0, 0, 0.02);
+    transition: all 0.2s ease;
 
     &--waiting {
-      opacity: 0.5;
-      background: #fafafa;
+      opacity: 0.4;
     }
 
     &--loading {
-      background: linear-gradient(90deg, #fff9c4 0%, #fff59d 100%);
-      border-color: #ffc107;
-      box-shadow: 0 2px 8px rgba(255, 193, 7, 0.3);
-
-      .result2__streaming-stage-icon {
-        animation: spin 1s linear infinite;
-      }
+      background: $color-primary-yellow;
+      opacity: 1;
     }
 
     &--complete {
-      background: linear-gradient(90deg, #e8f5e9 0%, #c8e6c9 100%);
-      border-color: #4caf50;
+      background: rgba(0, 0, 0, 0.04);
+      opacity: 0.7;
     }
   }
 
   &__streaming-stage-number {
-    width: 24px;
-    height: 24px;
+    width: 20px;
+    height: 20px;
     border-radius: 50%;
-    background: #e0e0e0;
+    background: rgba(0, 0, 0, 0.1);
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 12px;
+    font-size: $font-size-xs;
     font-weight: 700;
-    color: #666;
+    color: $color-black;
     flex-shrink: 0;
 
     .result2__streaming-stage--loading & {
-      background: #ffc107;
-      color: #fff;
+      background: $color-black;
+      color: $color-white;
     }
 
     .result2__streaming-stage--complete & {
-      background: #4caf50;
-      color: #fff;
+      background: $color-black;
+      color: $color-white;
     }
   }
 
   &__streaming-stage-name {
     flex: 1;
-    color: #333;
+    color: $color-black;
   }
 
   &__streaming-stage-icon {
-    font-size: 16px;
+    font-size: $font-size-base;
   }
 
-  // 🆕 하단 고정 진행 바
+  // 🆕 하단 고정 진행 바 (미니멀)
   &__bottom-progress {
     position: fixed;
     bottom: 0;
     left: 0;
     right: 0;
-    background: linear-gradient(180deg, rgba(255, 255, 255, 0.95) 0%, #fff 100%);
+    background: $color-white;
     padding: 12px 16px 20px;
-    box-shadow: 0 -4px 20px rgba(0, 0, 0, 0.15);
+    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
     z-index: 1000;
-    border-top: 2px solid #ffc107;
+    border-top: 2px solid $color-black;
   }
 
   &__bottom-progress-inner {
@@ -787,35 +756,18 @@
   }
 
   &__bottom-progress-bar {
-    height: 6px;
-    background: #e0e0e0;
-    border-radius: 3px;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.1);
+    border-radius: 2px;
     overflow: hidden;
     margin-bottom: 8px;
   }
 
   &__bottom-progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ffc107 0%, #ff9800 50%, #ff5722 100%);
-    border-radius: 3px;
+    background: $color-black;
+    border-radius: 2px;
     transition: width 0.5s ease-out;
-    position: relative;
-
-    &::after {
-      content: '';
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: linear-gradient(
-        90deg,
-        transparent 0%,
-        rgba(255, 255, 255, 0.5) 50%,
-        transparent 100%
-      );
-      animation: shimmer 1.5s infinite;
-    }
   }
 
   &__bottom-progress-info {
@@ -825,54 +777,53 @@
   }
 
   &__bottom-progress-stage {
-    font-size: 13px;
+    font-size: $font-size-small;
     font-weight: 700;
-    color: #ff9800;
-    background: rgba(255, 152, 0, 0.1);
+    color: $color-black;
+    background: $color-primary-yellow;
     padding: 4px 10px;
     border-radius: 12px;
   }
 
   &__bottom-progress-text {
-    font-size: 13px;
+    font-size: $font-size-small;
     font-weight: 500;
-    color: #666;
+    color: $color-gray;
     max-width: 60%;
     overflow: hidden;
     text-overflow: ellipsis;
     white-space: nowrap;
-    animation: fadeInOut 2s ease-in-out infinite;
   }
 
   // 에러 섹션
   &__error-section {
-    background: #ffebee;
+    background: $color-white;
     margin: 16px 16px 0;
     padding: 16px 20px;
     border-radius: 12px;
-    border: 1px solid #ef5350;
+    border: 1px solid rgba(0, 0, 0, 0.1);
     text-align: center;
   }
 
   &__error-message {
-    font-size: 14px;
-    color: #c62828;
+    font-size: $font-size-base;
+    color: $color-black;
     margin-bottom: 12px;
   }
 
   &__retry-btn {
-    background: #ef5350;
-    color: white;
+    background: $color-black;
+    color: $color-white;
     border: none;
     padding: 10px 24px;
     border-radius: 8px;
-    font-size: 14px;
+    font-size: $font-size-base;
     font-weight: 600;
     cursor: pointer;
-    transition: background 0.2s ease;
+    transition: opacity 0.2s ease;
 
     &:hover {
-      background: #c62828;
+      opacity: 0.8;
     }
   }
 
@@ -880,5 +831,190 @@
   &__score-circle--loading {
     opacity: 0.6;
     animation: pulse 1.5s ease-in-out infinite;
+  }
+
+  // ========================================
+  // 🆕 Accordion 스타일
+  // ========================================
+  &__accordion {
+    margin: 0 16px 12px;
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    border-radius: 12px;
+    overflow: hidden;
+    background: $color-white;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+  }
+
+  &__accordion-toggle {
+    width: 100%;
+    background: $color-white;
+    border: none;
+    padding: 16px 20px;
+    text-align: left;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    transition: all 0.2s ease;
+    font-size: $font-size-medium;
+    font-weight: 600;
+    color: $color-black;
+    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+
+    &:hover {
+      background-color: rgba(0, 0, 0, 0.02);
+    }
+
+    &:active {
+      background-color: rgba(0, 0, 0, 0.05);
+    }
+
+    // 타입별 색상
+    &--good {
+      border-bottom-color: rgba(76, 175, 80, 0.2);
+    }
+
+    &--bad {
+      border-bottom-color: rgba(255, 152, 0, 0.2);
+    }
+
+    &--warning {
+      border-bottom-color: rgba(244, 67, 54, 0.2);
+    }
+
+    &--expert {
+      border-bottom-color: rgba(33, 150, 243, 0.2);
+    }
+
+    &--tips {
+      border-bottom-color: rgba(156, 39, 176, 0.2);
+    }
+
+    &--risk {
+      border-bottom-color: rgba(76, 175, 80, 0.2);
+    }
+
+    &--summary {
+      border-bottom-color: rgba(63, 81, 181, 0.2);
+    }
+
+    &--medicines {
+      border-bottom-color: rgba(255, 152, 0, 0.2);
+    }
+  }
+
+  &__accordion-icon {
+    font-size: $font-size-large;
+    min-width: 24px;
+    display: inline-block;
+  }
+
+  &__accordion-title {
+    flex: 1;
+    font-size: $font-size-medium;
+    font-weight: 600;
+    color: $color-black;
+  }
+
+  &__accordion-chevron {
+    font-size: $font-size-small;
+    color: rgba(0, 0, 0, 0.5);
+    transition: transform 0.3s ease;
+    display: inline-block;
+    width: 16px;
+    text-align: center;
+
+    &.expanded {
+      transform: rotate(0deg);
+    }
+
+    &:not(.expanded) {
+      transform: rotate(-90deg);
+    }
+  }
+
+  &__accordion-content {
+    padding: 16px 20px;
+    background: rgba(0, 0, 0, 0.01);
+    animation: slideDown 0.3s ease;
+
+    .result2__analysis-list {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+
+      li {
+        padding: 8px 0;
+        font-size: $font-size-medium;
+        color: $color-black;
+        line-height: 1.5;
+
+        &:before {
+          content: '• ';
+          margin-right: 8px;
+          color: rgba(0, 0, 0, 0.5);
+        }
+      }
+    }
+
+    .result2__medicine-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .result2__tips-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .result2__risk-list {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .result2__expert-content,
+    .result2__summary-content {
+      margin: 0;
+      font-size: $font-size-medium;
+      color: $color-black;
+      line-height: 1.6;
+      white-space: pre-wrap;
+    }
+
+    .result2__risk-subtitle {
+      font-size: $font-size-small;
+      color: rgba(0, 0, 0, 0.5);
+      margin: 0 0 12px;
+    }
+  }
+
+  // ========================================
+  // 약물 성분별 위험도
+  // ========================================
+  &__medicine-components {
+    margin-top: 12px;
+    padding-top: 12px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  &__medicine-components-title {
+    margin: 0 0 8px 0;
+    font-size: $font-size-small;
+    color: #666;
+    font-weight: 600;
+  }
+
+  @keyframes slideDown {
+    from {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+    to {
+      opacity: 1;
+      transform: translateY(0);
+    }
   }
 }

@@ -1,0 +1,331 @@
+@charset "UTF-8";
+.dosage-risk-analyzer {
+  margin: 16px;
+  padding: 16px;
+  background: rgb(255, 255, 255);
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+  /* 요약 */
+  /* 약물 리스트 */
+  /* 상호작용 리스트 */
+  /* 가이드 */
+  /* 주의사항 */
+  /* 반응형 */
+}
+.dosage-risk-analyzer__header {
+  margin-bottom: 16px;
+}
+.dosage-risk-analyzer__header h3 {
+  margin: 0 0 8px 0;
+  font-size: 18px;
+  color: rgb(0, 0, 0);
+  font-weight: 700;
+}
+.dosage-risk-analyzer__subtitle {
+  margin: 0;
+  font-size: 12px;
+  color: #666;
+  line-height: 1.4;
+}
+.dosage-risk-analyzer__summary {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 8px;
+}
+.dosage-risk-analyzer__summary-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.dosage-risk-analyzer__stat {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+}
+.dosage-risk-analyzer__stat-label {
+  font-size: 12px;
+  color: #666;
+}
+.dosage-risk-analyzer__stat-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: rgb(0, 0, 0);
+}
+.dosage-risk-analyzer__stat-value--danger {
+  color: #f14444;
+}
+.dosage-risk-analyzer__stat-value--caution {
+  color: #ffa100;
+}
+.dosage-risk-analyzer__alert {
+  padding: 10px;
+  border-radius: 6px;
+  background: rgba(255, 193, 7, 0.1);
+  border: 1px solid rgba(255, 193, 7, 0.3);
+}
+.dosage-risk-analyzer__alert-text {
+  margin: 0;
+  font-size: 12px;
+  font-weight: 600;
+  line-height: 1.4;
+}
+.dosage-risk-analyzer__alert-text--danger {
+  color: #c62828;
+}
+.dosage-risk-analyzer__alert-text--caution {
+  color: #e65100;
+}
+.dosage-risk-analyzer__medicines {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.dosage-risk-analyzer__medicine {
+  padding: 12px;
+  border-radius: 8px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  transition: all 0.2s ease;
+}
+.dosage-risk-analyzer__medicine--danger {
+  border-left: 4px solid #f14444;
+  background: rgba(244, 67, 54, 0.03);
+}
+.dosage-risk-analyzer__medicine--caution {
+  border-left: 4px solid #ffa100;
+  background: rgba(255, 152, 0, 0.03);
+}
+.dosage-risk-analyzer__medicine--safe {
+  border-left: 4px solid #4cb150;
+  background: rgba(76, 175, 80, 0.03);
+}
+.dosage-risk-analyzer__medicine:hover {
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+}
+.dosage-risk-analyzer__medicine-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+}
+.dosage-risk-analyzer__medicine-info {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex: 1;
+  flex-wrap: wrap;
+}
+.dosage-risk-analyzer__medicine-name {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+}
+.dosage-risk-analyzer__dosage-badge {
+  display: inline-block;
+  padding: 4px 8px;
+  border-radius: 6px;
+  font-size: 11px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dosage-risk-analyzer__dosage-badge--low {
+  background: rgba(33, 150, 243, 0.2);
+  color: #1565c0;
+}
+.dosage-risk-analyzer__dosage-badge--standard {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+}
+.dosage-risk-analyzer__dosage-badge--high {
+  background: rgba(255, 152, 0, 0.2);
+  color: #e65100;
+}
+.dosage-risk-analyzer__dosage-badge--unknown {
+  background: rgba(0, 0, 0, 0.1);
+  color: #666;
+}
+.dosage-risk-analyzer__risk-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.dosage-risk-analyzer__risk-badge--danger {
+  background: rgba(244, 67, 54, 0.2);
+  color: #c62828;
+}
+.dosage-risk-analyzer__risk-badge--caution {
+  background: rgba(255, 152, 0, 0.2);
+  color: #e65100;
+}
+.dosage-risk-analyzer__risk-badge--safe {
+  background: rgba(76, 175, 80, 0.2);
+  color: #2e7d32;
+}
+.dosage-risk-analyzer__medicine-details {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  padding: 10px;
+  background: rgba(0, 0, 0, 0.02);
+  border-radius: 6px;
+  margin-bottom: 10px;
+}
+.dosage-risk-analyzer__detail-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 12px;
+}
+.dosage-risk-analyzer__detail-row--highlight {
+  padding-top: 6px;
+  margin-top: 6px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  font-weight: 600;
+}
+.dosage-risk-analyzer__detail-label {
+  color: #666;
+}
+.dosage-risk-analyzer__detail-value {
+  color: rgb(0, 0, 0);
+  font-weight: 500;
+}
+.dosage-risk-analyzer__detail-value--danger {
+  color: #f14444;
+  font-weight: 700;
+}
+.dosage-risk-analyzer__detail-value--caution {
+  color: #ffa100;
+  font-weight: 700;
+}
+.dosage-risk-analyzer__detail-value--safe {
+  color: #4cb150;
+  font-weight: 700;
+}
+.dosage-risk-analyzer__interactions {
+  padding-top: 10px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+}
+.dosage-risk-analyzer__interactions-title {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #666;
+  font-weight: 600;
+}
+.dosage-risk-analyzer__interactions-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.dosage-risk-analyzer__interaction-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 11px;
+  color: #555;
+  line-height: 1.4;
+}
+.dosage-risk-analyzer__interaction-icon {
+  font-size: 14px;
+  flex-shrink: 0;
+  margin-top: 1px;
+}
+.dosage-risk-analyzer__interaction-text {
+  flex: 1;
+}
+.dosage-risk-analyzer__guide {
+  margin-bottom: 16px;
+  padding: 12px;
+  background: rgba(33, 150, 243, 0.05);
+  border: 1px solid rgba(33, 150, 243, 0.2);
+  border-radius: 8px;
+}
+.dosage-risk-analyzer__guide-title {
+  margin: 0 0 12px 0;
+  font-size: 16px;
+  color: rgb(0, 0, 0);
+  font-weight: 600;
+}
+.dosage-risk-analyzer__guide-content {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.dosage-risk-analyzer__guide-item {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  font-size: 12px;
+  line-height: 1.5;
+}
+.dosage-risk-analyzer__guide-label {
+  color: #333;
+  font-weight: 600;
+  flex-shrink: 0;
+}
+.dosage-risk-analyzer__guide-text {
+  color: #555;
+  flex: 1;
+}
+.dosage-risk-analyzer__caution {
+  padding: 12px;
+  background: rgba(255, 193, 7, 0.05);
+  border: 1px solid rgba(255, 193, 7, 0.2);
+  border-radius: 8px;
+}
+.dosage-risk-analyzer__caution-title {
+  margin: 0 0 8px 0;
+  font-size: 12px;
+  color: #333;
+  font-weight: 600;
+}
+.dosage-risk-analyzer__caution-list {
+  margin: 0;
+  padding: 0 0 0 16px;
+  font-size: 12px;
+  color: #555;
+  line-height: 1.6;
+}
+.dosage-risk-analyzer__caution-list li {
+  margin: 4px 0;
+}
+@media (max-width: 768px) {
+  .dosage-risk-analyzer {
+    margin: 12px;
+    padding: 12px;
+  }
+  .dosage-risk-analyzer__summary-stats {
+    gap: 8px;
+  }
+}
+@media (max-width: 480px) {
+  .dosage-risk-analyzer__medicine-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+  .dosage-risk-analyzer__medicine-info {
+    width: 100%;
+  }
+  .dosage-risk-analyzer__risk-badge {
+    align-self: flex-start;
+  }
+  .dosage-risk-analyzer__detail-row {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+  }
+}/*# sourceMappingURL=DosageBasedRiskAnalyzer.css.map */

@@ -1,9 +1,12 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMedicineStore } from '../store/medicineStore';
-import { getMyMedicines, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines, analyzeMedicineImage } from '../services/api';
+import { getMyMedicines, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines, analyzeMedicineImage, analyzeAllMedicinesStream } from '../services/api';
 import MedicineRadarChart from '../components/MedicineRadarChart';
 import MedicineSchedule from '../components/MedicineSchedule';
 import MedicineCorrelationSummary from '../components/MedicineCorrelationSummary';
+import MedicineInteractionNetwork from '../components/MedicineInteractionNetwork';
+import MedicineTimingOptimizer from '../components/MedicineTimingOptimizer';
+import DosageBasedRiskAnalyzer from '../components/DosageBasedRiskAnalyzer';
 import MedicineDetailPopup from '../components/MedicineDetailPopup';
 import ImageSourceModal from '../components/ImageSourceModal';
 import './Medicine.scss';
@@ -20,6 +23,14 @@ const Medicine = () => {
   const [showAnalysis, setShowAnalysis] = useState(false);
   const [analysisResult, setAnalysisResult] = useState(null);
   const [isAnalyzing, setIsAnalyzing] = useState(false);
+
+  // 🆕 스트리밍 분석 상태
+  const [streamingStages, setStreamingStages] = useState([]);
+  const [currentStage, setCurrentStage] = useState(null);
+  const [streamingMessage, setStreamingMessage] = useState('');
+  const [streamProgress, setStreamProgress] = useState(0);
+  const [streamError, setStreamError] = useState(null);
+  const abortRef = useRef(null);
   
   // 건강기능식품 탭용 상태
   const [healthFoodKeyword, setHealthFoodKeyword] = useState('');
@@ -247,6 +258,21 @@ const Medicine = () => {
       return;
     }
 
+    // 🆕 제한 체크
+    const TOTAL_MAX = 15; // 의약품 최대 10개 + 건강기능식품 최대 5개
+    const currentCount = medicines.length;
+    const remainingSlots = TOTAL_MAX - currentCount;
+    
+    if (remainingSlots <= 0) {
+      alert(`최대 ${TOTAL_MAX}개까지만 등록 가능합니다.\n먼저 기존 약을 삭제한 후 등록해주세요.`);
+      return;
+    }
+    
+    if (medicinesToAdd.length > remainingSlots) {
+      alert(`등록 가능한 슬롯이 ${remainingSlots}개 남았습니다.\n${remainingSlots}개만 등록 가능합니다.`);
+      return;
+    }
+
     setLoading(true);
     let successCount = 0;
     let failCount = 0;
@@ -392,12 +418,48 @@ const Medicine = () => {
   const handleAddMedicine = async (medicine) => {
     try {
       setLoading(true);
+      
+      // 🆕 제한 로직: 현재 탭 기준 구분
+      const isHealthFood = addSubTab === 'healthfood';
+      const currentList = isHealthFood ? healthFoodResults : searchResults;
+      
+      // 현재 선택된 탭에서의 약 개수 (이미 DB에 등록된 약은 제한하지 않음)
+      // 대신 UI에서 현재 보여주는 리스트 기준으로 체크
+      const MEDICINE_MAX = 10;
+      const HEALTH_FOOD_MAX = 5;
+      
+      // 제한 체크: 현재 탭에서 이미 많은 약이 등록되었는지 확인
+      // 실제로는 medicines 배열의 전체 개수로 제한 (모든 약이 섞여있기 때문)
+      const totalMedicines = medicines.length;
+      
+      // 의약품과 건강기능식품이 구분되지 않으므로, 총 개수 기준으로 제한
+      const TOTAL_MAX = MEDICINE_MAX + HEALTH_FOOD_MAX; // 총 15개
+      
+      if (totalMedicines >= TOTAL_MAX) {
+        alert(`최대 ${TOTAL_MAX}개까지만 등록 가능합니다.\n(의약품 최대 10개, 건강기능식품 최대 5개)`);
+        setLoading(false);
+        return;
+      }
+      
+      // 추가적인 경고: 의약품/건강기능식품 구분이 안 되므로 사용자에게 알림
+      if (totalMedicines >= TOTAL_MAX - 2) {
+        alert(`⚠️ 등록 가능한 약이 ${TOTAL_MAX - totalMedicines}개 남았습니다.`);
+      }
+      
       const result = await addMedicineAPI({
         itemName: medicine.itemName,
         entpName: medicine.entpName,
         itemSeq: medicine.itemSeq,
         efcyQesitm: medicine.efcyQesitm,
+        isHealthFood: isHealthFood, // 🆕 의약품/건강기능식품 구분 정보 전달
       });
+      
+      // 🆕 추가된 약품의 타입 정보를 로컬에 저장 (DB에 저장될 때까지 임시)
+      if (result.medicineRecord) {
+        const medicineTypes = JSON.parse(sessionStorage.getItem('medicineTypes') || '{}');
+        medicineTypes[result.medicineRecord.id] = isHealthFood ? 'healthfood' : 'medicine';
+        sessionStorage.setItem('medicineTypes', JSON.stringify(medicineTypes));
+      }
       
       console.log('약 추가 성공:', result);
       alert(`${medicine.itemName} 추가 완료!`);
@@ -443,18 +505,68 @@ const Medicine = () => {
     }
 
     setIsAnalyzing(true);
-    try {
-      console.log('[약물 상관관계 분석] 시작...');
-      const result = await analyzeAllMedicines();
-      console.log('[약물 상관관계 분석] 완료:', result);
-      setAnalysisResult(result);
-      setShowAnalysis(true);
-    } catch (error) {
-      console.error('Analysis failed:', error);
-      alert(error.response?.data?.message || '분석에 실패했습니다.');
-    } finally {
-      setIsAnalyzing(false);
-    }
+    setStreamError(null);
+    setStreamingStages([]);
+    setStreamProgress(0);
+
+    console.log('[약물 상관관계 분석] 스트리밍 시작...');
+
+    const { abort } = analyzeAllMedicinesStream({
+      onStart: (data) => {
+        console.log('[Medicine 스트리밍] 시작:', data);
+        setStreamingMessage(data.message);
+        setStreamingStages(data.stages.map((name, idx) => ({
+          stage: idx + 1,
+          name,
+          status: 'waiting'
+        })));
+      },
+      onStage: (data) => {
+        console.log('[Medicine 스트리밍] 단계:', data);
+        setCurrentStage(data.stage);
+        setStreamingMessage(data.message);
+        
+        // 진행률 계산 (4단계 기준)
+        const totalStages = 4;
+        const progressPerStage = 100 / totalStages;
+        const baseProgress = (data.stage - 1) * progressPerStage;
+        const stageProgress = data.status === 'complete' ? progressPerStage : progressPerStage * 0.5;
+        setStreamProgress(Math.min(baseProgress + stageProgress, 100));
+        
+        setStreamingStages(prev => prev.map(s => 
+          s.stage === data.stage 
+            ? { ...s, status: data.status, message: data.message }
+            : s.stage < data.stage 
+              ? { ...s, status: 'complete' }
+              : s
+        ));
+      },
+      onPartial: (data) => {
+        console.log('[Medicine 스트리밍] 부분 데이터:', data.type);
+        // 부분 데이터 수신 (향후 UI 업데이트 가능)
+      },
+      onResult: (data) => {
+        console.log('[Medicine 스트리밍] 최종 결과:', data);
+        if (data.success && data.data) {
+          setAnalysisResult(data.data);
+          setShowAnalysis(true);
+        }
+        setStreamProgress(100);
+        setIsAnalyzing(false);
+        setStreamingMessage('분석 완료!');
+      },
+      onError: (error) => {
+        console.error('[Medicine 스트리밍] 오류:', error);
+        setStreamError(error.message);
+        setIsAnalyzing(false);
+      },
+      onComplete: () => {
+        console.log('[Medicine 스트리밍] 완료');
+        setIsAnalyzing(false);
+      }
+    });
+
+    abortRef.current = abort;
   };
 
   const getSafetyBadgeClass = (safety) => {
@@ -544,6 +656,30 @@ const Medicine = () => {
               {/* 🟢 Phase 2: 한 줄 상호작용 분석 */}
               <MedicineCorrelationSummary medicines={medicines} />
 
+              {/* 🆕 Phase 2: 약물 상호작용 네트워크 시각화 */}
+              {medicines.length >= 2 && (
+                <MedicineInteractionNetwork 
+                  medicines={medicines}
+                  interactions={analysisResult?.analysis?.interactions || []}
+                />
+              )}
+
+              {/* 🆕 Tier 3: 약물 복용 시간 최적화 제안 */}
+              {medicines.length >= 2 && analysisResult?.analysis?.interactions && (
+                <MedicineTimingOptimizer
+                  medicines={medicines}
+                  interactions={analysisResult.analysis.interactions}
+                />
+              )}
+
+              {/* 🆕 Tier 3: 용량 기반 위험도 차등화 */}
+              {medicines.length > 0 && analysisResult?.analysis?.interactions && (
+                <DosageBasedRiskAnalyzer
+                  medicines={medicines}
+                  interactions={analysisResult.analysis.interactions}
+                />
+              )}
+
               <div className="medicine__analyze-section">
                 <button
                   className="medicine__analyze-all-btn"
@@ -556,6 +692,54 @@ const Medicine = () => {
                   복용 중인 모든 약물의 상호작용을 AI가 분석합니다
                 </p>
               </div>
+
+              {/* 🆕 스트리밍 분석 진행 상황 표시 */}
+              {isAnalyzing && (
+                <div className="medicine__streaming-section">
+                  <div className="medicine__streaming-header">
+                    <div className="medicine__streaming-spinner"></div>
+                    <div className="medicine__streaming-info">
+                      <p className="medicine__streaming-title">약물 상호작용 분석 중</p>
+                      <p className="medicine__streaming-message">{streamingMessage}</p>
+                    </div>
+                  </div>
+
+                  {/* 진행 바 */}
+                  <div className="medicine__streaming-progress">
+                    <div className="medicine__streaming-progress-bar">
+                      <div 
+                        className="medicine__streaming-progress-fill" 
+                        style={{ width: `${streamProgress}%` }}
+                      />
+                    </div>
+                    <span className="medicine__streaming-progress-text">{Math.round(streamProgress)}%</span>
+                  </div>
+
+                  {/* 단계별 상태 */}
+                  <div className="medicine__streaming-stages">
+                    {streamingStages.map((stage) => (
+                      <div 
+                        key={stage.stage} 
+                        className={`medicine__streaming-stage medicine__streaming-stage--${stage.status}`}
+                      >
+                        <span className="medicine__streaming-stage-number">{stage.stage}</span>
+                        <span className="medicine__streaming-stage-name">{stage.name}</span>
+                        <span className="medicine__streaming-stage-icon">
+                          {stage.status === 'complete' ? '✅' : 
+                           stage.status === 'loading' ? '🔄' : '⏳'}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
+
+                  {/* 에러 표시 */}
+                  {streamError && (
+                    <div className="medicine__error-section">
+                      <p className="medicine__error-message">⚠️ {streamError}</p>
+                    </div>
+                  )}
+                </div>
+              )}
 
               {showAnalysis && analysisResult && (
                 <div className="medicine__analysis-modal">
@@ -659,42 +843,53 @@ const Medicine = () => {
                 </div>
               )}
 
-              {medicines.map((med) => (
-                <div
-                  key={med.id}
-                  className="medicine__card"
-                  onClick={() => {
-                    setSelectedMedicineDetail(med);
-                    setShowMedicineDetailPopup(true);
-                  }}
-                  style={{ cursor: 'pointer' }}
-                >
-                  <div className="medicine__card-header">
-                    <h3 className="medicine__card-title">{med.itemName || med.name || '약품명 미확인'}</h3>
-                    <button
-                      className="medicine__delete-btn"
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        handleDeleteMedicine(med.id);
-                      }}
-                    >
-                      🗑️
-                    </button>
+              {medicines.map((med) => {
+                // 🆕 약품 타입 확인 (의약품 vs 건강기능식품)
+                const medicineTypes = JSON.parse(sessionStorage.getItem('medicineTypes') || '{}');
+                const medicineType = medicineTypes[med.id] || 'medicine'; // 기본값: 의약품
+                
+                return (
+                  <div
+                    key={med.id}
+                    className={`medicine__card medicine__card--${medicineType}`}
+                    onClick={() => {
+                      setSelectedMedicineDetail(med);
+                      setShowMedicineDetailPopup(true);
+                    }}
+                    style={{ cursor: 'pointer' }}
+                  >
+                    {/* 🆕 약품 타입 배지 */}
+                    <div className={`medicine__type-badge medicine__type-badge--${medicineType}`}>
+                      {medicineType === 'healthfood' ? '🥗 건강기능식품' : '💊 의약품'}
+                    </div>
+                    
+                    <div className="medicine__card-header">
+                      <h3 className="medicine__card-title">{med.itemName || med.name || '약품명 미확인'}</h3>
+                      <button
+                        className="medicine__delete-btn"
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleDeleteMedicine(med.id);
+                        }}
+                      >
+                        🗑️
+                      </button>
+                    </div>
+                    {med.drug_class && (
+                      <p className="medicine__card-info">제조사: {med.drug_class}</p>
+                    )}
+                    {med.dosage && (
+                      <p className="medicine__card-info">복용량: {med.dosage}</p>
+                    )}
+                    {med.frequency && (
+                      <p className="medicine__card-info">복용 빈도: {med.frequency}</p>
+                    )}
+                    <p className="medicine__card-date">
+                      등록일: {new Date(med.created_at).toLocaleDateString()}
+                    </p>
                   </div>
-                  {med.drug_class && (
-                    <p className="medicine__card-info">제조사: {med.drug_class}</p>
-                  )}
-                  {med.dosage && (
-                    <p className="medicine__card-info">복용량: {med.dosage}</p>
-                  )}
-                  {med.frequency && (
-                    <p className="medicine__card-info">복용 빈도: {med.frequency}</p>
-                  )}
-                  <p className="medicine__card-date">
-                    등록일: {new Date(med.created_at).toLocaleDateString()}
-                  </p>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
@@ -890,6 +1085,28 @@ const Medicine = () => {
               </button>
             </div>
 
+            {/* 🆕 등록 상태 표시 */}
+            <div style={{
+              backgroundColor: medicines.length >= 15 ? '#FFEBEE' : '#E8F5E9',
+              border: `2px solid ${medicines.length >= 15 ? '#EF5350' : '#66BB6A'}`,
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '16px',
+              marginTop: '12px',
+            }}>
+              <p style={{
+                margin: 0,
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: medicines.length >= 15 ? '#C62828' : '#2E7D32',
+              }}>
+                {medicines.length >= 15 
+                  ? '🚨 최대 개수(15개)에 도달했습니다.'
+                  : `📊 등록된 약: ${medicines.length}/15개 (남은 슬롯: ${15 - medicines.length}개)`
+                }
+              </p>
+            </div>
+
             <div className="medicine__search-results">
               {/* 탭 이동 안내 */}
               {tabSuggestion && (
@@ -1056,6 +1273,28 @@ const Medicine = () => {
               >
                 검색
               </button>
+            </div>
+
+            {/* 🆕 등록 상태 표시 */}
+            <div style={{
+              backgroundColor: medicines.length >= 15 ? '#FFEBEE' : '#E8F5E9',
+              border: `2px solid ${medicines.length >= 15 ? '#EF5350' : '#66BB6A'}`,
+              borderRadius: '8px',
+              padding: '12px 16px',
+              marginBottom: '16px',
+              marginTop: '12px',
+            }}>
+              <p style={{
+                margin: 0,
+                fontSize: '14px',
+                fontWeight: 'bold',
+                color: medicines.length >= 15 ? '#C62828' : '#2E7D32',
+              }}>
+                {medicines.length >= 15 
+                  ? '🚨 최대 개수(15개)에 도달했습니다.'
+                  : `📊 등록된 약: ${medicines.length}/15개 (남은 슬롯: ${15 - medicines.length}개)`
+                }
+              </p>
             </div>
 
             <div className="medicine__search-results">

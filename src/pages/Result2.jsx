@@ -6,6 +6,8 @@ import img_travel from '../assets/images/img_travel.png';
 import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import { AnalysisDashboard } from '../components/AnalysisCharts';
+import FoodDrugInteractionMatrix from '../components/FoodDrugInteractionMatrix';
+import MedicineComponentRiskCard from '../components/MedicineComponentRiskCard';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
 import { analyzeFoodByTextStream } from '../services/api';
@@ -28,6 +30,26 @@ const Result2 = () => {
   const [streamError, setStreamError] = useState(null);
   const [streamProgress, setStreamProgress] = useState(0);
   const abortRef = useRef(null);
+
+  // 🆕 Accordion 상태 관리
+  const [expandedSections, setExpandedSections] = useState({
+    goodPoints: true,      // 좋은 점: 기본 확장
+    badPoints: true,       // 주의할 점: 기본 확장
+    warnings: false,       // 경고: 기본 접음
+    medicines: false,      // 약물 상호작용: 기본 접음
+    expertAdvice: false,   // 전문가 조언: 기본 접음
+    cookingTips: false,    // 조리법: 기본 접음
+    riskFactors: false,    // 위험 성분: 기본 접음
+    summary: false,        // 종합 분석: 기본 접음
+  });
+
+  // Accordion 토글 함수
+  const toggleSection = (sectionName) => {
+    setExpandedSections(prev => ({
+      ...prev,
+      [sectionName]: !prev[sectionName]
+    }));
+  };
 
   // 🆕 스트리밍 분석 시작 함수
   const startStreamingAnalysis = (foodNameParam) => {
@@ -60,8 +82,8 @@ const Result2 = () => {
         console.log('[Stream] 단계:', data);
         setCurrentStage(data.stage);
         setStreamingMessage(data.message);
-        // 진행률 계산 (5단계 기준)
-        const totalStages = 5;
+        // 진행률 계산 (7단계 기준)
+        const totalStages = 7;
         const progressPerStage = 100 / totalStages;
         const baseProgress = (data.stage - 1) * progressPerStage;
         const stageProgress = data.status === 'complete' ? progressPerStage : progressPerStage * 0.5;
@@ -484,7 +506,7 @@ const Result2 = () => {
             </div>
             <div className="result2__bottom-progress-info">
               <span className="result2__bottom-progress-stage">
-                {currentStage ? `${currentStage}/5 단계` : '준비 중...'}
+                {currentStage ? `${currentStage}/7 단계` : '준비 중...'}
               </span>
               <span className="result2__bottom-progress-text">{streamingMessage}</span>
             </div>
@@ -505,35 +527,72 @@ const Result2 = () => {
         </div>
       )}
 
-      {/* 약물 상호작용 - 위험/주의가 있을 때만 표시 */}
+      {/* 약물 상호작용 - 위험/주의가 있을 때만 표시 (Accordion) */}
       {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
        detailedAnalysis.medicalAnalysis.drug_food_interactions.some(d => d.risk_level === 'danger' || d.risk_level === 'caution') && (
-        <div className="result2__medicine-alert">
-          <h3 className="result2__medicine-alert-title">
-            <span className="result2__medicine-alert-icon">⚠️</span>
-            복용 중인 약과의 상호작용
-          </h3>
-          <div className="result2__medicine-list">
-            {detailedAnalysis.medicalAnalysis.drug_food_interactions
-              .filter(d => d.risk_level === 'danger' || d.risk_level === 'caution')
-              .map((drug, idx) => (
-                <div key={idx} className={`result2__medicine-card result2__medicine-card--${drug.risk_level}`}>
-                  <div className="result2__medicine-header">
-                    <span className="result2__medicine-name">{drug.medicine_name}</span>
-                    <span className={`result2__risk-badge result2__risk-badge--${drug.risk_level}`}>
-                      {drug.risk_level === 'danger' ? '위험' : '주의'}
-                    </span>
-                  </div>
-                  {drug.interaction_description && (
-                    <p className="result2__medicine-desc">{drug.interaction_description}</p>
-                  )}
-                  {drug.recommendation && (
-                    <p className="result2__medicine-recommend">💡 {drug.recommendation}</p>
-                  )}
-                </div>
-              ))}
-          </div>
+        <div className="result2__accordion">
+          <button 
+            className={`result2__accordion-toggle result2__accordion-toggle--medicines`}
+            onClick={() => toggleSection('medicines')}
+          >
+            <span className="result2__accordion-icon">⚠️</span>
+            <span className="result2__accordion-title">복용 중인 약과의 상호작용</span>
+            <span className={`result2__accordion-chevron ${expandedSections.medicines ? 'expanded' : ''}`}>
+              ▼
+            </span>
+          </button>
+          
+          {expandedSections.medicines && (
+            <div className="result2__accordion-content">
+              <div className="result2__medicine-list">
+                {detailedAnalysis.medicalAnalysis.drug_food_interactions
+                  .filter(d => d.risk_level === 'danger' || d.risk_level === 'caution')
+                  .map((drug, idx) => (
+                    <div key={idx} className={`result2__medicine-card result2__medicine-card--${drug.risk_level}`}>
+                      <div className="result2__medicine-header">
+                        <span className="result2__medicine-name">{drug.medicine_name}</span>
+                        <span className={`result2__risk-badge result2__risk-badge--${drug.risk_level}`}>
+                          {drug.risk_level === 'danger' ? '위험' : '주의'}
+                        </span>
+                      </div>
+                      {drug.interaction_description && (
+                        <p className="result2__medicine-desc">{drug.interaction_description}</p>
+                      )}
+                      {drug.recommendation && (
+                        <p className="result2__medicine-recommend">💡 {drug.recommendation}</p>
+                      )}
+                      
+                      {/* 🆕 성분별 위험도 표시 */}
+                      {drug.components && drug.components.length > 0 && (
+                        <div className="result2__medicine-components">
+                          <p className="result2__medicine-components-title">⚗️ 주요 성분별 위험도</p>
+                          <MedicineComponentRiskCard
+                            medicine={{ name: drug.medicine_name }}
+                            components={drug.components}
+                            interactions={detailedAnalysis.medicalAnalysis.drug_food_interactions}
+                          />
+                        </div>
+                      )}
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
         </div>
+      )}
+
+      {/* 🆕 음식-약물 상호작용 맵 */}
+      {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
+       detailedAnalysis.medicalAnalysis.drug_food_interactions.length > 0 && (
+        <FoodDrugInteractionMatrix 
+          interactions={detailedAnalysis.medicalAnalysis.drug_food_interactions}
+          medicines={detailedAnalysis.medicalAnalysis.drug_food_interactions
+            .flatMap(i => i.medicines || [])
+            .filter((v, i, a) => a.indexOf(v) === i)}
+          foodComponents={detailedAnalysis.medicalAnalysis.drug_food_interactions
+            .flatMap(i => i.food_components || [])
+            .filter((v, i, a) => a.indexOf(v) === i)}
+        />
       )}
 
       {/* 🆕 시각적 분석 대시보드 (차트) */}
@@ -543,127 +602,201 @@ const Result2 = () => {
 
       {/* 주요 분석 내용 */}
       <div className="result2__main-content">
-        {/* 좋은 점 */}
+        {/* 좋은 점 (Accordion) */}
         {detailedAnalysis?.goodPoints && Array.isArray(detailedAnalysis.goodPoints) && detailedAnalysis.goodPoints.length > 0 && (
-          <div className="result2__analysis-section result2__analysis-section--good">
-            <h3 className="result2__analysis-title">
-              <span className="result2__analysis-icon">✅</span>
-              이런 점이 좋아요
-            </h3>
-            <ul className="result2__analysis-list">
-              {detailedAnalysis.goodPoints.map((point, idx) => (
-                <li key={idx}>{point.replace(/^✅\s*/, '')}</li>
-              ))}
-            </ul>
+          <div className="result2__accordion">
+            <button 
+              className={`result2__accordion-toggle result2__accordion-toggle--good`}
+              onClick={() => toggleSection('goodPoints')}
+            >
+              <span className="result2__accordion-icon">✅</span>
+              <span className="result2__accordion-title">이런 점이 좋아요</span>
+              <span className={`result2__accordion-chevron ${expandedSections.goodPoints ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </button>
+
+            {expandedSections.goodPoints && (
+              <div className="result2__accordion-content">
+                <ul className="result2__analysis-list">
+                  {detailedAnalysis.goodPoints.map((point, idx) => (
+                    <li key={idx}>{point.replace(/^✅\s*/, '')}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 주의할 점 */}
+        {/* 주의할 점 (Accordion) */}
         {detailedAnalysis?.badPoints && Array.isArray(detailedAnalysis.badPoints) && detailedAnalysis.badPoints.length > 0 && (
-          <div className="result2__analysis-section result2__analysis-section--bad">
-            <h3 className="result2__analysis-title">
-              <span className="result2__analysis-icon">⚠️</span>
-              주의할 점이 있어요
-            </h3>
-            <ul className="result2__analysis-list">
-              {detailedAnalysis.badPoints.map((point, idx) => (
-                <li key={idx}>{point.replace(/^⚠️\s*/, '')}</li>
-              ))}
-            </ul>
+          <div className="result2__accordion">
+            <button 
+              className={`result2__accordion-toggle result2__accordion-toggle--bad`}
+              onClick={() => toggleSection('badPoints')}
+            >
+              <span className="result2__accordion-icon">⚠️</span>
+              <span className="result2__accordion-title">주의할 점이 있어요</span>
+              <span className={`result2__accordion-chevron ${expandedSections.badPoints ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </button>
+
+            {expandedSections.badPoints && (
+              <div className="result2__accordion-content">
+                <ul className="result2__analysis-list">
+                  {detailedAnalysis.badPoints.map((point, idx) => (
+                    <li key={idx}>{point.replace(/^⚠️\s*/, '')}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 경고 사항 */}
+        {/* 경고 사항 (Accordion) */}
         {detailedAnalysis?.warnings && Array.isArray(detailedAnalysis.warnings) && detailedAnalysis.warnings.length > 0 && (
-          <div className="result2__analysis-section result2__analysis-section--warning">
-            <h3 className="result2__analysis-title">
-              <span className="result2__analysis-icon">🚨</span>
-              특별 경고
-            </h3>
-            <ul className="result2__analysis-list">
-              {detailedAnalysis.warnings.map((warning, idx) => (
-                <li key={idx}>{warning.replace(/^🚨\s*/, '')}</li>
-              ))}
-            </ul>
+          <div className="result2__accordion">
+            <button 
+              className={`result2__accordion-toggle result2__accordion-toggle--warning`}
+              onClick={() => toggleSection('warnings')}
+            >
+              <span className="result2__accordion-icon">🚨</span>
+              <span className="result2__accordion-title">특별 경고</span>
+              <span className={`result2__accordion-chevron ${expandedSections.warnings ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </button>
+
+            {expandedSections.warnings && (
+              <div className="result2__accordion-content">
+                <ul className="result2__analysis-list">
+                  {detailedAnalysis.warnings.map((warning, idx) => (
+                    <li key={idx}>{warning.replace(/^🚨\s*/, '')}</li>
+                  ))}
+                </ul>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 전문가 조언 */}
+        {/* 전문가 조언 (Accordion) */}
         {detailedAnalysis?.expertAdvice && (
-          <div className="result2__expert-section">
-            <h3 className="result2__expert-title">
-              <span className="result2__expert-icon">💊</span>
-              전문가 조언
-            </h3>
-            <p className="result2__expert-content">
-              {detailedAnalysis.expertAdvice.replace(/^💊\s*/, '')}
-            </p>
+          <div className="result2__accordion">
+            <button 
+              className={`result2__accordion-toggle result2__accordion-toggle--expert`}
+              onClick={() => toggleSection('expertAdvice')}
+            >
+              <span className="result2__accordion-icon">💊</span>
+              <span className="result2__accordion-title">전문가 조언</span>
+              <span className={`result2__accordion-chevron ${expandedSections.expertAdvice ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </button>
+
+            {expandedSections.expertAdvice && (
+              <div className="result2__accordion-content">
+                <p className="result2__expert-content">
+                  {detailedAnalysis.expertAdvice.replace(/^💊\s*/, '')}
+                </p>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 건강 조리법 */}
+        {/* 건강 조리법 (Accordion) */}
         {detailedAnalysis?.cookingTips && Array.isArray(detailedAnalysis.cookingTips) && detailedAnalysis.cookingTips.length > 0 && (
-          <div className="result2__tips-section">
-            <div className="result2__tips-header">
-              <h3 className="result2__tips-title">
-                <span className="result2__tips-emoji">👨‍🍳</span>
-                이렇게 먹으면 더 좋아요!
-              </h3>
-              <img src={imgcook} alt="cook" className="result2__tips-pig" />
-            </div>
-            <div className="result2__tips-list">
-              {detailedAnalysis.cookingTips.map((tipItem, idx) => {
-                const tipText = typeof tipItem === 'object' 
-                  ? `${tipItem.category ? tipItem.category + ': ' : ''}${tipItem.tip || ''}`
-                  : tipItem;
-                return (
-                  <div key={idx} className="result2__tip-item">
-                    <span className="result2__tip-number">{idx + 1}</span>
-                    <span className="result2__tip-text">{tipText}</span>
-                  </div>
-                );
-              })}
-            </div>
-          </div>
-        )}
+          <div className="result2__accordion">
+            <button 
+              className={`result2__accordion-toggle result2__accordion-toggle--tips`}
+              onClick={() => toggleSection('cookingTips')}
+            >
+              <span className="result2__accordion-icon">👨‍🍳</span>
+              <span className="result2__accordion-title">이렇게 먹으면 더 좋아요!</span>
+              <span className={`result2__accordion-chevron ${expandedSections.cookingTips ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </button>
 
-        {/* 위험 성분 분석 */}
-        {riskFactorEntries.length > 0 && (
-          <div className="result2__risk-section">
-            <h3 className="result2__risk-title">
-              <span className="result2__risk-icon">🔬</span>
-              위험 성분 분석
-            </h3>
-            <p className="result2__risk-subtitle">식품의약품안전처 데이터 기반</p>
-            <div className="result2__risk-list">
-              {riskFactorEntries.map((entry) => (
-                <div
-                  key={entry.key}
-                  className={`result2__risk-item ${entry.active ? 'result2__risk-item--active' : 'result2__risk-item--inactive'}`}
-                >
-                  <div className="result2__risk-item-header">
-                    <span className="result2__risk-item-name">{entry.label}</span>
-                    <span className={`result2__risk-chip ${entry.active ? 'result2__risk-chip--active' : ''}`}>
-                      {entry.active ? '검출' : '안전'}
-                    </span>
-                  </div>
-                  <p className="result2__risk-item-note">{entry.note}</p>
+            {expandedSections.cookingTips && (
+              <div className="result2__accordion-content">
+                <div className="result2__tips-list">
+                  {detailedAnalysis.cookingTips.map((tipItem, idx) => {
+                    const tipText = typeof tipItem === 'object' 
+                      ? `${tipItem.category ? tipItem.category + ': ' : ''}${tipItem.tip || ''}`
+                      : tipItem;
+                    return (
+                      <div key={idx} className="result2__tip-item">
+                        <span className="result2__tip-number">{idx + 1}</span>
+                        <span className="result2__tip-text">{tipText}</span>
+                      </div>
+                    );
+                  })}
                 </div>
-              ))}
-            </div>
+              </div>
+            )}
           </div>
         )}
 
-        {/* 종합 분석 */}
+        {/* 위험 성분 분석 (Accordion) */}
+        {riskFactorEntries.length > 0 && (
+          <div className="result2__accordion">
+            <button 
+              className={`result2__accordion-toggle result2__accordion-toggle--risk`}
+              onClick={() => toggleSection('riskFactors')}
+            >
+              <span className="result2__accordion-icon">🔬</span>
+              <span className="result2__accordion-title">위험 성분 분석</span>
+              <span className={`result2__accordion-chevron ${expandedSections.riskFactors ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </button>
+
+            {expandedSections.riskFactors && (
+              <div className="result2__accordion-content">
+                <p className="result2__risk-subtitle">식품의약품안전처 데이터 기반</p>
+                <div className="result2__risk-list">
+                  {riskFactorEntries.map((entry) => (
+                    <div
+                      key={entry.key}
+                      className={`result2__risk-item ${entry.active ? 'result2__risk-item--active' : 'result2__risk-item--inactive'}`}
+                    >
+                      <div className="result2__risk-item-header">
+                        <span className="result2__risk-item-name">{entry.label}</span>
+                        <span className={`result2__risk-chip ${entry.active ? 'result2__risk-chip--active' : ''}`}>
+                          {entry.active ? '검출' : '안전'}
+                        </span>
+                      </div>
+                      <p className="result2__risk-item-note">{entry.note}</p>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 종합 분석 (Accordion) */}
         {(detailedAnalysis?.summary || analysis) && (
-          <div className="result2__summary-section">
-            <h3 className="result2__summary-title">
-              <span className="result2__summary-icon">📋</span>
-              종합 분석
-            </h3>
-            <p className="result2__summary-content">
-              {(detailedAnalysis?.summary || analysis).replace(/^🔬\s*/, '')}
-            </p>
+          <div className="result2__accordion">
+            <button 
+              className={`result2__accordion-toggle result2__accordion-toggle--summary`}
+              onClick={() => toggleSection('summary')}
+            >
+              <span className="result2__accordion-icon">📋</span>
+              <span className="result2__accordion-title">종합 분석</span>
+              <span className={`result2__accordion-chevron ${expandedSections.summary ? 'expanded' : ''}`}>
+                ▼
+              </span>
+            </button>
+
+            {expandedSections.summary && (
+              <div className="result2__accordion-content">
+                <p className="result2__summary-content">
+                  {(detailedAnalysis?.summary || analysis).replace(/^🔬\s*/, '')}
+                </p>
+              </div>
+            )}
           </div>
         )}
 

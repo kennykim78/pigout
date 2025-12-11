@@ -1,0 +1,392 @@
+@import '../styles/variables';
+
+.dosage-risk-analyzer {
+  margin: 16px;
+  padding: 16px;
+  background: $color-white;
+  border-radius: 12px;
+  border: 1px solid rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.04);
+
+  &__header {
+    margin-bottom: 16px;
+
+    h3 {
+      margin: 0 0 8px 0;
+      font-size: $font-size-large;
+      color: $color-black;
+      font-weight: 700;
+    }
+  }
+
+  &__subtitle {
+    margin: 0;
+    font-size: $font-size-small;
+    color: #666;
+    line-height: 1.4;
+  }
+
+  /* 요약 */
+  &__summary {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 8px;
+  }
+
+  &__summary-stats {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+    margin-bottom: 12px;
+  }
+
+  &__stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__stat-label {
+    font-size: $font-size-small;
+    color: #666;
+  }
+
+  &__stat-value {
+    font-size: $font-size-large;
+    font-weight: 700;
+    color: $color-black;
+
+    &--danger {
+      color: #f14444;
+    }
+
+    &--caution {
+      color: #ffa100;
+    }
+  }
+
+  &__alert {
+    padding: 10px;
+    border-radius: 6px;
+    background: rgba(255, 193, 7, 0.1);
+    border: 1px solid rgba(255, 193, 7, 0.3);
+  }
+
+  &__alert-text {
+    margin: 0;
+    font-size: $font-size-small;
+    font-weight: 600;
+    line-height: 1.4;
+
+    &--danger {
+      color: #c62828;
+    }
+
+    &--caution {
+      color: #e65100;
+    }
+  }
+
+  /* 약물 리스트 */
+  &__medicines {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 16px;
+  }
+
+  &__medicine {
+    padding: 12px;
+    border-radius: 8px;
+    border: 1px solid rgba(0, 0, 0, 0.08);
+    transition: all 0.2s ease;
+
+    &--danger {
+      border-left: 4px solid #f14444;
+      background: rgba(244, 67, 54, 0.03);
+    }
+
+    &--caution {
+      border-left: 4px solid #ffa100;
+      background: rgba(255, 152, 0, 0.03);
+    }
+
+    &--safe {
+      border-left: 4px solid #4cb150;
+      background: rgba(76, 175, 80, 0.03);
+    }
+
+    &:hover {
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+    }
+  }
+
+  &__medicine-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    margin-bottom: 12px;
+    flex-wrap: wrap;
+  }
+
+  &__medicine-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex: 1;
+    flex-wrap: wrap;
+  }
+
+  &__medicine-name {
+    margin: 0;
+    font-size: $font-size-medium;
+    font-weight: 600;
+    color: $color-black;
+  }
+
+  &__dosage-badge {
+    display: inline-block;
+    padding: 4px 8px;
+    border-radius: 6px;
+    font-size: 11px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &--low {
+      background: rgba(33, 150, 243, 0.2);
+      color: #1565c0;
+    }
+
+    &--standard {
+      background: rgba(76, 175, 80, 0.2);
+      color: #2e7d32;
+    }
+
+    &--high {
+      background: rgba(255, 152, 0, 0.2);
+      color: #e65100;
+    }
+
+    &--unknown {
+      background: rgba(0, 0, 0, 0.1);
+      color: #666;
+    }
+  }
+
+  &__risk-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 6px;
+    font-size: 12px;
+    font-weight: 600;
+    white-space: nowrap;
+
+    &--danger {
+      background: rgba(244, 67, 54, 0.2);
+      color: #c62828;
+    }
+
+    &--caution {
+      background: rgba(255, 152, 0, 0.2);
+      color: #e65100;
+    }
+
+    &--safe {
+      background: rgba(76, 175, 80, 0.2);
+      color: #2e7d32;
+    }
+  }
+
+  &__medicine-details {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+    padding: 10px;
+    background: rgba(0, 0, 0, 0.02);
+    border-radius: 6px;
+    margin-bottom: 10px;
+  }
+
+  &__detail-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    font-size: $font-size-small;
+
+    &--highlight {
+      padding-top: 6px;
+      margin-top: 6px;
+      border-top: 1px solid rgba(0, 0, 0, 0.08);
+      font-weight: 600;
+    }
+  }
+
+  &__detail-label {
+    color: #666;
+  }
+
+  &__detail-value {
+    color: $color-black;
+    font-weight: 500;
+
+    &--danger {
+      color: #f14444;
+      font-weight: 700;
+    }
+
+    &--caution {
+      color: #ffa100;
+      font-weight: 700;
+    }
+
+    &--safe {
+      color: #4cb150;
+      font-weight: 700;
+    }
+  }
+
+  /* 상호작용 리스트 */
+  &__interactions {
+    padding-top: 10px;
+    border-top: 1px solid rgba(0, 0, 0, 0.08);
+  }
+
+  &__interactions-title {
+    margin: 0 0 8px 0;
+    font-size: $font-size-small;
+    color: #666;
+    font-weight: 600;
+  }
+
+  &__interactions-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+  }
+
+  &__interaction-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: 11px;
+    color: #555;
+    line-height: 1.4;
+  }
+
+  &__interaction-icon {
+    font-size: 14px;
+    flex-shrink: 0;
+    margin-top: 1px;
+  }
+
+  &__interaction-text {
+    flex: 1;
+  }
+
+  /* 가이드 */
+  &__guide {
+    margin-bottom: 16px;
+    padding: 12px;
+    background: rgba(33, 150, 243, 0.05);
+    border: 1px solid rgba(33, 150, 243, 0.2);
+    border-radius: 8px;
+  }
+
+  &__guide-title {
+    margin: 0 0 12px 0;
+    font-size: $font-size-medium;
+    color: $color-black;
+    font-weight: 600;
+  }
+
+  &__guide-content {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__guide-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 8px;
+    font-size: $font-size-small;
+    line-height: 1.5;
+  }
+
+  &__guide-label {
+    color: #333;
+    font-weight: 600;
+    flex-shrink: 0;
+  }
+
+  &__guide-text {
+    color: #555;
+    flex: 1;
+  }
+
+  /* 주의사항 */
+  &__caution {
+    padding: 12px;
+    background: rgba(255, 193, 7, 0.05);
+    border: 1px solid rgba(255, 193, 7, 0.2);
+    border-radius: 8px;
+  }
+
+  &__caution-title {
+    margin: 0 0 8px 0;
+    font-size: $font-size-small;
+    color: #333;
+    font-weight: 600;
+  }
+
+  &__caution-list {
+    margin: 0;
+    padding: 0 0 0 16px;
+    font-size: $font-size-small;
+    color: #555;
+    line-height: 1.6;
+
+    li {
+      margin: 4px 0;
+    }
+  }
+
+  /* 반응형 */
+  @media (max-width: 768px) {
+    margin: 12px;
+    padding: 12px;
+
+    &__summary-stats {
+      gap: 8px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    &__medicine-header {
+      flex-direction: column;
+      align-items: flex-start;
+    }
+
+    &__medicine-info {
+      width: 100%;
+    }
+
+    &__risk-badge {
+      align-self: flex-start;
+    }
+
+    &__detail-row {
+      flex-direction: column;
+      align-items: flex-start;
+      gap: 2px;
+    }
+  }
+}

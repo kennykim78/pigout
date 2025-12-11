@@ -1,3 +1,5 @@
+@import '../styles/variables';
+
 .medicine-detail-popup-overlay {
   position: fixed;
   top: 0;
@@ -72,7 +74,7 @@
   .medicine-detail-title {
     margin: 0 0 6px 0;
     color: #333;
-    font-size: 18px;
+    font-size: $font-size-large;
     font-weight: 700;
     word-break: break-word;
   }
@@ -80,13 +82,13 @@
   .medicine-detail-company {
     margin: 0;
     color: #999;
-    font-size: 13px;
+    font-size: $font-size-small;
   }
 
   .medicine-detail-close {
     background: none;
     border: none;
-    font-size: 24px;
+    font-size: $font-size-large;
     cursor: pointer;
     color: #333;
     padding: 0;
@@ -110,11 +112,11 @@
     gap: 8px;
 
     .medicine-detail-title {
-      font-size: 16px;
+      font-size: $font-size-medium;
     }
 
     .medicine-detail-close {
-      font-size: 20px;
+      font-size: $font-size-large;
       width: 28px;
       height: 28px;
     }
@@ -175,13 +177,36 @@
       }
     }
 
+    // 🆕 상호작용 경고 스타일
+    &--warning {
+      border: 2px solid #ff9800;
+      box-shadow: 0 2px 12px rgba(255, 152, 0, 0.2);
+
+      .section-title {
+        background: linear-gradient(135deg, #ff9800 0%, #ffb74d 100%);
+        color: #fff;
+        font-weight: 700;
+      }
+    }
+
+    // 🆕 정보 스타일
+    &--info {
+      border: 1px solid #e0e0e0;
+      background: #fafafa;
+
+      .section-title {
+        background: #f5f5f5;
+        color: #666;
+      }
+    }
+
     .section-title {
       margin: 0;
       padding: 12px 16px;
       background: linear-gradient(135deg, #fffef0 0%, #fffbf0 100%);
       border-bottom: 1px solid #f5d547;
       color: #333;
-      font-size: 14px;
+      font-size: $font-size-base;
       font-weight: 600;
     }
 
@@ -202,24 +227,94 @@
 
         .info-label {
           color: #666;
-          font-size: 13px;
+          font-size: $font-size-small;
           font-weight: 500;
           flex-shrink: 0;
         }
 
         .info-value {
           color: #333;
-          font-size: 13px;
+          font-size: $font-size-small;
           text-align: right;
           flex: 1;
         }
+      }
+
+      // 🆕 상호작용 경고 아이템
+      .interaction-warning-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 10px;
+        background: rgba(255, 152, 0, 0.1);
+        border-radius: 8px;
+        margin-bottom: 8px;
+
+        &:last-child {
+          margin-bottom: 0;
+        }
+
+        .interaction-icon {
+          font-size: $font-size-large;
+          flex-shrink: 0;
+        }
+
+        .interaction-info {
+          flex: 1;
+
+          strong {
+            display: block;
+            font-size: $font-size-base;
+            color: #333;
+            margin-bottom: 4px;
+          }
+
+          p {
+            margin: 0;
+            font-size: $font-size-small;
+            color: #666;
+            line-height: 1.4;
+          }
+        }
+      }
+
+      // 🆕 다른 약품 목록
+      .other-medicines-list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 12px;
+      }
+
+      .other-medicine-tag {
+        background: #f5d547;
+        color: #333;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: $font-size-small;
+        font-weight: 500;
+      }
+
+      .other-medicine-more {
+        background: #e0e0e0;
+        color: #666;
+        padding: 4px 12px;
+        border-radius: 16px;
+        font-size: $font-size-small;
+      }
+
+      .no-interaction-text {
+        margin: 0;
+        font-size: $font-size-small;
+        color: #4caf50;
+        text-align: center;
       }
     }
 
     .medicine-text {
       margin: 0;
       color: #333;
-      font-size: 13px;
+      font-size: $font-size-small;
       line-height: 1.6;
       white-space: pre-wrap;
       word-break: break-word;
@@ -240,7 +335,13 @@
 
     p {
       margin: 0;
-      font-size: 14px;
+      font-size: $font-size-base;
+    }
+
+    .empty-hint {
+      margin-top: 8px;
+      font-size: $font-size-small;
+      color: #bbb;
     }
   }
 
@@ -364,5 +465,37 @@
       font-size: 12px;
     }
   }
+}
+
+// ========================================
+// 🆕 기본 정보 그리드 스타일
+// ========================================
+.medicine-info-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.medicine-info-item {
+  padding: 8px;
+  background: rgba(245, 213, 71, 0.05);
+  border-radius: 6px;
+  border-left: 3px solid #f5d547;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.medicine-info-label {
+  font-size: 12px;
+  color: #999;
+  font-weight: 500;
+}
+
+.medicine-info-value {
+  font-size: 13px;
+  color: #333;
+  font-weight: 600;
+  word-break: break-word;
 }
 

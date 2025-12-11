@@ -1,3 +1,5 @@
+@import '../styles/variables';
+
 .medicine-schedule-container {
   margin-bottom: 24px;
 
@@ -7,14 +9,14 @@
     h3 {
       margin: 0 0 8px 0;
       color: #333;
-      font-size: 18px;
+      font-size: $font-size-large;
       font-weight: 600;
     }
   }
 
   .schedule-subtitle {
     margin: 0;
-    font-size: 13px;
+    font-size: $font-size-small;
     color: #666;
   }
 
@@ -28,7 +30,7 @@
 
     p {
       margin: 0;
-      font-size: 14px;
+      font-size: $font-size-base;
     }
   }
 
@@ -48,7 +50,7 @@
     border-radius: 50%;
     width: 40px;
     height: 40px;
-    font-size: 24px;
+    font-size: $font-size-large;
     font-weight: bold;
     color: #333;
     cursor: pointer;
@@ -91,7 +93,7 @@
   }
 
   .schedule-icon {
-    font-size: 32px;
+    font-size: $font-size-large;
     flex-shrink: 0;
   }
 
@@ -100,14 +102,14 @@
 
     .schedule-label {
       margin: 0 0 4px 0;
-      font-size: 18px;
+      font-size: $font-size-large;
       font-weight: 700;
       color: #333;
     }
 
     .schedule-time {
       margin: 0;
-      font-size: 13px;
+      font-size: $font-size-small;
       color: #666;
     }
   }
@@ -117,9 +119,48 @@
     color: #333;
     padding: 4px 12px;
     border-radius: 16px;
-    font-size: 13px;
+    font-size: $font-size-small;
     font-weight: 600;
     flex-shrink: 0;
+  }
+
+  // 🆕 시간대별 위험도 인디케이터
+  .schedule-risk-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 4px 10px;
+    border-radius: 12px;
+    font-size: $font-size-small;
+    font-weight: 600;
+    white-space: nowrap;
+    flex-shrink: 0;
+
+    &--safe {
+      background: rgba(76, 175, 80, 0.2);
+      color: #2e7d32;
+    }
+
+    &--caution {
+      background: rgba(255, 152, 0, 0.2);
+      color: #e65100;
+      animation: pulse 2s ease-in-out infinite;
+    }
+
+    &--danger {
+      background: rgba(244, 67, 54, 0.2);
+      color: #c62828;
+      animation: pulse 1s ease-in-out infinite;
+    }
+  }
+
+  @keyframes pulse {
+    0%, 100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.7;
+    }
   }
 
   // 약품 태그 컨테이너 (가로 나열)
@@ -240,7 +281,7 @@
     .schedule-nav-btn {
       width: 36px;
       height: 36px;
-      font-size: 20px;
+      font-size: $font-size-medium;
     }
 
     .schedule-current {
@@ -254,11 +295,11 @@
     }
 
     .schedule-icon {
-      font-size: 28px;
+      font-size: $font-size-large;
     }
 
     .schedule-time-info .schedule-label {
-      font-size: 16px;
+      font-size: $font-size-medium;
     }
 
     .medicine-tag {

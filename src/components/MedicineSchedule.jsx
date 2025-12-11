@@ -138,6 +138,13 @@ const MedicineSchedule = ({ medicines }) => {
                 <p className="schedule-time">{currentSlot.time}</p>
               </div>
               <span className="medicine-count">{currentMedicines.length}개</span>
+              
+              {/* 🆕 시간대별 위험도 표시 */}
+              {currentMedicines.length >= 2 && (
+                <span className="schedule-risk-indicator schedule-risk-indicator--caution">
+                  ⚠️ 주의
+                </span>
+              )}
             </div>
 
             <div className="medicine-tags">
