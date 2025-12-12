@@ -15,9 +15,11 @@ interface GenerateContentResponse {
 
 export class GeminiClient {
   private genAI: GoogleGenerativeAI;
+  private genAIBackup: GoogleGenerativeAI | null = null;
   private visionModel: any;
   private textModel: any;
   private proModel: any;
+  private useBackupKey: boolean = false;
 
   constructor(apiKey: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -25,6 +27,13 @@ export class GeminiClient {
     this.visionModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     this.textModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     this.proModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
+    
+    // 백업 API 키 설정
+    const backupKey = process.env.GEMINI_API_KEY_BACKUP;
+    if (backupKey) {
+      this.genAIBackup = new GoogleGenerativeAI(backupKey);
+      console.log('[Gemini] 백업 API 키가 설정되었습니다.');
+    }
   }
 
   private getBaseUrl(): string {
@@ -32,8 +41,30 @@ export class GeminiClient {
     return process.env.GEMINI_API_BASE?.trim() || 'https://generativelanguage.googleapis.com/v1';
   }
 
+  private getCurrentApiKey(): string {
+    if (this.useBackupKey && process.env.GEMINI_API_KEY_BACKUP) {
+      return process.env.GEMINI_API_KEY_BACKUP;
+    }
+    return process.env.GEMINI_API_KEY || '';
+  }
+
+  private switchToBackupKey(): boolean {
+    if (!this.useBackupKey && process.env.GEMINI_API_KEY_BACKUP) {
+      this.useBackupKey = true;
+      console.log('[Gemini] 🔄 백업 API 키로 전환합니다.');
+      // 백업 키로 모델 재설정
+      if (this.genAIBackup) {
+        this.visionModel = this.genAIBackup.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        this.textModel = this.genAIBackup.getGenerativeModel({ model: 'gemini-2.5-flash' });
+        this.proModel = this.genAIBackup.getGenerativeModel({ model: 'gemini-2.5-pro' });
+      }
+      return true;
+    }
+    return false;
+  }
+
   private async callV1GenerateContent(model: string, parts: any[]): Promise<string> {
-    const apiKey = process.env.GEMINI_API_KEY;
+    const apiKey = this.getCurrentApiKey();
     if (!apiKey) throw new Error('GEMINI_API_KEY not set');
     const url = `${this.getBaseUrl()}/models/${model}:generateContent?key=${apiKey}`;
     const body = { contents: [{ parts }] };
@@ -662,7 +693,7 @@ JSON 형식:
    * [2단계] AI가 음식 성분을 자유롭게 분석
    */
   /**
-   * 재시도 로직을 포함한 API 호출 (Rate Limiting 대응)
+   * 재시도 로직을 포함한 API 호출 (Rate Limiting 대응 + 백업 키 자동 전환)
    */
   private async callWithRetry(
     fn: () => Promise<string>,
@@ -674,6 +705,16 @@ JSON 형식:
       } catch (error: any) {
         const status = error.response?.status || error.status;
         const isRateLimitError = status === 429 || error.message?.includes('429');
+        const isQuotaExceeded = error.message?.includes('quota') || error.message?.includes('limit: 0');
+
+        // 할당량 완전 소진 시 백업 키로 즉시 전환
+        if (isRateLimitError && isQuotaExceeded && !this.useBackupKey) {
+          console.warn(`[Gemini] ⚠️ 할당량 소진 감지, 백업 키로 전환 시도...`);
+          if (this.switchToBackupKey()) {
+            // 백업 키로 전환 성공, 즉시 재시도
+            continue;
+          }
+        }
 
         if (isRateLimitError && attempt < maxRetries) {
           const delay = Math.pow(2, attempt) * 1000 + Math.random() * 500; // exponential backoff with jitter
