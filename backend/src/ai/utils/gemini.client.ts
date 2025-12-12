@@ -20,6 +20,8 @@ export class GeminiClient {
   private textModel: any;
   private proModel: any;
   private useBackupKey: boolean = false;
+  private lastRequestTime: number = 0;
+  private minRequestInterval: number = 1000; // 최소 1초 간격
 
   constructor(apiKey: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
@@ -28,12 +30,26 @@ export class GeminiClient {
     this.textModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
     this.proModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
     
-    // 백업 API 키 설정
+    // 백업 API 키 설정 (메인 키가 무효하면 백업 키를 메인으로 사용)
     const backupKey = process.env.GEMINI_API_KEY_BACKUP;
     if (backupKey) {
       this.genAIBackup = new GoogleGenerativeAI(backupKey);
       console.log('[Gemini] 백업 API 키가 설정되었습니다.');
     }
+  }
+
+  // Rate limiting: 요청 간 최소 간격 보장
+  private async throttleRequest(): Promise<void> {
+    const now = Date.now();
+    const timeSinceLastRequest = now - this.lastRequestTime;
+    
+    if (timeSinceLastRequest < this.minRequestInterval) {
+      const waitTime = this.minRequestInterval - timeSinceLastRequest;
+      console.log(`[Gemini] Rate limiting: ${waitTime}ms 대기 중...`);
+      await new Promise(resolve => setTimeout(resolve, waitTime));
+    }
+    
+    this.lastRequestTime = Date.now();
   }
 
   private getBaseUrl(): string {
@@ -68,6 +84,9 @@ export class GeminiClient {
     parts: any[],
     apiKey?: string
   ): Promise<string> {
+    // Rate limiting 적용
+    await this.throttleRequest();
+    
     const key = apiKey || this.getCurrentApiKey();
     if (!key) throw new Error('GEMINI_API_KEY not set');
     const url = `${this.getBaseUrl()}/models/${model}:generateContent?key=${key}`;
