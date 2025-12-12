@@ -1632,17 +1632,29 @@ JSON 형식으로만 응답:
 3. 전문적이면서도 이해하기 쉬운 설명`;
 
       let rawText: string;
-      try {
-        // 🆕 Flash 모델로 변경 (Pro 모델 할당량 절약)
-        rawText = await this.callWithRetry(async () => {
-          return await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
-        });
-      } catch (apiError: any) {
-        console.error('[analyzeAllDrugInteractions] API 실패:', apiError.message);
-        
-        // 429 에러 시 안전한 기본 응답 반환
-        if (apiError.message?.includes('429') || apiError.status === 429) {
-          console.warn('[analyzeAllDrugInteractions] 429 에러 - 안전 기본 응답 반환');
+      let lastError: any;
+      
+      // 🔄 재시도 로직: 503/429 에러 시 최대 3회 재시도 (지수 백오프)
+      for (let attempt = 1; attempt <= 3; attempt++) {
+        try {
+          console.log(`[analyzeAllDrugInteractions] 시도 ${attempt}/3`);
+          rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+          break; // 성공 시 루프 종료
+        } catch (apiError: any) {
+          lastError = apiError;
+          const status = apiError.response?.status || apiError.status;
+          console.error(`[analyzeAllDrugInteractions] 시도 ${attempt} 실패:`, status, apiError.message);
+          
+          // 503 (Service Unavailable) 또는 429 (Rate Limit) 에러 시 재시도
+          if ((status === 503 || status === 429) && attempt < 3) {
+            const waitTime = Math.pow(2, attempt) * 1000; // 2초, 4초, 8초
+            console.warn(`[analyzeAllDrugInteractions] ${waitTime}ms 대기 후 재시도...`);
+            await new Promise(resolve => setTimeout(resolve, waitTime));
+            continue;
+          }
+          
+          // 마지막 시도 실패 또는 재시도 불가능한 에러 - 안전 기본 응답 반환
+          console.warn('[analyzeAllDrugInteractions] 모든 시도 실패 - 안전 기본 응답 반환');
           return {
             overallSafety: 'caution' as const,
             overallScore: 70,
@@ -1650,7 +1662,7 @@ JSON 형식으로만 응답:
             cautionCombinations: drugDetails.length > 1 ? [{
               drug1: drugDetails[0]?.name || '약물1',
               drug2: drugDetails[1]?.name || '약물2',
-              interaction: '현재 AI 분석 서비스가 일시적으로 제한되어 정확한 상호작용을 분석할 수 없습니다. 안전을 위해 의사 또는 약사와 상담하세요.',
+              interaction: `현재 AI 분석 서비스가 일시적으로 사용 불가능합니다 (${status === 503 ? '서버 과부하' : status === 429 ? 'API 한도 초과' : '서비스 오류'}). 안전을 위해 의사 또는 약사와 상담하세요.`,
               recommendation: '복용 전 반드시 의료 전문가와 상담하세요.'
             }] : [],
             synergisticEffects: [],
@@ -1662,8 +1674,6 @@ JSON 형식으로만 응답:
             ]
           };
         }
-        
-        throw apiError;
       }
       
       return this.extractJsonObject(rawText);

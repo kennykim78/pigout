@@ -669,7 +669,20 @@ const Medicine = () => {
       },
       onError: (error) => {
         console.error('[Medicine 스트리밍] 오류:', error);
-        setStreamError(error.message);
+        
+        // 에러 메시지 개선
+        let userFriendlyMessage = error.message;
+        if (error.message?.includes('503')) {
+          userFriendlyMessage = '⚠️ AI 서비스가 일시적으로 과부하 상태입니다. 잠시 후 다시 시도해주세요.';
+        } else if (error.message?.includes('429')) {
+          userFriendlyMessage = '⚠️ AI 분석 요청이 일시적으로 제한되었습니다. 1-2분 후 다시 시도해주세요.';
+        } else if (error.message?.includes('500') || error.message?.includes('502')) {
+          userFriendlyMessage = '⚠️ 서버 오류가 발생했습니다. 잠시 후 다시 시도해주세요.';
+        } else if (!error.message || error.message.length > 100) {
+          userFriendlyMessage = '⚠️ 분석 중 오류가 발생했습니다. 다시 시도해주세요.';
+        }
+        
+        setStreamError(userFriendlyMessage);
         setIsAnalyzing(false);
       },
       onComplete: () => {
@@ -829,7 +842,18 @@ const Medicine = () => {
                   {/* 에러 표시 */}
                   {streamError && (
                     <div className="medicine__error-section">
-                      <p className="medicine__error-message">⚠️ {streamError}</p>
+                      <p className="medicine__error-message">{streamError}</p>
+                      <button
+                        className="medicine__retry-btn"
+                        onClick={() => {
+                          setStreamError(null);
+                          setStreamingStages([]);
+                          setStreamProgress(0);
+                          handleAnalyzeAll();
+                        }}
+                      >
+                        🔄 다시 분석하기
+                      </button>
                     </div>
                   )}
                 </div>
