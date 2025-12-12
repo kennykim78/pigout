@@ -63,10 +63,14 @@ export class GeminiClient {
     return false;
   }
 
-  private async callV1GenerateContent(model: string, parts: any[]): Promise<string> {
-    const apiKey = this.getCurrentApiKey();
-    if (!apiKey) throw new Error('GEMINI_API_KEY not set');
-    const url = `${this.getBaseUrl()}/models/${model}:generateContent?key=${apiKey}`;
+  private async callWithRestApi(
+    model: string,
+    parts: any[],
+    apiKey?: string
+  ): Promise<string> {
+    const key = apiKey || this.getCurrentApiKey();
+    if (!key) throw new Error('GEMINI_API_KEY not set');
+    const url = `${this.getBaseUrl()}/models/${model}:generateContent?key=${key}`;
     const body = { contents: [{ parts }] };
     const resp = await axios.post(url, body, { timeout: 30000 });
     const data: GenerateContentResponse = resp.data;
@@ -145,7 +149,7 @@ JSON 형식으로만 응답:
         } catch (sdkError) {
           console.log(`Vision SDK 오류, REST API 시도 (${attempt + 1}/${retries + 1}):`, sdkError.message);
           // Fallback: direct v1 REST
-          rawText = await this.callV1GenerateContent('gemini-2.5-flash', [
+          rawText = await this.callWithRestApi('gemini-2.5-flash', [
             { text: prompt },
             { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
           ]);
@@ -261,7 +265,7 @@ JSON 형식으로만 응답:
         } catch (sdkError) {
           console.log(`[약품 이미지 분석] SDK 오류, REST API 시도 (${attempt + 1}/${retries + 1}):`, sdkError.message);
           // Fallback: direct v1 REST
-          rawText = await this.callV1GenerateContent('gemini-2.5-flash', [
+          rawText = await this.callWithRestApi('gemini-2.5-flash', [
             { text: prompt },
             { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
           ]);
@@ -313,7 +317,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
       const parsed = this.extractJsonObject(rawText);
       return parsed.foodName;
@@ -437,7 +441,7 @@ JSON 형식으로만 응답:
           rawText = response.text();
         } catch (sdkError) {
           console.log(`SDK 오류, REST API로 재시도 (시도 ${attempt + 1}/${maxRetries + 1})...`);
-          rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+          rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
         }
         return this.extractJsonObject(rawText);
       } catch (error) {
@@ -543,7 +547,7 @@ JSON 형식:
           rawText = response.text();
         } catch (sdkError) {
           console.log(`quickAIAnalysis SDK 오류, REST API로 재시도 (시도 ${attempt + 1}/${maxRetries + 1})...`);
-          rawText = await this.callV1GenerateContent('gemini-2.5-flash', [{ text: prompt }]);
+          rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
         }
         
         const parsed = this.extractJsonObject(rawText);
@@ -623,7 +627,7 @@ JSON 형식:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
       }
       return this.extractJsonObject(rawText);
     } catch (error) {
@@ -657,7 +661,7 @@ JSON 형식:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       const jsonResult = this.extractJsonObject(rawText);
@@ -826,7 +830,7 @@ JSON만 반환:
       } catch (sdkError) {
         console.warn('[Gemini] pro 모델 실패, 2.5-flash로 fallback 시도:', sdkError.message);
         rawText = await this.callWithRetry(async () => {
-          return await this.callV1GenerateContent('gemini-2.5-flash', [{ text: prompt }]);
+          return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
         }, 4);
       }
       
@@ -993,37 +997,37 @@ JSON 형식으로만 응답:
         if (sdkError.message?.includes('429') || sdkError.status === 429) {
           console.warn('[analyzeDrugFoodInteractions] 429 에러 - 안전 기본 응답 반환');
           return {
-            interactions: medicines.map(med => ({
-              medicine_name: med,
+            interactions: drugDetails.map(drug => ({
+              medicine_name: drug.name,
               risk_level: 'caution',
               matched_components: [],
-              interaction_description: `이 음식과 ${med}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
+              interaction_description: `이 음식과 ${drug.name}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
               evidence_from_public_data: 'AI 분석 일시 불가 - 보수적 권장 사항 제공',
               recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
             })),
-            summary: `${medicines.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`
+            summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`
           };
         }
         
         console.warn('[analyzeDrugFoodInteractions] SDK 실패, V1 API로 폴백:', sdkError.message);
         try {
           rawText = await this.callWithRetry(async () => {
-            return await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+            return await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
           });
         } catch (v1Error: any) {
           // V1도 실패 시 기본 안전 응답
           if (v1Error.message?.includes('429') || v1Error.status === 429) {
             console.warn('[analyzeDrugFoodInteractions] V1도 429 에러 - 안전 기본 응답 반환');
             return {
-              interactions: medicines.map(med => ({
-                medicine_name: med,
+              interactions: drugDetails.map(drug => ({
+                medicine_name: drug.name,
                 risk_level: 'caution',
                 matched_components: [],
-                interaction_description: `이 음식과 ${med}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
+                interaction_description: `이 음식과 ${drug.name}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
                 evidence_from_public_data: 'AI 분석 일시 불가 - 보수적 권장 사항 제공',
                 recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
               })),
-              summary: `${medicines.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`
+              summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`
             };
           }
           throw v1Error;
@@ -1035,15 +1039,15 @@ JSON 형식으로만 응답:
       console.error('AI 약물-음식 상호작용 분석 실패:', error);
       // 최후의 fallback - 모든 약물에 대해 caution 반환
       return {
-        interactions: medicines.map(med => ({
-          medicine_name: med,
+        interactions: drugDetails.map(drug => ({
+          medicine_name: drug.name,
           risk_level: 'caution',
           matched_components: [],
-          interaction_description: `이 음식과 ${med}의 상호작용을 분석할 수 없습니다. 안전을 위해 의료 전문가와 상담해주세요.`,
+          interaction_description: `이 음식과 ${drug.name}의 상호작용을 분석할 수 없습니다. 안전을 위해 의료 전문가와 상담해주세요.`,
           evidence_from_public_data: '분석 불가 - 보수적 권장 사항 제공',
           recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
         })),
-        summary: `${medicines.length}개 약물 모두 보수적 주의 권장 - 전문가 상담 필수`
+        summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 전문가 상담 필수`
       };
     }
   }
@@ -1156,7 +1160,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       const parsed = this.extractJsonObject(rawText);
@@ -1268,7 +1272,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
       
       const result = this.extractJsonObject(rawText);
@@ -1401,7 +1405,7 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       const parsed = this.extractJsonObject(rawText);
@@ -1600,7 +1604,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
       }
       
       return this.extractJsonObject(rawText);
@@ -1655,7 +1659,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
 
       const parsed = this.extractJsonArray(rawText);
@@ -1734,7 +1738,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
 
       const parsed = this.extractJsonArray(rawText);
@@ -1798,7 +1802,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text().trim().toLowerCase();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
         rawText = rawText.trim().toLowerCase();
       }
 
@@ -1891,7 +1895,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
 
       const parsed = this.extractJsonObject(rawText);
@@ -2020,7 +2024,7 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callV1GenerateContent('gemini-2.5-flash', [{ text: prompt }]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
       }
 
       return this.extractJsonObject(rawText);
@@ -2083,4 +2087,6 @@ JSON 형식으로만 응답:
     return results;
   }
 }
+
+
 
