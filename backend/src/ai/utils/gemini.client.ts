@@ -1434,11 +1434,11 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
 
       let rawText: string;
       try {
-        const result = await this.proModel.generateContent(prompt);
+        const result = await this.textModel.generateContent(prompt);
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
       
       const parsed = this.extractJsonObject(rawText);
