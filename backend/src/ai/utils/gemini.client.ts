@@ -1633,11 +1633,37 @@ JSON 형식으로만 응답:
 
       let rawText: string;
       try {
-        const result = await this.proModel.generateContent(prompt);
-        const response = await result.response;
-        rawText = response.text();
-      } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
+        // 🆕 Flash 모델로 변경 (Pro 모델 할당량 절약)
+        rawText = await this.callWithRetry(async () => {
+          return await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        });
+      } catch (apiError: any) {
+        console.error('[analyzeAllDrugInteractions] API 실패:', apiError.message);
+        
+        // 429 에러 시 안전한 기본 응답 반환
+        if (apiError.message?.includes('429') || apiError.status === 429) {
+          console.warn('[analyzeAllDrugInteractions] 429 에러 - 안전 기본 응답 반환');
+          return {
+            overallSafety: 'caution' as const,
+            overallScore: 70,
+            dangerousCombinations: [],
+            cautionCombinations: drugDetails.length > 1 ? [{
+              drug1: drugDetails[0]?.name || '약물1',
+              drug2: drugDetails[1]?.name || '약물2',
+              interaction: '현재 AI 분석 서비스가 일시적으로 제한되어 정확한 상호작용을 분석할 수 없습니다. 안전을 위해 의사 또는 약사와 상담하세요.',
+              recommendation: '복용 전 반드시 의료 전문가와 상담하세요.'
+            }] : [],
+            synergisticEffects: [],
+            summary: `${drugDetails.length}개 약물의 상호작용 분석이 일시적으로 불가능합니다. 안전한 복용을 위해 의사 또는 약사와 상담하시기 바랍니다.`,
+            recommendations: [
+              '각 약물의 복용 시간을 최소 2시간 이상 간격으로 조절하세요.',
+              '복용 전 반드시 의사 또는 약사와 상담하세요.',
+              '이상 증상 발생 시 즉시 복용을 중단하고 전문가와 상담하세요.'
+            ]
+          };
+        }
+        
+        throw apiError;
       }
       
       return this.extractJsonObject(rawText);
