@@ -733,6 +733,20 @@ JSON 형식:
         const isQuotaExceeded = errorMsg.includes('quota') || errorMsg.includes('limit: 0');
         const isPerMinuteLimit = errorMsg.includes('PerMinute');
         const isPerDayLimit = errorMsg.includes('PerDay');
+        const isAuthError = status === 401 || status === 403 || errorMsg.includes('API key') || errorMsg.includes('PERMISSION');
+
+        // 인증/권한 오류 발생 시 백업 키로 전환 시도 (한 번만)
+        if (isAuthError && !this.useBackupKey && process.env.GEMINI_API_KEY_BACKUP) {
+          console.warn(`[Gemini] 인증/권한 오류 감지 (status=${status}) - 백업 키로 전환 시도`);
+          if (this.switchToBackupKey()) {
+            try {
+              return await fn();
+            } catch (backupError: any) {
+              console.warn(`[Gemini] 백업 키도 실패: ${backupError.message}`);
+              throw backupError;
+            }
+          }
+        }
 
         // 할당량 완전 소진(limit: 0)은 백업 키로 전환, 그 외는 재시도하지 않음
         if (isRateLimitError && isQuotaExceeded && !this.useBackupKey && attempt === 0) {
