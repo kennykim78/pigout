@@ -606,12 +606,41 @@ export class MedicineService {
     // DB 필드(snake_case)를 프론트엔드 필드(camelCase)로 변환
     // qr_code_data JSON과 DB 직접 필드 모두 확인
     return data.map((record, index) => {
+      const sanitize = (value: any) => {
+        if (value === undefined || value === null) return null;
+        if (typeof value === 'string' && value.trim().toLowerCase() === 'null') return null;
+        return value;
+      };
+
       let qrData: any = {};
       try {
         qrData = record.qr_code_data ? JSON.parse(record.qr_code_data) : {};
       } catch (err: any) {
         console.warn(`[getMyMedicines] qr_code_data 파싱 실패 (ID: ${record.id}):`, err.message);
       }
+
+      // AI 보완 정보
+      const aiInfo = qrData.aiAnalyzedInfo || {};
+      const aiScheduleInfo = qrData.aiScheduleInfo || {};
+
+      // 필드 정규화 (문자열 'null' 제거 및 AI 보완 정보 적용)
+      const efcyQesitm = sanitize(record.efcy_qesitm) || sanitize(qrData.efcyQesitm) || sanitize(aiInfo.efficacy);
+      const useMethodQesitm =
+        sanitize(record.use_method_qesitm) ||
+        sanitize(qrData.useMethodQesitm) ||
+        sanitize(aiScheduleInfo.recommendation) ||
+        sanitize(aiInfo.usage);
+      const atpnWarnQesitm = sanitize(record.atpn_warn_qesitm) || sanitize(qrData.atpnWarnQesitm) || sanitize(aiInfo.precautions);
+      const atpnQesitm = sanitize(qrData.atpnQesitm) || sanitize(aiInfo.precautions);
+      const intrcQesitm = sanitize(record.intrc_qesitm) || sanitize(qrData.intrcQesitm) || sanitize(aiInfo.interactions);
+      const seQesitm = sanitize(record.se_qesitm) || sanitize(qrData.seQesitm) || sanitize(aiInfo.sideEffects);
+      const depositMethodQesitm = sanitize(record.deposit_method_qesitm) || sanitize(qrData.depositMethodQesitm) || sanitize(aiInfo.storageMethod);
+
+      // 복용량/횟수 보완 (AI 분석 결과 우선)
+      const dosage = sanitize(record.dosage) || sanitize(aiScheduleInfo.dosagePerTime) || sanitize(qrData.dosage);
+      const frequency = sanitize(record.frequency) ||
+        (aiScheduleInfo.timesPerDay ? `1일 ${aiScheduleInfo.timesPerDay}회` : null) ||
+        sanitize(qrData.frequency);
 
       const result = {
         id: record.id,
@@ -620,17 +649,17 @@ export class MedicineService {
         itemName: record.item_name || qrData.itemName || record.name,
         drugClass: record.drug_class,
         entpName: record.entp_name || qrData.entpName || record.drug_class,
-        dosage: record.dosage,
-        frequency: record.frequency,
+        dosage,
+        frequency,
         // DB 직접 필드 우선, qr_code_data는 대체
         itemSeq: record.item_seq || qrData.itemSeq,
-        efcyQesitm: record.efcy_qesitm || qrData.efcyQesitm,
-        useMethodQesitm: record.use_method_qesitm || qrData.useMethodQesitm,
-        atpnWarnQesitm: record.atpn_warn_qesitm || qrData.atpnWarnQesitm,
-        atpnQesitm: qrData.atpnQesitm,
-        intrcQesitm: record.intrc_qesitm || qrData.intrcQesitm,
-        seQesitm: record.se_qesitm || qrData.seQesitm,
-        depositMethodQesitm: record.deposit_method_qesitm || qrData.depositMethodQesitm,
+        efcyQesitm,
+        useMethodQesitm,
+        atpnWarnQesitm,
+        atpnQesitm,
+        intrcQesitm,
+        seQesitm,
+        depositMethodQesitm,
         qrCodeData: record.qr_code_data,
         isActive: record.is_active,
         createdAt: record.created_at,
@@ -639,11 +668,11 @@ export class MedicineService {
         mainIngredient: qrData.mainIngredient || null,
         medicineClass: qrData.drugClass || null,
         components: qrData.components || [],
+        aiScheduleInfo,
+        aiAnalyzedInfo: aiInfo,
         // 차트용 추가 메타데이터
         _hasDetailedInfo: !!(
-          record.efcy_qesitm || qrData.efcyQesitm || 
-          record.se_qesitm || qrData.seQesitm || 
-          record.intrc_qesitm || qrData.intrcQesitm
+          efcyQesitm || seQesitm || intrcQesitm
         ),
         _hasComponents: !!(qrData.components && qrData.components.length > 0),
       };
