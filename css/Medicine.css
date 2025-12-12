@@ -424,6 +424,29 @@
   opacity: 0.7;
   cursor: not-allowed;
 }
+.medicine__view-result-btn {
+  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 20px;
+  padding: 12px 25px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+  position: relative;
+  z-index: 1;
+  margin-top: 15px;
+}
+.medicine__view-result-btn:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+}
+.medicine__view-result-btn:active {
+  transform: translateY(0);
+}
 .medicine__analyze-desc {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   font-size: 12px;
