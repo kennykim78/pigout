@@ -642,11 +642,11 @@ JSON 형식:
 
       let rawText: string;
       try {
-        const result = await this.proModel.generateContent(prompt);
+        const result = await this.textModel.generateContent(prompt);
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
       return this.extractJsonObject(rawText);
     } catch (error) {
@@ -676,11 +676,11 @@ JSON 형식:
     try {
       let rawText: string;
       try {
-        const result = await this.proModel.generateContent(prompt);
+        const result = await this.textModel.generateContent(prompt);
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
       
       const jsonResult = this.extractJsonObject(rawText);
@@ -1042,10 +1042,10 @@ JSON 형식으로만 응답:
           };
         }
         
-        console.warn('[analyzeDrugFoodInteractions] SDK 실패, V1 API로 폴백:', sdkError.message);
+        console.warn('[analyzeDrugFoodInteractions] SDK 실패, REST API로 폴백:', sdkError.message);
         try {
           rawText = await this.callWithRetry(async () => {
-            return await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
+            return await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
           });
         } catch (v1Error: any) {
           // V1도 실패 시 기본 안전 응답
@@ -1189,11 +1189,11 @@ JSON 형식으로만 응답:
 
       let rawText: string;
       try {
-        const result = await this.proModel.generateContent(prompt);
+        const result = await this.textModel.generateContent(prompt);
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-pro', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
       }
       
       const parsed = this.extractJsonObject(rawText);
