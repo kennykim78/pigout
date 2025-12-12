@@ -53,6 +53,9 @@ const Medicine = () => {
   const [selectedMedicineDetail, setSelectedMedicineDetail] = useState(null);
   const [showMedicineDetailPopup, setShowMedicineDetailPopup] = useState(false);
   const [showImageSourceModal, setShowImageSourceModal] = useState(false);
+  // 약 추가 진행 상태 오버레이
+  const [isAdding, setIsAdding] = useState(false);
+  const [addProgress, setAddProgress] = useState(null);
   const fileInputRef = useRef(null);
   const cameraInputRef = useRef(null);
 
@@ -458,9 +461,34 @@ const Medicine = () => {
   };
 
   const handleAddMedicine = async (medicine) => {
+    const steps = [
+      { key: 'name', label: '약 이름 분석중', status: 'active' },
+      { key: 'usage', label: '약 복용법 분석중', status: 'pending' },
+      { key: 'public', label: '공공데이터 조회중', status: 'pending' },
+      { key: 'register', label: '등록 중', status: 'pending' },
+    ];
+
+    const updateStep = (key, status) => {
+      setAddProgress((prev) => {
+        if (!prev) return prev;
+        return {
+          ...prev,
+          steps: prev.steps.map((s) => (s.key === key ? { ...s, status } : s)),
+        };
+      });
+    };
+
     try {
-      setLoading(true);
-      
+      setIsAdding(true);
+      setAddProgress({
+        isOpen: true,
+        medicineName: medicine.itemName,
+        steps,
+        completed: false,
+        success: false,
+        error: null,
+      });
+
       // 🆕 제한 로직: 현재 탭 기준 구분
       const isHealthFood = addSubTab === 'healthfood';
       const currentList = isHealthFood ? healthFoodResults : searchResults;
@@ -479,7 +507,8 @@ const Medicine = () => {
       
       if (totalMedicines >= TOTAL_MAX) {
         alert(`최대 ${TOTAL_MAX}개까지만 등록 가능합니다.\n(의약품 최대 10개, 건강기능식품 최대 5개)`);
-        setLoading(false);
+        setIsAdding(false);
+        setAddProgress(null);
         return;
       }
       
@@ -488,6 +517,12 @@ const Medicine = () => {
         alert(`⚠️ 등록 가능한 약이 ${TOTAL_MAX - totalMedicines}개 남았습니다.`);
       }
       
+      // 진행도 업데이트
+      updateStep('name', 'done');
+      updateStep('usage', 'active');
+      updateStep('usage', 'done');
+      updateStep('public', 'active');
+
       const result = await addMedicineAPI({
         itemName: medicine.itemName,
         entpName: medicine.entpName,
@@ -495,6 +530,9 @@ const Medicine = () => {
         efcyQesitm: medicine.efcyQesitm,
         isHealthFood: isHealthFood, // 🆕 의약품/건강기능식품 구분 정보 전달
       });
+
+      updateStep('public', 'done');
+      updateStep('register', 'active');
       
       // 🆕 추가된 약품의 타입 정보를 로컬에 저장 (DB에 저장될 때까지 임시)
       if (result.medicineRecord) {
@@ -504,21 +542,23 @@ const Medicine = () => {
       }
       
       console.log('약 추가 성공:', result);
-      alert(`${medicine.itemName} 추가 완료!`);
+      updateStep('register', 'done');
+      setAddProgress((prev) => prev ? { ...prev, completed: true, success: true } : prev);
       
-      // 목록 새로고침
+      // 목록 새로고침 (탭은 그대로 유지)
       await loadMedicines();
-      
-      // 검색 결과 초기화
-      setSearchResults([]);
-      setSearchKeyword('');
-      setActiveTab('list');
     } catch (error) {
       console.error('Add medicine failed:', error);
-      alert(error.response?.data?.message || '약 추가에 실패했습니다.');
+      updateStep('register', 'error');
+      setAddProgress((prev) => prev ? { ...prev, completed: true, success: false, error: error.response?.data?.message || '약 추가에 실패했습니다.' } : prev);
     } finally {
-      setLoading(false);
+      setIsAdding(false);
     }
+  };
+
+  const handleAddProgressClose = () => {
+    setAddProgress(null);
+    setIsAdding(false);
   };
 
   const handleDeleteMedicine = async (id) => {
@@ -537,6 +577,36 @@ const Medicine = () => {
     } catch (error) {
       console.error('Delete failed:', error);
       alert('삭제에 실패했습니다.');
+    }
+  };
+
+  // 복용 시간대 업데이트 핸들러
+  const handleUpdateSchedule = async (medicineId, scheduleData) => {
+    try {
+      console.log('[Medicine] 복용 시간대 업데이트:', medicineId, scheduleData);
+      
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/medicine/${medicineId}`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          'x-device-id': localStorage.getItem('deviceId') || 'unknown',
+        },
+        body: JSON.stringify(scheduleData),
+      });
+
+      if (!response.ok) {
+        throw new Error('복용 시간대 업데이트 실패');
+      }
+
+      const updatedMedicine = await response.json();
+      console.log('[Medicine] 업데이트 완료:', updatedMedicine);
+
+      // 로컬 상태 업데이트
+      await loadMedicines();
+      alert('복용 시간대가 수정되었습니다.');
+    } catch (error) {
+      console.error('[Medicine] 복용 시간대 업데이트 실패:', error);
+      throw error;
     }
   };
 
@@ -688,7 +758,10 @@ const Medicine = () => {
               <MedicineRadarChart medicines={medicines} />
 
               {/* 복용 시간표 (등록 데이터 기반) */}
-              <MedicineSchedule medicines={medicines} />
+              <MedicineSchedule 
+                medicines={medicines} 
+                onUpdateSchedule={handleUpdateSchedule} 
+              />
 
               {/* AI 종합 분석 버튼 */}
               <div className="medicine__analyze-section">
@@ -899,15 +972,6 @@ const Medicine = () => {
                     {med.drug_class && (
                       <p className="medicine__card-info">제조사: {med.drug_class}</p>
                     )}
-                    {med.dosage && (
-                      <p className="medicine__card-info">복용량: {med.dosage}</p>
-                    )}
-                    {med.frequency && (
-                      <p className="medicine__card-info">복용 빈도: {med.frequency}</p>
-                    )}
-                    <p className="medicine__card-date">
-                      등록일: {new Date(med.created_at).toLocaleDateString()}
-                    </p>
                   </div>
                 );
               })}
@@ -1207,9 +1271,9 @@ const Medicine = () => {
                             <button
                               className="medicine__result-add-btn"
                               onClick={() => handleAddMedicine(result)}
-                              disabled={isLoading}
+                              disabled={isAdding}
                             >
-                              {isLoading ? '추가 중...' : '추가'}
+                              추가
                             </button>
                           </div>
                         ))}
@@ -1435,9 +1499,9 @@ const Medicine = () => {
                             <button
                               className="medicine__result-add-btn"
                               onClick={() => handleAddMedicine(result)}
-                              disabled={isLoading}
+                              disabled={isAdding}
                             >
-                              {isLoading ? '추가 중...' : '추가'}
+                              추가
                             </button>
                           </div>
                         ))}
@@ -1514,6 +1578,49 @@ const Medicine = () => {
           fileInputRef.current?.click();
         }}
       />
+
+      {/* 약 추가 진행 오버레이 */}
+      {addProgress?.isOpen && (
+        <div className="medicine__add-overlay">
+          <div className="medicine__add-modal">
+            <h3 className="medicine__add-title">{addProgress.medicineName || '약품'}을 추가 중입니다.</h3>
+            <ul className="medicine__add-steps">
+              {addProgress.steps.map((step) => (
+                <li key={step.key} className={`medicine__add-step medicine__add-step--${step.status}`}>
+                  <span className="medicine__add-step-dot" />
+                  <span className="medicine__add-step-label">{step.label}</span>
+                  <span className="medicine__add-step-status">
+                    {step.status === 'active' && '진행중'}
+                    {step.status === 'done' && '완료'}
+                    {step.status === 'pending' && ''}
+                    {step.status === 'error' && '오류'}
+                  </span>
+                </li>
+              ))}
+            </ul>
+
+            {addProgress.completed && (
+              <div className="medicine__add-complete">
+                {addProgress.success ? (
+                  <>
+                    <p className="medicine__add-complete-text">등록이 완료되었습니다.</p>
+                    <button className="medicine__add-complete-btn" onClick={handleAddProgressClose}>
+                      확인
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <p className="medicine__add-error-text">{addProgress.error}</p>
+                    <button className="medicine__add-complete-btn" onClick={handleAddProgressClose}>
+                      닫기
+                    </button>
+                  </>
+                )}
+              </div>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };
