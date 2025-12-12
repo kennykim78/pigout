@@ -690,14 +690,12 @@ JSON 형식:
   }
 
   /**
-   * [2단계] AI가 음식 성분을 자유롭게 분석
-   */
-  /**
    * 재시도 로직을 포함한 API 호출 (Rate Limiting 대응 + 백업 키 자동 전환)
+   * 할당량 소진 시 즉시 에러 발생 (무한 재시도 방지)
    */
   private async callWithRetry(
     fn: () => Promise<string>,
-    maxRetries: number = 4
+    maxRetries: number = 1  // 무료 티어 할당량 소진 시 빠른 fallback을 위해 1회로 줄임
   ): Promise<string> {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -707,23 +705,36 @@ JSON 형식:
         const isRateLimitError = status === 429 || error.message?.includes('429');
         const isQuotaExceeded = error.message?.includes('quota') || error.message?.includes('limit: 0');
 
-        // 할당량 완전 소진 시 백업 키로 즉시 전환
-        if (isRateLimitError && isQuotaExceeded && !this.useBackupKey) {
+        // 할당량 완전 소진 시 백업 키로 즉시 전환 (단, 1회만)
+        if (isRateLimitError && isQuotaExceeded && !this.useBackupKey && attempt === 0) {
           console.warn(`[Gemini] ⚠️ 할당량 소진 감지, 백업 키로 전환 시도...`);
           if (this.switchToBackupKey()) {
-            // 백업 키로 전환 성공, 즉시 재시도
-            continue;
+            try {
+              // 백업 키로 1회만 시도
+              return await fn();
+            } catch (backupError: any) {
+              // 백업 키도 실패하면 에러 전파
+              console.warn(`[Gemini] 백업 키도 실패: ${backupError.message}`);
+              throw backupError;
+            }
           }
         }
 
+        // 할당량 소진 또는 재시도 횟수 초과 시 에러 즉시 발생
+        if (isQuotaExceeded) {
+          console.warn(`[Gemini] 할당량 완전 소진 - 즉시 fallback으로 전환`);
+          throw error;
+        }
+
+        // 일반 429 에러는 최소 재시도
         if (isRateLimitError && attempt < maxRetries) {
-          const delay = Math.pow(2, attempt) * 1000 + Math.random() * 500; // exponential backoff with jitter
-          console.warn(`[Gemini] Rate limit (429) – ${delay.toFixed(0)}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
+          const delay = 1000 * (attempt + 1); // 1초, 2초
+          console.warn(`[Gemini] Rate limit (429) – ${delay}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
           await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
 
-        console.warn(`[Gemini] 재시도 불가 또는 최대 재시도 초과: status=${status}, attempt=${attempt}`);
+        console.warn(`[Gemini] 요청 실패: status=${status}, attempt=${attempt}`);
         throw error;
       }
     }
@@ -967,17 +978,63 @@ JSON 형식으로만 응답:
           const response = await result.response;
           return response.text();
         });
-      } catch (sdkError) {
+      } catch (sdkError: any) {
+        // 429 할당량 소진 시 기본 안전 응답 반환
+        if (sdkError.message?.includes('429') || sdkError.status === 429) {
+          console.warn('[analyzeDrugFoodInteractions] 429 에러 - 안전 기본 응답 반환');
+          return {
+            interactions: medicines.map(med => ({
+              medicine_name: med,
+              risk_level: 'caution',
+              matched_components: [],
+              interaction_description: `이 음식과 ${med}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
+              evidence_from_public_data: 'AI 분석 일시 불가 - 보수적 권장 사항 제공',
+              recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
+            })),
+            summary: `${medicines.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`
+          };
+        }
+        
         console.warn('[analyzeDrugFoodInteractions] SDK 실패, V1 API로 폴백:', sdkError.message);
-        rawText = await this.callWithRetry(async () => {
-          return await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
-        });
+        try {
+          rawText = await this.callWithRetry(async () => {
+            return await this.callV1GenerateContent('gemini-2.5-pro', [ { text: prompt } ]);
+          });
+        } catch (v1Error: any) {
+          // V1도 실패 시 기본 안전 응답
+          if (v1Error.message?.includes('429') || v1Error.status === 429) {
+            console.warn('[analyzeDrugFoodInteractions] V1도 429 에러 - 안전 기본 응답 반환');
+            return {
+              interactions: medicines.map(med => ({
+                medicine_name: med,
+                risk_level: 'caution',
+                matched_components: [],
+                interaction_description: `이 음식과 ${med}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
+                evidence_from_public_data: 'AI 분석 일시 불가 - 보수적 권장 사항 제공',
+                recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
+              })),
+              summary: `${medicines.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`
+            };
+          }
+          throw v1Error;
+        }
       }
       
       return this.extractJsonObject(rawText);
     } catch (error) {
       console.error('AI 약물-음식 상호작용 분석 실패:', error);
-      throw new Error(`AI drug-food interaction analysis failed: ${error.message}`);
+      // 최후의 fallback - 모든 약물에 대해 caution 반환
+      return {
+        interactions: medicines.map(med => ({
+          medicine_name: med,
+          risk_level: 'caution',
+          matched_components: [],
+          interaction_description: `이 음식과 ${med}의 상호작용을 분석할 수 없습니다. 안전을 위해 의료 전문가와 상담해주세요.`,
+          evidence_from_public_data: '분석 불가 - 보수적 권장 사항 제공',
+          recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
+        })),
+        summary: `${medicines.length}개 약물 모두 보수적 주의 권장 - 전문가 상담 필수`
+      };
     }
   }
 
