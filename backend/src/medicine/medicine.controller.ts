@@ -1,4 +1,5 @@
-import { Controller, Get, Post, Delete, Patch, Body, Param, Query, Headers } from '@nestjs/common';
+import { Controller, Get, Post, Delete, Patch, Body, Param, Query, Headers, Res } from '@nestjs/common';
+import { Response } from 'express';
 import { MedicineService } from './medicine.service';
 import { SearchMedicineDto } from './dtos/search-medicine.dto';
 import { AnalyzeInteractionDto } from './dtos/analyze-interaction.dto';
@@ -115,6 +116,44 @@ export class MedicineController {
     const userId = await this.getUserIdFromDeviceId(deviceId);
     console.log(`[Medicine] analyzeAllMedicines - deviceId: ${deviceId}, userId: ${userId}`);
     return this.medicineService.analyzeAllMedicineInteractions(userId);
+  }
+
+  /**
+   * POST /api/medicine/analyze-all-stream
+   * 복용 중인 모든 약물 상관관계 종합 분석 (스트리밍)
+   */
+  @Post('analyze-all-stream')
+  async analyzeAllMedicinesStream(
+    @Headers('x-device-id') deviceId: string,
+    @Res() res: Response,
+  ) {
+    const userId = await this.getUserIdFromDeviceId(deviceId);
+    console.log(`[Medicine Stream] 스트리밍 분석 시작 - deviceId: ${deviceId}, userId: ${userId}`);
+
+    // SSE 헤더 설정
+    res.setHeader('Content-Type', 'text/event-stream');
+    res.setHeader('Cache-Control', 'no-cache');
+    res.setHeader('Connection', 'keep-alive');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.flushHeaders();
+
+    const sendEvent = (event: string, data: any) => {
+      res.write(`event: ${event}\n`);
+      res.write(`data: ${JSON.stringify(data)}\n\n`);
+    };
+
+    try {
+      // 스트리밍 분석 시작
+      await this.medicineService.analyzeAllMedicineInteractionsStream(userId, sendEvent);
+
+      // 완료 이벤트 전송
+      sendEvent('complete', { success: true });
+      res.end();
+    } catch (error) {
+      console.error('[Medicine Stream] 오류:', error);
+      sendEvent('error', { message: error.message || '분석 중 오류가 발생했습니다.' });
+      res.end();
+    }
   }
 
   /**

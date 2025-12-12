@@ -931,4 +931,227 @@ export class MedicineService {
       ],
     };
   }
+
+  /**
+   * 🆕 약물 상관관계 종합 분석 (스트리밍 버전)
+   */
+  async analyzeAllMedicineInteractionsStream(
+    userId: string,
+    sendEvent: (event: string, data: any) => void,
+  ) {
+    console.log(`[약물 상관관계 스트리밍 분석] 사용자 ${userId} 분석 시작`);
+
+    // 시작 이벤트
+    sendEvent('start', {
+      message: '약물 상관관계 분석을 시작합니다...',
+      stages: [
+        '약물 목록 조회',
+        '공공데이터 수집',
+        '약물 정보 AI 분석',
+        '약물 상호작용 AI 분석',
+      ],
+    });
+
+    try {
+      // 1단계: 약물 목록 조회
+      sendEvent('stage', {
+        stage: 1,
+        name: '약물 목록 조회',
+        status: 'in-progress',
+        message: '등록된 약물 정보를 불러오는 중...',
+      });
+
+      const client = this.supabaseService.getClient();
+      const { data: medicines } = await client
+        .from('medicine_records')
+        .select('*')
+        .eq('user_id', userId)
+        .eq('is_active', true);
+      
+      if (!medicines || medicines.length === 0) {
+        sendEvent('stage', {
+          stage: 1,
+          status: 'complete',
+          message: '등록된 약이 없습니다.',
+        });
+        sendEvent('result', {
+          success: false,
+          message: '분석할 약이 없습니다. 먼저 약을 등록해주세요.',
+        });
+        return;
+      }
+
+      sendEvent('stage', {
+        stage: 1,
+        status: 'complete',
+        message: `${medicines.length}개 약물 조회 완료`,
+      });
+
+      // 2단계: 공공데이터 수집
+      sendEvent('stage', {
+        stage: 2,
+        name: '공공데이터 수집',
+        status: 'in-progress',
+        message: '식약처 공공데이터 조회 중...',
+      });
+
+      const drugDetailsPromises = medicines.map(async (medicine) => {
+        const qrCodeData = medicine.qr_code_data ? JSON.parse(medicine.qr_code_data) : {};
+        const itemSeq = qrCodeData.itemSeq;
+        const entpName = qrCodeData.entpName || medicine.drug_class;
+
+        let publicData = qrCodeData;
+        let pillData = null;
+        let approvalData = null;
+        let fromCache = false;
+
+        if (itemSeq && entpName) {
+          const cached = await this.supabaseService.getMedicineDetailCache(itemSeq, entpName);
+          if (cached) {
+            publicData = cached.api_data;
+            pillData = cached.pill_data;
+            approvalData = cached.approval_data;
+            fromCache = true;
+          }
+        }
+
+        return {
+          name: medicine.name,
+          publicData,
+          pillIdentification: pillData,
+          productApproval: approvalData,
+          _fromCache: fromCache,
+        };
+      });
+
+      const drugDetails = await Promise.all(drugDetailsPromises);
+
+      sendEvent('stage', {
+        stage: 2,
+        status: 'complete',
+        message: `공공데이터 수집 완료`,
+      });
+
+      // 3단계: 약물 정보 AI 분석
+      sendEvent('stage', {
+        stage: 3,
+        name: '약물 정보 AI 분석',
+        status: 'in-progress',
+        message: 'AI가 각 약물 정보를 분석 중...',
+      });
+
+      const { GeminiClient } = await import('../ai/utils/gemini.client');
+      const geminiApiKey = process.env.GEMINI_API_KEY;
+      if (!geminiApiKey) {
+        throw new Error('GEMINI_API_KEY가 설정되지 않았습니다.');
+      }
+
+      const geminiClient = new GeminiClient(geminiApiKey);
+
+      const medicineInfoBatch = medicines.map(m => {
+        const qrData = m.qr_code_data ? JSON.parse(m.qr_code_data) : {};
+        return {
+          name: m.name,
+          publicData: qrData,
+        };
+      });
+
+      const analyzedMedicineInfo = await geminiClient.analyzeMedicineInfoBatch(medicineInfoBatch);
+
+      sendEvent('stage', {
+        stage: 3,
+        status: 'complete',
+        message: `${analyzedMedicineInfo.length}개 약물 정보 분석 완료`,
+      });
+
+      // 4단계: 약물 상호작용 AI 분석
+      sendEvent('stage', {
+        stage: 4,
+        name: '약물 상호작용 AI 분석',
+        status: 'in-progress',
+        message: 'AI가 약물 간 상호작용을 분석 중...',
+      });
+
+      const analysisResult = await geminiClient.analyzeAllDrugInteractions(drugDetails);
+
+      // 네트워크 도표용 interactions 변환
+      const interactions = [];
+
+      (analysisResult.dangerousCombinations || []).forEach((combo: any) => {
+        const med1 = medicines.find(m => m.name === combo.drug1);
+        const med2 = medicines.find(m => m.name === combo.drug2);
+        if (med1 && med2) {
+          interactions.push({
+            medicines: [med1.id, med2.id],
+            riskLevel: 'danger',
+            description: combo.interaction,
+            recommendation: combo.recommendation,
+          });
+        }
+      });
+
+      (analysisResult.cautionCombinations || []).forEach((combo: any) => {
+        const med1 = medicines.find(m => m.name === combo.drug1);
+        const med2 = medicines.find(m => m.name === combo.drug2);
+        if (med1 && med2) {
+          interactions.push({
+            medicines: [med1.id, med2.id],
+            riskLevel: 'caution',
+            description: combo.interaction,
+            recommendation: combo.recommendation,
+          });
+        }
+      });
+
+      (analysisResult.synergisticEffects || []).forEach((effect: any) => {
+        const medicineIds = effect.drugs
+          .map((drugName: string) => medicines.find(m => m.name === drugName)?.id)
+          .filter(Boolean);
+        if (medicineIds.length >= 2) {
+          interactions.push({
+            medicines: medicineIds.slice(0, 2),
+            riskLevel: 'safe',
+            description: effect.benefit,
+            recommendation: effect.description,
+          });
+        }
+      });
+
+      sendEvent('stage', {
+        stage: 4,
+        status: 'complete',
+        message: '약물 상호작용 분석 완료',
+      });
+
+      // 최종 결과 전송
+      sendEvent('result', {
+        success: true,
+        data: {
+          totalMedicines: medicines.length,
+          medicines: medicines.map((m, idx) => ({
+            id: m.id,
+            name: m.name,
+            dosage: m.dosage,
+            frequency: m.frequency,
+            analyzedInfo: analyzedMedicineInfo[idx],
+          })),
+          analysis: {
+            ...analysisResult,
+            interactions,
+          },
+          dataSources: [
+            '식품의약품안전처 e약은요 API',
+            '식품의약품안전처 의약품 낱알식별 정보',
+            '식품의약품안전처 의약품 제품 허가정보',
+            'Gemini AI 분석',
+          ],
+        },
+      });
+
+      console.log(`[약물 상관관계 스트리밍 분석] 완료`);
+    } catch (error) {
+      console.error('[약물 상관관계 스트리밍 분석] 오류:', error);
+      throw error;
+    }
+  }
 }
