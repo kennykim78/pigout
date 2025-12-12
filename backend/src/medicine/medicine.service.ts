@@ -408,6 +408,25 @@ export class MedicineService {
                             !detailedData.useMethodQesitm ||
                             detailedData.efcyQesitm.length < 50;
 
+    // 문자열 'null'을 실제 null로 정규화
+    const normalizeDetailFields = () => {
+      const normalize = (v: any) => {
+        if (v === undefined || v === null) return null;
+        if (typeof v === 'string' && v.trim().toLowerCase() === 'null') return null;
+        return v;
+      };
+
+      detailedData.efcyQesitm = normalize(detailedData.efcyQesitm);
+      detailedData.useMethodQesitm = normalize(detailedData.useMethodQesitm);
+      detailedData.atpnWarnQesitm = normalize(detailedData.atpnWarnQesitm);
+      detailedData.atpnQesitm = normalize(detailedData.atpnQesitm);
+      detailedData.intrcQesitm = normalize(detailedData.intrcQesitm);
+      detailedData.seQesitm = normalize(detailedData.seQesitm);
+      detailedData.depositMethodQesitm = normalize(detailedData.depositMethodQesitm);
+    };
+
+    normalizeDetailFields();
+
     if (needsDetailFetch && itemSeq) {
       console.log(`[약 등록] 상세정보 조회 시작 → itemSeq: ${itemSeq}`);
       try {
@@ -462,6 +481,12 @@ export class MedicineService {
       } catch (detailError) {
         console.warn(`⚠️ [약 등록] 상세정보 조회 실패:`, detailError.message);
       }
+    } else {
+      // 상세 조회를 하지 않은 경우에도 정규화 상태 로그
+      console.log(`ℹ️ [약 등록] 상세조회 생략 - 캐시/검색 데이터 사용`, {
+        efcyQesitm: detailedData.efcyQesitm ? `있음(${detailedData.efcyQesitm.length}자)` : 'null',
+        useMethodQesitm: detailedData.useMethodQesitm ? `있음(${detailedData.useMethodQesitm.length}자)` : 'null',
+      });
     }
 
     // 🆕 AI를 통한 약물 성분 추출 (분석 컴포넌트에서 사용)
