@@ -498,6 +498,32 @@
     }
   }
 
+  &__view-result-btn {
+    background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+    color: $color-white;
+    border: none;
+    border-radius: $border-radius-sm;
+    padding: 12px 25px;
+    font-family: $font-family;
+    font-size: $font-size-base;
+    font-weight: $font-weight-bold;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+    position: relative;
+    z-index: 1;
+    margin-top: 15px;
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
   &__analyze-desc {
     font-family: $font-family;
     font-size: $font-size-small;

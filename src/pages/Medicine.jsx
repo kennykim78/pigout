@@ -682,57 +682,36 @@ const Medicine = () => {
             </div>
           ) : (
             <div>
-              <p style={{ color: 'red', fontWeight: 'bold', fontSize: '20px' }}>
-                🟢 렌더링 블록 진입 성공! 약품 개수: {medicines.length}
-              </p>
-              {console.log('🟢🟢🟢 [Medicine.jsx] 차트 렌더링 블록 진입!')}
-              {console.log('🟢🟢🟢 [Medicine.jsx] 차트에 전달할 약품 개수:', medicines.length)}
-              {console.log('🟢🟢🟢 [Medicine.jsx] 차트에 전달할 약품 데이터:', medicines)}
+              {/* 📊 초기 화면: 등록 데이터 기반 간단 분석 */}
               
-              {/* 🔴 Phase 1: 약품 성분 분석 레이더 차트 */}
+              {/* 약품 종합 위험도 프로파일 (등록 즉시 생성) */}
               <MedicineRadarChart medicines={medicines} />
 
-              {/* 🟡 Phase 1: 복용 시간표 */}
+              {/* 복용 시간표 (등록 데이터 기반) */}
               <MedicineSchedule medicines={medicines} />
 
-              {/* 🟢 Phase 2: 한 줄 상호작용 분석 */}
-              <MedicineCorrelationSummary medicines={medicines} />
-
-              {/* 🆕 Phase 2: 약물 상호작용 네트워크 시각화 */}
-              {medicines.length >= 2 && (
-                <MedicineInteractionNetwork 
-                  medicines={medicines}
-                  interactions={analysisResult?.analysis?.interactions || []}
-                />
-              )}
-
-              {/* 🆕 Tier 3: 약물 복용 시간 최적화 제안 */}
-              {medicines.length >= 2 && analysisResult?.analysis?.interactions && (
-                <MedicineTimingOptimizer
-                  medicines={medicines}
-                  interactions={analysisResult.analysis.interactions}
-                />
-              )}
-
-              {/* 🆕 Tier 3: 용량 기반 위험도 차등화 */}
-              {medicines.length > 0 && analysisResult?.analysis?.interactions && (
-                <DosageBasedRiskAnalyzer
-                  medicines={medicines}
-                  interactions={analysisResult.analysis.interactions}
-                />
-              )}
-
+              {/* AI 종합 분석 버튼 */}
               <div className="medicine__analyze-section">
                 <button
                   className="medicine__analyze-all-btn"
                   onClick={handleAnalyzeAll}
                   disabled={isAnalyzing}
                 >
-                  {isAnalyzing ? '🔄 분석 중...' : '🔬 내 약 종합 분석하기'}
+                  {isAnalyzing ? '🔄 분석 중...' : '🔬 AI 약물 상호작용 상세 분석'}
                 </button>
                 <p className="medicine__analyze-desc">
-                  복용 중인 모든 약물의 상호작용을 AI가 분석합니다
+                  AI가 복용 중인 모든 약물의 상호작용을 상세 분석합니다
                 </p>
+                
+                {/* 분석 완료 후 결과 보기 버튼 */}
+                {analysisResult && !isAnalyzing && (
+                  <button
+                    className="medicine__view-result-btn"
+                    onClick={() => setShowAnalysis(true)}
+                  >
+                    📋 분석 결과 보기
+                  </button>
+                )}
               </div>
 
               {/* 🆕 스트리밍 분석 진행 상황 표시 */}
