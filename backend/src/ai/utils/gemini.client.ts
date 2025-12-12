@@ -692,10 +692,11 @@ JSON 형식:
   /**
    * 재시도 로직을 포함한 API 호출 (Rate Limiting 대응 + 백업 키 자동 전환)
    * 할당량 소진 시 즉시 에러 발생 (무한 재시도 방지)
+   * 분당 요청 제한만 재시도
    */
   private async callWithRetry(
     fn: () => Promise<string>,
-    maxRetries: number = 1  // 무료 티어 할당량 소진 시 빠른 fallback을 위해 1회로 줄임
+    maxRetries: number = 1
   ): Promise<string> {
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
@@ -703,38 +704,47 @@ JSON 형식:
       } catch (error: any) {
         const status = error.response?.status || error.status;
         const isRateLimitError = status === 429 || error.message?.includes('429');
-        const isQuotaExceeded = error.message?.includes('quota') || error.message?.includes('limit: 0');
+        
+        // 에러 메시지 분석
+        const errorMsg = error.message || '';
+        const isQuotaExceeded = errorMsg.includes('quota') || errorMsg.includes('limit: 0');
+        const isPerMinuteLimit = errorMsg.includes('PerMinute');
+        const isPerDayLimit = errorMsg.includes('PerDay');
 
-        // 할당량 완전 소진 시 백업 키로 즉시 전환 (단, 1회만)
+        // 할당량 완전 소진(limit: 0)은 백업 키로 전환, 그 외는 재시도하지 않음
         if (isRateLimitError && isQuotaExceeded && !this.useBackupKey && attempt === 0) {
           console.warn(`[Gemini] ⚠️ 할당량 소진 감지, 백업 키로 전환 시도...`);
           if (this.switchToBackupKey()) {
             try {
-              // 백업 키로 1회만 시도
               return await fn();
             } catch (backupError: any) {
-              // 백업 키도 실패하면 에러 전파
               console.warn(`[Gemini] 백업 키도 실패: ${backupError.message}`);
               throw backupError;
             }
           }
         }
 
-        // 할당량 소진 또는 재시도 횟수 초과 시 에러 즉시 발생
-        if (isQuotaExceeded) {
-          console.warn(`[Gemini] 할당량 완전 소진 - 즉시 fallback으로 전환`);
+        // 할당량 완전 소진(limit: 0)은 재시도하지 않고 즉시 에러 발생
+        if (isQuotaExceeded && errorMsg.includes('limit: 0')) {
+          console.warn(`[Gemini] 할당량 완전 소진(limit: 0) - 즉시 에러 발생`);
           throw error;
         }
 
-        // 일반 429 에러는 최소 재시도
-        if (isRateLimitError && attempt < maxRetries) {
-          const delay = 1000 * (attempt + 1); // 1초, 2초
-          console.warn(`[Gemini] Rate limit (429) – ${delay}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
+        // 분당 요청 제한만 재시도 (1회)
+        if (isRateLimitError && isPerMinuteLimit && attempt < maxRetries) {
+          const delay = 2000 + Math.random() * 1000; // 2-3초
+          console.warn(`[Gemini] 분당 요청 제한 – ${delay.toFixed(0)}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
           await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
 
-        console.warn(`[Gemini] 요청 실패: status=${status}, attempt=${attempt}`);
+        // 일일 할당량은 재시도하지 않음 (내일까지 대기 필요)
+        if (isPerDayLimit) {
+          console.warn(`[Gemini] 일일 할당량 한계 - 내일 재시도 필요`);
+          throw error;
+        }
+
+        console.warn(`[Gemini] 요청 실패: status=${status}, attempt=${attempt}, msg=${errorMsg.substring(0, 100)}`);
         throw error;
       }
     }
