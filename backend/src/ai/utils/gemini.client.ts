@@ -37,8 +37,8 @@ export class GeminiClient {
   }
 
   private getBaseUrl(): string {
-    // Allow override; default to official v1 endpoint (NOT v1beta)
-    return process.env.GEMINI_API_BASE?.trim() || 'https://generativelanguage.googleapis.com/v1';
+    // Use v1beta for gemini-2.5-pro/flash models (required for proper quota management)
+    return process.env.GEMINI_API_BASE?.trim() || 'https://generativelanguage.googleapis.com/v1beta';
   }
 
   private getCurrentApiKey(): string {
