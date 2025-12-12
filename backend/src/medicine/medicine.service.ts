@@ -488,16 +488,36 @@ export class MedicineService {
 
     // 🧠 등록 시점 AI 약품 정보 분석 (공공데이터를 보강하여 캐시)
     let aiAnalyzedInfo: any = null;
+    let aiScheduleInfo: any = null;
     try {
       const geminiApiKey = process.env.GEMINI_API_KEY;
       if (geminiApiKey) {
         const { GeminiClient } = await import('../ai/utils/gemini.client');
         const geminiClient = new GeminiClient(geminiApiKey);
+        
+        // 약품 정보 분석
         aiAnalyzedInfo = await geminiClient.analyzeMedicineInfo(itemName, detailedData);
         console.log(`✅ [약 등록] AI 약품 정보 분석 완료 (요약 저장)`);
+        
+        // 복용 시간대 분석 (용법용량 정보가 없거나 불완전한 경우)
+        if (!detailedData.useMethodQesitm || detailedData.useMethodQesitm.length < 10) {
+          aiScheduleInfo = await geminiClient.analyzeMedicineSchedule(itemName, detailedData);
+          console.log(`✅ [약 등록] AI 복용 시간대 분석 완료:`, aiScheduleInfo);
+        }
       }
     } catch (aiErr) {
-      console.warn('⚠️ [약 등록] AI 약품 정보 분석 실패:', aiErr.message);
+      console.warn('⚠️ [약 등록] AI 분석 실패:', aiErr.message);
+    }
+
+    // AI 분석 결과 기반으로 dosage, frequency 설정
+    let dosage = medicineData.dosage || null;
+    let frequency = medicineData.frequency || null;
+    
+    if (aiScheduleInfo) {
+      // AI가 분석한 복용 시간대 정보 활용
+      dosage = aiScheduleInfo.dosagePerTime;
+      frequency = `1일 ${aiScheduleInfo.timesPerDay}회`;
+      console.log(`✅ [약 등록] AI 기반 복용 정보 설정: ${dosage}, ${frequency}`);
     }
 
     // DB 저장 (기본 필드만, API 상세 정보와 AI 분석은 qr_code_data JSON에 저장)
@@ -505,9 +525,9 @@ export class MedicineService {
       user_id: userId,
       name: itemName,
       drug_class: entpName,
-      dosage: medicineData.dosage || null,
-      frequency: medicineData.frequency || null,
-      // 모든 API 상세 정보를 qr_code_data JSON에 포함 (🆕 성분 정보 추가)
+      dosage: dosage,
+      frequency: frequency,
+      // 모든 API 상세 정보를 qr_code_data JSON에 포함 (🆕 성분 정보 + 복용 시간대 추가)
       qr_code_data: JSON.stringify({
         itemSeq: itemSeq,
         itemName: itemName,
@@ -525,6 +545,8 @@ export class MedicineService {
         components: componentData.components,
         // 🆕 AI 약품 상세 분석 캐시
         aiAnalyzedInfo,
+        // 🆕 AI 복용 시간대 분석 캐시
+        aiScheduleInfo,
       }),
       is_active: true,
     };
@@ -686,9 +708,48 @@ export class MedicineService {
   }
 
   /**
-   * 약 복용 기록 업데이트 (비활성화 등)
+   * 약 복용 기록 업데이트 (비활성화, 복용 시간대 수정 등)
    */
   async updateMedicineRecord(userId: string, recordId: string, updates: any) {
+    // timeSlots 정보가 있으면 qr_code_data에 저장
+    if (updates.timeSlots) {
+      // 기존 레코드 조회
+      const { data: existingRecord, error: fetchError } = await this.supabaseService
+        .getClient()
+        .from('medicine_records')
+        .select('qr_code_data')
+        .eq('id', recordId)
+        .eq('user_id', userId)
+        .single();
+
+      if (fetchError) throw fetchError;
+
+      // qr_code_data 파싱 및 업데이트
+      let qrData = {};
+      try {
+        qrData = existingRecord.qr_code_data ? JSON.parse(existingRecord.qr_code_data) : {};
+      } catch (err) {
+        console.warn(`[updateMedicineRecord] qr_code_data 파싱 실패:`, err.message);
+      }
+
+      // aiScheduleInfo 업데이트
+      qrData['aiScheduleInfo'] = {
+        timeSlots: updates.timeSlots, // ['morning', 'evening'] 형식
+        timesPerDay: updates.timeSlots.length,
+        dosagePerTime: updates.dosage || qrData['aiScheduleInfo']?.dosagePerTime || '1정',
+        recommendation: `사용자가 설정한 복용 시간대: ${updates.timeSlots.map(s => {
+          if (s === 'morning') return '아침';
+          if (s === 'afternoon') return '점심';
+          if (s === 'evening') return '저녁';
+          return s;
+        }).join(', ')}`,
+        userModified: true, // 사용자가 직접 수정한 경우
+      };
+
+      // dosage, frequency도 qr_code_data에 반영
+      updates.qr_code_data = JSON.stringify(qrData);
+    }
+
     const { data, error } = await this.supabaseService
       .getClient()
       .from('medicine_records')
@@ -700,6 +761,7 @@ export class MedicineService {
 
     if (error) throw error;
 
+    console.log(`✅ [약 복용 시간 업데이트] ID: ${recordId}, 시간대: ${updates.timeSlots?.join(', ')}`);
     return data;
   }
 

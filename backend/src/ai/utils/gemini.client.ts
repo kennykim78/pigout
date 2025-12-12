@@ -2145,6 +2145,132 @@ JSON 형식으로만 응답:
     console.log(`[AI] ${medicines.length}개 약품 분석 완료`);
     return results;
   }
+
+  /**
+   * 약품의 복용 시간대를 AI로 분석
+   * @param medicineName 약품명
+   * @param publicData 공공데이터 (용법용량 정보 포함)
+   * @returns 복용 시간대 정보
+   */
+  async analyzeMedicineSchedule(
+    medicineName: string,
+    publicData?: any
+  ): Promise<{
+    timesPerDay: number;
+    timeSlots: Array<'morning' | 'afternoon' | 'evening'>;
+    dosagePerTime: string;
+    recommendation: string;
+  }> {
+    try {
+      const publicDataStr = publicData ? JSON.stringify(publicData, null, 2) : '공공데이터 없음';
+
+      const prompt = `당신은 약품 복용 시간 분석 전문가입니다.
+
+약품명: ${medicineName}
+
+공공데이터 (e약은요 API):
+${publicDataStr}
+
+---
+
+# 복용 시간 분석 지침
+
+1. **공공데이터 우선**: useMethodQesitm 필드에서 복용 시간 정보 추출
+2. **약품명 기반 추론**: 약품명에서 약물 분류 파악 후 일반적 복용법 적용
+3. **표준 가이드라인**: 약물 분류별 표준 복용 시간 적용
+
+## 주요 분석 항목
+
+1. **timesPerDay** (1일 복용 횟수)
+   - 공공데이터: "1일 3회" → 3
+   - 약품 분류 기반: 
+     * 간 영양제(밀크씨슬 등): 1-2회
+     * 소염진통제: 2-3회
+     * 항생제: 3-4회
+     * 만성질환약(고혈압/당뇨 등): 1-2회
+
+2. **timeSlots** (복용 시간대, 배열)
+   - morning: 아침 (06:00-12:00)
+   - afternoon: 점심 (12:00-18:00)
+   - evening: 저녁 (18:00-24:00)
+   
+   예시:
+   - 1일 1회 → ["morning"]
+   - 1일 2회 → ["morning", "evening"]
+   - 1일 3회 → ["morning", "afternoon", "evening"]
+
+3. **dosagePerTime** (1회 복용량)
+   - "1정", "2정", "1캡슐" 등
+   - 공공데이터에서 추출 또는 "1정" 기본값
+
+4. **recommendation** (복용 권장사항, 50자 이상)
+   - 식전/식후 여부
+   - 특별 주의사항
+   - 최적 복용 시간대
+
+---
+
+# 예시 분석
+
+## 예시 1: 밀크씨슬 (간 영양제)
+- timesPerDay: 1
+- timeSlots: ["morning"]
+- dosagePerTime: "1정"
+- recommendation: "아침 식후 복용을 권장합니다. 간 건강 보조를 위해 꾸준한 복용이 중요합니다."
+
+## 예시 2: 타이레놀 (해열진통제)
+- timesPerDay: 3
+- timeSlots: ["morning", "afternoon", "evening"]
+- dosagePerTime: "1-2정"
+- recommendation: "증상이 있을 때 4-6시간 간격으로 복용하세요. 1일 최대 8정을 초과하지 마세요."
+
+## 예시 3: 콜킨정 (통풍 치료제)
+- timesPerDay: 1
+- timeSlots: ["morning"]
+- dosagePerTime: "1정"
+- recommendation: "아침 식후 복용을 권장합니다. 통풍 발작 예방을 위해 규칙적으로 복용하세요."
+
+---
+
+JSON 형식으로만 응답:
+
+{
+  "timesPerDay": 1 또는 2 또는 3,
+  "timeSlots": ["morning"] 또는 ["morning", "evening"] 또는 ["morning", "afternoon", "evening"],
+  "dosagePerTime": "1회 복용량 (예: 1정, 2정, 1캡슐 등)",
+  "recommendation": "복용 권장사항 (50자 이상, 식전/식후, 주의사항 포함)"
+}`;
+
+      let rawText: string;
+      try {
+        rawText = await this.callWithRetry(async () => {
+          return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+        });
+      } catch (error) {
+        console.warn('[AI] 복용 시간 분석 실패, REST API 재시도:', error.message);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+      }
+
+      const result = this.extractJsonObject(rawText);
+      
+      // 기본값 보장
+      return {
+        timesPerDay: result.timesPerDay || 1,
+        timeSlots: result.timeSlots || ['morning'],
+        dosagePerTime: result.dosagePerTime || '1정',
+        recommendation: result.recommendation || '의사 또는 약사의 지시에 따라 복용하세요.',
+      };
+    } catch (error) {
+      console.error('[AI] 복용 시간 분석 실패:', error.message);
+      // 기본값 반환 (1일 1회, 아침)
+      return {
+        timesPerDay: 1,
+        timeSlots: ['morning'],
+        dosagePerTime: '1정',
+        recommendation: '정확한 복용 시간은 의사 또는 약사와 상담하세요.',
+      };
+    }
+  }
 }
 
 
