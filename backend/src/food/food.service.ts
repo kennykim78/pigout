@@ -1134,7 +1134,7 @@ export class FoodService {
         data: { medicineCount: medicineNames.length }
       });
 
-      // 2단계: 약물 정보 조회
+      // 2단계: 약물 정보 조회 (DB 캐시 우선, 외부 API는 폴백)
       sendEvent('stage', { 
         stage: 2, 
         name: '약물정보',
@@ -1142,27 +1142,57 @@ export class FoodService {
         message: '복용 중인 약물 정보를 확인하고 있어요...'
       });
 
-      const drugDetailsPromises = (medicines || []).map(async (medicine) => {
-        try {
-          const info = await this.externalApiClient.getMedicineInfo(medicine.name, 3);
-          const publicData = Array.isArray(info) && info.length > 0 ? info[0] : null;
-          return {
-            name: medicine.name,
-            userMedicineId: medicine.id,
-            publicData,
-            dataSource: publicData ? 'e약은요' : 'AI분석필요',
-          };
-        } catch (error) {
-          return {
-            name: medicine.name,
-            userMedicineId: medicine.id,
-            publicData: null,
-            dataSource: 'AI분석필요',
-          };
-        }
-      });
+      const drugDetails = (medicines || []).map((medicine) => {
+        // qr_code_data 파싱
+        let qrData: any = {};
+        let aiAnalyzedInfo: any = null;
+        let publicData: any = null;
 
-      const drugDetails = await Promise.all(drugDetailsPromises);
+        try {
+          if (medicine.qr_code_data) {
+            qrData = typeof medicine.qr_code_data === 'string'
+              ? JSON.parse(medicine.qr_code_data)
+              : medicine.qr_code_data;
+            
+            // 등록 시 저장된 AI 분석 정보 추출
+            aiAnalyzedInfo = qrData.aiAnalyzedInfo || null;
+
+            // 공공데이터 정보 추출 (DB 직접 필드 우선, qr_code_data는 대체)
+            publicData = {
+              itemSeq: medicine.item_seq || qrData.itemSeq,
+              itemName: medicine.name,
+              entpName: medicine.entp_name || qrData.entpName,
+              efcyQesitm: medicine.efcy_qesitm || qrData.efcyQesitm,
+              useMethodQesitm: medicine.use_method_qesitm || qrData.useMethodQesitm,
+              atpnWarnQesitm: medicine.atpn_warn_qesitm || qrData.atpnWarnQesitm,
+              atpnQesitm: medicine.atpn_qesitm || qrData.atpnQesitm,
+              intrcQesitm: medicine.intrc_qesitm || qrData.intrcQesitm,
+              seQesitm: medicine.se_qesitm || qrData.seQesitm,
+              depositMethodQesitm: medicine.deposit_method_qesitm || qrData.depositMethodQesitm,
+            };
+          }
+        } catch (parseError) {
+          console.warn(`[약물 정보] ${medicine.name} qr_code_data 파싱 실패:`, parseError.message);
+        }
+
+        // 데이터 소스 판단
+        let dataSource = 'DB캐시없음';
+        if (aiAnalyzedInfo) {
+          dataSource = 'DB캐시(AI분석)';
+        } else if (publicData?.efcyQesitm || publicData?.itemSeq) {
+          dataSource = 'DB캐시(공공데이터)';
+        }
+
+        console.log(`[약물 정보] ${medicine.name}: ${dataSource}`);
+
+        return {
+          name: medicine.name,
+          userMedicineId: medicine.id,
+          analyzedInfo: aiAnalyzedInfo, // 🔑 등록 시 저장된 AI 분석 정보
+          publicData: publicData, // 🔑 등록 시 저장된 공공데이터
+          dataSource,
+        };
+      });
       
       sendEvent('stage', { 
         stage: 2, 
