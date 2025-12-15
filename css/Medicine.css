@@ -2,46 +2,64 @@
 .medicine {
   min-height: 100vh;
   background: rgb(255, 223, 62);
-  padding: 20px;
+  padding-bottom: 80px;
 }
 .medicine__header {
-  text-align: center;
-  margin-bottom: 30px;
+  background: rgb(255, 223, 62);
+  padding: 16px 20px;
+  border-bottom: 2px solid rgb(0, 0, 0);
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+.medicine__header-content {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  max-width: 600px;
+  margin: 0 auto;
 }
 .medicine__title {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   font-size: 18px;
-  font-weight: 900;
+  font-weight: 700;
   color: rgb(0, 0, 0);
-  margin: 0 0 10px 0;
+  margin: 0 0 4px;
 }
 .medicine__subtitle {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 14px;
-  color: rgb(0, 0, 0);
-  opacity: 0.7;
+  font-size: 12px;
+  color: rgba(0, 0, 0, 0.7);
   margin: 0;
 }
-.medicine__tabs {
+.medicine__add-button {
+  width: 48px;
+  height: 48px;
+  border-radius: 24px;
+  background: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
+  border: none;
+  font-size: 24px;
+  font-weight: 300;
+  line-height: 1;
+  cursor: pointer;
+  transition: all 0.2s ease;
   display: flex;
-  gap: 10px;
-  margin-bottom: 10px;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+}
+.medicine__add-button:active {
+  transform: scale(0.95);
+}
+.medicine__tabs {
+  display: none;
 }
 .medicine__tab {
-  flex: 1;
-  padding: 15px;
-  background: rgb(255, 255, 255);
-  border: none;
-  border-radius: 20px;
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 14px;
-  font-weight: 500;
-  color: rgb(153, 153, 153);
-  cursor: pointer;
-  transition: all 0.3s ease;
+  display: none;
 }
 .medicine__tab--active {
-  background: rgb(255, 161, 0);
+  display: none;
   color: rgb(255, 255, 255);
   font-weight: 900;
 }
@@ -80,38 +98,117 @@
   border-color: rgba(255, 161, 0, 0.3);
 }
 .medicine__list {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
+  max-width: 600px;
+  margin: 0 auto;
+  padding: 20px;
+}
+.medicine__loading {
+  text-align: center;
+  padding: 60px 20px;
+  color: rgb(0, 0, 0);
+  font-size: 14px;
 }
 .medicine__empty {
-  background: rgb(255, 255, 255);
-  border-radius: 30px;
-  padding: 60px 20px;
   text-align: center;
+  padding: 60px 20px;
+  color: rgb(0, 0, 0);
 }
 .medicine__empty p {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 16px;
-  color: rgb(153, 153, 153);
+  font-size: 14px;
   margin-bottom: 20px;
 }
-.medicine__add-btn, .medicine__submit-btn, .medicine__search-btn {
-  background: rgb(255, 161, 0);
+.medicine__add-btn {
+  background: rgb(0, 0, 0);
   color: rgb(255, 255, 255);
   border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.medicine__add-btn:active {
+  transform: scale(0.95);
+}
+.medicine__tag-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 20px;
+}
+.medicine__tag {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 10px 14px;
   border-radius: 20px;
-  padding: 15px 30px;
+  border: 2px solid rgb(0, 0, 0);
+  font-size: 14px;
+  font-weight: 600;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  position: relative;
+}
+.medicine__tag--medicine {
+  background: rgb(255, 255, 255);
+}
+.medicine__tag--healthfood {
+  background: #fffbf0;
+}
+.medicine__tag:active {
+  transform: scale(0.98);
+}
+.medicine__tag-icon {
+  font-size: 16px;
+  line-height: 1;
+}
+.medicine__tag-name {
+  max-width: 200px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.medicine__tag-delete {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  border: none;
+  font-size: 18px;
+  line-height: 1;
+  color: rgb(0, 0, 0);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-left: 4px;
+  transition: all 0.2s ease;
+}
+.medicine__tag-delete:hover {
+  background: rgba(0, 0, 0, 0.2);
+}
+.medicine__tag-delete:active {
+  transform: scale(0.9);
+}
+.medicine__submit-btn, .medicine__search-btn {
+  background: rgb(0, 0, 0);
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 12px;
+  padding: 14px 28px;
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
+  transition: all 0.2s ease;
 }
-.medicine__add-btn:hover, .medicine__submit-btn:hover, .medicine__search-btn:hover {
-  background: rgb(204, 128.8, 0);
+.medicine__submit-btn:active, .medicine__search-btn:active {
+  transform: scale(0.95);
 }
-.medicine__add-btn:disabled, .medicine__submit-btn:disabled, .medicine__search-btn:disabled {
+.medicine__submit-btn:disabled, .medicine__search-btn:disabled {
   opacity: 0.5;
   cursor: not-allowed;
 }
@@ -369,92 +466,52 @@
   color: rgb(153, 153, 153);
 }
 .medicine__analyze-section {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 30px;
-  padding: 25px;
-  text-align: center;
-  margin-bottom: 20px;
-  box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
-  position: relative;
-  overflow: hidden;
-}
-.medicine__analyze-section::before {
-  content: "";
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.1) 1px, transparent 1px);
-  background-size: 50px 50px;
-  animation: pulse 15s infinite;
-}
-@keyframes pulse {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(50px);
-  }
+  margin: 30px 0;
+  padding: 20px;
+  background: rgb(255, 255, 255);
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 16px;
 }
 .medicine__analyze-all-btn {
-  background: rgb(255, 255, 255);
-  color: #667eea;
-  border: none;
-  border-radius: 20px;
-  padding: 15px 30px;
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
-  font-size: 16px;
-  font-weight: 900;
-  cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(102, 126, 234, 0.25);
-  position: relative;
-  z-index: 1;
-}
-.medicine__analyze-all-btn:hover:not(:disabled) {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 20px rgba(102, 126, 234, 0.35);
-  background: #f8f9ff;
-}
-.medicine__analyze-all-btn:active:not(:disabled) {
-  transform: translateY(-1px);
-}
-.medicine__analyze-all-btn:disabled {
-  opacity: 0.7;
-  cursor: not-allowed;
-}
-.medicine__view-result-btn {
-  background: linear-gradient(135deg, #4CAF50 0%, #45a049 100%);
+  width: 100%;
+  padding: 16px;
+  background: rgb(0, 0, 0);
   color: rgb(255, 255, 255);
   border: none;
-  border-radius: 20px;
-  padding: 12px 25px;
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.medicine__analyze-all-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+.medicine__analyze-all-btn:active:not(:disabled) {
+  transform: scale(0.98);
+}
+.medicine__view-result-btn {
+  width: 100%;
+  margin-top: 12px;
+  padding: 14px;
+  background: rgb(255, 255, 255);
+  color: rgb(0, 0, 0);
+  border: 2px solid rgb(0, 0, 0);
+  border-radius: 12px;
   font-size: 14px;
   font-weight: 600;
   cursor: pointer;
-  transition: all 0.3s ease;
-  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
-  position: relative;
-  z-index: 1;
-  margin-top: 15px;
-}
-.medicine__view-result-btn:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 16px rgba(76, 175, 80, 0.4);
+  transition: all 0.2s ease;
 }
 .medicine__view-result-btn:active {
-  transform: translateY(0);
+  transform: scale(0.98);
 }
 .medicine__analyze-desc {
-  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  margin: 12px 0 0;
   font-size: 12px;
-  color: rgb(255, 255, 255);
-  margin: 10px 0 0 0;
-  opacity: 0.9;
-  position: relative;
-  z-index: 1;
+  color: rgba(0, 0, 0, 0.6);
+  text-align: center;
 }
 .medicine__analysis-modal {
   position: fixed;
@@ -1356,6 +1413,142 @@
   cursor: not-allowed;
 }
 
+/* 약 추가 진행 오버레이 */
+.medicine__add-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.55);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1500;
+  padding: 20px;
+}
+
+.medicine__add-modal {
+  background: #fff;
+  border-radius: 16px;
+  padding: 24px;
+  width: min(520px, 100%);
+  box-shadow: 0 10px 40px rgba(0, 0, 0, 0.25);
+  animation: fadeUp 0.25s ease;
+}
+
+.medicine__add-title {
+  margin: 0 0 16px 0;
+  font-size: 18px;
+  color: #222;
+  font-weight: 700;
+}
+
+.medicine__add-steps {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px 0;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.medicine__add-step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border: 1px solid #eee;
+  border-radius: 10px;
+  background: #fafafa;
+}
+
+.medicine__add-step-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: #ddd;
+}
+
+.medicine__add-step-label {
+  flex: 1;
+  font-size: 14px;
+  color: #333;
+}
+
+.medicine__add-step-status {
+  font-size: 12px;
+  color: #888;
+}
+
+.medicine__add-step--active {
+  border-color: #f5d547;
+  background: #fffbea;
+}
+
+.medicine__add-step--active .medicine__add-step-dot {
+  background: #f5d547;
+}
+
+.medicine__add-step--done {
+  border-color: #d3f7d5;
+  background: #f7fff7;
+}
+
+.medicine__add-step--done .medicine__add-step-dot {
+  background: #4caf50;
+}
+
+.medicine__add-step--error {
+  border-color: #ffb3b3;
+  background: #fff2f2;
+}
+
+.medicine__add-step--error .medicine__add-step-dot {
+  background: #e53935;
+}
+
+.medicine__add-complete {
+  margin-top: 10px;
+  text-align: center;
+}
+
+.medicine__add-complete-text {
+  margin: 0 0 12px 0;
+  color: #2e7d32;
+  font-weight: 700;
+}
+
+.medicine__add-error-text {
+  margin: 0 0 12px 0;
+  color: #e53935;
+  font-weight: 700;
+}
+
+.medicine__add-complete-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 10px;
+  background: linear-gradient(135deg, #f5d547 0%, #f5c842 100%);
+  color: #333;
+  font-weight: 700;
+  cursor: pointer;
+  width: 100%;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.medicine__add-complete-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0, 0, 0, 0.12);
+}
+
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
 @media (max-width: 768px) {
   .medicine {
     padding: 12px;
@@ -1490,4 +1683,158 @@
     padding: 10px;
     font-size: 12px;
   }
+}
+.medicine__streaming-section {
+  background: #f8f9fa;
+  border-radius: 12px;
+  padding: 20px;
+  margin: 16px 0;
+}
+
+.medicine__streaming-header {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.medicine__streaming-spinner {
+  width: 24px;
+  height: 24px;
+  border: 3px solid #e0e0e0;
+  border-top-color: #2196F3;
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+.medicine__streaming-info {
+  flex: 1;
+}
+
+.medicine__streaming-title {
+  font-size: 16px;
+  font-weight: 600;
+  color: #333;
+  margin: 0 0 4px 0;
+}
+
+.medicine__streaming-message {
+  font-size: 13px;
+  color: #666;
+  margin: 0;
+}
+
+.medicine__streaming-progress {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 16px;
+}
+
+.medicine__streaming-progress-bar {
+  flex: 1;
+  height: 8px;
+  background: #e0e0e0;
+  border-radius: 4px;
+  overflow: hidden;
+}
+
+.medicine__streaming-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #42A5F5, #2196F3);
+  transition: width 0.3s ease;
+}
+
+.medicine__streaming-progress-text {
+  font-size: 12px;
+  font-weight: 600;
+  color: #2196F3;
+  min-width: 40px;
+  text-align: right;
+}
+
+.medicine__streaming-stages {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.medicine__streaming-stage {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 10px 12px;
+  background: white;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  transition: all 0.3s ease;
+}
+.medicine__streaming-stage--waiting {
+  opacity: 0.5;
+}
+.medicine__streaming-stage--loading {
+  border-color: #FFC107;
+  background: #FFFBF0;
+}
+.medicine__streaming-stage--loading .medicine__streaming-stage-icon {
+  animation: pulse 1.5s ease-in-out infinite;
+}
+.medicine__streaming-stage--complete {
+  border-color: #4CAF50;
+  background: #F1F8F4;
+}
+
+.medicine__streaming-stage-number {
+  width: 20px;
+  height: 20px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.1);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.medicine__streaming-stage-name {
+  flex: 1;
+  font-weight: 600;
+}
+
+.medicine__streaming-stage-icon {
+  font-size: 14px;
+}
+
+.medicine__error-section {
+  margin-top: 16px;
+  padding: 16px;
+  background: #fee;
+  border: 2px solid #c00;
+  border-radius: 12px;
+}
+
+.medicine__error-message {
+  font-size: 12px;
+  color: #c00;
+  margin: 0 0 12px;
+}
+
+.medicine__retry-btn {
+  width: 100%;
+  padding: 12px;
+  background: #c00;
+  color: rgb(255, 255, 255);
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.medicine__retry-btn:active {
+  transform: scale(0.98);
 }/*# sourceMappingURL=Medicine.css.map */

@@ -1,4 +1,5 @@
 import { useState, useEffect, useRef } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { useMedicineStore } from '../store/medicineStore';
 import { getMyMedicines, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeMedicineImage, analyzeAllMedicinesStream } from '../services/api';
 import MedicineRadarChart from '../components/MedicineRadarChart';
@@ -13,6 +14,7 @@ import MedicineAnalyzedInfo from '../components/MedicineAnalyzedInfo';
 import './Medicine.scss';
 
 const Medicine = () => {
+  const navigate = useNavigate();
   const { medicines, setMedicines, addMedicine: addToStore, deleteMedicine: removeFromStore, isLoading, setLoading, setError } = useMedicineStore();
   const [searchKeyword, setSearchKeyword] = useState('');
   const [searchResults, setSearchResults] = useState([]);
@@ -722,28 +724,25 @@ const Medicine = () => {
           </div>
           <button 
             className="medicine__add-button"
-            onClick={() => window.location.href = '/medicine/add'}
+            onClick={() => navigate('/medicine/add')}
           >
             +
           </button>
         </div>
       </header>
 
-      {/* 목록 화면 */}
-      {(
-        <div className="medicine__list">
-          {isLoading ? (
-            <p className="medicine__loading">로딩 중...</p>
-          ) : medicines.length === 0 ? (
-            <div className="medicine__empty">
-              <p>등록된 약이 없습니다.</p>
-              <button onClick={() => setActiveTab('add')} className="medicine__add-btn">
-                약 추가하기
-              </button>
-            </div>
-          ) : (
-            <div>
-              {/* 📊 초기 화면: 등록 데이터 기반 간단 분석 */}
+      <div className="medicine__list">
+        {isLoading ? (
+          <p className="medicine__loading">로딩 중...</p>
+        ) : medicines.length === 0 ? (
+          <div className="medicine__empty">
+            <p>등록된 약이 없습니다.</p>
+            <button onClick={() => navigate('/medicine/add')} className="medicine__add-btn">
+              약 추가하기
+            </button>
+          </div>
+        ) : (
+          <div>
               
               {/* 약품 종합 위험도 프로파일 (등록 즉시 생성) */}
               <MedicineRadarChart medicines={medicines} />
@@ -976,9 +975,9 @@ const Medicine = () => {
                 })}
               </div>
             </div>
-          )}
-        </div>
-      )}
+          )
+        }
+      </div>
 
       {/* \ub0b4\uc57d \ucd94\uac00 \ud654\uba74\uc740 \ubcc4\ub3c4 \ud398\uc774\uc9c0\ub85c \ubd84\ub9ac */}
       

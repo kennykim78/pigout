@@ -3,6 +3,7 @@ import IntroSplash from './pages/IntroSplash';
 import SelectOption from './pages/SelectOption';
 import Main from './pages/Main';
 import Medicine from './pages/Medicine';
+import MedicineAdd from './pages/MedicineAdd';
 import History from './pages/History';
 import Reward from './pages/Reward';
 import MyPage from './pages/MyPage';
@@ -30,6 +31,9 @@ function App() {
           <Route path="/reward" element={<Reward />} />
           <Route path="/mypage" element={<MyPage />} />
         </Route>
+
+        {/* 내약 추가 페이지 (네비게이션 바 없음) */}
+        <Route path="/medicine/add" element={<MedicineAdd />} />
 
         {/* 결과 페이지 (네비게이션 바 없음) */}
         <Route path="/result01" element={<Result01 />} />
