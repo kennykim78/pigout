@@ -528,7 +528,7 @@ JSON 형식으로만 응답:
         const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
         const medicineList = medicines.length > 0 ? medicines.join(', ') : '없음';
 
-        const prompt = `당신은 20년 경력의 약사이자 건강검진 전문의입니다.
+        const prompt = `당신은 Pigout AI입니다. 임상 약학, 영양학, 공공데이터를 종합하여 분석합니다.
 빠르고 간결하게 분석해주세요.
 
 【환자 정보】
@@ -1108,8 +1108,7 @@ JSON 형식으로만 응답:
       const drugList = interactionAnalysis?.interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
       
       const prompt = `# Role Definition
-당신은 20년 경력의 **'임상 약사(Clinical Pharmacist)'**이자 **'임상 영양학자(Clinical Nutritionist)'**입니다.
-당신의 목표는 사용자의 [질병], [복용 약물], [섭취 음식] 데이터를 바탕으로 **근거 중심(Evidence-based)**의 정밀 분석 리포트를 작성하는 것입니다.
+당신은 **Pigout AI**입니다. 임상 약학, 영양학 전문지식과 식품의약품안전처 등 공공데이터를 종합 분석하여 사용자에게 **근거 중심(Evidence-based)**의 정밀 분석 리포트를 제공합니다.
 
 ---
 
@@ -1152,7 +1151,7 @@ ${JSON.stringify(interactionAnalysis, null, 2)}
    - [DANGER] 등급 약물과의 관계
    - 빈 배열 가능 (경고 없으면 [])
 
-5. **expertAdvice** (문자열): 💊 AI 전문가 조언
+5. **expertAdvice** (문자열): 🤖 Pigout AI 분석 결과
    - 친근하고 따뜻한 어조로 2-3문장
    - 실용적인 섭취 가이드 포함
    - 100자 이상
@@ -1160,8 +1159,8 @@ ${JSON.stringify(interactionAnalysis, null, 2)}
 6. **briefSummary** (문자열): 간략 요약 (200자 내외)
    - 음식 자체 평가 + 약물과의 관계
 
-7. **summary** (문자열): 🔬 최종 종합 분석
-   - 약물/음식 분석 + AI 전문가 분석 합산
+7. **summary** (문자열): 🔬 Pigout AI 종합 분석
+   - 약물/음식 분석 + 공공데이터 기반 종합 평가
    - 1) 음식-질병 관계 평가
    - 2) 음식-약물 관계 평가  
    - 3) 최종 권장사항
@@ -1182,9 +1181,9 @@ JSON 형식으로만 응답:
   "warnings": [
     "🚨 [DANGER] 와파린 복용 중이라면 비타민K가 약효를 감소시킬 수 있습니다"
   ],
-  "expertAdvice": "💊 이 음식은 영양가가 높지만, 복용 중인 약물을 고려하여 식후 2시간 뒤에 드시는 것을 권장합니다. 국물보다는 건더기 위주로 드시면 나트륨 섭취를 줄일 수 있어요.",
+  "expertAdvice": "🤖 Pigout AI 분석 결과: 이 음식은 영양가가 높지만, 복용 중인 약물을 고려하여 식후 2시간 뒤에 드시는 것을 권장합니다. 국물보다는 건더기 위주로 드시면 나트륨 섭취를 줄일 수 있어요.",
   "briefSummary": "영양가 높은 음식이지만 고혈압약과 함께 섭취 시 나트륨 주의가 필요합니다...",
-  "summary": "🔬 [최종 종합 분석] 이 음식은 단백질과 비타민이 풍부하여 영양학적으로 우수합니다. 다만, 현재 복용 중인 고혈압약(OO)과 관련하여 나트륨 섭취에 주의가 필요합니다. 약물 복용 2시간 전후로 섭취하시고, 국물은 절반만 드시는 것을 권장합니다."
+  "summary": "🔬 [Pigout AI 종합 분석] 이 음식은 단백질과 비타민이 풍부하여 영양학적으로 우수합니다. 다만, 현재 복용 중인 고혈압약(OO)과 관련하여 나트륨 섭취에 주의가 필요합니다. 약물 복용 2시간 전후로 섭취하시고, 국물은 절반만 드시는 것을 권장합니다."
 }`;
 
       let rawText: string;
@@ -1228,7 +1227,7 @@ JSON 형식으로만 응답:
       const drugList = finalAnalysis?.medicalAnalysis?.drug_food_interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
       
       const prompt = `# Role Definition
-당신은 20년 경력의 **'임상 영양사(Clinical Dietitian)'**이자 **'약사(Pharmacist)'**입니다.
+당신은 **Pigout AI**입니다. 영양학, 임상 약학 전문지식과 공공데이터 분석 결과를 바탕으로 사용자를 돕습니다.
 사용자는 특정 음식(메뉴)을 먹고 싶어 하며, 당신의 역할은 이 음식을 **'금지'하는 것이 아니라, 사용자의 질병과 복용 약물에 맞춰 '가장 건강하게 먹는 방법'을 컨설팅**하는 것입니다.
 
 ---
@@ -1366,7 +1365,7 @@ JSON 형식으로만 응답:
 ` : '';
       
       const prompt = `# Role Definition
-당신은 20년 경력의 **'임상 약사(Clinical Pharmacist)'**이자 **'임상 영양학자(Clinical Nutritionist)'**입니다.
+당신은 **Pigout AI**입니다. 임상 약학, 영양학 전문지식과 식품의약품안전처 등 공공데이터를 종합 분석하여 사용자에게 정확한 정보를 제공합니다.
 ${detailInstruction}
 ---
 
@@ -1399,9 +1398,9 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
 2. **goodPoints** (배열 3-5개): ✅ 좋은 점 (각 ${needDetailedAnalysis ? '80' : '50'}자 이상, 구체적인 영양소/효능 포함)
 3. **badPoints** (배열 2-4개): ⚠️ 주의할 점 (각 ${needDetailedAnalysis ? '80' : '50'}자 이상, 구체적인 이유 포함)
 4. **warnings** (배열 0-3개): 🚨 경고 (위험한 상호작용만, 구체적으로)
-5. **expertAdvice** (문자열): 💊 AI 전문가 조언 (${needDetailedAnalysis ? '150' : '100'}자 이상, 친근한 어조로 실용적 조언)
+5. **expertAdvice** (문자열): 🤖 Pigout AI 분석 결과 (${needDetailedAnalysis ? '150' : '100'}자 이상, 친근한 어조로 실용적 조언)
 6. **briefSummary** (문자열): 간략 요약 (200자 내외)
-7. **summary** (문자열): 🔬 최종 종합 분석 (${needDetailedAnalysis ? '300' : '200'}자 이상, 영양학적/약학적 관점 종합)
+7. **summary** (문자열): 🔬 Pigout AI 종합 분석 (${needDetailedAnalysis ? '300' : '200'}자 이상, 영양학적/약학적 관점 종합)
 
 ## Part 2: 건강 레시피 팁
 **healthyRecipes** (배열 ${needDetailedAnalysis ? '6-8' : '4-6'}개): ${foodName}을 건강하게 조리/섭취하는 방법
@@ -1418,9 +1417,9 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
     "goodPoints": ["✅ 단백질이 풍부하여 근육 형성에 도움이 되며, 특히 류신 함량이 높아 근육 단백질 합성을 촉진합니다.", "✅ 비타민B군이 풍부하여 에너지 대사를 활성화하고 피로 회복에 효과적입니다.", "✅ ..."],
     "badPoints": ["⚠️ 나트륨 함량이 1인분당 약 800mg으로 높아, 고혈압 환자의 경우 혈압 상승의 원인이 될 수 있습니다.", "⚠️ ..."],
     "warnings": ["🚨 [DANGER] 와파린 복용 중이시라면 비타민K가 풍부한 이 음식이 약효를 감소시킬 수 있으니 섭취량을 제한하세요."],
-    "expertAdvice": "💊 이 음식은 영양가가 높지만 복용 중인 약물과의 상호작용을 고려해야 합니다. 특히 식후 2시간 후에 약을 복용하시면 상호작용을 최소화할 수 있습니다. 1주일에 2-3회 정도 적당량을 드시는 것을 권장합니다.",
+    "expertAdvice": "🤖 Pigout AI 분석 결과: 이 음식은 영양가가 높지만 복용 중인 약물과의 상호작용을 고려해야 합니다. 특히 식후 2시간 후에 약을 복용하시면 상호작용을 최소화할 수 있습니다. 1주일에 2-3회 정도 적당량을 드시는 것을 권장합니다.",
     "briefSummary": "영양가 높은 음식이지만 복용 약물과의 상호작용에 주의가 필요합니다.",
-    "summary": "🔬 [최종 종합 분석] 이 음식은 단백질과 비타민이 풍부하여 건강에 유익하지만, 현재 복용 중인 약물과의 상호작용을 고려해야 합니다. 특히 나트륨 함량이 높아 고혈압 환자분은 섭취량을 조절하시고, 약 복용 시간과 식사 시간을 분리하시면 약효를 유지하면서 영양 섭취도 가능합니다."
+    "summary": "🔬 [Pigout AI 종합 분석] 이 음식은 단백질과 비타민이 풍부하여 건강에 유익하지만, 현재 복용 중인 약물과의 상호작용을 고려해야 합니다. 특히 나트륨 함량이 높아 고혈압 환자분은 섭취량을 조절하시고, 약 복용 시간과 식사 시간을 분리하시면 약효를 유지하면서 영양 섭취도 가능합니다."
   },
   "healthyRecipes": [
     "[재료 변경] 일반 소금 대신 저염간장이나 레몬즙을 사용하면 나트륨 섭취를 30% 이상 줄일 수 있습니다",
@@ -1466,7 +1465,7 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
       if (!finalAnalysis.warnings) finalAnalysis.warnings = [];
       
       if (!finalAnalysis.expertAdvice || finalAnalysis.expertAdvice.length < 50) {
-        finalAnalysis.expertAdvice = `💊 ${foodName}은(는) 영양가가 있는 음식입니다. 복용 중인 약물이 있다면 식후 1-2시간 간격을 두고 약을 드시는 것이 좋습니다. 균형 잡힌 식단의 일부로 적당량 섭취하시면 건강 유지에 도움이 됩니다. 특별한 질환이 있으시다면 담당 의사와 상담 후 섭취량을 조절하세요.`;
+        finalAnalysis.expertAdvice = `🤖 Pigout AI 분석 결과: ${foodName}은(는) 영양가가 있는 음식입니다. 복용 중인 약물이 있다면 식후 1-2시간 간격을 두고 약을 드시는 것이 좋습니다. 균형 잡힌 식단의 일부로 적당량 섭취하시면 건강 유지에 도움이 됩니다. 특별한 질환이 있으시다면 담당 의사와 상담 후 섭취량을 조절하세요.`;
       }
       
       if (!finalAnalysis.summary || finalAnalysis.summary.length < 100) {
@@ -1508,7 +1507,7 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
             `⚠️ 복용 중인 약물이 있다면 식사 시간과 약 복용 시간을 분리하는 것이 좋습니다.`,
           ],
           warnings: [],
-          expertAdvice: `💊 ${foodName}은(는) 영양가가 있는 음식입니다. 복용 중인 약물이 있다면 식후 1-2시간 간격을 두고 약을 드시는 것이 좋습니다. 균형 잡힌 식단의 일부로 적당량 섭취하시면 건강 유지에 도움이 됩니다.`,
+          expertAdvice: `🤖 Pigout AI 분석 결과: ${foodName}은(는) 영양가가 있는 음식입니다. 복용 중인 약물이 있다면 식후 1-2시간 간격을 두고 약을 드시는 것이 좋습니다. 균형 잡힌 식단의 일부로 적당량 섭취하시면 건강 유지에 도움이 됩니다.`,
           summary: `🔬 [최종 종합 분석] ${foodName}은(는) 다양한 영양소를 함유하고 있는 음식입니다. 복용 중인 약물과의 상호작용을 고려하여 식사 시간을 조절하시고, 질병 상태에 따라 섭취량을 적절히 조절하시면 건강한 식단의 일부로 즐기실 수 있습니다.`,
         },
         healthyRecipes: [
@@ -1553,7 +1552,7 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
       const drugNames = drugDetails.map(d => d.name).join(', ');
       
       const prompt = `# Role Definition
-당신은 20년 경력의 **'임상 약사(Clinical Pharmacist)'**입니다.
+당신은 **Pigout AI**입니다. 임상 약학 전문지식과 공공데이터를 활용하여 약물 간 상호작용을 분석합니다.
 사용자가 복용 중인 모든 약물의 상호작용을 종합적으로 분석하여, **동시 복용의 안전성**을 평가하는 것이 목표입니다.
 
 ---
