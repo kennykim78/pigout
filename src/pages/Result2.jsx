@@ -741,7 +741,28 @@ const Result2 = () => {
         {/* 위험 성분 분석 (Accordion) */}
         {riskFactorEntries.length > 0 && (
           <>
-            {/* 🆕 위험성분 시각화 카드는 여기서 제거 (각 약물 카드 안으로 이동됨) */}
+            {/* 🆕 위험성분 시각화 (위험 성분 분석 섹션 위로 이동) */}
+            <div className="result2__risk-visualization">
+              <div className="result2__risk-chart-container">
+                {riskFactorEntries.filter(entry => entry.active).map((entry) => (
+                  <div key={entry.key} className="result2__risk-chart-item">
+                    <div className="result2__risk-chart-label">
+                      <span className="result2__risk-chart-icon">⚠️</span>
+                      <span className="result2__risk-chart-name">{entry.label}</span>
+                    </div>
+                    <div className="result2__risk-chart-bar">
+                      <div className="result2__risk-chart-fill" style={{ width: '100%' }}></div>
+                    </div>
+                  </div>
+                ))}
+                {riskFactorEntries.filter(entry => entry.active).length === 0 && (
+                  <div className="result2__risk-chart-empty">
+                    <span className="result2__risk-chart-empty-icon">✅</span>
+                    <span className="result2__risk-chart-empty-text">위험 성분이 검출되지 않았습니다</span>
+                  </div>
+                )}
+              </div>
+            </div>
             
             <div className="result2__accordion">
               <button 
