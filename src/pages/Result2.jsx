@@ -527,6 +527,20 @@ const Result2 = () => {
         </div>
       )}
 
+      {/* 🆕 음식-약물 상호작용 맵 (약물상호작용 섹션 위로 이동) */}
+      {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
+       detailedAnalysis.medicalAnalysis.drug_food_interactions.length > 0 && (
+        <FoodDrugInteractionMatrix 
+          interactions={detailedAnalysis.medicalAnalysis.drug_food_interactions}
+          medicines={detailedAnalysis.medicalAnalysis.drug_food_interactions
+            .flatMap(i => i.medicines || [])
+            .filter((v, i, a) => a.indexOf(v) === i)}
+          foodComponents={detailedAnalysis.medicalAnalysis.drug_food_interactions
+            .flatMap(i => i.food_components || [])
+            .filter((v, i, a) => a.indexOf(v) === i)}
+        />
+      )}
+
       {/* 약물 상호작용 - 위험/주의가 있을 때만 표시 (Accordion) */}
       {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
        detailedAnalysis.medicalAnalysis.drug_food_interactions.some(d => d.risk_level === 'danger' || d.risk_level === 'caution') && (
@@ -581,27 +595,13 @@ const Result2 = () => {
         </div>
       )}
 
-      {/* 🆕 음식-약물 상호작용 맵 */}
-      {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
-       detailedAnalysis.medicalAnalysis.drug_food_interactions.length > 0 && (
-        <FoodDrugInteractionMatrix 
-          interactions={detailedAnalysis.medicalAnalysis.drug_food_interactions}
-          medicines={detailedAnalysis.medicalAnalysis.drug_food_interactions
-            .flatMap(i => i.medicines || [])
-            .filter((v, i, a) => a.indexOf(v) === i)}
-          foodComponents={detailedAnalysis.medicalAnalysis.drug_food_interactions
-            .flatMap(i => i.food_components || [])
-            .filter((v, i, a) => a.indexOf(v) === i)}
-        />
-      )}
-
-      {/* 🆕 시각적 분석 대시보드 (차트) */}
-      {!isStreaming && detailedAnalysis && (
-        <AnalysisDashboard detailedAnalysis={detailedAnalysis} />
-      )}
-
       {/* 주요 분석 내용 */}
       <div className="result2__main-content">
+        {/* 🆕 시각적 분석 대시보드 (이런 점이 좋아요 위로 이동) */}
+        {!isStreaming && detailedAnalysis && (
+          <AnalysisDashboard detailedAnalysis={detailedAnalysis} />
+        )}
+
         {/* 좋은 점 (Accordion) */}
         {detailedAnalysis?.goodPoints && Array.isArray(detailedAnalysis.goodPoints) && detailedAnalysis.goodPoints.length > 0 && (
           <div className="result2__accordion">
@@ -740,40 +740,44 @@ const Result2 = () => {
 
         {/* 위험 성분 분석 (Accordion) */}
         {riskFactorEntries.length > 0 && (
-          <div className="result2__accordion">
-            <button 
-              className={`result2__accordion-toggle result2__accordion-toggle--risk`}
-              onClick={() => toggleSection('riskFactors')}
-            >
-              <span className="result2__accordion-icon">🔬</span>
-              <span className="result2__accordion-title">위험 성분 분석</span>
-              <span className={`result2__accordion-chevron ${expandedSections.riskFactors ? 'expanded' : ''}`}>
-                ▼
-              </span>
-            </button>
+          <>
+            {/* 🆕 위험성분 시각화 카드는 여기서 제거 (각 약물 카드 안으로 이동됨) */}
+            
+            <div className="result2__accordion">
+              <button 
+                className={`result2__accordion-toggle result2__accordion-toggle--risk`}
+                onClick={() => toggleSection('riskFactors')}
+              >
+                <span className="result2__accordion-icon">🔬</span>
+                <span className="result2__accordion-title">위험 성분 분석</span>
+                <span className={`result2__accordion-chevron ${expandedSections.riskFactors ? 'expanded' : ''}`}>
+                  ▼
+                </span>
+              </button>
 
-            {expandedSections.riskFactors && (
-              <div className="result2__accordion-content">
-                <p className="result2__risk-subtitle">식품의약품안전처 데이터 기반</p>
-                <div className="result2__risk-list">
-                  {riskFactorEntries.map((entry) => (
-                    <div
-                      key={entry.key}
-                      className={`result2__risk-item ${entry.active ? 'result2__risk-item--active' : 'result2__risk-item--inactive'}`}
-                    >
-                      <div className="result2__risk-item-header">
-                        <span className="result2__risk-item-name">{entry.label}</span>
-                        <span className={`result2__risk-chip ${entry.active ? 'result2__risk-chip--active' : ''}`}>
-                          {entry.active ? '검출' : '안전'}
-                        </span>
+              {expandedSections.riskFactors && (
+                <div className="result2__accordion-content">
+                  <p className="result2__risk-subtitle">식품의약품안전처 데이터 기반</p>
+                  <div className="result2__risk-list">
+                    {riskFactorEntries.map((entry) => (
+                      <div
+                        key={entry.key}
+                        className={`result2__risk-item ${entry.active ? 'result2__risk-item--active' : 'result2__risk-item--inactive'}`}
+                      >
+                        <div className="result2__risk-item-header">
+                          <span className="result2__risk-item-name">{entry.label}</span>
+                          <span className={`result2__risk-chip ${entry.active ? 'result2__risk-chip--active' : ''}`}>
+                            {entry.active ? '검출' : '안전'}
+                          </span>
+                        </div>
+                        <p className="result2__risk-item-note">{entry.note}</p>
                       </div>
-                      <p className="result2__risk-item-note">{entry.note}</p>
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            )}
-          </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* 종합 분석 (Accordion) */}
