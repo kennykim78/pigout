@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { useMedicineStore } from '../store/medicineStore';
-import { getMyMedicines, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeAllMedicines, analyzeMedicineImage, analyzeAllMedicinesStream } from '../services/api';
+import { getMyMedicines, searchMedicine, searchHealthFood, deleteMedicine, addMedicine as addMedicineAPI, analyzeMedicineImage, analyzeAllMedicinesStream } from '../services/api';
 import MedicineRadarChart from '../components/MedicineRadarChart';
 import MedicineSchedule from '../components/MedicineSchedule';
 import MedicineCorrelationSummary from '../components/MedicineCorrelationSummary';
@@ -715,44 +715,22 @@ const Medicine = () => {
   return (
     <div className="medicine">
       <header className="medicine__header">
-        <h1 className="medicine__title">복용 중인 약</h1>
-        <p className="medicine__subtitle">촬영, 검색 또는 직접 입력하여 등록하세요</p>
-      </header>
-
-      <div className="medicine__tabs">
-        <button
-          className={`medicine__tab ${activeTab === 'list' ? 'medicine__tab--active' : ''}`}
-          onClick={() => setActiveTab('list')}
-        >
-          📋 내 약 목록 ({medicines.length})
-        </button>
-        <button
-          className={`medicine__tab ${activeTab === 'add' ? 'medicine__tab--active' : ''}`}
-          onClick={() => setActiveTab('add')}
-        >
-          ➕ 내 약 추가
-        </button>
-      </div>
-
-      {/* 내 약 추가 탭 내부의 서브탭 */}
-      {activeTab === 'add' && (
-        <div className="medicine__sub-tabs">
-          <button
-            className={`medicine__sub-tab ${addSubTab === 'medicine' ? 'medicine__sub-tab--active' : ''}`}
-            onClick={() => setAddSubTab('medicine')}
+        <div className="medicine__header-content">
+          <div>
+            <h1 className="medicine__title">복용 중인 약</h1>
+            <p className="medicine__subtitle">내 약 {medicines.length}개</p>
+          </div>
+          <button 
+            className="medicine__add-button"
+            onClick={() => window.location.href = '/medicine/add'}
           >
-            💊 의약품 추가
-          </button>
-          <button
-            className={`medicine__sub-tab ${addSubTab === 'healthfood' ? 'medicine__sub-tab--active' : ''}`}
-            onClick={() => setAddSubTab('healthfood')}
-          >
-            🥗 건강기능식품 추가
+            +
           </button>
         </div>
-      )}
+      </header>
 
-      {activeTab === 'list' && (
+      {/* 목록 화면 */}
+      {(
         <div className="medicine__list">
           {isLoading ? (
             <p className="medicine__loading">로딩 중...</p>
@@ -961,50 +939,50 @@ const Medicine = () => {
                 </div>
               )}
 
-              {medicines.map((med) => {
-                // 🆕 약품 타입 확인 (의약품 vs 건강기능식품)
-                const medicineTypes = JSON.parse(sessionStorage.getItem('medicineTypes') || '{}');
-                const medicineType = medicineTypes[med.id] || 'medicine'; // 기본값: 의약품
-                
-                return (
-                  <div
-                    key={med.id}
-                    className={`medicine__card medicine__card--${medicineType}`}
-                    onClick={() => {
-                      setSelectedMedicineDetail(med);
-                      setShowMedicineDetailPopup(true);
-                    }}
-                    style={{ cursor: 'pointer' }}
-                  >
-                    {/* 🆕 약품 타입 배지 */}
-                    <div className={`medicine__type-badge medicine__type-badge--${medicineType}`}>
-                      {medicineType === 'healthfood' ? '🥗 건강기능식품' : '💊 의약품'}
-                    </div>
-                    
-                    <div className="medicine__card-header">
-                      <h3 className="medicine__card-title">{med.itemName || med.name || '약품명 미확인'}</h3>
+              {/* 약품 태그 목록 */}
+              <div className="medicine__tag-list">
+                {medicines.map((med) => {
+                  // 약품 타입 확인 (의약품 vs 건강기능식품)
+                  const medicineTypes = JSON.parse(sessionStorage.getItem('medicineTypes') || '{}');
+                  const medicineType = medicineTypes[med.id] || 'medicine';
+                  
+                  return (
+                    <div
+                      key={med.id}
+                      className={`medicine__tag medicine__tag--${medicineType}`}
+                      onClick={() => {
+                        setSelectedMedicineDetail(med);
+                        setShowMedicineDetailPopup(true);
+                      }}
+                    >
+                      <span className="medicine__tag-icon">
+                        {medicineType === 'healthfood' ? '🥗' : '💊'}
+                      </span>
+                      <span className="medicine__tag-name">
+                        {med.itemName || med.name || '약품명 미확인'}
+                      </span>
                       <button
-                        className="medicine__delete-btn"
+                        className="medicine__tag-delete"
                         onClick={(e) => {
                           e.stopPropagation();
                           handleDeleteMedicine(med.id);
                         }}
+                        aria-label="삭제"
                       >
-                        🗑️
+                        ×
                       </button>
                     </div>
-                    {med.drug_class && (
-                      <p className="medicine__card-info">제조사: {med.drug_class}</p>
-                    )}
-                  </div>
-                );
-              })}
+                  );
+                })}
+              </div>
             </div>
           )}
         </div>
       )}
 
-      {activeTab === 'add' && addSubTab === 'medicine' && (
+      {/* \ub0b4\uc57d \ucd94\uac00 \ud654\uba74\uc740 \ubcc4\ub3c4 \ud398\uc774\uc9c0\ub85c \ubd84\ub9ac */}
+      
+      {false && activeTab === 'add' && addSubTab === 'medicine' && (
         <div className="medicine__add">
           <section className="medicine__section">
             <h2 className="medicine__section-title">📸 약 촬영하기</h2>
@@ -1347,7 +1325,7 @@ const Medicine = () => {
         </div>
       )}
 
-      {activeTab === 'add' && addSubTab === 'healthfood' && (
+      {false && activeTab === 'add' && addSubTab === 'healthfood' && (
         <div className="medicine__add">
           <section className="medicine__section">
             <h2 className="medicine__section-title">🥗 건강기능식품 검색</h2>
