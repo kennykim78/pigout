@@ -294,7 +294,7 @@ const MedicineRadarChart = ({ medicines }) => {
           복용 중인 {medicines.length}개 약품을 통합 분석한 종합 지표입니다
         </p>
       </div>
-      <div className="chart-canvas-wrapper" style={{ width: '100%', height: '500px' }}>
+      <div className="chart-canvas-wrapper" style={{ width: '100%', height: '350px' }}>
         <ResponsiveContainer width="100%" height="100%">
           <RadarChart data={chartData}>
             <PolarGrid stroke="rgba(0, 0, 0, 0.15)" />
@@ -302,16 +302,16 @@ const MedicineRadarChart = ({ medicines }) => {
               dataKey="subject" 
               tick={{ 
                 fill: '#222', 
-                fontSize: 13, 
-                fontWeight: 'bold',
+                fontSize: 11, 
+                fontWeight: 600,
                 fontFamily: "'Noto Sans KR', sans-serif"
               }}
             />
             <PolarRadiusAxis 
               angle={90} 
               domain={[0, 100]} 
-              tick={{ fontSize: 12, fontWeight: 'bold' }}
-              tickCount={6}
+              tick={{ fontSize: 10, fontWeight: 600 }}
+              tickCount={5}
             />
             <Radar
               name={`전체 약품 종합 프로파일 (${medicines.length}개)`}
