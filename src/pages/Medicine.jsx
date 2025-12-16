@@ -1010,12 +1010,11 @@ const Medicine = () => {
         }
       </div>
 
-      {/* \ub0b4\uc57d \ucd94\uac00 \ud654\uba74\uc740 \ubcc4\ub3c4 \ud398\uc774\uc9c0\ub85c \ubd84\ub9ac */}
-      
-      {false && activeTab === 'add' && addSubTab === 'medicine' && (
-        <div className="medicine__add">
-          <section className="medicine__section">
-            <h2 className="medicine__section-title">📸 약 촬영하기</h2>
+      {/* ==========================================
+          약 추가 기능은 /medicine/add 페이지(MedicineAdd.jsx)로 이동되었습니다.
+          건강기능식품 추가 기능도 MedicineAdd.jsx에 정상 작동 중입니다.
+          아래 레거시 코드는 더 이상 사용되지 않으며 삭제 예정입니다.
+          ========================================== */}
             <p className="medicine__section-desc">
               약 봉지, 처방전, 알약 등을 촬영하면 AI가 자동으로 인식합니다
             </p>
@@ -1355,14 +1354,7 @@ const Medicine = () => {
         </div>
       )}
 
-      {false && activeTab === 'add' && addSubTab === 'healthfood' && (
-        <div className="medicine__add">
-          <section className="medicine__section">
-            <h2 className="medicine__section-title">🥗 건강기능식품 검색</h2>
-            <p className="medicine__section-desc">
-              건강기능식품명, 원료명, 제조사로 검색하세요<br />
-              (예: 오메가3, 비타민, 유산균, 홍삼, 루테인, 프로바이오틱스)
-            </p>
+      {/* ========================================== */}
             
             <div className="medicine__search">
               <input
