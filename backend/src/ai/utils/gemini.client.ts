@@ -1,4 +1,4 @@
-﻿import { GoogleGenerativeAI } from '@google/generative-ai';
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import axios from 'axios';
 
 interface GenerateContentCandidatePartText {
@@ -2447,4 +2447,118 @@ ${interactions.substring(0, 500)}
         },
       };
     }
-  }}
+  }
+
+
+  /**
+   * 질병별 강화 정보 생성 (미리 캐싱용)
+   * - 질병명만으로 생성 가능한 정보
+   * - 식이 제한, 영양소 관리, 카테고리, 심각도 등
+   */
+  async generateDiseaseEnhancedInfo(diseaseName: string): Promise<{
+    category: string;
+    severity: 'low' | 'medium' | 'high';
+    chronicType: string;
+    tags: string[];
+    recommendedFoods: string[];
+    avoidFoods: string[];
+    cautionFoods: string[];
+    dietaryReason: string;
+    keyNutrients: {
+      increase: string[];
+      decrease: string[];
+      dailyLimits: Record<string, string>;
+    };
+    complicationRisks: string[];
+    generalPrecautions: string[];
+  }> {
+    try {
+      console.log(`[AI 질병 정보 강화] 시작: ${diseaseName}`);
+
+      const prompt = `당신은 질병 관리 및 영양학 전문가입니다.
+다음 질병에 대한 식이 관리 정보를 생성하세요.
+
+질병명: ${diseaseName}
+
+다음 정보를 JSON 형식으로 생성하세요:
+
+{
+  "category": "질병 카테고리 (예: 대사성질환, 심혈관질환, 호흡기질환, 피부질환 등)",
+  "severity": "low | medium | high (심각도)",
+  "chronicType": "급성질환 | 만성질환 | 생활습관질환",
+  "tags": ["관리 특성 태그 3-5개"],
+  "recommendedFoods": ["적극 권장하는 음식 5-7개"],
+  "avoidFoods": ["반드시 피해야 할 음식 3-5개"],
+  "cautionFoods": ["주의가 필요한 음식 3-5개"],
+  "dietaryReason": "식이 제한이 필요한 이유 (100자 이내)",
+  "keyNutrients": {
+    "increase": ["늘려야 할 영양소 3-5개"],
+    "decrease": ["줄여야 할 영양소 3-5개"],
+    "dailyLimits": {
+      "sodium": "하루 권장량 (예: 2000mg)",
+      "sugar": "하루 권장량 (예: 50g)"
+    }
+  },
+  "complicationRisks": ["주요 합병증 위험 3-5개"],
+  "generalPrecautions": ["일반적인 주의사항 3-5개 (각 50자 이내)"]
+}
+
+요구사항:
+1. 음식은 한국인이 자주 먹는 음식 위주로
+2. 구체적이고 실용적인 정보 제공
+3. 의학적 근거에 기반
+4. 일반인이 이해하기 쉽게`;
+
+      let rawText: string;
+      try {
+        rawText = await this.callWithRetry(async () => {
+          return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+        });
+      } catch (error) {
+        console.warn('[AI 질병 정보 강화] REST API 재시도:', error.message);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+      }
+
+      const result = this.extractJsonObject(rawText);
+      
+      console.log(`[AI 질병 정보 강화] 성공: ${diseaseName} - 카테고리: ${result.category}`);
+      
+      return {
+        category: result.category || '기타질환',
+        severity: result.severity || 'medium',
+        chronicType: result.chronicType || '만성질환',
+        tags: result.tags || [],
+        recommendedFoods: result.recommendedFoods || [],
+        avoidFoods: result.avoidFoods || [],
+        cautionFoods: result.cautionFoods || [],
+        dietaryReason: result.dietaryReason || '',
+        keyNutrients: result.keyNutrients || {
+          increase: [],
+          decrease: [],
+          dailyLimits: {},
+        },
+        complicationRisks: result.complicationRisks || [],
+        generalPrecautions: result.generalPrecautions || [],
+      };
+    } catch (error) {
+      console.error('[AI 질병 정보 강화] 실패:', error.message);
+      return {
+        category: '기타질환',
+        severity: 'medium',
+        chronicType: '만성질환',
+        tags: [],
+        recommendedFoods: [],
+        avoidFoods: [],
+        cautionFoods: [],
+        dietaryReason: '',
+        keyNutrients: {
+          increase: [],
+          decrease: [],
+          dailyLimits: {},
+        },
+        complicationRisks: [],
+        generalPrecautions: [],
+      };
+    }
+  }
+}

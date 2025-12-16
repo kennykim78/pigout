@@ -46,6 +46,25 @@ CREATE TABLE IF NOT EXISTS medicine_records (
   updated_at TIMESTAMP DEFAULT NOW()
 );
 
+-- disease_enhanced_info 테이블 (질병별 강화 정보 - 미리 생성하여 캐싱)
+CREATE TABLE IF NOT EXISTS disease_enhanced_info (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  disease_name TEXT NOT NULL UNIQUE,
+  category TEXT NOT NULL,
+  severity TEXT NOT NULL,
+  chronic_type TEXT,
+  tags TEXT[] DEFAULT '{}',
+  recommended_foods TEXT[] DEFAULT '{}',
+  avoid_foods TEXT[] DEFAULT '{}',
+  caution_foods TEXT[] DEFAULT '{}',
+  dietary_reason TEXT,
+  key_nutrients JSONB,
+  complication_risks TEXT[] DEFAULT '{}',
+  general_precautions TEXT[] DEFAULT '{}',
+  created_at TIMESTAMP DEFAULT NOW(),
+  updated_at TIMESTAMP DEFAULT NOW()
+);
+
 -- ============================================
 -- 2. 인덱스 생성
 -- ============================================
@@ -55,6 +74,7 @@ CREATE INDEX IF NOT EXISTS idx_food_records_user_id ON food_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_food_records_created_at ON food_records(created_at DESC);
 CREATE INDEX IF NOT EXISTS idx_medicine_records_user_id ON medicine_records(user_id);
 CREATE INDEX IF NOT EXISTS idx_medicine_records_is_active ON medicine_records(is_active);
+CREATE INDEX IF NOT EXISTS idx_disease_enhanced_info_name ON disease_enhanced_info(disease_name);
 
 -- ============================================
 -- 3. RLS (Row Level Security) 설정
@@ -126,6 +146,15 @@ USING (true);
 
 CREATE POLICY "Enable delete for all users on medicine_records" 
 ON medicine_records FOR DELETE 
+USING (true);
+
+-- disease_enhanced_info 테이블 RLS (읽기 전용 - 관리자만 수정)
+ALTER TABLE disease_enhanced_info ENABLE ROW LEVEL SECURITY;
+
+DROP POLICY IF EXISTS "Enable read access for all users on disease_enhanced_info" ON disease_enhanced_info;
+
+CREATE POLICY "Enable read access for all users on disease_enhanced_info" 
+ON disease_enhanced_info FOR SELECT 
 USING (true);
 
 -- ============================================

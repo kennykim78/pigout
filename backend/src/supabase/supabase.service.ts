@@ -639,5 +639,40 @@ export class SupabaseService {
       return null;
     }
   }
-}
 
+  /**
+   * 질병 강화 정보 조회 (미리 생성된 데이터)
+   * @param diseaseNames 질병명 배열
+   * @returns 질병별 강화 정보
+   */
+  async getDiseaseEnhancedInfo(diseaseNames: string[]): Promise<any[]> {
+    try {
+      if (!diseaseNames || diseaseNames.length === 0) {
+        return [];
+      }
+
+      console.log(`[질병 강화 정보] 조회 시작: ${diseaseNames.join(', ')}`);
+
+      const { data, error } = await this.supabase
+        .from('disease_enhanced_info')
+        .select('*')
+        .in('disease_name', diseaseNames);
+
+      if (error) {
+        console.error(`[질병 강화 정보] 조회 오류:`, error);
+        return [];
+      }
+
+      if (!data || data.length === 0) {
+        console.warn(`[질병 강화 정보] 데이터 없음: ${diseaseNames.join(', ')}`);
+        return [];
+      }
+
+      console.log(`[질병 강화 정보] ${data.length}개 조회 완료`);
+      return data;
+    } catch (error) {
+      console.error(`[질병 강화 정보] 예외 발생:`, error.message);
+      return [];
+    }
+  }
+}
