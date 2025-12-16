@@ -602,16 +602,35 @@ export class FoodService {
         }
       }
       
-      // 사용자 복용 약물 목록 조회 (간단히 이름만)
+      // 🆕 사용자 복용 약물 목록 조회 (강화 정보 포함)
       const supabase = this.supabaseService.getClient();
       const { data: medicines } = await supabase
         .from('medicine_records')
-        .select('name')
+        .select('name, qr_code_data')
         .eq('user_id', userId)
         .eq('is_active', true);
       
       const medicineNames = (medicines || []).map((m: any) => m.name);
-      console.log('[순수AI] 복용 약물:', medicineNames);
+      
+      // 🆕 강화 정보 추출 (토큰 절약용)
+      const enhancedMedicineInfo = (medicines || []).map((m: any) => {
+        try {
+          const qrData = m.qr_code_data ? JSON.parse(m.qr_code_data) : {};
+          const enhancedInfo = qrData.enhancedInfo;
+          if (enhancedInfo) {
+            return {
+              name: m.name,
+              category: enhancedInfo.category,
+              foodInteractions: enhancedInfo.foodInteractions,
+            };
+          }
+        } catch (err) {
+          console.warn(`[강화정보] ${m.name} 파싱 실패:`, err.message);
+        }
+        return null;
+      }).filter(Boolean);
+      
+      console.log(`[순수AI] 복용 약물: ${medicineNames.length}개, 강화정보: ${enhancedMedicineInfo.length}개`);
 
       // ================================================================
       // 🆕 계층적 분석 1단계: 규칙 기반 분석 (DB에서 조회)
@@ -736,9 +755,10 @@ export class FoodService {
       const aiAnalysis = await geminiClient.quickAIAnalysis(
         normalizedFoodName, // 🆕 정규화된 음식명 사용
         diseases,
-        medicineNames
+        medicineNames,
+        enhancedMedicineInfo.length > 0 ? enhancedMedicineInfo : undefined // 🆕 강화 정보 전달
       );
-      console.log('[순수AI] Gemini 분석 완료');
+      console.log(`[순수AI] Gemini 분석 완료 (강화정보 활용: ${enhancedMedicineInfo.length > 0 ? 'YES' : 'NO'})`);
 
       const score = aiAnalysis.suitabilityScore || 60;
       
@@ -875,12 +895,31 @@ export class FoodService {
       const supabase = this.supabaseService.getClient();
       const { data: medicines } = await supabase
         .from('medicine_records')
-        .select('name')
+        .select('name, qr_code_data')
         .eq('user_id', userId)
         .eq('is_active', true);
       
       const medicineNames = (medicines || []).map((m: any) => m.name);
-      console.log('[simpleAnalyze] 복용 약물:', medicineNames);
+      
+      // 🆕 강화 정보 추출 (토큰 절약용)
+      const enhancedMedicineInfo = (medicines || []).map((m: any) => {
+        try {
+          const qrData = m.qr_code_data ? JSON.parse(m.qr_code_data) : {};
+          const enhancedInfo = qrData.enhancedInfo;
+          if (enhancedInfo) {
+            return {
+              name: m.name,
+              category: enhancedInfo.category,
+              foodInteractions: enhancedInfo.foodInteractions,
+            };
+          }
+        } catch (err) {
+          console.warn(`[강화정보] ${m.name} 파싱 실패:`, err.message);
+        }
+        return null;
+      }).filter(Boolean);
+      
+      console.log(`[simpleAnalyze] 복용 약물: ${medicineNames.length}개, 강화정보: ${enhancedMedicineInfo.length}개`);
 
       // ================================================================
       // 캐시 체크: 동일한 음식+질병+약물 조합이 캐시에 있는지 확인
@@ -1201,6 +1240,7 @@ export class FoodService {
           userMedicineId: medicine.id,
           analyzedInfo: aiAnalyzedInfo, // 🔑 등록 시 저장된 AI 분석 정보
           publicData: publicData, // 🔑 등록 시 저장된 공공데이터
+          enhancedInfo: qrData.enhancedInfo || null, // 🆕 토큰 절약 강화 정보
           dataSource,
         };
       });

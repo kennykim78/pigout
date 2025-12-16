@@ -507,11 +507,17 @@ JSON 형식으로만 응답:
   /**
    * 공공데이터 없이 순수 AI 지식만으로 빠른 분석 수행
    * Result01용 - 간략한 정보만 제공 (각 항목 1줄씩)
+   * 🆕 enhancedMedicineInfo 추가: 토큰 절약을 위한 미리 생성된 약 정보
    */
   async quickAIAnalysis(
     foodName: string,
     diseases: string[],
     medicines: string[] = [],
+    enhancedMedicineInfo?: Array<{
+      name: string;
+      category: string;
+      foodInteractions: { avoid: string[]; caution: string[] };
+    }>,
   ): Promise<{
     suitabilityScore: number;
     pros: string;
@@ -526,7 +532,24 @@ JSON 형식으로만 응답:
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
-        const medicineList = medicines.length > 0 ? medicines.join(', ') : '없음';
+        
+        // 🆕 강화 정보가 있으면 활용, 없으면 기존 방식 (약 이름만)
+        let medicineInfo = '';
+        if (enhancedMedicineInfo && enhancedMedicineInfo.length > 0) {
+          medicineInfo = enhancedMedicineInfo
+            .map(m => {
+              const avoid = m.foodInteractions.avoid.length > 0 
+                ? `금기: ${m.foodInteractions.avoid.join(', ')}` 
+                : '';
+              const caution = m.foodInteractions.caution.length > 0
+                ? `주의: ${m.foodInteractions.caution.join(', ')}`
+                : '';
+              return `${m.name}(${m.category}) ${avoid} ${caution}`.trim();
+            })
+            .join(' | ');
+        } else {
+          medicineInfo = medicines.length > 0 ? medicines.join(', ') : '없음';
+        }
 
         const prompt = `당신은 Pigout AI입니다. 임상 약학, 영양학, 공공데이터를 종합하여 분석합니다.
 빠르고 간결하게 분석해주세요.
@@ -534,7 +557,7 @@ JSON 형식으로만 응답:
 【환자 정보】
 - 음식: ${foodName}
 - 질병: ${diseaseList}
-- 복용 약: ${medicineList}
+- 복용 약: ${medicineInfo}
 
 【요청】
 각 항목을 정확히 1줄(50자 이내)로 작성하세요. 길게 쓰지 마세요.
@@ -884,7 +907,7 @@ JSON만 반환:
   async analyzeDrugFoodInteractions(
     foodName: string,
     foodAnalysis: any,
-    drugDetails: Array<{ name: string; analyzedInfo?: any; publicData?: any }>,
+    drugDetails: Array<{ name: string; analyzedInfo?: any; publicData?: any; enhancedInfo?: any }>,
     diseases: string[]
   ): Promise<{
     interactions: Array<{
@@ -2280,7 +2303,148 @@ JSON 형식으로만 응답:
       };
     }
   }
+
+  /**
+   * 약 등록 시 토큰 절약을 위한 추가 정보 생성
+   * - 약물-음식 상호작용 요약
+   * - 약물 카테고리/태그
+   * - 주요 금기사항
+   * @param medicineData 약 정보 (qr_code_data 또는 공공데이터)
+   * @returns 토큰 최적화된 추가 정보
+   */
+  async generateMedicineEnhancedInfo(medicineData: {
+    itemName: string;
+    efcyQesitm?: string;
+    useMethodQesitm?: string;
+    atpnWarnQesitm?: string;
+    atpnQesitm?: string;
+    intrcQesitm?: string;
+    seQesitm?: string;
+    depositMethodQesitm?: string;
+    aiAnalyzedInfo?: any;
+  }): Promise<{
+    foodInteractions: {
+      avoid: string[];
+      caution: string[];
+      reason: string;
+    };
+    category: string;
+    tags: string[];
+    riskLevel: 'low' | 'medium' | 'high';
+    keyPrecautions: string[];
+    summarizedInfo: {
+      efficacy: string;
+      usage: string;
+      sideEffects: string;
+      precautions: string;
+      interactions: string;
+    };
+  }> {
+    try {
+      console.log(`[AI 약 정보 강화] 시작: ${medicineData.itemName}`);
+
+      // AI 분석 정보가 있으면 우선 사용
+      const efficacy = medicineData.aiAnalyzedInfo?.efficacy || medicineData.efcyQesitm || '';
+      const usage = medicineData.aiAnalyzedInfo?.usage || medicineData.useMethodQesitm || '';
+      const sideEffects = medicineData.aiAnalyzedInfo?.sideEffects || medicineData.seQesitm || '';
+      const precautions = 
+        medicineData.aiAnalyzedInfo?.precautions || 
+        medicineData.atpnWarnQesitm || 
+        medicineData.atpnQesitm || 
+        '';
+      const interactions = medicineData.aiAnalyzedInfo?.interactions || medicineData.intrcQesitm || '';
+
+      const prompt = `당신은 약물 정보 분석 전문가입니다.
+다음 약물 정보를 분석하여 토큰 절약을 위한 핵심 정보만 추출하세요.
+
+약물명: ${medicineData.itemName}
+
+효능효과:
+${efficacy.substring(0, 500)}
+
+용법용량:
+${usage.substring(0, 300)}
+
+부작용:
+${sideEffects.substring(0, 300)}
+
+주의사항:
+${precautions.substring(0, 500)}
+
+상호작용:
+${interactions.substring(0, 500)}
+
+다음 정보를 JSON 형식으로 생성하세요:
+
+{
+  "foodInteractions": {
+    "avoid": ["피해야 할 음식/성분 목록 (최대 5개, 구체적으로)"],
+    "caution": ["주의해야 할 음식/성분 목록 (최대 5개)"],
+    "reason": "상호작용 이유 (100자 이내, 핵심만)"
+  },
+  "category": "약물 카테고리 (예: 해열진통제, 항생제, 고혈압약, 당뇨약, 소화제 등)",
+  "tags": ["주요 특성 태그 3-5개"],
+  "riskLevel": "low | medium | high (부작용 위험도)",
+  "keyPrecautions": ["핵심 주의사항 3-5개 (각 50자 이내)"],
+  "summarizedInfo": {
+    "efficacy": "효능 요약 (100자 이내)",
+    "usage": "용법 요약 (80자 이내)",
+    "sideEffects": "부작용 요약 (100자 이내)",
+    "precautions": "주의사항 요약 (150자 이내)",
+    "interactions": "상호작용 요약 (150자 이내)"
+  }
 }
 
+요구사항:
+1. 음식 상호작용은 구체적으로 (예: "자몽", "우유", "알코올")
+2. 카테고리는 한 단어로 명확히
+3. 위험도는 부작용과 상호작용을 고려
+4. 핵심만 추출하여 토큰 절약`;
 
+      let rawText: string;
+      try {
+        rawText = await this.callWithRetry(async () => {
+          return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+        });
+      } catch (error) {
+        console.warn('[AI 약 정보 강화] REST API 재시도:', error.message);
+        rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+      }
 
+      const result = this.extractJsonObject(rawText);
+      
+      console.log(`[AI 약 정보 강화] 성공: ${medicineData.itemName} - 카테고리: ${result.category}`);
+      
+      return {
+        foodInteractions: result.foodInteractions || { avoid: [], caution: [], reason: '' },
+        category: result.category || '일반의약품',
+        tags: result.tags || [],
+        riskLevel: result.riskLevel || 'low',
+        keyPrecautions: result.keyPrecautions || [],
+        summarizedInfo: result.summarizedInfo || {
+          efficacy: efficacy.substring(0, 100),
+          usage: usage.substring(0, 80),
+          sideEffects: sideEffects.substring(0, 100),
+          precautions: precautions.substring(0, 150),
+          interactions: interactions.substring(0, 150),
+        },
+      };
+    } catch (error) {
+      console.error('[AI 약 정보 강화] 실패:', error.message);
+      // 기본값 반환
+      return {
+        foodInteractions: { avoid: [], caution: [], reason: '정보 없음' },
+        category: '일반의약품',
+        tags: [],
+        riskLevel: 'low',
+        keyPrecautions: [],
+        summarizedInfo: {
+          efficacy: medicineData.efcyQesitm?.substring(0, 100) || '',
+          usage: medicineData.useMethodQesitm?.substring(0, 80) || '',
+          sideEffects: medicineData.seQesitm?.substring(0, 100) || '',
+          precautions: (medicineData.atpnWarnQesitm || medicineData.atpnQesitm || '').substring(0, 150),
+          interactions: medicineData.intrcQesitm?.substring(0, 150) || '',
+        },
+      };
+    }
+  }}

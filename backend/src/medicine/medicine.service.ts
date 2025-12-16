@@ -514,6 +514,7 @@ export class MedicineService {
     // 🧠 등록 시점 AI 약품 정보 분석 (공공데이터를 보강하여 캐시)
     let aiAnalyzedInfo: any = null;
     let aiScheduleInfo: any = null;
+    let enhancedInfo: any = null;
     try {
       const geminiApiKey = process.env.GEMINI_API_KEY;
       if (geminiApiKey) {
@@ -529,6 +530,20 @@ export class MedicineService {
           aiScheduleInfo = await geminiClient.analyzeMedicineSchedule(itemName, detailedData);
           console.log(`✅ [약 등록] AI 복용 시간대 분석 완료:`, aiScheduleInfo);
         }
+
+        // 🆕 토큰 절약을 위한 강화 정보 생성 (음식 상호작용, 카테고리, 핵심 주의사항)
+        enhancedInfo = await geminiClient.generateMedicineEnhancedInfo({
+          itemName,
+          efcyQesitm: detailedData.efcyQesitm,
+          useMethodQesitm: detailedData.useMethodQesitm,
+          atpnWarnQesitm: detailedData.atpnWarnQesitm,
+          atpnQesitm: detailedData.atpnQesitm,
+          intrcQesitm: detailedData.intrcQesitm,
+          seQesitm: detailedData.seQesitm,
+          depositMethodQesitm: detailedData.depositMethodQesitm,
+          aiAnalyzedInfo,
+        });
+        console.log(`✅ [약 등록] 토큰 절약 강화 정보 생성 완료 - 카테고리: ${enhancedInfo.category}`);
       }
     } catch (aiErr) {
       console.warn('⚠️ [약 등록] AI 분석 실패:', aiErr.message);
@@ -552,7 +567,7 @@ export class MedicineService {
       drug_class: entpName,
       dosage: dosage,
       frequency: frequency,
-      // 모든 API 상세 정보를 qr_code_data JSON에 포함 (🆕 성분 정보 + 복용 시간대 추가)
+      // 모든 API 상세 정보를 qr_code_data JSON에 포함 (🆕 성분 정보 + 복용 시간대 + 강화 정보 추가)
       qr_code_data: JSON.stringify({
         itemSeq: itemSeq,
         itemName: itemName,
@@ -572,6 +587,8 @@ export class MedicineService {
         aiAnalyzedInfo,
         // 🆕 AI 복용 시간대 분석 캐시
         aiScheduleInfo,
+        // 🆕 토큰 절약 강화 정보 (음식 상호작용, 카테고리, 핵심 주의사항)
+        enhancedInfo,
       }),
       is_active: true,
     };
