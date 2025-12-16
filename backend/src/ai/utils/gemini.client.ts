@@ -518,6 +518,14 @@ JSON 형식으로만 응답:
       category: string;
       foodInteractions: { avoid: string[]; caution: string[] };
     }>,
+    diseaseEnhancedInfo?: Array<{
+      disease_name: string;
+      category: string;
+      severity: string;
+      avoid_foods: string[];
+      caution_foods: string[];
+      dietary_reason: string;
+    }>,
   ): Promise<{
     suitabilityScore: number;
     pros: string;
@@ -531,9 +539,25 @@ JSON 형식으로만 응답:
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
+        // 🆕 질병 강화 정보가 있으면 활용, 없으면 기존 방식 (질병 이름만)
+        let diseaseInfo = '';
+        if (diseaseEnhancedInfo && diseaseEnhancedInfo.length > 0) {
+          diseaseInfo = diseaseEnhancedInfo
+            .map(d => {
+              const avoid = d.avoid_foods.length > 0 
+                ? `피할음식: ${d.avoid_foods.slice(0, 3).join(', ')}` 
+                : '';
+              const caution = d.caution_foods.length > 0
+                ? `주의음식: ${d.caution_foods.slice(0, 3).join(', ')}`
+                : '';
+              return `${d.disease_name}(${d.category}, ${d.severity}) ${avoid} ${caution}`.trim();
+            })
+            .join(' | ');
+        } else {
+          diseaseInfo = diseases.length > 0 ? diseases.join(', ') : '없음';
+        }
         
-        // 🆕 강화 정보가 있으면 활용, 없으면 기존 방식 (약 이름만)
+        // 🆕 약 강화 정보가 있으면 활용, 없으면 기존 방식 (약 이름만)
         let medicineInfo = '';
         if (enhancedMedicineInfo && enhancedMedicineInfo.length > 0) {
           medicineInfo = enhancedMedicineInfo
@@ -556,7 +580,7 @@ JSON 형식으로만 응답:
 
 【환자 정보】
 - 음식: ${foodName}
-- 질병: ${diseaseList}
+- 질병: ${diseaseInfo}
 - 복용 약: ${medicineInfo}
 
 【요청】

@@ -641,11 +641,14 @@ export class SupabaseService {
   }
 
   /**
-   * 질병 강화 정보 조회 (미리 생성된 데이터)
+   * 질병별 강화 정보 조회 (없으면 자동 생성)
+   * - DB에 있는 질병: 즉시 조회
+   * - DB에 없는 질병: AI로 생성 후 DB에 저장
    * @param diseaseNames 질병명 배열
+   * @param geminiClient Gemini 클라이언트 (자동 생성용)
    * @returns 질병별 강화 정보
    */
-  async getDiseaseEnhancedInfo(diseaseNames: string[]): Promise<any[]> {
+  async getDiseaseEnhancedInfo(diseaseNames: string[], geminiClient?: any): Promise<any[]> {
     try {
       if (!diseaseNames || diseaseNames.length === 0) {
         return [];
@@ -653,6 +656,7 @@ export class SupabaseService {
 
       console.log(`[질병 강화 정보] 조회 시작: ${diseaseNames.join(', ')}`);
 
+      // 1. DB에서 조회
       const { data, error } = await this.supabase
         .from('disease_enhanced_info')
         .select('*')
@@ -663,13 +667,68 @@ export class SupabaseService {
         return [];
       }
 
-      if (!data || data.length === 0) {
-        console.warn(`[질병 강화 정보] 데이터 없음: ${diseaseNames.join(', ')}`);
-        return [];
+      const foundDiseases = data || [];
+      const foundNames = foundDiseases.map(d => d.disease_name);
+      const missingNames = diseaseNames.filter(name => !foundNames.includes(name));
+
+      console.log(`[질병 강화 정보] DB 조회: ${foundDiseases.length}개 / 미등록: ${missingNames.length}개`);
+
+      // 2. DB에 없는 질병이 있고 geminiClient가 제공된 경우 자동 생성
+      if (missingNames.length > 0 && geminiClient) {
+        console.log(`[질병 강화 정보] AI 생성 시작: ${missingNames.join(', ')}`);
+        
+        const newDiseases = [];
+        for (const diseaseName of missingNames) {
+          try {
+            // AI로 강화 정보 생성
+            const enhancedInfo = await geminiClient.generateDiseaseEnhancedInfo(diseaseName);
+            
+            // DB에 저장
+            const { data: savedData, error: saveError } = await this.supabase
+              .from('disease_enhanced_info')
+              .upsert({
+                disease_name: diseaseName,
+                category: enhancedInfo.category,
+                severity: enhancedInfo.severity,
+                chronic_type: enhancedInfo.chronicType,
+                tags: enhancedInfo.tags,
+                recommended_foods: enhancedInfo.recommendedFoods,
+                avoid_foods: enhancedInfo.avoidFoods,
+                caution_foods: enhancedInfo.cautionFoods,
+                dietary_reason: enhancedInfo.dietaryReason,
+                key_nutrients: enhancedInfo.keyNutrients,
+                complication_risks: enhancedInfo.complicationRisks,
+                general_precautions: enhancedInfo.generalPrecautions,
+                updated_at: new Date().toISOString(),
+              }, {
+                onConflict: 'disease_name',
+              })
+              .select();
+
+            if (saveError) {
+              console.error(`[질병 강화 정보] ${diseaseName} 저장 실패:`, saveError.message);
+            } else if (savedData && savedData.length > 0) {
+              console.log(`[질병 강화 정보] ${diseaseName} 생성 및 저장 완료`);
+              newDiseases.push(savedData[0]);
+            }
+          } catch (genError) {
+            console.error(`[질병 강화 정보] ${diseaseName} 생성 실패:`, genError.message);
+          }
+        }
+
+        // 3. 기존 데이터 + 새로 생성된 데이터 반환
+        const allDiseases = [...foundDiseases, ...newDiseases];
+        console.log(`[질병 강화 정보] 총 ${allDiseases.length}개 반환 (DB: ${foundDiseases.length}, 신규: ${newDiseases.length})`);
+        return allDiseases;
       }
 
-      console.log(`[질병 강화 정보] ${data.length}개 조회 완료`);
-      return data;
+      // geminiClient가 없거나 모든 질병이 DB에 있는 경우
+      if (missingNames.length > 0) {
+        console.warn(`[질병 강화 정보] 미등록 질병 ${missingNames.length}개 (AI 생성 불가): ${missingNames.join(', ')}`);
+      }
+      
+      console.log(`[질병 강화 정보] ${foundDiseases.length}개 조회 완료`);
+      return foundDiseases;
     } catch (error) {
       console.error(`[질병 강화 정보] 예외 발생:`, error.message);
       return [];

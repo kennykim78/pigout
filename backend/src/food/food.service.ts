@@ -750,15 +750,28 @@ export class FoodService {
       console.log('[Cache] 캐시 미스. 새로운 AI 분석 수행...');
       // ================================================================
 
+      // 🆕 질병 강화 정보 조회 (토큰 절약)
+      let diseaseEnhancedInfo = [];
+      if (diseases.length > 0) {
+        try {
+          const geminiClient = await this.getGeminiClient();
+          diseaseEnhancedInfo = await this.supabaseService.getDiseaseEnhancedInfo(diseases, geminiClient);
+          console.log(`[질병 강화 정보] ${diseaseEnhancedInfo.length}개 조회됨`);
+        } catch (error) {
+          console.error('[질병 강화 정보] 조회 실패:', error.message);
+        }
+      }
+
       // 🆕 계층적 분석 2단계: Gemini AI로 순수 지식 기반 빠른 분석 (공공데이터 조회 없음!)
       const geminiClient = await this.getGeminiClient();
       const aiAnalysis = await geminiClient.quickAIAnalysis(
         normalizedFoodName, // 🆕 정규화된 음식명 사용
         diseases,
         medicineNames,
-        enhancedMedicineInfo.length > 0 ? enhancedMedicineInfo : undefined // 🆕 강화 정보 전달
+        enhancedMedicineInfo.length > 0 ? enhancedMedicineInfo : undefined, // 🆕 약 강화 정보 전달
+        diseaseEnhancedInfo.length > 0 ? diseaseEnhancedInfo : undefined // 🆕 질병 강화 정보 전달
       );
-      console.log(`[순수AI] Gemini 분석 완료 (강화정보 활용: ${enhancedMedicineInfo.length > 0 ? 'YES' : 'NO'})`);
+      console.log(`[순수AI] Gemini 분석 완료 (약 강화정보: ${enhancedMedicineInfo.length}, 질병 강화정보: ${diseaseEnhancedInfo.length})`);
 
       const score = aiAnalysis.suitabilityScore || 60;
       
@@ -966,14 +979,28 @@ export class FoodService {
       console.log('[Cache] 캐시 미스. 새로운 AI 분석 수행...');
       // ================================================================
 
+      // 🆕 질병 강화 정보 조회 (토큰 절약)
+      let diseaseEnhancedInfo = [];
+      if (diseases.length > 0) {
+        try {
+          const geminiClient = await this.getGeminiClient();
+          diseaseEnhancedInfo = await this.supabaseService.getDiseaseEnhancedInfo(diseases, geminiClient);
+          console.log(`[질병 강화 정보] ${diseaseEnhancedInfo.length}개 조회됨`);
+        } catch (error) {
+          console.error('[질병 강화 정보] 조회 실패:', error.message);
+        }
+      }
+
       // 순수 AI 분석 (공공데이터 조회 없음!)
       const geminiClient = await this.getGeminiClient();
       const aiAnalysis = await geminiClient.quickAIAnalysis(
         actualFoodName,
         diseases,
-        medicineNames
+        medicineNames,
+        undefined, // enhancedMedicineInfo는 이미 위에서 정의됨
+        diseaseEnhancedInfo.length > 0 ? diseaseEnhancedInfo : undefined
       );
-      console.log('[simpleAnalyze] AI 분석 완료');
+      console.log(`[simpleAnalyze] AI 분석 완료 (질병 강화정보: ${diseaseEnhancedInfo.length})`);
 
       const score = aiAnalysis.suitabilityScore || 60;
       
