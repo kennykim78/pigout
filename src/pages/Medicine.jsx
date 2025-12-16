@@ -71,6 +71,17 @@ const Medicine = () => {
       const data = await getMyMedicines(true);
       console.log('[Medicine.jsx] Loaded medicines:', data);
       console.log('[Medicine.jsx] Medicine keys:', data?.[0] ? Object.keys(data[0]) : 'No data');
+      console.log('🔍 [Medicine] 약 목록:', {
+        count: data?.length || 0,
+        medicines: data?.map((med, idx) => ({
+          idx,
+          itemName: med.itemName,
+          entpName: med.entpName,
+          itemSeq: med.itemSeq,
+          hasEfcyQesitm: !!med.efcyQesitm,
+          hasDetails: !!(med.useMethodQesitm || med.atpnWarnQesitm || med.intrcQesitm),
+        }))
+      });
       setMedicines(data);
     } catch (error) {
       console.error('Failed to load medicines:', error);
@@ -525,6 +536,19 @@ const Medicine = () => {
       updateStep('usage', 'done');
       updateStep('public', 'active');
 
+      console.log('🔍 [Medicine] 약 추가 요청:', {
+        itemName: medicine.itemName,
+        entpName: medicine.entpName,
+        itemSeq: medicine.itemSeq,
+        hasEfcyQesitm: !!medicine.efcyQesitm,
+        hasUseMethod: !!medicine.useMethodQesitm,
+        hasAtpnWarn: !!medicine.atpnWarnQesitm,
+        hasIntrc: !!medicine.intrcQesitm,
+        hasSeQesitm: !!medicine.seQesitm,
+        hasDepositMethod: !!medicine.depositMethodQesitm,
+        isHealthFood: isHealthFood,
+      });
+
       const result = await addMedicineAPI({
         itemName: medicine.itemName,
         entpName: medicine.entpName,
@@ -537,6 +561,8 @@ const Medicine = () => {
         depositMethodQesitm: medicine.depositMethodQesitm,
         isHealthFood: isHealthFood, // 🆕 의약품/건강기능식품 구분 정보 전달
       });
+
+      console.log('✅ [Medicine] 약 추가 성공:', result);
 
       updateStep('public', 'done');
       updateStep('register', 'active');

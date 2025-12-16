@@ -181,6 +181,33 @@ const Result2 = () => {
     console.log('=== Result2 useEffect 실행 ===');
     console.log('location.state:', location.state);
     
+    // 🔍 약 목록 먼저 조회 (디버깅용)
+    const checkMedicines = async () => {
+      try {
+        const deviceId = getDeviceId();
+        console.log('🔍 [Result2 useEffect] Device ID:', deviceId);
+        
+        const medicines = await getMyMedicines();
+        console.log('🔍 [Result2 useEffect] 등록된 약 목록:', medicines);
+        console.log('🔍 [Result2 useEffect] 약 개수:', medicines?.data?.length || 0);
+        if (medicines?.data?.length > 0) {
+          medicines.data.forEach((med, idx) => {
+            console.log(`  [${idx}] ${med.itemName}:`, {
+              entpName: med.entpName,
+              itemSeq: med.itemSeq,
+              efcyQesitm: med.efcyQesitm?.substring(0, 50),
+              hasDetails: !!(med.useMethodQesitm || med.atpnWarnQesitm || med.intrcQesitm)
+            });
+          });
+        } else {
+          console.warn('⚠️ [Result2 useEffect] 등록된 약이 없습니다!');
+        }
+      } catch (error) {
+        console.error('❌ [Result2 useEffect] 약 목록 조회 실패:', error);
+      }
+    };
+    checkMedicines();
+    
     if (location.state) {
       if (location.state.foodName) {
         console.log('✅ foodName 설정:', location.state.foodName);
