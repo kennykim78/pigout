@@ -1168,18 +1168,18 @@ export class FoodService {
             // 등록 시 저장된 AI 분석 정보 추출
             aiAnalyzedInfo = qrData.aiAnalyzedInfo || null;
 
-            // 공공데이터 정보 추출 (DB 직접 필드 우선, qr_code_data는 대체)
+            // 공공데이터 정보 추출 (qr_code_data에서 가져옴)
             publicData = {
-              itemSeq: medicine.item_seq || qrData.itemSeq,
+              itemSeq: qrData.itemSeq,
               itemName: medicine.name,
-              entpName: medicine.entp_name || qrData.entpName,
-              efcyQesitm: medicine.efcy_qesitm || qrData.efcyQesitm,
-              useMethodQesitm: medicine.use_method_qesitm || qrData.useMethodQesitm,
-              atpnWarnQesitm: medicine.atpn_warn_qesitm || qrData.atpnWarnQesitm,
-              atpnQesitm: medicine.atpn_qesitm || qrData.atpnQesitm,
-              intrcQesitm: medicine.intrc_qesitm || qrData.intrcQesitm,
-              seQesitm: medicine.se_qesitm || qrData.seQesitm,
-              depositMethodQesitm: medicine.deposit_method_qesitm || qrData.depositMethodQesitm,
+              entpName: medicine.drug_class || qrData.entpName,
+              efcyQesitm: qrData.efcyQesitm,
+              useMethodQesitm: qrData.useMethodQesitm,
+              atpnWarnQesitm: qrData.atpnWarnQesitm,
+              atpnQesitm: qrData.atpnQesitm,
+              intrcQesitm: qrData.intrcQesitm,
+              seQesitm: qrData.seQesitm,
+              depositMethodQesitm: qrData.depositMethodQesitm,
             };
           }
         } catch (parseError) {
