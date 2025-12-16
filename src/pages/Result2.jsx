@@ -119,6 +119,22 @@ const Result2 = () => {
         if (data.success && data.data) {
           setAnalysis(data.data.analysis);
           setDetailedAnalysis(data.data.detailedAnalysis);
+          
+          // 🔍 약 정보 디버깅
+          console.log('🔍 [Result2] 약 정보 디버깅:');
+          console.log('  - drug_food_interactions:', data.data.detailedAnalysis?.medicalAnalysis?.drug_food_interactions);
+          if (data.data.detailedAnalysis?.medicalAnalysis?.drug_food_interactions) {
+            data.data.detailedAnalysis.medicalAnalysis.drug_food_interactions.forEach((interaction, idx) => {
+              console.log(`  [${idx}] ${interaction.medicine_name}:`, {
+                risk_level: interaction.risk_level,
+                interaction_description: interaction.interaction_description?.substring(0, 100),
+                recommendation: interaction.recommendation?.substring(0, 100),
+                components: interaction.components,
+                food_components: interaction.food_components,
+                medicines: interaction.medicines,
+              });
+            });
+          }
         }
         setStreamProgress(100);
         setIsStreaming(false);

@@ -530,6 +530,11 @@ const Medicine = () => {
         entpName: medicine.entpName,
         itemSeq: medicine.itemSeq,
         efcyQesitm: medicine.efcyQesitm,
+        useMethodQesitm: medicine.useMethodQesitm,
+        atpnWarnQesitm: medicine.atpnWarnQesitm,
+        intrcQesitm: medicine.intrcQesitm,
+        seQesitm: medicine.seQesitm,
+        depositMethodQesitm: medicine.depositMethodQesitm,
         isHealthFood: isHealthFood, // 🆕 의약품/건강기능식품 구분 정보 전달
       });
 
