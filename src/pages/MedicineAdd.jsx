@@ -438,44 +438,54 @@ const MedicineAdd = () => {
 
   return (
     <div className="medicine">
-      {/* 헤더 */}
-      <header className="medicine__header">
+      {/* 심플한 헤더 - Main 스타일 */}
+      <div className="medicine__header">
         <div className="medicine__header-content">
           <button 
             className="medicine__back-button"
             onClick={() => navigate('/medicine')}
+            aria-label="뒤로 가기"
           >
-            ←
+            <span className="material-symbols-rounded">arrow_back</span>
           </button>
-          <h1>내약 추가</h1>
+          <h1 className="medicine__title">약 추가하기</h1>
+          <div style={{ width: '40px' }}></div>
         </div>
-      </header>
-
-      {/* 탭 */}
-      <div className="medicine__tabs medicine__tabs--add">
-        <button
-          className={`medicine__tab ${addSubTab === 'medicine' ? 'medicine__tab--active' : ''}`}
-          onClick={() => setAddSubTab('medicine')}
-        >
-          💊 의약품
-        </button>
-        <button
-          className={`medicine__tab ${addSubTab === 'healthfood' ? 'medicine__tab--active' : ''}`}
-          onClick={() => setAddSubTab('healthfood')}
-        >
-          🥗 건강기능식품
-        </button>
       </div>
 
-      {/* 의약품 탭 */}
-      {addSubTab === 'medicine' && (
-        <div className="medicine__add">
-          <section className="medicine__section">
-            <h2 className="medicine__section-title">📸 약 촬영하기</h2>
-            <p className="medicine__section-desc">
-              약 봉지, 처방전, 알약 등을 촬영하면 AI가 자동으로 인식합니다
-            </p>
-            <div className="medicine__capture-buttons">
+      {/* 메인 컨텐츠 영역 */}
+      <div className="medicine__content">
+        {/* 탭 버튼 - Main 스타일의 큰 버튼 */}
+        <div className="medicine__tabs">
+          <button
+            className={`medicine__tab ${addSubTab === 'medicine' ? 'medicine__tab--active' : ''}`}
+            onClick={() => setAddSubTab('medicine')}
+          >
+            <span className="material-symbols-rounded">medication</span>
+            <span>의약품</span>
+          </button>
+          <button
+            className={`medicine__tab ${addSubTab === 'healthfood' ? 'medicine__tab--active' : ''}`}
+            onClick={() => setAddSubTab('healthfood')}
+          >
+            <span className="material-symbols-rounded">nutrition</span>
+            <span>건강기능식품</span>
+          </button>
+        </div>
+
+        {/* 의약품 탭 */}
+        {addSubTab === 'medicine' && (
+          <div className="medicine__add">
+            {/* AI 촬영 섹션 */}
+            <section className="medicine__section">
+              <h2 className="medicine__section-title">
+                <span className="material-symbols-rounded">photo_camera</span>
+                약 촬영하기
+              </h2>
+              <p className="medicine__section-desc">
+                약 봉지, 처방전, 알약 등을 촬영하면<br />AI가 자동으로 인식합니다
+              </p>
+              
               <input
                 ref={cameraInputRef}
                 type="file"
@@ -493,45 +503,47 @@ const MedicineAdd = () => {
               />
               
               <button
-                className="medicine__capture-btn medicine__capture-btn--primary"
+                className="medicine__capture-btn"
                 onClick={() => setShowImageSourceModal(true)}
                 disabled={isAnalyzingImage}
               >
-                📷 촬영하기
+                <span className="material-symbols-rounded">photo_camera</span>
+                <span>촬영하기</span>
               </button>
-            </div>
 
-            {isAnalyzingImage && (
-              <div className="medicine__analyzing">
-                <div className="medicine__analyzing-spinner"></div>
-                <p>🔍 AI가 약품을 분석하고 있습니다...</p>
-              </div>
-            )}
+              {isAnalyzingImage && (
+                <div className="medicine__analyzing">
+                  <div className="medicine__analyzing-spinner"></div>
+                  <p>🔍 AI가 약품을 분석하고 있습니다...</p>
+                </div>
+              )}
 
-            {capturedImage && !isAnalyzingImage && (
-              <div className="medicine__captured-preview">
-                <img src={capturedImage} alt="촬영된 약" />
-                <button
-                  className="medicine__recapture-btn"
-                  onClick={handleResetImageCapture}
-                >
-                  다시 촬영
-                </button>
-              </div>
-            )}
+              {capturedImage && !isAnalyzingImage && (
+                <div className="medicine__captured-preview">
+                  <img src={capturedImage} alt="촬영된 약" />
+                  <button
+                    className="medicine__recapture-btn"
+                    onClick={handleResetImageCapture}
+                  >
+                    다시 촬영
+                  </button>
+                </div>
+              )}
 
-            {imageAnalysisResult && !imageAnalysisResult.success && (
-              <div className="medicine__analysis-error">
-                <p>❌ {imageAnalysisResult.message}</p>
-                <button
-                  className="medicine__retry-btn"
-                  onClick={handleResetImageCapture}
-                >
-                  다시 시도
-                </button>
-              </div>
-            )}
+              {imageAnalysisResult && !imageAnalysisResult.success && (
+                <div className="medicine__analysis-error">
+                  <p>❌ {imageAnalysisResult.message}</p>
+                  <button
+                    className="medicine__retry-btn"
+                    onClick={handleResetImageCapture}
+                  >
+                    다시 시도
+                  </button>
+                </div>
+              )}
+            </section>
 
+            {/* AI 인식 결과 팝업 */}
             {showMedicineSelectPopup && imageAnalysisResult?.verifiedMedicines?.length > 0 && (
               <div className="medicine__select-popup-overlay">
                 <div className="medicine__select-popup">
@@ -609,10 +621,13 @@ const MedicineAdd = () => {
                 </div>
               </div>
             )}
-          </section>
 
-          <section className="medicine__section">
-            <h2 className="medicine__section-title">🔍 약 검색하기</h2>
+            {/* 검색 섹션 */}
+            <section className="medicine__section">
+            <h2 className="medicine__section-title">
+              <span className="material-symbols-rounded">search</span>
+              약 검색하기
+            </h2>
             <p className="medicine__section-desc">
               약 이름, 제조사, 성분명으로 검색하세요
             </p>
@@ -621,7 +636,7 @@ const MedicineAdd = () => {
               <input
                 type="text"
                 className="medicine__search-input"
-                placeholder="약 이름, 제조사, 성분명 입력"
+                placeholder="약 이름을 입력하세요"
                 value={searchKeyword}
                 onChange={(e) => setSearchKeyword(e.target.value)}
                 onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
@@ -631,31 +646,21 @@ const MedicineAdd = () => {
                 onClick={handleSearch}
                 disabled={isLoading}
               >
-                검색
+                <span className="material-symbols-rounded">search</span>
               </button>
             </div>
 
-            <div style={{
-              backgroundColor: medicines.length >= 15 ? '#FFEBEE' : '#E8F5E9',
-              border: `2px solid ${medicines.length >= 15 ? '#EF5350' : '#66BB6A'}`,
-              borderRadius: '8px',
-              padding: '12px 16px',
-              marginBottom: '16px',
-              marginTop: '12px',
-            }}>
-              <p style={{
-                margin: 0,
-                fontSize: '14px',
-                fontWeight: 'bold',
-                color: medicines.length >= 15 ? '#C62828' : '#2E7D32',
-              }}>
+            {/* 등록 현황 */}
+            <div className={`medicine__quota ${medicines.length >= 15 ? 'medicine__quota--full' : ''}`}>
+              <p>
                 {medicines.length >= 15 
                   ? '🚨 최대 개수(15개)에 도달했습니다.'
-                  : `📊 등록된 약: ${medicines.length}/15개 (남은 슬롯: ${15 - medicines.length}개)`
+                  : `📊 등록된 약: ${medicines.length}/15개`
                 }
               </p>
             </div>
 
+            {/* 검색 결과 */}
             <div className="medicine__search-results">
               {tabSuggestion && (
                 <div className="medicine__tab-suggestion">
@@ -738,11 +743,11 @@ const MedicineAdd = () => {
                 )
               )}
             </div>
-          </section>
-        </div>
-      )}
+            </section>
+          </div>
+        )}
 
-      {/* 건강기능식품 탭 */}
+        {/* 건강기능식품 탭 */}
       {addSubTab === 'healthfood' && (
         <div className="medicine__add">
           <section className="medicine__section">
@@ -873,8 +878,9 @@ const MedicineAdd = () => {
               )}
             </div>
           </section>
-        </div>
-      )}
+          </div>
+        )}
+      </div>
 
       {/* 약품 상세 정보 팝업 */}
       {showMedicineDetailPopup && (

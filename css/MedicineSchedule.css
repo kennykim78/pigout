@@ -1,3 +1,4 @@
+@charset "UTF-8";
 .medicine-schedule-container {
   margin-bottom: 24px;
 }
@@ -295,5 +296,334 @@
   }
   .medicine-schedule-container .schedule-indicator .indicator-label {
     display: none;
+  }
+}
+/* ========================================
+   복용 시간 수정 모달
+   ======================================== */
+.schedule-editor-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  -webkit-backdrop-filter: blur(4px);
+          backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  padding: 16px;
+  animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+.schedule-editor-modal {
+  background: white;
+  border-radius: 20px;
+  max-width: 480px;
+  width: 100%;
+  max-height: 90vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
+  animation: slideUp 0.3s ease-out;
+  display: flex;
+  flex-direction: column;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+.schedule-editor-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 24px;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.08);
+  background: linear-gradient(135deg, #fffef0 0%, #fffbf0 100%);
+}
+.schedule-editor-header h3 {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+.schedule-editor-header h3::before {
+  content: "⏰";
+  font-size: 20px;
+}
+.schedule-editor-header .schedule-editor-close {
+  background: rgba(0, 0, 0, 0.05);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 18px;
+  color: #666;
+  transition: all 0.2s ease;
+}
+.schedule-editor-header .schedule-editor-close:hover {
+  background: rgba(0, 0, 0, 0.1);
+  color: #333;
+  transform: rotate(90deg);
+}
+
+.schedule-editor-body {
+  padding: 24px;
+  overflow-y: auto;
+  flex: 1;
+}
+
+.schedule-editor-medicine {
+  background: linear-gradient(135deg, #f5d547 0%, #f5e071 100%);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 24px;
+  text-align: center;
+  box-shadow: 0 2px 8px rgba(245, 213, 71, 0.2);
+}
+.schedule-editor-medicine strong {
+  font-size: 16px;
+  font-weight: 700;
+  color: #333;
+  display: block;
+}
+.schedule-editor-medicine strong::before {
+  content: "💊 ";
+}
+
+.schedule-editor-section {
+  margin-bottom: 24px;
+}
+.schedule-editor-section label {
+  display: block;
+  margin-bottom: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+
+.schedule-editor-slots {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
+.schedule-editor-slot {
+  background: white;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  padding: 16px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+  min-height: 100px;
+}
+.schedule-editor-slot .slot-icon {
+  font-size: 28px;
+  transition: transform 0.2s ease;
+}
+.schedule-editor-slot .slot-label {
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+}
+.schedule-editor-slot .slot-time {
+  font-size: 12px;
+  color: #666;
+}
+.schedule-editor-slot:hover {
+  border-color: #f5d547;
+  background: #fffef0;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(245, 213, 71, 0.2);
+}
+.schedule-editor-slot:hover .slot-icon {
+  transform: scale(1.1);
+}
+.schedule-editor-slot.selected {
+  background: linear-gradient(135deg, #f5d547 0%, #f5e071 100%);
+  border-color: #f5d547;
+  box-shadow: 0 4px 16px rgba(245, 213, 71, 0.3);
+}
+.schedule-editor-slot.selected .slot-icon {
+  transform: scale(1.2);
+  animation: bounce 0.5s ease;
+}
+.schedule-editor-slot.selected .slot-label {
+  color: #333;
+  font-weight: 700;
+}
+.schedule-editor-slot.selected .slot-time {
+  color: #555;
+}
+
+@keyframes bounce {
+  0%, 100% {
+    transform: scale(1.2);
+  }
+  50% {
+    transform: scale(1.35);
+  }
+}
+.schedule-editor-hint {
+  margin: 0;
+  padding: 12px;
+  background: rgba(54, 162, 235, 0.08);
+  border-left: 3px solid #36a2eb;
+  border-radius: 8px;
+  font-size: 13px;
+  color: #555;
+}
+
+.schedule-editor-input {
+  width: 100%;
+  padding: 14px 16px;
+  border: 2px solid #e0e0e0;
+  border-radius: 12px;
+  font-size: 14px;
+  transition: all 0.2s ease;
+  box-sizing: border-box;
+}
+.schedule-editor-input:focus {
+  outline: none;
+  border-color: #f5d547;
+  background: #fffef0;
+  box-shadow: 0 0 0 4px rgba(245, 213, 71, 0.1);
+}
+.schedule-editor-input::-moz-placeholder {
+  color: #999;
+}
+.schedule-editor-input::placeholder {
+  color: #999;
+}
+
+.schedule-editor-footer {
+  display: flex;
+  gap: 12px;
+  padding: 16px 24px;
+  border-top: 1px solid rgba(0, 0, 0, 0.08);
+  background: #fafafa;
+}
+
+.schedule-editor-btn {
+  flex: 1;
+  padding: 14px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+.schedule-editor-btn-cancel {
+  background: white;
+  border: 2px solid #e0e0e0;
+  color: #666;
+}
+.schedule-editor-btn-cancel:hover {
+  background: #f5f5f5;
+  border-color: #d0d0d0;
+  color: #333;
+}
+.schedule-editor-btn-cancel:active {
+  transform: scale(0.98);
+}
+.schedule-editor-btn-save {
+  background: linear-gradient(135deg, #f5d547 0%, #f5e071 100%);
+  color: #333;
+  box-shadow: 0 4px 12px rgba(245, 213, 71, 0.3);
+}
+.schedule-editor-btn-save:hover {
+  box-shadow: 0 6px 16px rgba(245, 213, 71, 0.4);
+  transform: translateY(-2px);
+}
+.schedule-editor-btn-save:active {
+  transform: translateY(0);
+}
+
+/* 태그 편집 힌트 */
+.medicine-tag-editable {
+  cursor: pointer;
+  position: relative;
+}
+.medicine-tag-editable .medicine-tag-edit-icon {
+  opacity: 0;
+  transition: opacity 0.2s ease;
+  margin-left: 4px;
+  font-size: 12px;
+}
+.medicine-tag-editable:hover .medicine-tag-edit-icon {
+  opacity: 1;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 640px) {
+  .schedule-editor-modal {
+    max-width: 100%;
+    max-height: 95vh;
+    border-radius: 20px 20px 0 0;
+  }
+  .schedule-editor-header {
+    padding: 16px 20px;
+  }
+  .schedule-editor-header h3 {
+    font-size: 16px;
+  }
+  .schedule-editor-body {
+    padding: 20px;
+  }
+  .schedule-editor-slots {
+    grid-template-columns: 1fr;
+    gap: 10px;
+  }
+  .schedule-editor-slot {
+    flex-direction: row;
+    justify-content: flex-start;
+    padding: 12px 16px;
+    min-height: auto;
+  }
+  .schedule-editor-slot .slot-icon {
+    font-size: 24px;
+  }
+  .schedule-editor-slot .slot-label {
+    font-size: 13px;
+  }
+  .schedule-editor-slot .slot-time {
+    font-size: 11px;
+    margin-left: auto;
+  }
+  .schedule-editor-footer {
+    padding: 12px 20px;
+  }
+  .schedule-editor-btn {
+    padding: 12px 20px;
+    font-size: 14px;
   }
 }/*# sourceMappingURL=MedicineSchedule.css.map */

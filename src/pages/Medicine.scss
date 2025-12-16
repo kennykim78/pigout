@@ -39,6 +39,48 @@
     margin: 0;
   }
 
+  // MedicineAdd 페이지용 헤더 (뒤로가기 버튼 포함)
+  &__header-content {
+    &:has(.medicine__back-button) {
+      flex-direction: row;
+      justify-content: space-between;
+      align-items: center;
+      
+      .medicine__title {
+        flex: 1;
+        text-align: center;
+      }
+    }
+  }
+
+  &__back-button {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background: $color-white;
+    border: 2px solid $color-black;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: $shadow-default;
+
+    .material-symbols-rounded {
+      font-size: 24px;
+      color: $color-black;
+    }
+
+    &:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    &:active {
+      transform: translateY(0);
+    }
+  }
+
   // ==========================================
   // 메인 컨텐츠 영역
   // ==========================================
@@ -434,25 +476,45 @@
     gap: 20px;
   }
 
+  // ==========================================
+  // MedicineAdd 페이지용 스타일
+  // ==========================================
+  &__add {
+    max-width: 412px;
+    margin: 0 auto;
+  }
+
   &__section {
     background: $color-white;
-    border-radius: $border-radius-md;
-    padding: 25px;
+    border-radius: $border-radius-lg;
+    padding: 24px;
+    margin-bottom: 20px;
+    border: 3px solid $color-black;
+    box-shadow: $shadow-default;
   }
 
   &__section-title {
     font-family: $font-family;
     font-size: $font-size-large;
-    font-weight: $font-weight-black;
+    font-weight: $font-weight-semibold;
     color: $color-black;
-    margin: 0 0 10px 0;
+    margin: 0 0 12px 0;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+
+    .material-symbols-rounded {
+      font-size: 28px;
+      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    }
   }
 
   &__section-desc {
     font-family: $font-family;
-    font-size: $font-size-base;
-    color: $color-gray;
+    font-size: $font-size-small;
+    color: rgba($color-black, 0.7);
     margin: 0 0 20px 0;
+    line-height: 1.6;
   }
 
   &__scan-btn {
@@ -545,21 +607,66 @@
 
   &__search {
     display: flex;
-    gap: 10px;
+    gap: 12px;
     margin-bottom: 20px;
   }
 
   &__search-input {
     flex: 1;
-    padding: 15px;
-    border: 2px solid $color-gray;
-    border-radius: $border-radius-sm;
+    padding: 16px 20px;
+    border: 3px solid $color-black;
+    border-radius: $border-radius-lg;
     font-family: $font-family;
     font-size: $font-size-base;
+    color: $color-black;
+    background: $color-white;
+    box-shadow: $shadow-default;
+
+    &::placeholder {
+      color: rgba($color-black, 0.4);
+    }
 
     &:focus {
       outline: none;
-      border-color: $color-primary-orange;
+      border-color: $color-black;
+      box-shadow: 0 0 0 3px rgba($color-primary-yellow, 0.3);
+    }
+  }
+
+  &__search-btn {
+    padding: 16px;
+    background: $color-black;
+    color: $color-white;
+    border: none;
+    border-radius: $border-radius-lg;
+    font-family: $font-family;
+    font-size: $font-size-base;
+    font-weight: $font-weight-semibold;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: $shadow-default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 60px;
+
+    .material-symbols-rounded {
+      font-size: 24px;
+      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    }
+
+    &:hover:not(:disabled) {
+      transform: translateY(-2px);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active:not(:disabled) {
+      transform: translateY(0);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
     }
   }
 
@@ -1367,23 +1474,31 @@
   }
 
   &__capture-btn {
-    flex: 1;
-    background: linear-gradient(135deg, #333 0%, #1a1a1a 100%);
+    width: 100%;
+    background: $color-black;
     color: $color-white;
     border: none;
-    border-radius: $border-radius-sm;
-    padding: 15px;
+    border-radius: $border-radius-lg;
+    padding: 18px;
     font-family: $font-family;
     font-size: $font-size-base;
     font-weight: $font-weight-semibold;
     cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+    transition: all 0.2s ease;
+    box-shadow: $shadow-default;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    .material-symbols-rounded {
+      font-size: 24px;
+      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+    }
 
     &:hover:not(:disabled) {
       transform: translateY(-2px);
-      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.25);
-      background: linear-gradient(135deg, #555 0%, #333 100%);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
     }
 
     &:active:not(:disabled) {
@@ -1393,17 +1508,6 @@
     &:disabled {
       opacity: 0.5;
       cursor: not-allowed;
-    }
-
-    &--secondary {
-      background: linear-gradient(135deg, #f5d547 0%, #e8c830 100%);
-      color: $color-black;
-      box-shadow: 0 2px 8px rgba(245, 213, 71, 0.2);
-
-      &:hover:not(:disabled) {
-        background: linear-gradient(135deg, #e8c830 0%, #dab520 100%);
-        box-shadow: 0 4px 16px rgba(245, 213, 71, 0.3);
-      }
     }
   }
 
