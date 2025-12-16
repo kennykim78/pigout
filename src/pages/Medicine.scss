@@ -63,22 +63,42 @@
     }
   }
 
-  // 탭 숨김 (더 이상 사용 안 함)
+  // 탭 스타일 (약 추가 페이지에서 사용)
   &__tabs {
-    display: none;
+    display: flex;
+    gap: 8px;
+    padding: 10px 20px;
+    background: rgba(255, 255, 255, 0.5);
+    
+    &--add {
+      // 약 추가 페이지용 탭 스타일
+      margin-bottom: 0;
+    }
   }
 
   &__tab {
-    display: none;
+    flex: 1;
+    padding: 12px 16px;
+    background: $color-white;
+    border: 2px solid transparent;
+    border-radius: $border-radius-sm;
+    font-family: $font-family;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $color-gray;
+    cursor: pointer;
+    transition: all 0.3s ease;
 
     &--active {
-      display: none;
-      color: $color-white;
-      font-weight: $font-weight-black;
+      background: $color-primary-yellow;
+      border-color: $color-primary-orange;
+      color: $color-black;
+      font-weight: $font-weight-semibold;
     }
 
     &:hover:not(&--active) {
-      background: rgba(255, 255, 255, 0.8);
+      background: rgba(255, 255, 255, 0.9);
+      border-color: rgba($color-primary-orange, 0.3);
     }
   }
 
