@@ -96,6 +96,22 @@ export function saveSelectedDiseases(diseases: string[]): void {
   localStorage.setItem('selectedDiseases', JSON.stringify(diseases));
 }
 
+/**
+ * 사용자 프로필 (나이/성별) 가져오기
+ */
+export function getUserProfile(): { birthYear: number; gender: string; age: number } | null {
+  const saved = localStorage.getItem('userProfile');
+  return saved ? JSON.parse(saved) : null;
+}
+
+/**
+ * 사용자 프로필 (나이/성별) 저장하기
+ */
+export function saveUserProfile(profile: { birthYear: number; gender: string; age: number }): void {
+  localStorage.setItem('userProfile', JSON.stringify(profile));
+  console.log('[Profile] 프로필 저장:', profile);
+}
+
 export default {
   getDeviceId,
   resetDeviceId,
@@ -105,4 +121,6 @@ export default {
   resetOnboarding,
   getSelectedDiseases,
   saveSelectedDiseases,
+  getUserProfile,
+  saveUserProfile,
 };

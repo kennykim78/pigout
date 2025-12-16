@@ -15,9 +15,9 @@ const IntroSplash = () => {
         console.log('[IntroSplash] 온보딩 완료됨 → Main 이동');
         navigate('/main');
       } else {
-        // 처음 접속 → 질병 선택 페이지로
-        console.log('[IntroSplash] 첫 접속 → SelectOption 이동');
-        navigate('/select');
+        // 처음 접속 → 프로필 입력 페이지로
+        console.log('[IntroSplash] 첫 접속 → ProfileSetup 이동');
+        navigate('/profile');
       }
     }, 3000); // 3초로 단축
 

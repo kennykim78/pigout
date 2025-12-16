@@ -1,0 +1,174 @@
+@import '../styles/variables';
+@import '../styles/mixins';
+
+.profile-setup {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  overflow: hidden;
+  background: $color-primary-yellow;
+
+  &__background {
+    position: relative;
+    width: 100%;
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 60px 24px 40px;
+  }
+
+  &__content {
+    width: 100%;
+    max-width: 400px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 32px;
+  }
+
+  &__title {
+    font-size: 28px;
+    font-weight: 700;
+    color: $color-black;
+    text-align: center;
+    line-height: 1.4;
+    margin: 0;
+  }
+
+  &__pig-section {
+    width: 100%;
+    display: flex;
+    justify-content: center;
+    margin: 20px 0;
+  }
+
+  &__pig-image {
+    width: 180px;
+    height: auto;
+    object-fit: contain;
+  }
+
+  &__form {
+    width: 100%;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    background: $color-white;
+    border-radius: 16px;
+    padding: 24px;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+
+  &__input-group {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__label {
+    font-size: 16px;
+    font-weight: 600;
+    color: $color-black;
+  }
+
+  &__input-wrapper {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__input {
+    flex: 1;
+    padding: 14px 16px;
+    font-size: 16px;
+    border: 2px solid $color-gray;
+    border-radius: 12px;
+    background: $color-white;
+    color: $color-black;
+    transition: all 0.3s ease;
+
+    &:focus {
+      outline: none;
+      border-color: $color-black;
+    }
+
+    &::placeholder {
+      color: #999;
+    }
+  }
+
+  &__age-display {
+    font-size: 16px;
+    font-weight: 600;
+    color: $color-black;
+    white-space: nowrap;
+  }
+
+  &__gender-tabs {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  &__gender-tab {
+    padding: 14px 20px;
+    font-size: 16px;
+    font-weight: 600;
+    border: 2px solid $color-gray;
+    border-radius: 12px;
+    background: $color-white;
+    color: $color-black;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover:not(&--active) {
+      border-color: lighten($color-black, 40%);
+    }
+
+    &--active {
+      background: $color-black;
+      color: $color-primary-yellow;
+      border-color: $color-black;
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+
+  &__error {
+    padding: 12px 16px;
+    background: #ffebee;
+    border-radius: 8px;
+    font-size: 14px;
+    color: #c62828;
+    text-align: center;
+  }
+
+  &__next-button {
+    width: 100%;
+    padding: 16px;
+    font-size: 18px;
+    font-weight: 700;
+    background: $color-black;
+    color: $color-primary-yellow;
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+
+    &:hover:not(:disabled) {
+      background: lighten($color-black, 10%);
+      transform: translateY(-2px);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+
+    &:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+  }
+}

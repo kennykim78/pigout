@@ -1,5 +1,6 @@
 import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
 import IntroSplash from './pages/IntroSplash';
+import ProfileSetup from './pages/ProfileSetup';
 import SelectOption from './pages/SelectOption';
 import Main from './pages/Main';
 import Medicine from './pages/Medicine';
@@ -20,6 +21,7 @@ function App() {
       <Routes>
         {/* 온보딩 페이지 (네비게이션 바 없음) */}
         <Route path="/" element={<IntroSplash />} />
+        <Route path="/profile" element={<ProfileSetup />} />
         <Route path="/select" element={<SelectOption />} />
         <Route path="/selectoption" element={<SelectOption />} />
 
