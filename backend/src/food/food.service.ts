@@ -1110,19 +1110,30 @@ export class FoodService {
       });
 
       let userId = '00000000-0000-0000-0000-000000000000';
+      console.log('[Stream] Device ID:', deviceId);
       if (deviceId) {
         const foundUserId = await this.usersService.getUserIdByDeviceId(deviceId);
+        console.log('[Stream] User ID:', foundUserId);
         if (foundUserId) {
           userId = foundUserId;
         }
       }
 
       const supabase = this.supabaseService.getClient();
-      const { data: medicines } = await supabase
+      console.log('[Stream] 약물 조회 시작 - User ID:', userId);
+      const { data: medicines, error: medicineError } = await supabase
         .from('medicine_records')
         .select('id, name, item_seq, entp_name, efcy_qesitm, use_method_qesitm, atpn_warn_qesitm, atpn_qesitm, intrc_qesitm, se_qesitm, deposit_method_qesitm, qr_code_data')
         .eq('user_id', userId)
         .eq('is_active', true);
+
+      if (medicineError) {
+        console.error('[Stream] 약물 조회 오류:', medicineError);
+      }
+      console.log('[Stream] 조회된 약물:', medicines?.length || 0, '개');
+      if (medicines && medicines.length > 0) {
+        console.log('[Stream] 약물 목록:', medicines.map(m => m.name));
+      }
 
       const medicineNames = medicines?.map((m) => m.name) || [];
       
