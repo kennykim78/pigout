@@ -1123,7 +1123,7 @@ export class FoodService {
       console.log('[Stream] 약물 조회 시작 - User ID:', userId);
       const { data: medicines, error: medicineError } = await supabase
         .from('medicine_records')
-        .select('id, name, item_seq, entp_name, efcy_qesitm, use_method_qesitm, atpn_warn_qesitm, atpn_qesitm, intrc_qesitm, se_qesitm, deposit_method_qesitm, qr_code_data')
+        .select('id, name, drug_class, qr_code_data')
         .eq('user_id', userId)
         .eq('is_active', true);
 
