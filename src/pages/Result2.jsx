@@ -71,9 +71,10 @@ const Result2 = () => {
       
       const medicines = await getMyMedicines();
       console.log('🔍 [Result2] 등록된 약 목록:', medicines);
-      console.log('🔍 [Result2] 약 개수:', medicines?.data?.length || 0);
-      if (medicines?.data?.length > 0) {
-        medicines.data.forEach((med, idx) => {
+      const medicineCount = Array.isArray(medicines) ? medicines.length : 0;
+      console.log('🔍 [Result2] 약 개수:', medicineCount);
+      if (medicineCount > 0) {
+        medicines.forEach((med, idx) => {
           console.log(`  [${idx}] ${med.itemName}:`, {
             entpName: med.entpName,
             itemSeq: med.itemSeq,
@@ -189,9 +190,10 @@ const Result2 = () => {
         
         const medicines = await getMyMedicines();
         console.log('🔍 [Result2 useEffect] 등록된 약 목록:', medicines);
-        console.log('🔍 [Result2 useEffect] 약 개수:', medicines?.data?.length || 0);
-        if (medicines?.data?.length > 0) {
-          medicines.data.forEach((med, idx) => {
+        const medicineCount = Array.isArray(medicines) ? medicines.length : 0;
+        console.log('🔍 [Result2 useEffect] 약 개수:', medicineCount);
+        if (medicineCount > 0) {
+          medicines.forEach((med, idx) => {
             console.log(`  [${idx}] ${med.itemName}:`, {
               entpName: med.entpName,
               itemSeq: med.itemSeq,
