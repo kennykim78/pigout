@@ -10,7 +10,8 @@ import FoodDrugInteractionMatrix from '../components/FoodDrugInteractionMatrix';
 import MedicineComponentRiskCard from '../components/MedicineComponentRiskCard';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
-import { analyzeFoodByTextStream } from '../services/api';
+import { analyzeFoodByTextStream, getMyMedicines } from '../services/api';
+import { getDeviceId } from '../utils/deviceId';
 
 const imgsorce = 'https://img.bizthenaum.co.kr/data/img/1000000869/ori/1000000869_11.jpg';
 
@@ -52,7 +53,7 @@ const Result2 = () => {
   };
 
   // 🆕 스트리밍 분석 시작 함수
-  const startStreamingAnalysis = (foodNameParam) => {
+  const startStreamingAnalysis = async (foodNameParam) => {
     console.log('=== startStreamingAnalysis 호출됨 ===');
     console.log('foodNameParam:', foodNameParam);
     console.log('typeof foodNameParam:', typeof foodNameParam);
@@ -61,6 +62,28 @@ const Result2 = () => {
       console.error('❌ foodNameParam이 비어있음!');
       setStreamError('음식 이름이 없습니다.');
       return;
+    }
+    
+    // 🔍 분석 시작 전 약 목록 확인
+    try {
+      const deviceId = getDeviceId();
+      console.log('🔍 [Result2] Device ID:', deviceId);
+      
+      const medicines = await getMyMedicines();
+      console.log('🔍 [Result2] 등록된 약 목록:', medicines);
+      console.log('🔍 [Result2] 약 개수:', medicines?.data?.length || 0);
+      if (medicines?.data?.length > 0) {
+        medicines.data.forEach((med, idx) => {
+          console.log(`  [${idx}] ${med.itemName}:`, {
+            entpName: med.entpName,
+            itemSeq: med.itemSeq,
+            efcyQesitm: med.efcyQesitm?.substring(0, 50),
+            hasDetails: !!(med.useMethodQesitm || med.atpnWarnQesitm || med.intrcQesitm)
+          });
+        });
+      }
+    } catch (error) {
+      console.error('❌ [Result2] 약 목록 조회 실패:', error);
     }
     
     console.log('✅ 스트리밍 분석 시작:', foodNameParam);
