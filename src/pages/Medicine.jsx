@@ -747,33 +747,47 @@ const Medicine = () => {
 
   return (
     <div className="medicine">
-      <header className="medicine__header">
+      {/* 심플한 헤더 - Main 스타일 */}
+      <div className="medicine__header">
         <div className="medicine__header-content">
-          <div>
-            <h1 className="medicine__title">복용 중인 약</h1>
-            <p className="medicine__subtitle">내 약 {medicines.length}개</p>
-          </div>
-          <button 
-            className="medicine__add-button"
+          <h1 className="medicine__title">내 약 관리</h1>
+          <p className="medicine__medicine-count">{medicines.length}개 등록</p>
+        </div>
+      </div>
+
+      {/* 메인 컨텐츠 영역 */}
+      <div className="medicine__content">
+        {/* 탭 버튼 - Main 스타일의 큰 버튼 */}
+        <div className="medicine__tabs">
+          <button
+            className={`medicine__tab ${activeTab === 'list' ? 'medicine__tab--active' : ''}`}
+            onClick={() => setActiveTab('list')}
+          >
+            <span className="material-symbols-rounded">list_alt</span>
+            <span>내 약 목록</span>
+          </button>
+          <button
+            className={`medicine__tab ${activeTab === 'add' ? 'medicine__tab--active' : ''}`}
             onClick={() => navigate('/medicine/add')}
           >
-            +
+            <span className="material-symbols-rounded">add_circle</span>
+            <span>약 추가</span>
           </button>
         </div>
-      </header>
 
-      <div className="medicine__list">
-        {isLoading ? (
-          <p className="medicine__loading">로딩 중...</p>
-        ) : medicines.length === 0 ? (
-          <div className="medicine__empty">
-            <p>등록된 약이 없습니다.</p>
-            <button onClick={() => navigate('/medicine/add')} className="medicine__add-btn">
-              약 추가하기
-            </button>
-          </div>
-        ) : (
-          <div>
+        {/* 리스트 내용 */}
+        <div className="medicine__list">
+          {isLoading ? (
+            <p className="medicine__loading">로딩 중...</p>
+          ) : medicines.length === 0 ? (
+            <div className="medicine__empty">
+              <p>등록된 약이 없습니다.<br />약 추가 버튼을 눌러 약을 등록해보세요!</p>
+              <button onClick={() => navigate('/medicine/add')} className="medicine__add-btn">
+                약 추가하기
+              </button>
+            </div>
+          ) : (
+            <div>
               
               {/* 약품 종합 위험도 프로파일 (등록 즉시 생성) */}
               <MedicineRadarChart medicines={medicines} />
@@ -1006,11 +1020,9 @@ const Medicine = () => {
                 })}
               </div>
             </div>
-          )
-        }
-      </div>
-
-      {/* 약 추가 기능은 /medicine/add 페이지(MedicineAdd.jsx)로 이동되었습니다 */}
+          )}
+        </div>
+      </div>}
 
       {/* 약품 상세 정보 팝업 */}
       {showMedicineDetailPopup && (
