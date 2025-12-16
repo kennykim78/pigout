@@ -69,8 +69,19 @@ const ProfileSetup = () => {
     saveUserProfile({ birthYear: year, gender, age });
     console.log('프로필 저장됨:', { birthYear: year, gender, age });
 
-    // 질병 선택 페이지로 이동
-    navigate('/select');
+    // 질병 정보 확인
+    const { getSelectedDiseases } = require('../utils/deviceId');
+    const diseases = getSelectedDiseases();
+
+    if (diseases.length > 0) {
+      // 이미 질병 정보 있음 → 메인으로
+      console.log('[ProfileSetup] 질병 정보 있음 → Main 이동');
+      navigate('/main');
+    } else {
+      // 질병 정보 없음 → 질병 선택 페이지로
+      console.log('[ProfileSetup] 질병 정보 없음 → SelectOption 이동');
+      navigate('/select');
+    }
   };
 
   const calculateAge = () => {

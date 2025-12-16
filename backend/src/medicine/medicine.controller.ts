@@ -106,16 +106,21 @@ export class MedicineController {
 
   /**
    * POST /api/medicine/analyze-all
-   * 복용 중인 모든 약물 상관관계 종합 분석
+   * 복용 중인 모든 약물 상관관계 종합 뵐c석
    */
   @Post('analyze-all')
   async analyzeAllMedicines(
     @Headers('x-device-id') deviceId: string,
-    @Body() analyzeDto: AnalyzeAllMedicinesDto,
+    @Body() analyzeDto: AnalyzeAllMedicinesDto & { age?: number; gender?: string },
   ) {
     const userId = await this.getUserIdFromDeviceId(deviceId);
     console.log(`[Medicine] analyzeAllMedicines - deviceId: ${deviceId}, userId: ${userId}`);
-    return this.medicineService.analyzeAllMedicineInteractions(userId);
+    
+    const userProfile = analyzeDto.age && analyzeDto.gender 
+      ? { age: analyzeDto.age, gender: analyzeDto.gender } 
+      : undefined;
+    
+    return this.medicineService.analyzeAllMedicineInteractions(userId, userProfile);
   }
 
   /**
@@ -125,9 +130,13 @@ export class MedicineController {
   @Post('analyze-all-stream')
   async analyzeAllMedicinesStream(
     @Headers('x-device-id') deviceId: string,
+    @Body() body: { age?: number; gender?: string },
     @Res() res: Response,
   ) {
     const userId = await this.getUserIdFromDeviceId(deviceId);
+    const userProfile = body.age && body.gender 
+      ? { age: body.age, gender: body.gender } 
+      : undefined;
     console.log(`[Medicine Stream] 스트리밍 분석 시작 - deviceId: ${deviceId}, userId: ${userId}`);
 
     // SSE 헤더 설정
@@ -144,7 +153,7 @@ export class MedicineController {
 
     try {
       // 스트리밍 분석 시작
-      await this.medicineService.analyzeAllMedicineInteractionsStream(userId, sendEvent);
+      await this.medicineService.analyzeAllMedicineInteractionsStream(userId, sendEvent, userProfile);
 
       // 완료 이벤트 전송
       sendEvent('complete', { success: true });

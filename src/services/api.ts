@@ -85,11 +85,18 @@ export const analyzeFoodWithImage = async (foodName: string, imageFile: File) =>
 export const analyzeFoodByText = async (foodName: string) => {
   const savedDiseases = localStorage.getItem('selectedDiseases');
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
+  
+  // 나이/성별 정보 가져오기
+  const { getUserProfile } = await import('../utils/deviceId');
+  const userProfile = getUserProfile();
+  
+  const requestBody: any = { foodName, diseases };
+  if (userProfile && userProfile.age && userProfile.gender) {
+    requestBody.age = userProfile.age;
+    requestBody.gender = userProfile.gender;
+  }
 
-  const response = await apiClient.post('/food/text-analyze', { 
-    foodName,
-    diseases 
-  });
+  const response = await apiClient.post('/food/text-analyze', requestBody);
   
   console.log('API 응답 (analyzeFoodByText):', response.data);
   return response.data;
@@ -99,7 +106,18 @@ export const analyzeFoodByText = async (foodName: string) => {
 export const simpleAnalyzeFoodByText = async (foodName: string) => {
   const savedDiseases = localStorage.getItem('selectedDiseases');
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
-  const response = await apiClient.post('/food/simple-text-analyze', { foodName, diseases });
+  
+  // 나이/성별 정보 가져오기
+  const { getUserProfile } = await import('../utils/deviceId');
+  const userProfile = getUserProfile();
+  
+  const requestBody: any = { foodName, diseases };
+  if (userProfile && userProfile.age && userProfile.gender) {
+    requestBody.age = userProfile.age;
+    requestBody.gender = userProfile.gender;
+  }
+  
+  const response = await apiClient.post('/food/simple-text-analyze', requestBody);
   console.log('API 응답 (simpleAnalyzeFoodByText):', response.data);
   return response.data;
 };
@@ -262,8 +280,18 @@ export const analyzeAllMedicinesStream = (
 
   const deviceId = getDeviceId();
   const abortController = new AbortController();
+  
+  // 나이/성별 정보 가져오기
+  const { getUserProfile } = require('../utils/deviceId');
+  const userProfile = getUserProfile();
+  
+  const requestBody: any = {};
+  if (userProfile && userProfile.age && userProfile.gender) {
+    requestBody.age = userProfile.age;
+    requestBody.gender = userProfile.gender;
+  }
 
-  console.log('[Medicine SSE] 스트리밍 분석 요청:', { deviceId });
+  console.log('[Medicine SSE] 스트리밍 분석 요청:', { deviceId, userProfile });
   console.log('[Medicine SSE] fetch 요청 시작:', `${API_BASE_URL}/medicine/analyze-all-stream`);
 
   fetch(`${API_BASE_URL}/medicine/analyze-all-stream`, {
@@ -272,7 +300,7 @@ export const analyzeAllMedicinesStream = (
       'Content-Type': 'application/json',
       'X-Device-Id': deviceId,
     },
-    body: JSON.stringify({}),
+    body: JSON.stringify(requestBody),
     signal: abortController.signal,
   })
     .then(async (response) => {

@@ -855,7 +855,7 @@ export class MedicineService {
   /**
    * 복용 중인 모든 약물의 상관관계 종합 분석
    */
-  async analyzeAllMedicineInteractions(userId: string) {
+  async analyzeAllMedicineInteractions(userId: string, userProfile?: { age?: number; gender?: string }) {
     const client = this.supabaseService.getClient();
 
     // 1단계: 복용 중인 모든 약물 조회
@@ -870,6 +870,9 @@ export class MedicineService {
     }
 
     console.log(`\n[약물 상관관계 분석] 복용 중인 약물: ${medicines.length}개`);
+    if (userProfile && userProfile.age && userProfile.gender) {
+      console.log(`[약물 상관관계 분석] 환자 정보: ${userProfile.age}세, ${userProfile.gender === 'male' ? '남성' : '여성'}`);
+    }
 
     // 2단계: 각 약물의 공공데이터 조회 (캐시 우선)
     const drugDetailsPromises = medicines.map(async (medicine: any) => {
@@ -966,7 +969,7 @@ export class MedicineService {
     
     // Step 2: 약물 상호작용 분석
     console.log(`[약물 상관관계 분석] Step 2: 약물 상호작용 분석...`);
-    const analysisResult = await geminiClient.analyzeAllDrugInteractions(drugDetails);
+    const analysisResult = await geminiClient.analyzeAllDrugInteractions(drugDetails, userProfile);
 
     console.log(`[약물 상관관계 분석] 완료`);
     console.log(`  - 위험한 조합: ${analysisResult.dangerousCombinations?.length || 0}개`);
@@ -1071,6 +1074,7 @@ export class MedicineService {
   async analyzeAllMedicineInteractionsStream(
     userId: string,
     sendEvent: (event: string, data: any) => void,
+    userProfile?: { age?: number; gender?: string },
   ) {
     console.log(`[약물 상관관계 스트리밍 분석] 사용자 ${userId} 분석 시작`);
 
@@ -1205,7 +1209,7 @@ export class MedicineService {
         message: 'AI가 약물 간 상호작용을 분석 중...',
       });
 
-      const analysisResult = await geminiClient.analyzeAllDrugInteractions(drugDetails);
+      const analysisResult = await geminiClient.analyzeAllDrugInteractions(drugDetails, userProfile);
 
       // 네트워크 도표용 interactions 변환
       const interactions = [];

@@ -53,18 +53,36 @@
   transform: scale(0.95);
 }
 .medicine__tabs {
-  display: none;
+  display: flex;
+  gap: 8px;
+  padding: 10px 20px;
+  background: rgba(255, 255, 255, 0.5);
+}
+.medicine__tabs--add {
+  margin-bottom: 0;
 }
 .medicine__tab {
-  display: none;
+  flex: 1;
+  padding: 12px 16px;
+  background: rgb(255, 255, 255);
+  border: 2px solid transparent;
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  color: rgb(153, 153, 153);
+  cursor: pointer;
+  transition: all 0.3s ease;
 }
 .medicine__tab--active {
-  display: none;
-  color: rgb(255, 255, 255);
-  font-weight: 900;
+  background: rgb(255, 223, 62);
+  border-color: rgb(255, 161, 0);
+  color: rgb(0, 0, 0);
+  font-weight: 600;
 }
 .medicine__tab:hover:not(.medicine__tab--active) {
-  background: rgba(255, 255, 255, 0.8);
+  background: rgba(255, 255, 255, 0.9);
+  border-color: rgba(255, 161, 0, 0.3);
 }
 .medicine__sub-tabs {
   display: flex;

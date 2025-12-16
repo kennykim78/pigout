@@ -239,13 +239,16 @@ export class FoodService {
     }
   }
 
-  async analyzeFoodByText(foodName: string, diseases: string[] = [], deviceId?: string) {
+  async analyzeFoodByText(foodName: string, diseases: string[] = [], deviceId?: string, userProfile?: { age?: number; gender?: string }) {
     try {
       // 텍스트만으로 분석 - 질병 정보 포함
       console.log('=== 음식 분석 시작 ===');
       console.log('음식명:', foodName);
       console.log('질병 정보:', diseases);
       console.log('기기 ID:', deviceId);
+      if (userProfile && userProfile.age && userProfile.gender) {
+        console.log('환자 정보:', `${userProfile.age}세, ${userProfile.gender === 'male' ? '남성' : '여성'}`);
+      }
       
       // 기기 ID로 사용자 ID 조회 (없으면 기본값 사용)
       let userId = '00000000-0000-0000-0000-000000000000';
@@ -581,7 +584,7 @@ export class FoodService {
   }
 
   // 경량 텍스트 분석: 공공데이터 없이 순수 AI 지식만으로 빠른 분석
-  async simpleAnalyzeFoodByText(foodName: string, diseases: string[] = [], deviceId?: string) {
+  async simpleAnalyzeFoodByText(foodName: string, diseases: string[] = [], deviceId?: string, userProfile?: { age?: number; gender?: string }) {
     try {
       // 함수 import (최상단)
       const { normalizeFoodName, compressAnalysisForResult01 } = require('./food-rules');
@@ -589,6 +592,9 @@ export class FoodService {
       console.log('=== 순수 AI 빠른 분석 시작 ===');
       console.log('음식명:', foodName);
       console.log('질병 정보:', diseases);
+      if (userProfile && userProfile.age && userProfile.gender) {
+        console.log('환자 정보:', `${userProfile.age}세, ${userProfile.gender === 'male' ? '남성' : '여성'}`);
+      }
 
       // 기기 ID로 사용자 ID 조회 (없으면 기본값 사용)
       let userId = '00000000-0000-0000-0000-000000000000';
@@ -769,7 +775,8 @@ export class FoodService {
         diseases,
         medicineNames,
         enhancedMedicineInfo.length > 0 ? enhancedMedicineInfo : undefined, // 🆕 약 강화 정보 전달
-        diseaseEnhancedInfo.length > 0 ? diseaseEnhancedInfo : undefined // 🆕 질병 강화 정보 전달
+        diseaseEnhancedInfo.length > 0 ? diseaseEnhancedInfo : undefined, // 🆕 질병 강화 정보 전달
+        userProfile // 🆕 환자 정보 전달
       );
       console.log(`[순수AI] Gemini 분석 완료 (약 강화정보: ${enhancedMedicineInfo.length}, 질병 강화정보: ${diseaseEnhancedInfo.length})`);
 
@@ -848,7 +855,7 @@ export class FoodService {
   }
 
   // 이미지 포함 빠른 AI 분석 (공공데이터 없음) - Result01용
-  async simpleAnalyzeFood(foodName: string, image?: Express.Multer.File, diseases: string[] = [], deviceId?: string) {
+  async simpleAnalyzeFood(foodName: string, image?: Express.Multer.File, diseases: string[] = [], deviceId?: string, userProfile?: { age?: number; gender?: string }) {
     try {
       console.log('=== 이미지 포함 빠른 AI 분석 시작 ===');
       let imageUrl = null;
@@ -998,7 +1005,8 @@ export class FoodService {
         diseases,
         medicineNames,
         undefined, // enhancedMedicineInfo는 이미 위에서 정의됨
-        diseaseEnhancedInfo.length > 0 ? diseaseEnhancedInfo : undefined
+        diseaseEnhancedInfo.length > 0 ? diseaseEnhancedInfo : undefined,
+        userProfile // 🆕 환자 정보 전달
       );
       console.log(`[simpleAnalyze] AI 분석 완료 (질병 강화정보: ${diseaseEnhancedInfo.length})`);
 

@@ -526,6 +526,7 @@ JSON 형식으로만 응답:
       caution_foods: string[];
       dietary_reason: string;
     }>,
+    userProfile?: { age?: number; gender?: string },
   ): Promise<{
     suitabilityScore: number;
     pros: string;
@@ -575,8 +576,16 @@ JSON 형식으로만 응답:
           medicineInfo = medicines.length > 0 ? medicines.join(', ') : '없음';
         }
 
+        // 🆕 환자 정보 추가
+        let patientInfo = '';
+        if (userProfile && userProfile.age && userProfile.gender) {
+          const genderKo = userProfile.gender === 'male' ? '남성' : '여성';
+          const ageGroup = userProfile.age < 18 ? '소아/청소년' : userProfile.age >= 65 ? '고령자' : '성인';
+          patientInfo = `\n환자 정보: ${userProfile.age}세, ${genderKo} (${ageGroup})`;
+        }
+
         const prompt = `당신은 Pigout AI입니다. 임상 약학, 영양학, 공공데이터를 종합하여 분석합니다.
-빠르고 간결하게 분석해주세요.
+빠르고 간결하게 분석해주세요.${patientInfo}
 
 【환자 정보】
 - 음식: ${foodName}
@@ -1572,7 +1581,7 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
   /**
    * 복용 중인 모든 약물 간 상호작용 종합 분석
    */
-  async analyzeAllDrugInteractions(drugDetails: any[]): Promise<{
+  async analyzeAllDrugInteractions(drugDetails: any[], userProfile?: { age?: number; gender?: string }): Promise<{
     overallSafety: 'safe' | 'caution' | 'danger';
     overallScore: number;
     dangerousCombinations: Array<{
@@ -1598,6 +1607,13 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
     try {
       const drugNames = drugDetails.map(d => d.name).join(', ');
       
+      // 환자 정보 추가
+      let patientInfo = '';
+      if (userProfile && userProfile.age && userProfile.gender) {
+        const genderKo = userProfile.gender === 'male' ? '남성' : '여성';
+        patientInfo = `\n\n**환자 정보:**\n- 나이: ${userProfile.age}세\n- 성별: ${genderKo}\n`;
+      }
+      
       const prompt = `# Role Definition
 당신은 **Pigout AI**입니다. 임상 약학 전문지식과 공공데이터를 활용하여 약물 간 상호작용을 분석합니다.
 사용자가 복용 중인 모든 약물의 상호작용을 종합적으로 분석하여, **동시 복용의 안전성**을 평가하는 것이 목표입니다.
@@ -1605,7 +1621,7 @@ ${recipeData && recipeData.length > 0 ? JSON.stringify(recipeData.slice(0, 3), n
 ---
 
 # Input Data
-**복용 중인 약물 목록:** ${drugNames}
+**복용 중인 약물 목록:** ${drugNames}${patientInfo}
 
 **약물 상세 정보 (공공데이터):**
 ${JSON.stringify(drugDetails, null, 2)}

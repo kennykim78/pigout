@@ -35,9 +35,12 @@ export class FoodController {
   async analyzeFoodByText(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases?: string[],
+    @Body('age') age?: number,
+    @Body('gender') gender?: string,
     @Headers('x-device-id') deviceId?: string,
   ) {
-    return this.foodService.analyzeFoodByText(foodName, diseases || [], deviceId);
+    const userProfile = age && gender ? { age, gender } : undefined;
+    return this.foodService.analyzeFoodByText(foodName, diseases || [], deviceId, userProfile);
   }
 
   // 빠른 AI 분석 (공공데이터 없음) - Result01용
@@ -45,9 +48,12 @@ export class FoodController {
   async simpleTextAnalyze(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases?: string[],
+    @Body('age') age?: number,
+    @Body('gender') gender?: string,
     @Headers('x-device-id') deviceId?: string,
   ) {
-    return this.foodService.simpleAnalyzeFoodByText(foodName, diseases || [], deviceId);
+    const userProfile = age && gender ? { age, gender } : undefined;
+    return this.foodService.simpleAnalyzeFoodByText(foodName, diseases || [], deviceId, userProfile);
   }
 
   // 빠른 이미지+AI 분석 (공공데이터 없음) - Result01용
