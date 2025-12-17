@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { getDeviceId } from '../utils/deviceId';
+import { getDeviceId, getUserProfile } from '../utils/deviceId';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001/api';
 
@@ -87,7 +87,6 @@ export const analyzeFoodByText = async (foodName: string) => {
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
   
   // 나이/성별 정보 가져오기
-  const { getUserProfile } = await import('../utils/deviceId');
   const userProfile = getUserProfile();
   
   const requestBody: any = { foodName, diseases };
@@ -108,7 +107,6 @@ export const simpleAnalyzeFoodByText = async (foodName: string) => {
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
   
   // 나이/성별 정보 가져오기
-  const { getUserProfile } = await import('../utils/deviceId');
   const userProfile = getUserProfile();
   
   const requestBody: any = { foodName, diseases };
