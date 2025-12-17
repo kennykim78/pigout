@@ -280,7 +280,6 @@ export const analyzeAllMedicinesStream = (
   const abortController = new AbortController();
   
   // 나이/성별 정보 가져오기
-  const { getUserProfile } = require('../utils/deviceId');
   const userProfile = getUserProfile();
   
   const requestBody: any = {};
