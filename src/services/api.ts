@@ -521,13 +521,19 @@ export const analyzeFoodByTextStream = (
   const savedDiseases = localStorage.getItem('selectedDiseases');
   const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
   const deviceId = getDeviceId();
+  
+  // 🆕 프로필 정보 가져오기
+  const userProfile = getUserProfile();
+  const age = userProfile?.age;
+  const gender = userProfile?.gender;
 
   console.log('[analyzeFoodByTextStream] diseases:', diseases);
   console.log('[analyzeFoodByTextStream] deviceId:', deviceId);
+  console.log('[analyzeFoodByTextStream] 프로필:', { age, gender });
 
   const abortController = new AbortController();
 
-  console.log('[SSE] 스트리밍 분석 요청:', { foodName, diseases, deviceId });
+  console.log('[SSE] 스트리밍 분석 요청:', { foodName, diseases, deviceId, age, gender });
   console.log('[SSE] fetch 요청 시작:', `${API_BASE_URL}/food/text-analyze-stream`);
 
   // fetch로 SSE 연결
@@ -537,7 +543,7 @@ export const analyzeFoodByTextStream = (
       'Content-Type': 'application/json',
       'X-Device-Id': deviceId,
     },
-    body: JSON.stringify({ foodName, diseases }),
+    body: JSON.stringify({ foodName, diseases, age, gender }),
     signal: abortController.signal,
   })
     .then(async (response) => {

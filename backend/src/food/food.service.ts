@@ -1162,6 +1162,7 @@ export class FoodService {
     diseases: string[] = [],
     deviceId: string,
     sendEvent: (event: string, data: any) => void,
+    userProfile?: { age?: number; gender?: string },
   ) {
     try {
       console.log('=== 스트리밍 분석 시작 ===');
@@ -1194,6 +1195,25 @@ export class FoodService {
       }
 
       const supabase = this.supabaseService.getClient();
+      
+      // 🆕 프로필 정보 조회 (userProfile로 전달되지 않은 경우 DB에서 조회)
+      let profileInfo = userProfile;
+      if (!profileInfo && userId !== '00000000-0000-0000-0000-000000000000') {
+        console.log('[Stream] 프로필 조회 시작 - User ID:', userId);
+        const { data: profile } = await supabase
+          .from('users')
+          .select('age, gender')
+          .eq('id', userId)
+          .single();
+        
+        if (profile) {
+          profileInfo = { age: profile.age, gender: profile.gender };
+          console.log('[Stream] 프로필 조회 완료:', profileInfo);
+        }
+      } else if (profileInfo) {
+        console.log('[Stream] 프로필 정보 (파라미터):', profileInfo);
+      }
+      
       console.log('[Stream] 약물 조회 시작 - User ID:', userId);
       const { data: medicines, error: medicineError } = await supabase
         .from('medicine_records')
@@ -1215,8 +1235,14 @@ export class FoodService {
         stage: 1, 
         name: '준비',
         status: 'complete',
-        message: `사용자 정보 확인 완료`,
-        data: { medicineCount: medicineNames.length }
+        message: profileInfo 
+          ? `${profileInfo.age}세 ${profileInfo.gender === 'male' ? '남성' : '여성'} 사용자 정보 확인`
+          : `사용자 정보 확인 완료`,
+        data: { 
+          medicineCount: medicineNames.length,
+          age: profileInfo?.age,
+          gender: profileInfo?.gender
+        }
       });
 
       // 2단계: 약물 정보 조회 (DB 캐시 우선, 외부 API는 폴백)
@@ -1346,7 +1372,7 @@ export class FoodService {
 
       const geminiClient = await this.getGeminiClient();
       const recipeDataPromise = this.externalApiClient.getRecipeInfo(foodName);
-      const foodAnalysis = await geminiClient.analyzeFoodComponents(foodName, diseases, supplementalPublicData);
+      const foodAnalysis = await geminiClient.analyzeFoodComponents(foodName, diseases, supplementalPublicData, profileInfo);
       
       // 성분 분석 완료 시 바로 일부 데이터 전송
       sendEvent('stage', { 
@@ -1447,7 +1473,8 @@ export class FoodService {
           needDetailedNutrition: needAINutritionData,
           needDetailedRecipes: !recipeApiSuccess,
           publicDataFailed,
-        }
+        },
+        profileInfo
       );
 
       const score = finalAnalysis.suitabilityScore || 50;

@@ -90,6 +90,8 @@ export class FoodController {
   async analyzeFoodByTextStream(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases: string[],
+    @Body('age') age?: number,
+    @Body('gender') gender?: string,
     @Headers('x-device-id') deviceId: string,
     @Res() res: Response,
   ) {
@@ -106,12 +108,14 @@ export class FoodController {
     };
 
     try {
+      const userProfile = age && gender ? { age, gender } : undefined;
       // 스트리밍 분석 시작
       await this.foodService.analyzeFoodByTextStream(
         foodName,
         diseases || [],
         deviceId,
         sendEvent,
+        userProfile,
       );
 
       // 완료 이벤트 전송

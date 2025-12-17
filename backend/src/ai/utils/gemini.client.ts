@@ -851,7 +851,8 @@ JSON 형식:
       nutrition?: any;
       healthFunctionalFoods?: any;
       diseaseInfo?: any;
-    }
+    },
+    userProfile?: { age?: number; gender?: string }
   ): Promise<{
     components: Array<{ name: string; amount: string; description: string }>;
     riskFactors: {
@@ -941,7 +942,8 @@ JSON만 반환:
     foodName: string,
     foodAnalysis: any,
     drugDetails: Array<{ name: string; analyzedInfo?: any; publicData?: any; enhancedInfo?: any }>,
-    diseases: string[]
+    diseases: string[],
+    userProfile?: { age?: number; gender?: string }
   ): Promise<{
     interactions: Array<{
       medicine_name: string;
@@ -955,6 +957,9 @@ JSON만 반환:
   }> {
     try {
       const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
+      const profileInfo = userProfile 
+        ? `${userProfile.age}세 ${userProfile.gender === 'male' ? '남성' : userProfile.gender === 'female' ? '여성' : ''}`
+        : '정보 없음';
       const components = foodAnalysis.components || [];
       const riskFactors = foodAnalysis.riskFactors || {};
 
@@ -1390,7 +1395,8 @@ JSON 형식으로만 응답:
       needDetailedNutrition?: boolean;
       needDetailedRecipes?: boolean;
       publicDataFailed?: boolean;
-    }
+    },
+    userProfile?: { age?: number; gender?: string }
   ): Promise<{
     finalAnalysis: {
       suitabilityScore: number;
@@ -1405,6 +1411,9 @@ JSON 형식으로만 응답:
   }> {
     try {
       const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
+      const profileInfo = userProfile 
+        ? `${userProfile.age}세 ${userProfile.gender === 'male' ? '남성' : userProfile.gender === 'female' ? '여성' : ''}`
+        : '정보 없음';
       const drugList = interactionAnalysis?.interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
       
       // 공공데이터 부족 시 AI가 더 상세하게 분석하도록 지시
@@ -1427,9 +1436,15 @@ ${detailInstruction}
 
 # Input Data Context
 **사용자 프로필:**
+- 사용자 정보: ${profileInfo}
 - 질병 목록: ${diseaseList}
 - 복용 약물: ${drugList}
 - 분석 음식: ${foodName}
+
+**⚠️ 중요**: 사용자의 나이와 성별을 반드시 고려하여 분석하세요!
+- 나이별 권장량: 노인(65세+)은 나트륨/칼륨 더 주의, 청소년은 성장 영양소 필요
+- 성별 차이: 여성은 철분/칼슘 필요량 높음, 남성은 단백질 요구량 높음
+- 약물 대사: 나이가 많을수록 약물 대사 느려져 상호작용 위험 증가
 
 **음식 성분 분석 데이터:**
 ${JSON.stringify(foodAnalysis, null, 2)}
