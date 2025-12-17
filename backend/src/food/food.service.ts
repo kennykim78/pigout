@@ -1337,17 +1337,24 @@ export class FoodService {
         sendEvent('stage', { stage: 8, name: '최종분석', status: 'loading', message: '최종 결과 정리 중...' });
 
         // 최종 결과 병합
+        // 🆕 경고사항: food_rules 기본 경고 + 약물 상호작용 위험 병합
+        const foodWarnings = foodRule.warnings || [];
+        const drugWarnings = interactionAnalysis.interactions
+          ?.filter((i: any) => i.risk_level === 'danger')
+          .map((i: any) => i.reason) || [];
+        
         const finalResult = {
           foodName,
           score: foodRule.baseScore,
           briefSummary: foodRule.summary,
           goodPoints: foodRule.pros.split('\n').filter((p: string) => p.trim()),
           badPoints: foodRule.cons.split('\n').filter((c: string) => c.trim()),
-          warnings: interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'danger').map((i: any) => i.reason) || [],
+          warnings: [...foodWarnings, ...drugWarnings], // 🆕 경고사항 병합
           expertAdvice: foodRule.expertAdvice,
           summary: foodRule.summary,
           drug_food_interactions: interactionAnalysis.interactions || [],
           foodComponents: foodComponents,
+          cookingTips: foodRule.cookingTips || [], // 🆕 조리법/팁 추가
           dataSources: ['food_rules DB (토큰 0)', 'Gemini AI (약물 상호작용만)'],
         };
 

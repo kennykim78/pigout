@@ -186,9 +186,14 @@ function getCacheKey(medicineIds: string[], age: number, gender: string) {
 3. ✅ **Result2에서 food_rules 우선 조회**
 
 ### Phase 2: 최적화 (2시간)
-4. ⏳ food_analysis 테이블 확장 (age_group, gender 컬럼)
-5. ⏳ 연령대 기반 캐시 조회 로직
-6. ⏳ 약물 상호작용 병합 함수
+4. ✅ food_analysis 테이블 확장 (age_group, gender 컬럼)
+5. ✅ 연령대 기반 캐시 조회 로직
+6. ✅ 약물 상호작용 병합 함수
+
+### Phase 2.5: food_rules 데이터 보완 (1시간)
+7. ⏳ food_rules 테이블에 warnings, cooking_tips 컬럼 추가
+8. ⏳ 기존 100개 음식 데이터에 warnings, cooking_tips 채우기
+9. ⏳ getFoodRule() 함수에서 추가 필드 반환
 
 ### Phase 3: 모니터링 (지속)
 7. 📊 캐시 적중률 로그

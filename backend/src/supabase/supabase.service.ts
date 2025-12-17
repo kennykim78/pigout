@@ -286,6 +286,8 @@ export class SupabaseService {
         expertAdvice: data.expert_advice,
         nutrients: data.nutrients,
         diseaseAnalysis: data.disease_analysis,
+        warnings: data.warnings || [], // 🆕 특별 경고 사항
+        cookingTips: data.cooking_tips || [], // 🆕 건강한 조리법/팁
       };
     } catch (error) {
       console.warn(`[FoodRule] ${foodName} 조회 실패:`, error.message);
