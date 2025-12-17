@@ -53,7 +53,13 @@ COMMENT ON COLUMN food_analysis.data_sources IS '데이터 출처 배열 (식약
 -- 4. 기존 데이터 마이그레이션 (선택)
 -- ============================================
 
--- 기존 레코드의 age_group 계산 (users 테이블과 조인 필요시)
+-- 기존 레코드의 age_group 계산 (users 테이블에 age, gender 컬럼이 있는 경우만)
+-- 참고: 현재 users 테이블에는 age, gender 컬럼이 없음
+-- 필요시 users 테이블에 컬럼 추가 후 아래 주석 해제:
+-- 
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS age INTEGER;
+-- ALTER TABLE users ADD COLUMN IF NOT EXISTS gender TEXT;
+-- 
 -- UPDATE food_analysis fa
 -- SET age_group = CASE 
 --   WHEN u.age < 20 THEN '10대'
