@@ -314,6 +314,110 @@ export class SupabaseService {
   }
 
   // ================================================================
+  // Phase 2: 연령대 기반 음식 분석 캐시 (약물 제외)
+  // ================================================================
+
+  /**
+   * 연령대 그룹화 헬퍼 함수
+   */
+  private getAgeGroup(age?: number): string {
+    if (!age || age < 0) return '미입력';
+    if (age < 20) return '10대';
+    if (age < 30) return '20대';
+    if (age < 40) return '30대';
+    if (age < 50) return '40대';
+    if (age < 60) return '50대';
+    if (age < 70) return '60대';
+    return '70대+';
+  }
+
+  /**
+   * 연령대 기반 음식 분석 캐시 조회 (약물 정보 제외)
+   * @param foodName 음식명
+   * @param ageGroup 연령대 ('20대', '30대', ...)
+   * @param gender 성별 ('male', 'female')
+   * @returns 캐시된 분석 결과 또는 null
+   */
+  async getCachedFoodAnalysis(
+    foodName: string,
+    ageGroup: string,
+    gender: string
+  ): Promise<any | null> {
+    try {
+      // 최근 30일 이내의 캐시만 조회
+      const thirtyDaysAgo = new Date();
+      thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
+
+      const { data, error } = await this.supabase
+        .from('food_analysis')
+        .select('*')
+        .eq('food_name', foodName)
+        .eq('age_group', ageGroup)
+        .eq('gender', gender)
+        .gte('created_at', thirtyDaysAgo.toISOString())
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (error || !data) {
+        console.log(`[음식 캐시] 미스: ${foodName} (${ageGroup}, ${gender})`);
+        return null;
+      }
+
+      console.log(`[음식 캐시] 적중: ${foodName} (${ageGroup}, ${gender}) - 토큰 절약`);
+      return {
+        score: data.score,
+        analysis: data.analysis,
+        detailedAnalysis: data.detailed_analysis_json,
+        dataSources: data.data_sources || [],
+        isFromFoodRules: data.is_from_food_rules || false,
+        cachedAt: data.created_at,
+      };
+    } catch (error) {
+      console.warn('[음식 캐시] 조회 실패:', error.message);
+      return null;
+    }
+  }
+
+  /**
+   * 연령대 기반 음식 분석 캐시 저장 (약물 정보 제외)
+   * @param data 저장할 분석 데이터
+   */
+  async saveFoodAnalysisCache(data: {
+    foodName: string;
+    age?: number;
+    gender?: string;
+    score: number;
+    analysis: string;
+    detailedAnalysis: any;
+    dataSources: string[];
+    isFromFoodRules?: boolean;
+    userId?: string;
+  }): Promise<void> {
+    try {
+      const ageGroup = this.getAgeGroup(data.age);
+
+      await this.supabase.from('food_analysis').insert({
+        user_id: data.userId,
+        food_name: data.foodName,
+        age_group: ageGroup,
+        gender: data.gender || null,
+        score: data.score,
+        analysis: data.analysis,
+        detailed_analysis_json: data.detailedAnalysis,
+        data_sources: data.dataSources,
+        is_from_food_rules: data.isFromFoodRules || false,
+        created_at: new Date().toISOString(),
+      });
+
+      console.log(`[음식 캐시] 저장 완료: ${data.foodName} (${ageGroup}, ${data.gender})`);
+    } catch (error) {
+      console.error('[음식 캐시] 저장 실패:', error.message);
+      // 캐시 저장 실패는 무시 (핵심 기능 아님)
+    }
+  }
+
+  // ================================================================
   // 의약품 검색 결과 캐싱 (API 호출 절약)
   // ================================================================
 

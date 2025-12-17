@@ -1261,7 +1261,7 @@ export class FoodService {
       const medicineNames = medicines?.map((m) => m.name) || [];
       
       sendEvent('stage', { 
-        stage: 3, 
+        stage: 2, 
         name: '준비',
         status: 'complete',
         message: profileInfo 
@@ -1273,6 +1273,91 @@ export class FoodService {
           gender: profileInfo?.gender
         }
       });
+
+      // 🆕 Phase 2: food_rules 적중 시 약물 상호작용만 추가 분석
+      if (foodRule && medicines && medicines.length > 0) {
+        console.log('[Stream] food_rules + 약물 → 상호작용만 AI 분석');
+        
+        // 약물 상세 정보 준비 (기존 로직 활용)
+        const drugDetails = (medicines || []).map((medicine) => {
+          let qrData: any = {};
+          let aiAnalyzedInfo: any = null;
+          let publicData: any = null;
+
+          try {
+            if (medicine.qr_code_data) {
+              qrData = typeof medicine.qr_code_data === 'string'
+                ? JSON.parse(medicine.qr_code_data)
+                : medicine.qr_code_data;
+              
+              aiAnalyzedInfo = qrData.aiAnalyzedInfo || null;
+              publicData = {
+                itemSeq: qrData.itemSeq,
+                itemName: medicine.name,
+                entpName: medicine.drug_class || qrData.entpName,
+                efcyQesitm: qrData.efcyQesitm,
+                useMethodQesitm: qrData.useMethodQesitm,
+                atpnWarnQesitm: qrData.atpnWarnQesitm,
+                atpnQesitm: qrData.atpnQesitm,
+                intrcQesitm: qrData.intrcQesitm,
+                seQesitm: qrData.seQesitm,
+              };
+            }
+          } catch (parseError) {
+            console.warn(`[약물 정보] ${medicine.name} 파싱 실패`);
+          }
+
+          return {
+            name: medicine.name,
+            userMedicineId: medicine.id,
+            analyzedInfo: aiAnalyzedInfo,
+            publicData: publicData,
+            enhancedInfo: qrData.enhancedInfo || null,
+          };
+        });
+
+        sendEvent('stage', { stage: 3, name: '약물정보', status: 'complete', message: `${drugDetails.length}개 약물 정보 확인` });
+        sendEvent('stage', { stage: 4, name: '영양성분', status: 'complete', message: 'food_rules 사용 - 생략' });
+        sendEvent('stage', { stage: 5, name: '성분분석', status: 'complete', message: 'food_rules 사용 - 생략' });
+        sendEvent('stage', { stage: 6, name: '상호작용', status: 'loading', message: '약물 상호작용 분석 중...' });
+
+        // 약물 상호작용만 AI 분석 (~3초)
+        const geminiClient = await this.getGeminiClient();
+        const foodComponents = foodRule.nutrients?.components || [];
+        const interactionAnalysis = await geminiClient.analyzeDrugFoodInteractions(
+          foodName,
+          { components: foodComponents, riskFactors: {} },
+          drugDetails,
+          diseases,
+          profileInfo
+        );
+
+        sendEvent('stage', { stage: 6, name: '상호작용', status: 'complete', message: '약물 상호작용 분석 완료' });
+        sendEvent('stage', { stage: 7, name: '레시피', status: 'complete', message: '건강 레시피 제공' });
+        sendEvent('stage', { stage: 8, name: '최종분석', status: 'loading', message: '최종 결과 정리 중...' });
+
+        // 최종 결과 병합
+        const finalResult = {
+          foodName,
+          score: foodRule.baseScore,
+          briefSummary: foodRule.summary,
+          goodPoints: foodRule.pros.split('\n').filter((p: string) => p.trim()),
+          badPoints: foodRule.cons.split('\n').filter((c: string) => c.trim()),
+          warnings: interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'danger').map((i: any) => i.reason) || [],
+          expertAdvice: foodRule.expertAdvice,
+          summary: foodRule.summary,
+          drug_food_interactions: interactionAnalysis.interactions || [],
+          foodComponents: foodComponents,
+          dataSources: ['food_rules DB (토큰 0)', 'Gemini AI (약물 상호작용만)'],
+        };
+
+        sendEvent('stage', { stage: 8, name: '최종분석', status: 'complete', message: '✅ 분석 완료 (food_rules + AI 상호작용)' });
+        sendEvent('result', { success: true, data: finalResult });
+
+        // 캐시 저장은 하지 않음 (food_rules가 이미 캐시 역할)
+        console.log('[Stream] food_rules 기반 분석 완료 (토큰 대폭 절약)');
+        return;
+      }
 
       // 2단계: 약물 정보 조회 (DB 캐시 우선, 외부 API는 폴백)
       sendEvent('stage', { 
