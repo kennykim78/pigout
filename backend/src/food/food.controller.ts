@@ -90,10 +90,10 @@ export class FoodController {
   async analyzeFoodByTextStream(
     @Body('foodName') foodName: string,
     @Body('diseases') diseases: string[],
-    @Body('age') age?: number,
-    @Body('gender') gender?: string,
     @Headers('x-device-id') deviceId: string,
     @Res() res: Response,
+    @Body('age') age?: number,
+    @Body('gender') gender?: string,
   ) {
     // SSE 헤더 설정
     res.setHeader('Content-Type', 'text/event-stream');

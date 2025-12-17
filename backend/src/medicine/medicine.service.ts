@@ -1135,7 +1135,20 @@ export class MedicineService {
 
       // 캐시 키 생성: 약품 ID 정렬 + 연령대(10세 단위) + 성별
       const medicineIds = medicines.map(m => m.id).sort().join(',');
-      const ageGroup = this.getAgeGroup(userProfile?.age);
+      
+      // 연령대 그룹화 함수 (10세 단위)
+      const getAgeGroup = (age?: number): string => {
+        if (!age) return 'unknown';
+        if (age < 20) return '10대';
+        if (age < 30) return '20대';
+        if (age < 40) return '30대';
+        if (age < 50) return '40대';
+        if (age < 60) return '50대';
+        if (age < 70) return '60대';
+        return '70대+';
+      };
+      
+      const ageGroup = getAgeGroup(userProfile?.age);
       const genderStr = userProfile?.gender || 'none';
       const cacheKey = `${medicineIds}_${ageGroup}_${genderStr}`;
       

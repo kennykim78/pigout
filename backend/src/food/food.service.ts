@@ -1184,6 +1184,7 @@ export class FoodService {
         message: '사전 등록 데이터를 확인하고 있어요...'
       });
 
+      const { normalizeFoodName } = require('./food-rules');
       const normalizedFoodName = normalizeFoodName(foodName);
       const foodRule = await this.supabaseService.getFoodRule(normalizedFoodName);
       
@@ -1339,10 +1340,7 @@ export class FoodService {
 
         let recipeData = [];
         try {
-          recipeData = await this.externalApiClient.getHealthyRecipeList({ 
-            recipeName: foodName, 
-            numOfRows: 5 
-          });
+          recipeData = await this.externalApiClient.getRecipeInfo(foodName);
           console.log(`[조리법 공공데이터] ${recipeData?.length || 0}개 레시피 조회`);
         } catch (error) {
           console.warn('[조리법 공공데이터] 조회 실패:', error.message);
