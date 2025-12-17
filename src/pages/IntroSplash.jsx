@@ -1,7 +1,7 @@
 import { useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './IntroSplash.scss';
-import imgMain from '../assets/images/img_main.png';
+import pigoutLogo from '../assets/images/pigout_logo.svg';
 import { getUserProfile, getSelectedDiseases } from '../utils/deviceId';
 
 const IntroSplash = () => {
