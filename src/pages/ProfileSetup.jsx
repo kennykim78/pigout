@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import './ProfileSetup.scss';
 import img_main from '../assets/images/img_main.png';
-import { saveUserProfile } from '../utils/deviceId';
+import { saveUserProfile, getSelectedDiseases } from '../utils/deviceId';
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -70,10 +70,10 @@ const ProfileSetup = () => {
     console.log('프로필 저장됨:', { birthYear: year, gender, age });
 
     // 질병 정보 확인
-    const { getSelectedDiseases } = require('../utils/deviceId');
     const diseases = getSelectedDiseases();
+    console.log('[ProfileSetup] 질병 정보 확인:', diseases);
 
-    if (diseases.length > 0) {
+    if (diseases && diseases.length > 0) {
       // 이미 질병 정보 있음 → 메인으로
       console.log('[ProfileSetup] 질병 정보 있음 → Main 이동');
       navigate('/main');
