@@ -107,7 +107,7 @@ const Result2 = () => {
         setCurrentStage(data.stage);
         setStreamingMessage(data.message);
         // 진행률 계산 (7단계 기준)
-        const totalStages = 7;
+        const totalStages = 8; // DB조회 + 준비 + 약물정보 + 영양성분 + 성분분석 + 상호작용 + 레시피 + 최종분석
         const progressPerStage = 100 / totalStages;
         const baseProgress = (data.stage - 1) * progressPerStage;
         const stageProgress = data.status === 'complete' ? progressPerStage : progressPerStage * 0.5;

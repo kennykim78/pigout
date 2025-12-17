@@ -1,6 +1,6 @@
 .history {
   min-height: 100vh;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   padding-bottom: 100px;
 }
 .history__header {
@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -79,7 +79,7 @@
   align-items: center;
   gap: 12px;
   padding: 16px;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   border: 2px solid rgb(0, 0, 0);
   border-radius: 20px;
   cursor: pointer;
@@ -267,7 +267,7 @@
   visibility: hidden;
 }
 .history__calendar-day--has-records {
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   border-color: rgb(0, 0, 0);
   cursor: pointer;
   transition: transform 0.2s ease;
@@ -282,7 +282,7 @@
   color: rgb(255, 255, 255);
 }
 .history__calendar-day--today .history__day-count {
-  color: rgb(255, 223, 62);
+  color: #fff;
 }
 .history__day-number {
   font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;

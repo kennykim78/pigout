@@ -3,7 +3,7 @@
   width: 100%;
   min-height: 100vh;
   overflow: hidden;
-  background: rgb(255, 223, 62);
+  background: #fff;
 }
 .profile-setup__background {
   position: relative;
@@ -115,7 +115,7 @@
 }
 .profile-setup__gender-tab--active {
   background: rgb(0, 0, 0);
-  color: rgb(255, 223, 62);
+  color: #fff;
   border-color: rgb(0, 0, 0);
 }
 .profile-setup__gender-tab:disabled {
@@ -136,7 +136,7 @@
   font-size: 18px;
   font-weight: 700;
   background: rgb(0, 0, 0);
-  color: rgb(255, 223, 62);
+  color: #fff;
   border: none;
   border-radius: 12px;
   cursor: pointer;

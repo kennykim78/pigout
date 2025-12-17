@@ -1,7 +1,7 @@
 .result01 {
   width: 100%;
   min-height: 100vh;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
 }
 .result01__back-btn {
   position: absolute;
@@ -102,7 +102,7 @@
 .result01__score-outer {
   width: 319px;
   height: 319px;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   border-radius: 50%;
   display: flex;
   align-items: center;

@@ -1,7 +1,7 @@
 .select-option {
   width: 100%;
   min-height: 100vh;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   position: relative;
   overflow: hidden;
 }

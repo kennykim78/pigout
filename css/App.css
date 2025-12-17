@@ -26,10 +26,10 @@
   transition: all 0.2s ease;
 }
 .app__nav-link:hover {
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   color: rgb(0, 0, 0);
 }
 .app__nav-link.active {
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   color: rgb(0, 0, 0);
 }/*# sourceMappingURL=App.css.map */

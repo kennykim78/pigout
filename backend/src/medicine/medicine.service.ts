@@ -1133,11 +1133,13 @@ export class MedicineService {
         message: '이전 분석 결과를 확인하는 중...',
       });
 
-      // 캐시 키 생성: 약품 ID 정렬 + 나이 + 성별
+      // 캐시 키 생성: 약품 ID 정렬 + 연령대(10세 단위) + 성별
       const medicineIds = medicines.map(m => m.id).sort().join(',');
-      const cacheKey = `${medicineIds}_${userProfile?.age || 'none'}_${userProfile?.gender || 'none'}`;
+      const ageGroup = this.getAgeGroup(userProfile?.age);
+      const genderStr = userProfile?.gender || 'none';
+      const cacheKey = `${medicineIds}_${ageGroup}_${genderStr}`;
       
-      console.log(`[약물 분석 캐시] 캐시 키: ${cacheKey}`);
+      console.log(`[약물 분석 캐시] 캐시 키: ${cacheKey} (연령대: ${ageGroup})`);
       
       // 캐시된 분석 결과 조회
       const { data: cachedAnalysis } = await client
@@ -1335,18 +1337,18 @@ export class MedicineService {
         ],
       };
 
-      // 분석 결과를 캐시에 저장
+      // 분석 결과를 캐시에 저장 (연령대로 저장)
       try {
         await client.from('medicine_analysis_cache').insert({
           cache_key: cacheKey,
           user_id: userId,
           medicine_ids: medicineIds,
-          age: userProfile?.age,
+          age: userProfile?.age, // 원래 나이도 참고용으로 저장
           gender: userProfile?.gender,
           analysis_result: finalResult,
           created_at: new Date().toISOString(),
         });
-        console.log(`[약물 분석 캐시] 결과 저장 완료`);
+        console.log(`[약물 분석 캐시] 결과 저장 완료 (연령대: ${ageGroup})`);
       } catch (cacheError) {
         console.error(`[약물 분석 캐시] 저장 실패:`, cacheError);
         // 캐시 저장 실패해도 결과는 반환

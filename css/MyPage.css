@@ -1,6 +1,6 @@
 .mypage {
   min-height: 100vh;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   padding-bottom: 120px;
 }
 .mypage__header {
@@ -10,7 +10,7 @@
   align-items: center;
   justify-content: space-between;
   padding: 20px;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   position: sticky;
   top: 0;
   z-index: 10;
@@ -60,7 +60,7 @@
   width: 64px;
   height: 64px;
   border-radius: 50%;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   border: 2px solid rgb(0, 0, 0);
   display: flex;
   align-items: center;
@@ -86,7 +86,7 @@
   margin: 0;
 }
 .mypage__points-badge {
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   border: 2px solid rgb(0, 0, 0);
   border-radius: 16px;
   padding: 10px 16px;
@@ -196,7 +196,7 @@
   gap: 8px;
 }
 .mypage__disease-tag {
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   border: 2px solid rgb(0, 0, 0);
   border-radius: 20px;
   padding: 8px 16px;
@@ -255,7 +255,7 @@
   align-items: center;
   gap: 12px;
   padding: 12px 16px;
-  background-color: rgb(255, 223, 62);
+  background-color: #fff;
   border: 2px solid rgb(0, 0, 0);
   border-radius: 12px;
   cursor: pointer;
