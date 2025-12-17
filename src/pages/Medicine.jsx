@@ -671,8 +671,8 @@ const Medicine = () => {
         setCurrentStage(data.stage);
         setStreamingMessage(data.message);
         
-        // 진행률 계산 (4단계 기준)
-        const totalStages = 4;
+        // 진행률 계산 (5단계 기준)
+        const totalStages = 5;
         const progressPerStage = 100 / totalStages;
         const baseProgress = (data.stage - 1) * progressPerStage;
         const stageProgress = data.status === 'complete' ? progressPerStage : progressPerStage * 0.5;
@@ -805,21 +805,13 @@ const Medicine = () => {
                   onClick={handleAnalyzeAll}
                   disabled={isAnalyzing}
                 >
-                  {isAnalyzing ? '🔄 분석 중...' : '🔬 AI 약물 상호작용 상세 분석'}
+                  {isAnalyzing ? '🔄 분석 중...' : analysisResult ? '🔬 상세분석 다시보기' : '🔬 AI 약물 상호작용 상세 분석'}
                 </button>
                 <p className="medicine__analyze-desc">
-                  AI가 복용 중인 모든 약물의 상호작용을 상세 분석합니다
+                  {analysisResult 
+                    ? '분석 결과를 다시 확인하거나 업데이트할 수 있습니다' 
+                    : 'AI가 복용 중인 모든 약물의 상호작용을 상세 분석합니다'}
                 </p>
-                
-                {/* 분석 완료 후 결과 보기 버튼 */}
-                {analysisResult && !isAnalyzing && (
-                  <button
-                    className="medicine__view-result-btn"
-                    onClick={() => setShowAnalysis(true)}
-                  >
-                    📋 분석 결과 보기
-                  </button>
-                )}
               </div>
 
               {/* 🆕 스트리밍 분석 진행 상황 표시 */}

@@ -1083,6 +1083,7 @@ export class MedicineService {
       message: '약물 상관관계 분석을 시작합니다...',
       stages: [
         '약물 목록 조회',
+        '캐시 확인',
         '공공데이터 수집',
         '약물 정보 AI 분석',
         '약물 상호작용 AI 분석',
@@ -1124,9 +1125,61 @@ export class MedicineService {
         message: `${medicines.length}개 약물 조회 완료`,
       });
 
-      // 2단계: 공공데이터 수집
+      // 2단계: 캐시 확인
       sendEvent('stage', {
         stage: 2,
+        name: '캐시 확인',
+        status: 'in-progress',
+        message: '이전 분석 결과를 확인하는 중...',
+      });
+
+      // 캐시 키 생성: 약품 ID 정렬 + 나이 + 성별
+      const medicineIds = medicines.map(m => m.id).sort().join(',');
+      const cacheKey = `${medicineIds}_${userProfile?.age || 'none'}_${userProfile?.gender || 'none'}`;
+      
+      console.log(`[약물 분석 캐시] 캐시 키: ${cacheKey}`);
+      
+      // 캐시된 분석 결과 조회
+      const { data: cachedAnalysis } = await client
+        .from('medicine_analysis_cache')
+        .select('*')
+        .eq('cache_key', cacheKey)
+        .gte('created_at', new Date(Date.now() - 7 * 24 * 60 * 60 * 1000).toISOString()) // 7일 이내
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (cachedAnalysis) {
+        console.log(`[약물 분석 캐시] 캐시 적중! 저장된 결과 반환`);
+        
+        sendEvent('stage', {
+          stage: 2,
+          status: 'complete',
+          message: '이전 분석 결과를 찾았습니다 (즉시 로드)',
+        });
+
+        // 캐시된 결과를 그대로 전송
+        sendEvent('result', {
+          success: true,
+          fromCache: true,
+          data: cachedAnalysis.analysis_result,
+        });
+
+        console.log(`[약물 상관관계 스트리밍 분석] 캐시로부터 완료`);
+        return;
+      }
+
+      console.log(`[약물 분석 캐시] 캐시 미스 - 새로 분석 시작`);
+      
+      sendEvent('stage', {
+        stage: 2,
+        status: 'complete',
+        message: '캐시 없음 - 새로 분석합니다',
+      });
+
+      // 3단계: 공공데이터 수집
+      sendEvent('stage', {
+        stage: 3,
         name: '공공데이터 수집',
         status: 'in-progress',
         message: '식약처 공공데이터 조회 중...',
@@ -1164,14 +1217,14 @@ export class MedicineService {
       const drugDetails = await Promise.all(drugDetailsPromises);
 
       sendEvent('stage', {
-        stage: 2,
+        stage: 3,
         status: 'complete',
         message: `공공데이터 수집 완료`,
       });
 
-      // 3단계: 약물 정보 AI 분석
+      // 4단계: 약물 정보 AI 분석
       sendEvent('stage', {
-        stage: 3,
+        stage: 4,
         name: '약물 정보 AI 분석',
         status: 'in-progress',
         message: 'AI가 각 약물 정보를 분석 중...',
@@ -1255,34 +1308,55 @@ export class MedicineService {
       });
 
       sendEvent('stage', {
-        stage: 4,
+        stage: 5,
         status: 'complete',
         message: '약물 상호작용 분석 완료',
       });
 
+      // 최종 결과 데이터 구성
+      const finalResult = {
+        totalMedicines: medicines.length,
+        medicines: medicines.map((m, idx) => ({
+          id: m.id,
+          name: m.name,
+          dosage: m.dosage,
+          frequency: m.frequency,
+          analyzedInfo: analyzedMedicineInfo[idx],
+        })),
+        analysis: {
+          ...analysisResult,
+          interactions,
+        },
+        dataSources: [
+          '식품의약품안전처 e약은요 API',
+          '식품의약품안전처 의약품 낱알식별 정보',
+          '식품의약품안전처 의약품 제품 허가정보',
+          'Gemini AI 분석',
+        ],
+      };
+
+      // 분석 결과를 캐시에 저장
+      try {
+        await client.from('medicine_analysis_cache').insert({
+          cache_key: cacheKey,
+          user_id: userId,
+          medicine_ids: medicineIds,
+          age: userProfile?.age,
+          gender: userProfile?.gender,
+          analysis_result: finalResult,
+          created_at: new Date().toISOString(),
+        });
+        console.log(`[약물 분석 캐시] 결과 저장 완료`);
+      } catch (cacheError) {
+        console.error(`[약물 분석 캐시] 저장 실패:`, cacheError);
+        // 캐시 저장 실패해도 결과는 반환
+      }
+
       // 최종 결과 전송
       sendEvent('result', {
         success: true,
-        data: {
-          totalMedicines: medicines.length,
-          medicines: medicines.map((m, idx) => ({
-            id: m.id,
-            name: m.name,
-            dosage: m.dosage,
-            frequency: m.frequency,
-            analyzedInfo: analyzedMedicineInfo[idx],
-          })),
-          analysis: {
-            ...analysisResult,
-            interactions,
-          },
-          dataSources: [
-            '식품의약품안전처 e약은요 API',
-            '식품의약품안전처 의약품 낱알식별 정보',
-            '식품의약품안전처 의약품 제품 허가정보',
-            'Gemini AI 분석',
-          ],
-        },
+        fromCache: false,
+        data: finalResult,
       });
 
       console.log(`[약물 상관관계 스트리밍 분석] 완료`);
