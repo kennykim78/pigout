@@ -8,6 +8,8 @@ const IntroSplash = () => {
   const navigate = useNavigate();
 
   useEffect(() => {
+    // 테스트용: 자동 이동 비활성화
+    
     const timer = setTimeout(() => {
       // 1. 나이/성별 정보 확인
       const userProfile = getUserProfile();
@@ -34,6 +36,7 @@ const IntroSplash = () => {
     }, 3000); // 3초로 단축
 
     return () => clearTimeout(timer);
+    
   }, [navigate]);
 
   return (
