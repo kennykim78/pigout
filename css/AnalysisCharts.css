@@ -159,6 +159,457 @@
 .analysis-chart__tooltip-value.safe {
   color: #b9f6ca;
 }
+.analysis-chart__subtitle {
+  font-size: 12px;
+  font-weight: 400;
+  color: #888;
+  margin-left: 8px;
+}
+.analysis-chart--gauge .analysis-chart__gauge-container {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.analysis-chart--gauge .analysis-chart__gauge-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 8px;
+  color: #666;
+}
+.analysis-chart--gauge .analysis-chart__gauge-item {
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 8px;
+}
+.analysis-chart--gauge .analysis-chart__gauge-item--danger {
+  background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
+  border-left: 3px solid #ef5350;
+}
+.analysis-chart--gauge .analysis-chart__gauge-header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+.analysis-chart--gauge .analysis-chart__gauge-icon {
+  font-size: 16px;
+}
+.analysis-chart--gauge .analysis-chart__gauge-label {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+  flex: 1;
+}
+.analysis-chart--gauge .analysis-chart__gauge-badge {
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 10px;
+  font-weight: 600;
+}
+.analysis-chart--gauge .analysis-chart__gauge-badge--danger {
+  background: #ef5350;
+  color: #fff;
+}
+.analysis-chart--gauge .analysis-chart__gauge-bar {
+  height: 6px;
+  background: #e0e0e0;
+  border-radius: 3px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+.analysis-chart--gauge .analysis-chart__gauge-fill {
+  height: 100%;
+  border-radius: 3px;
+  transition: width 0.5s ease;
+}
+.analysis-chart--gauge .analysis-chart__gauge-fill--danger {
+  background: linear-gradient(90deg, #ff8a80, #ef5350);
+}
+.analysis-chart--gauge .analysis-chart__gauge-note {
+  font-size: 10px;
+  color: #888;
+  line-height: 1.4;
+}
+.analysis-chart--gauge .analysis-chart__gauge-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 16px;
+  background: #f8fff8;
+  border-radius: 10px;
+  color: #4caf50;
+}
+.analysis-chart--gauge .analysis-chart__gauge-empty-icon {
+  font-size: 18px;
+}
+.analysis-chart--gauge .analysis-chart__gauge-empty-text {
+  font-size: 12px;
+  font-weight: 500;
+}
+.analysis-chart--gauge .analysis-chart__gauge-safe-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.analysis-chart--gauge .analysis-chart__gauge-safe-item {
+  padding: 4px 10px;
+  background: #e8f5e9;
+  border-radius: 12px;
+  font-size: 10px;
+  color: #2e7d32;
+}
+.analysis-chart--gauge .analysis-chart__gauge-safe-more {
+  padding: 4px 10px;
+  background: #f5f5f5;
+  border-radius: 12px;
+  font-size: 10px;
+  color: #888;
+}
+.analysis-chart--donut .analysis-chart__donut-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.analysis-chart--donut .analysis-chart__donut-chart {
+  position: relative;
+  flex-shrink: 0;
+  width: 140px;
+}
+.analysis-chart--donut .analysis-chart__donut-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 70px;
+  height: 70px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.analysis-chart--donut .analysis-chart__donut-center--danger {
+  background: #ffebee;
+}
+.analysis-chart--donut .analysis-chart__donut-center--caution {
+  background: #fff3e0;
+}
+.analysis-chart--donut .analysis-chart__donut-center--safe {
+  background: #e8f5e9;
+}
+.analysis-chart--donut .analysis-chart__donut-number {
+  font-size: 18px;
+  font-weight: 700;
+  color: #333;
+  line-height: 1;
+}
+.analysis-chart--donut .analysis-chart__donut-text {
+  font-size: 10px;
+  color: #888;
+  margin-top: 2px;
+}
+.analysis-chart--donut .analysis-chart__donut-summary {
+  flex: 1;
+}
+.analysis-chart--donut .analysis-chart__donut-status {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 16px;
+  font-weight: 700;
+  margin-bottom: 12px;
+  padding: 8px 12px;
+  border-radius: 8px;
+}
+.analysis-chart--donut .analysis-chart__donut-status--danger {
+  background: #ffebee;
+  color: #c62828;
+}
+.analysis-chart--donut .analysis-chart__donut-status--caution {
+  background: #fff3e0;
+  color: #e65100;
+}
+.analysis-chart--donut .analysis-chart__donut-status--safe {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.analysis-chart--donut .analysis-chart__donut-badges {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+.analysis-chart--donut .analysis-chart__donut-badge {
+  padding: 4px 10px;
+  border-radius: 6px;
+  font-size: 10px;
+  font-weight: 600;
+  display: inline-block;
+}
+.analysis-chart--donut .analysis-chart__donut-badge--danger {
+  background: #ffebee;
+  color: #c62828;
+}
+.analysis-chart--donut .analysis-chart__donut-badge--caution {
+  background: #fff3e0;
+  color: #e65100;
+}
+.analysis-chart--donut .analysis-chart__donut-badge--safe {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-container {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-chart {
+  position: relative;
+  flex-shrink: 0;
+  width: 120px;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-center {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  text-align: center;
+  width: 60px;
+  height: 60px;
+  border-radius: 50%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-center--good {
+  background: #e8f5e9;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-center--normal {
+  background: #fff3e0;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-center--bad {
+  background: #ffebee;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-icon {
+  font-size: 18px;
+  line-height: 1;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-percent {
+  font-size: 12px;
+  font-weight: 700;
+  color: #333;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-info {
+  flex: 1;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-status {
+  font-size: 16px;
+  font-weight: 700;
+  padding: 6px 12px;
+  border-radius: 8px;
+  display: inline-block;
+  margin-bottom: 8px;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-status--good {
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-status--normal {
+  background: #fff3e0;
+  color: #e65100;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-status--bad {
+  background: #ffebee;
+  color: #c62828;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-legend {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-legend-item {
+  font-size: 10px;
+  color: #666;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-legend-item--good {
+  color: #4caf50;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-legend-item--bad {
+  color: #ff9800;
+}
+.analysis-chart--balance-donut .analysis-chart__balance-legend-item--warning {
+  color: #f44336;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-header {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-icon {
+  font-size: 12px;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-name {
+  font-size: 12px;
+  font-weight: 500;
+  color: #333;
+  flex: 1;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-value {
+  font-size: 12px;
+  font-weight: 600;
+  color: #333;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-bar-wrapper {
+  height: 8px;
+  background: #e8e8e8;
+  border-radius: 4px;
+  overflow: hidden;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-bar-fill {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.5s ease;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-bar-fill--high {
+  animation: pulse 2s infinite;
+}
+.analysis-chart--nutrition-bar .analysis-chart__nutrition-percent {
+  font-size: 10px;
+  color: #888;
+  text-align: right;
+}
+.analysis-chart--timing .analysis-chart__timing-container {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.analysis-chart--timing .analysis-chart__timing-section-title {
+  font-size: 12px;
+  font-weight: 600;
+  margin-bottom: 10px;
+  color: #555;
+}
+.analysis-chart--timing .analysis-chart__timing-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.analysis-chart--timing .analysis-chart__timing-item {
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+  border-radius: 10px;
+  border-left: 3px solid #2196f3;
+}
+.analysis-chart--timing .analysis-chart__timing-drug {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+.analysis-chart--timing .analysis-chart__timing-drug-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #1565c0;
+}
+.analysis-chart--timing .analysis-chart__timing-drug-wait {
+  font-size: 10px;
+  font-weight: 700;
+  padding: 2px 8px;
+  background: #2196f3;
+  color: #fff;
+  border-radius: 10px;
+}
+.analysis-chart--timing .analysis-chart__timing-reason {
+  font-size: 10px;
+  color: #666;
+  line-height: 1.4;
+}
+.analysis-chart--timing .analysis-chart__alternatives-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+.analysis-chart--timing .analysis-chart__alternative-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px 12px;
+  background: linear-gradient(135deg, #f9fbe7 0%, #f0f4c3 100%);
+  border-radius: 10px;
+  border-left: 3px solid #8bc34a;
+}
+.analysis-chart--timing .analysis-chart__alternative-name {
+  font-size: 12px;
+  font-weight: 600;
+  color: #558b2f;
+}
+.analysis-chart--timing .analysis-chart__alternative-reason {
+  font-size: 10px;
+  color: #666;
+  text-align: right;
+  max-width: 50%;
+}
+.analysis-chart--serving {
+  padding: 12px 16px;
+  background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+  border-radius: 12px;
+}
+.analysis-chart--serving .analysis-chart__serving-content {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.analysis-chart--serving .analysis-chart__serving-icon {
+  font-size: 32px;
+  line-height: 1;
+}
+.analysis-chart--serving .analysis-chart__serving-info {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.analysis-chart--serving .analysis-chart__serving-label {
+  font-size: 10px;
+  color: #880e4f;
+}
+.analysis-chart--serving .analysis-chart__serving-amount {
+  font-size: 18px;
+  font-weight: 700;
+  color: #c2185b;
+}
+.analysis-chart--serving .analysis-chart__serving-note {
+  font-size: 10px;
+  color: #666;
+}
+.analysis-chart--serving .analysis-chart__serving-calories {
+  text-align: center;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 8px;
+}
+.analysis-chart--serving .analysis-chart__serving-calories-value {
+  font-size: 18px;
+  font-weight: 700;
+  color: #d81b60;
+  display: block;
+}
+.analysis-chart--serving .analysis-chart__serving-calories-unit {
+  font-size: 10px;
+  color: #888;
+}
 
 .analysis-chart--skeleton .analysis-chart__container {
   height: 200px;
@@ -174,5 +625,13 @@
   }
   100% {
     background-position: 200% 0;
+  }
+}
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }/*# sourceMappingURL=AnalysisCharts.css.map */

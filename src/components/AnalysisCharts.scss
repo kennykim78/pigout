@@ -202,6 +202,548 @@
       color: #b9f6ca;
     }
   }
+
+  // 서브타이틀
+  &__subtitle {
+    font-size: $font-size-small;
+    font-weight: 400;
+    color: #888;
+    margin-left: 8px;
+  }
+
+  // 🆕 게이지 바 차트 스타일
+  &--gauge {
+    .analysis-chart__gauge-container {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .analysis-chart__gauge-section {
+      &-title {
+        font-size: $font-size-small;
+        font-weight: 600;
+        margin-bottom: 8px;
+        color: #666;
+      }
+    }
+
+    .analysis-chart__gauge-item {
+      padding: 10px 12px;
+      border-radius: 10px;
+      margin-bottom: 8px;
+
+      &--danger {
+        background: linear-gradient(135deg, #fff5f5 0%, #ffebee 100%);
+        border-left: 3px solid #ef5350;
+      }
+    }
+
+    .analysis-chart__gauge-header {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 6px;
+    }
+
+    .analysis-chart__gauge-icon {
+      font-size: $font-size-medium;
+    }
+
+    .analysis-chart__gauge-label {
+      font-size: $font-size-small;
+      font-weight: 600;
+      color: #333;
+      flex: 1;
+    }
+
+    .analysis-chart__gauge-badge {
+      padding: 2px 8px;
+      border-radius: 10px;
+      font-size: $font-size-xs;
+      font-weight: 600;
+
+      &--danger {
+        background: #ef5350;
+        color: #fff;
+      }
+    }
+
+    .analysis-chart__gauge-bar {
+      height: 6px;
+      background: #e0e0e0;
+      border-radius: 3px;
+      overflow: hidden;
+      margin-bottom: 6px;
+    }
+
+    .analysis-chart__gauge-fill {
+      height: 100%;
+      border-radius: 3px;
+      transition: width 0.5s ease;
+
+      &--danger {
+        background: linear-gradient(90deg, #ff8a80, #ef5350);
+      }
+    }
+
+    .analysis-chart__gauge-note {
+      font-size: $font-size-xs;
+      color: #888;
+      line-height: 1.4;
+    }
+
+    .analysis-chart__gauge-empty {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      padding: 16px;
+      background: #f8fff8;
+      border-radius: 10px;
+      color: #4caf50;
+    }
+
+    .analysis-chart__gauge-empty-icon {
+      font-size: $font-size-large;
+    }
+
+    .analysis-chart__gauge-empty-text {
+      font-size: $font-size-small;
+      font-weight: 500;
+    }
+
+    .analysis-chart__gauge-safe-list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .analysis-chart__gauge-safe-item {
+      padding: 4px 10px;
+      background: #e8f5e9;
+      border-radius: 12px;
+      font-size: $font-size-xs;
+      color: #2e7d32;
+    }
+
+    .analysis-chart__gauge-safe-more {
+      padding: 4px 10px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      font-size: $font-size-xs;
+      color: #888;
+    }
+  }
+
+  // 🆕 도넛 차트 스타일 (개선)
+  &--donut {
+    .analysis-chart__donut-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .analysis-chart__donut-chart {
+      position: relative;
+      flex-shrink: 0;
+      width: 140px;
+    }
+
+    .analysis-chart__donut-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 70px;
+      height: 70px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      &--danger {
+        background: #ffebee;
+      }
+      &--caution {
+        background: #fff3e0;
+      }
+      &--safe {
+        background: #e8f5e9;
+      }
+    }
+
+    .analysis-chart__donut-number {
+      font-size: $font-size-large;
+      font-weight: 700;
+      color: #333;
+      line-height: 1;
+    }
+
+    .analysis-chart__donut-text {
+      font-size: $font-size-xs;
+      color: #888;
+      margin-top: 2px;
+    }
+
+    .analysis-chart__donut-summary {
+      flex: 1;
+    }
+
+    .analysis-chart__donut-status {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: $font-size-medium;
+      font-weight: 700;
+      margin-bottom: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+
+      &--danger {
+        background: #ffebee;
+        color: #c62828;
+      }
+      &--caution {
+        background: #fff3e0;
+        color: #e65100;
+      }
+      &--safe {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+    }
+
+    .analysis-chart__donut-badges {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .analysis-chart__donut-badge {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: $font-size-xs;
+      font-weight: 600;
+      display: inline-block;
+
+      &--danger {
+        background: #ffebee;
+        color: #c62828;
+      }
+      &--caution {
+        background: #fff3e0;
+        color: #e65100;
+      }
+      &--safe {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+    }
+  }
+
+  // 🆕 균형 도넛 차트 스타일
+  &--balance-donut {
+    .analysis-chart__balance-container {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .analysis-chart__balance-chart {
+      position: relative;
+      flex-shrink: 0;
+      width: 120px;
+    }
+
+    .analysis-chart__balance-center {
+      position: absolute;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      text-align: center;
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+
+      &--good {
+        background: #e8f5e9;
+      }
+      &--normal {
+        background: #fff3e0;
+      }
+      &--bad {
+        background: #ffebee;
+      }
+    }
+
+    .analysis-chart__balance-icon {
+      font-size: $font-size-large;
+      line-height: 1;
+    }
+
+    .analysis-chart__balance-percent {
+      font-size: $font-size-small;
+      font-weight: 700;
+      color: #333;
+    }
+
+    .analysis-chart__balance-info {
+      flex: 1;
+    }
+
+    .analysis-chart__balance-status {
+      font-size: $font-size-medium;
+      font-weight: 700;
+      padding: 6px 12px;
+      border-radius: 8px;
+      display: inline-block;
+      margin-bottom: 8px;
+
+      &--good {
+        background: #e8f5e9;
+        color: #2e7d32;
+      }
+      &--normal {
+        background: #fff3e0;
+        color: #e65100;
+      }
+      &--bad {
+        background: #ffebee;
+        color: #c62828;
+      }
+    }
+
+    .analysis-chart__balance-legend {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .analysis-chart__balance-legend-item {
+      font-size: $font-size-xs;
+      color: #666;
+
+      &--good { color: #4caf50; }
+      &--bad { color: #ff9800; }
+      &--warning { color: #f44336; }
+    }
+  }
+
+  // 🆕 영양소 바 차트 스타일
+  &--nutrition-bar {
+    .analysis-chart__nutrition-bars {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .analysis-chart__nutrition-item {
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .analysis-chart__nutrition-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .analysis-chart__nutrition-icon {
+      font-size: $font-size-small;
+    }
+
+    .analysis-chart__nutrition-name {
+      font-size: $font-size-small;
+      font-weight: 500;
+      color: #333;
+      flex: 1;
+    }
+
+    .analysis-chart__nutrition-value {
+      font-size: $font-size-small;
+      font-weight: 600;
+      color: #333;
+    }
+
+    .analysis-chart__nutrition-bar-wrapper {
+      height: 8px;
+      background: #e8e8e8;
+      border-radius: 4px;
+      overflow: hidden;
+    }
+
+    .analysis-chart__nutrition-bar-fill {
+      height: 100%;
+      border-radius: 4px;
+      transition: width 0.5s ease;
+
+      &--high {
+        animation: pulse 2s infinite;
+      }
+    }
+
+    .analysis-chart__nutrition-percent {
+      font-size: 10px;
+      color: #888;
+      text-align: right;
+    }
+  }
+
+  // 🆕 섭취 타이밍 가이드 스타일
+  &--timing {
+    .analysis-chart__timing-container {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .analysis-chart__timing-section {
+      &-title {
+        font-size: $font-size-small;
+        font-weight: 600;
+        margin-bottom: 10px;
+        color: #555;
+      }
+    }
+
+    .analysis-chart__timing-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    .analysis-chart__timing-item {
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #f0f7ff 0%, #e3f2fd 100%);
+      border-radius: 10px;
+      border-left: 3px solid #2196f3;
+    }
+
+    .analysis-chart__timing-drug {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 4px;
+    }
+
+    .analysis-chart__timing-drug-name {
+      font-size: $font-size-small;
+      font-weight: 600;
+      color: #1565c0;
+    }
+
+    .analysis-chart__timing-drug-wait {
+      font-size: $font-size-xs;
+      font-weight: 700;
+      padding: 2px 8px;
+      background: #2196f3;
+      color: #fff;
+      border-radius: 10px;
+    }
+
+    .analysis-chart__timing-reason {
+      font-size: $font-size-xs;
+      color: #666;
+      line-height: 1.4;
+    }
+
+    .analysis-chart__alternatives-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .analysis-chart__alternative-item {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 10px 12px;
+      background: linear-gradient(135deg, #f9fbe7 0%, #f0f4c3 100%);
+      border-radius: 10px;
+      border-left: 3px solid #8bc34a;
+    }
+
+    .analysis-chart__alternative-name {
+      font-size: $font-size-small;
+      font-weight: 600;
+      color: #558b2f;
+    }
+
+    .analysis-chart__alternative-reason {
+      font-size: $font-size-xs;
+      color: #666;
+      text-align: right;
+      max-width: 50%;
+    }
+  }
+
+  // 🆕 적정 섭취량 카드 스타일
+  &--serving {
+    padding: 12px 16px;
+    background: linear-gradient(135deg, #fce4ec 0%, #f8bbd0 100%);
+    border-radius: 12px;
+
+    .analysis-chart__serving-content {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .analysis-chart__serving-icon {
+      font-size: 32px;
+      line-height: 1;
+    }
+
+    .analysis-chart__serving-info {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .analysis-chart__serving-label {
+      font-size: $font-size-xs;
+      color: #880e4f;
+    }
+
+    .analysis-chart__serving-amount {
+      font-size: $font-size-large;
+      font-weight: 700;
+      color: #c2185b;
+    }
+
+    .analysis-chart__serving-note {
+      font-size: $font-size-xs;
+      color: #666;
+    }
+
+    .analysis-chart__serving-calories {
+      text-align: center;
+      padding: 8px 12px;
+      background: rgba(255, 255, 255, 0.7);
+      border-radius: 8px;
+    }
+
+    .analysis-chart__serving-calories-value {
+      font-size: $font-size-large;
+      font-weight: 700;
+      color: #d81b60;
+      display: block;
+    }
+
+    .analysis-chart__serving-calories-unit {
+      font-size: $font-size-xs;
+      color: #888;
+    }
+  }
 }
 
 // 스트리밍 중 차트 스켈레톤
@@ -221,5 +763,14 @@
   }
   100% {
     background-position: 200% 0;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
   }
 }
