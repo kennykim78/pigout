@@ -25,19 +25,19 @@ const FoodDrugInteractionMatrix = ({ interactions = [], foodComponents = [], med
 
   // 약물 목록 추출 (중복 제거)
   const uniqueMedicines = [...new Set(interactions
-    .flatMap(i => i.medicines || [])
+    .map(i => i.medicine_name)
     .filter(m => m))];
 
   // 음식 성분 목록 추출 (중복 제거)
   const uniqueFoodComponents = [...new Set(interactions
-    .flatMap(i => i.food_components || [])
+    .flatMap(i => i.food_components || i.matched_components || [])
     .filter(f => f))];
 
   // 상호작용 검색 함수
   const findInteraction = (medicineName, componentName) => {
     return interactions.find(i => 
-      i.medicines?.includes(medicineName) && 
-      i.food_components?.includes(componentName)
+      i.medicine_name === medicineName && 
+      (i.food_components || i.matched_components || []).includes(componentName)
     );
   };
 

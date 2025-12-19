@@ -736,6 +736,37 @@
   &__streaming-stage-icon {
     font-size: $font-size-base;
   }
+  
+  // 🆕 스트리밍 미리보기 배지
+  &__streaming-preview {
+    display: flex;
+    gap: 4px;
+    margin-top: 4px;
+    flex-wrap: wrap;
+  }
+  
+  &__preview-badge {
+    font-size: 10px;
+    padding: 2px 6px;
+    border-radius: 4px;
+    background: rgba(0, 0, 0, 0.05);
+    color: $color-black;
+    
+    &--danger {
+      background: rgba(255, 0, 0, 0.1);
+      color: #c00;
+    }
+    
+    &--caution {
+      background: rgba(255, 165, 0, 0.1);
+      color: #c60;
+    }
+    
+    &--info {
+      background: rgba(0, 0, 0, 0.05);
+      color: $color-black;
+    }
+  }
 
   // 🆕 하단 고정 진행 바 (미니멀)
   &__bottom-progress {

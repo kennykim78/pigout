@@ -1169,50 +1169,24 @@ export class FoodService {
       console.log('음식명:', foodName);
       console.log('질병 정보:', diseases);
 
-      // 0단계: 시작 알림 (8단계로 확장)
+      // 0단계: 시작 알림 (5단계로 축소)
       sendEvent('start', { 
         foodName, 
-        message: '분석을 시작합니다...',
-        stages: ['DB조회', '준비', '약물정보', '영양성분', '성분분석', '상호작용', '레시피', '최종분석']
+        message: 'AI 분석을 시작합니다...',
+        stages: ['데이터 수집', '음식 분석', '약물 상호작용', '종합 평가', '완료']
       });
 
-      // 🆕 0.5단계: food_rules DB 우선 조회
+      // 1단계: 데이터 수집 (DB + 사용자 + 약물 통합)
       sendEvent('stage', { 
         stage: 1, 
-        name: 'DB조회',
+        name: '데이터 수집',
         status: 'loading',
-        message: '사전 등록 데이터를 확인하고 있어요...'
+        message: '음식 DB, 사용자 정보, 약물 정보를 수집하고 있어요...'
       });
 
       const { normalizeFoodName } = require('./food-rules');
       const normalizedFoodName = normalizeFoodName(foodName);
       const foodRule = await this.supabaseService.getFoodRule(normalizedFoodName);
-      
-      if (foodRule) {
-        console.log('[Stream] food_rules 적중 - 기본 정보 사용');
-        sendEvent('stage', { 
-          stage: 1, 
-          name: 'DB조회',
-          status: 'complete',
-          message: '✅ 사전 등록 데이터 발견 (토큰 절약)'
-        });
-      } else {
-        console.log('[Stream] food_rules 미스 - AI 전체 분석 진행');
-        sendEvent('stage', { 
-          stage: 1, 
-          name: 'DB조회',
-          status: 'complete',
-          message: '사전 데이터 없음 - AI로 분석합니다'
-        });
-      }
-
-      // 1단계: 사용자 및 약물 정보 조회 (Stage 2: 준비)
-      sendEvent('stage', { 
-        stage: 3, 
-        name: '준비',
-        status: 'loading',
-        message: '사용자 정보를 확인하고 있어요...'
-      });
 
       let userId = '00000000-0000-0000-0000-000000000000';
       console.log('[Stream] Device ID:', deviceId);
@@ -1317,12 +1291,23 @@ export class FoodService {
           };
         });
 
-        sendEvent('stage', { stage: 3, name: '약물정보', status: 'complete', message: `${drugDetails.length}개 약물 정보 확인 (캐시)` });
-        sendEvent('stage', { stage: 4, name: '영양성분', status: 'complete', message: 'food_rules 사용 - 생략' });
-        sendEvent('stage', { stage: 5, name: '성분분석', status: 'complete', message: 'food_rules 사용 - 생략' });
-        sendEvent('stage', { stage: 6, name: '상호작용', status: 'loading', message: '약물 상호작용 분석 중...' });
+        // 2단계: 음식 분석 (food_rules 사용으로 생략)
+        sendEvent('stage', { 
+          stage: 2, 
+          name: '음식 분석', 
+          status: 'complete', 
+          message: `DB 데이터 사용 (토큰 절약)` 
+        });
+        
+        // 3단계: 약물 상호작용 분석
+        sendEvent('stage', { 
+          stage: 3, 
+          name: '약물 상호작용', 
+          status: 'loading', 
+          message: 'AI가 약물과의 상호작용을 분석하고 있어요...' 
+        });
 
-        // 약물 상호작용 AI 분석 (~3초)
+        // 약물 상호작용 AI 분석
         const geminiClient = await this.getGeminiClient();
         const foodComponents = foodRule.nutrients?.components || [];
         const interactionAnalysis = await geminiClient.analyzeDrugFoodInteractions(
@@ -1332,32 +1317,45 @@ export class FoodService {
           diseases,
           profileInfo
         );
-
-        sendEvent('stage', { stage: 6, name: '상호작용', status: 'complete', message: '약물 상호작용 분석 완료' });
         
-        // 🆕 조리법 공공데이터 조회
-        sendEvent('stage', { stage: 7, name: '레시피', status: 'loading', message: '맞춤형 조리법을 찾고 있어요...' });
+        const dangerCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'danger').length || 0;
+        const cautionCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'caution').length || 0;
+        
+        sendEvent('stage', { 
+          stage: 3, 
+          name: '약물 상호작용', 
+          status: 'complete', 
+          message: dangerCount > 0 
+            ? `⛔ 주의 필요 ${dangerCount}건`
+            : cautionCount > 0 
+              ? `⚠️ 참고 사항 ${cautionCount}건`
+              : '✅ 상호작용 없음',
+          preview: interactionAnalysis.interactions
+            ?.filter((i: any) => i.risk_level !== 'safe')
+            .slice(0, 2)
+            .map((i: any) => ({
+              name: i.medicine_name,
+              risk: i.risk_level,
+              icon: i.risk_level === 'danger' ? '⛔' : '⚠️'
+            })) || []
+        });
+        
+        // 4단계: 종합 평가 (레시피 조회 + AI 생성)
+        sendEvent('stage', { 
+          stage: 4, 
+          name: '종합 평가', 
+          status: 'loading', 
+          message: '맞춤형 섭취 가이드를 생성하고 있어요...' 
+        });
 
         let recipeData = [];
         try {
           recipeData = await this.externalApiClient.getRecipeInfo(foodName);
-          console.log(`[조리법 공공데이터] ${recipeData?.length || 0}개 레시피 조회`);
         } catch (error) {
           console.warn('[조리법 공공데이터] 조회 실패:', error.message);
         }
 
         const recipeApiSuccess = recipeData && recipeData.length > 0;
-        sendEvent('stage', { 
-          stage: 7, 
-          name: '레시피', 
-          status: 'complete', 
-          message: recipeApiSuccess 
-            ? `${recipeData.length}개 건강 레시피 발견`
-            : 'AI가 맞춤형 조리법을 생성합니다' 
-        });
-
-        // 🆕 AI로 최종 맞춤형 조리법 생성
-        sendEvent('stage', { stage: 8, name: '최종분석', status: 'loading', message: '맞춤형 조리법 생성 중...' });
 
         // food_rules 기본 정보를 foodAnalysis 형태로 변환
         const foodAnalysis = {
@@ -1393,32 +1391,44 @@ export class FoodService {
           goodPoints: foodRule.pros.split('\n').filter((p: string) => p.trim()),
           badPoints: foodRule.cons.split('\n').filter((c: string) => c.trim()),
           warnings: [...foodWarnings, ...drugWarnings],
-          expertAdvice: foodRule.expertAdvice,
           summary: foodRule.summary,
           drug_food_interactions: interactionAnalysis.interactions || [],
           foodComponents: foodComponents,
-          cookingTips: finalAnalysis.cookingTips || foodRule.cookingTips || [], // 🆕 AI 맞춤형 조리법 우선
-          healthyRecipes: healthyRecipes || [], // 🆕 공공데이터 레시피
+          cookingTips: finalAnalysis.cookingTips || foodRule.cookingTips || [],
+          healthyRecipes: healthyRecipes || [],
           dataSources: [
-            'food_rules DB (기본 정보)', 
-            '약물 캐시 DB (qr_code_data)',
-            recipeApiSuccess ? '조리법 공공데이터' : 'AI 맞춤형 레시피'
+            'food_rules DB', 
+            '약물 캐시 DB',
+            recipeApiSuccess ? '조리법 공공데이터' : 'AI'
           ],
         };
 
-        sendEvent('stage', { stage: 8, name: '최종분석', status: 'complete', message: '✅ 맞춤형 분석 완료' });
+        sendEvent('stage', { 
+          stage: 4, 
+          name: '종합 평가', 
+          status: 'complete', 
+          message: `섭취 가이드 ${healthyRecipes?.length || 3}개 생성 완료` 
+        });
+        
+        sendEvent('stage', { 
+          stage: 5, 
+          name: '완료', 
+          status: 'complete', 
+          message: '✅ 분석 완료!' 
+        });
+        
         sendEvent('result', { success: true, data: finalResult });
 
         console.log('[Stream] food_rules + 맞춤형 조리법 완료 (토큰 절약 + 사용자 맞춤)');
         return;
       }
 
-      // 2단계: 약물 정보 조회 (DB 캐시 우선, 외부 API는 폴백)
+      // ========== 2단계: 음식 분석 ==========
       sendEvent('stage', { 
-        stage: 3, 
-        name: '약물정보',
+        stage: 2, 
+        name: '음식 분석',
         status: 'loading',
-        message: '복용 중인 약물 정보를 확인하고 있어요...'
+        message: 'AI가 음식 성분과 영양소를 분석하고 있어요...'
       });
 
       const drugDetails = (medicines || []).map((medicine) => {
@@ -1462,32 +1472,14 @@ export class FoodService {
           dataSource = 'DB캐시(공공데이터)';
         }
 
-        console.log(`[약물 정보] ${medicine.name}: ${dataSource}`);
-
         return {
           name: medicine.name,
           userMedicineId: medicine.id,
-          analyzedInfo: aiAnalyzedInfo, // 🔑 등록 시 저장된 AI 분석 정보
-          publicData: publicData, // 🔑 등록 시 저장된 공공데이터
-          enhancedInfo: qrData.enhancedInfo || null, // 🆕 토큰 절약 강화 정보
+          analyzedInfo: aiAnalyzedInfo,
+          publicData: publicData,
+          enhancedInfo: qrData.enhancedInfo || null,
           dataSource,
         };
-      });
-      
-      sendEvent('stage', { 
-        stage: 3, 
-        name: '약물정보',
-        status: 'complete',
-        message: `${drugDetails.length}개 약물 정보 확인 완료`,
-        data: { count: drugDetails.length, names: medicineNames }
-      });
-
-      // 3단계: 영양성분/건강기능식품 조회
-      sendEvent('stage', { 
-        stage: 4, 
-        name: '영양성분',
-        status: 'loading',
-        message: '영양성분 정보를 수집하고 있어요...'
       });
 
       let nutritionRows = [];
@@ -1505,16 +1497,6 @@ export class FoodService {
       }
 
       const needAINutritionData = !nutritionRows || nutritionRows.length === 0;
-      
-      sendEvent('stage', { 
-        stage: 4, 
-        name: '영양성분',
-        status: 'complete',
-        message: nutritionRows?.length > 0 
-          ? `영양성분 ${nutritionRows.length}건 확인 완료`
-          : 'AI 지식 기반으로 분석할게요',
-        data: { nutritionCount: nutritionRows?.length || 0, healthFoodCount: healthFoodRows?.length || 0 }
-      });
 
       const supplementalPublicData = {
         nutrition: {
@@ -1530,22 +1512,15 @@ export class FoodService {
         publicDataFailed,
       };
 
-      // 4단계: AI 성분 분석 (병렬로 레시피도 조회)
-      sendEvent('stage', { 
-        stage: 5, 
-        name: '성분분석',
-        status: 'loading',
-        message: 'AI가 음식 성분을 분석하고 있어요...'
-      });
-
+      // AI 성분 분석 (병렬로 레시피도 조회)
       const geminiClient = await this.getGeminiClient();
       const recipeDataPromise = this.externalApiClient.getRecipeInfo(foodName);
       const foodAnalysis = await geminiClient.analyzeFoodComponents(foodName, diseases, supplementalPublicData, profileInfo);
       
-      // 성분 분석 완료 시 바로 일부 데이터 전송
+      // 2단계 완료: 음식 성분 분석 완료
       sendEvent('stage', { 
-        stage: 5, 
-        name: '성분분석',
+        stage: 2, 
+        name: '음식 분석',
         status: 'complete',
         message: '음식 성분 분석 완료',
         data: {
@@ -1564,10 +1539,10 @@ export class FoodService {
         }
       });
 
-      // 5단계: 약물-음식 상호작용 분석
+      // ========== 3단계: 약물 상호작용 ==========
       sendEvent('stage', { 
-        stage: 6, 
-        name: '상호작용',
+        stage: 3, 
+        name: '약물 상호작용',
         status: 'loading',
         message: 'AI가 약물과의 상호작용을 분석하고 있어요...'
       });
@@ -1582,16 +1557,22 @@ export class FoodService {
       const dangerCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'danger').length || 0;
       const cautionCount = interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'caution').length || 0;
 
+      // 약물명 + 위험도 아이콘 프리뷰 생성
+      const interactionPreview = interactionAnalysis.interactions?.slice(0, 4).map((i: any) => ({
+        name: i.medicine_name || i.drug_name,
+        icon: i.risk_level === 'danger' ? '🔴' : i.risk_level === 'caution' ? '🟡' : '🟢'
+      })) || [];
+
       sendEvent('stage', { 
-        stage: 6, 
-        name: '상호작용',
+        stage: 3, 
+        name: '약물 상호작용',
         status: 'complete',
         message: dangerCount > 0 
           ? `⚠️ 주의가 필요한 약물 ${dangerCount}개 발견`
           : cautionCount > 0 
             ? `💡 참고할 약물 ${cautionCount}개 확인`
             : '✅ 특별한 상호작용 없음',
-        data: { dangerCount, cautionCount }
+        data: { dangerCount, cautionCount, preview: interactionPreview }
       });
 
       // 🆕 약물 상호작용 데이터 미리 전송
@@ -1602,34 +1583,16 @@ export class FoodService {
         }
       });
 
-      // 6단계: 레시피 데이터 확인
+      // ========== 4단계: 종합 평가 ==========
       sendEvent('stage', { 
-        stage: 7, 
-        name: '레시피',
+        stage: 4, 
+        name: '종합 평가',
         status: 'loading',
-        message: '건강한 조리법을 찾고 있어요...'
+        message: 'AI가 최종 분석 결과를 정리하고 있어요...'
       });
 
       const recipeData = await recipeDataPromise;
       const recipeApiSuccess = recipeData && recipeData.length > 0;
-
-      sendEvent('stage', { 
-        stage: 7, 
-        name: '레시피',
-        status: 'complete',
-        message: recipeApiSuccess 
-          ? `${recipeData.length}개 레시피 발견`
-          : 'AI가 건강한 조리법을 추천해드릴게요',
-        data: { recipeCount: recipeData?.length || 0 }
-      });
-
-      // 7단계: 최종 종합 분석
-      sendEvent('stage', { 
-        stage: 8, 
-        name: '최종분석',
-        status: 'loading',
-        message: 'AI가 최종 분석 결과를 정리하고 있어요...'
-      });
 
       const { finalAnalysis, healthyRecipes } = await geminiClient.generateFinalAnalysisWithRecipes(
         foodName,
@@ -1648,11 +1611,19 @@ export class FoodService {
       const score = finalAnalysis.suitabilityScore || 50;
 
       sendEvent('stage', { 
-        stage: 8, 
-        name: '최종분석',
+        stage: 4, 
+        name: '종합 평가',
         status: 'complete',
-        message: '분석이 완료되었어요!',
-        data: { score }
+        message: `섭취 가이드 ${healthyRecipes?.length || 3}개 생성 완료`,
+        data: { recipeCount: healthyRecipes?.length || 0 }
+      });
+
+      // ========== 5단계: 완료 ==========
+      sendEvent('stage', { 
+        stage: 5, 
+        name: '완료',
+        status: 'complete',
+        message: '✅ 분석 완료!'
       });
 
       // 데이터 소스 정리

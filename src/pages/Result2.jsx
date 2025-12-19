@@ -64,29 +64,7 @@ const Result2 = () => {
       return;
     }
     
-    // 🔍 분석 시작 전 약 목록 확인
-    try {
-      const deviceId = getDeviceId();
-      console.log('🔍 [Result2] Device ID:', deviceId);
-      
-      const medicines = await getMyMedicines();
-      console.log('🔍 [Result2] 등록된 약 목록:', medicines);
-      const medicineCount = Array.isArray(medicines) ? medicines.length : 0;
-      console.log('🔍 [Result2] 약 개수:', medicineCount);
-      if (medicineCount > 0) {
-        medicines.forEach((med, idx) => {
-          console.log(`  [${idx}] ${med.itemName}:`, {
-            entpName: med.entpName,
-            itemSeq: med.itemSeq,
-            efcyQesitm: med.efcyQesitm?.substring(0, 50),
-            hasDetails: !!(med.useMethodQesitm || med.atpnWarnQesitm || med.intrcQesitm)
-          });
-        });
-      }
-    } catch (error) {
-      console.error('❌ [Result2] 약 목록 조회 실패:', error);
-    }
-    
+    // 프론트엔드에서 약 조회는 제거 (백엔드에서 직접 조회)
     console.log('✅ 스트리밍 분석 시작:', foodNameParam);
     setIsStreaming(true);
     setStreamError(null);
@@ -106,20 +84,32 @@ const Result2 = () => {
         console.log('[Stream] 단계:', data);
         setCurrentStage(data.stage);
         setStreamingMessage(data.message);
-        // 진행률 계산 (7단계 기준)
-        const totalStages = 8; // DB조회 + 준비 + 약물정보 + 영양성분 + 성분분석 + 상호작용 + 레시피 + 최종분석
+        
+        // 프리뷰 데이터 저장 (약물 상호작용 등)
+        if (data.preview) {
+          setStreamingStages(prev => prev.map(s => 
+            s.stage === data.stage 
+              ? { ...s, status: data.status, message: data.message, preview: data.preview }
+              : s.stage < data.stage 
+                ? { ...s, status: 'complete' }
+                : s
+          ));
+        } else {
+          setStreamingStages(prev => prev.map(s => 
+            s.stage === data.stage 
+              ? { ...s, status: data.status, message: data.message }
+              : s.stage < data.stage 
+                ? { ...s, status: 'complete' }
+                : s
+          ));
+        }
+        
+        // 진행률 계산 (5단계 기준)
+        const totalStages = 5;
         const progressPerStage = 100 / totalStages;
         const baseProgress = (data.stage - 1) * progressPerStage;
         const stageProgress = data.status === 'complete' ? progressPerStage : progressPerStage * 0.5;
         setStreamProgress(Math.min(baseProgress + stageProgress, 100));
-        
-        setStreamingStages(prev => prev.map(s => 
-          s.stage === data.stage 
-            ? { ...s, status: data.status, message: data.message }
-            : s.stage < data.stage 
-              ? { ...s, status: 'complete' }
-              : s
-        ));
       },
       onPartial: (data) => {
         console.log('[Stream] 부분 데이터:', data.type);
@@ -552,6 +542,18 @@ const Result2 = () => {
               >
                 <span className="result2__streaming-stage-number">{stage.stage}</span>
                 <span className="result2__streaming-stage-name">{stage.name}</span>
+                
+                {/* 🆕 미리보기 데이터 표시 */}
+                {stage.preview && stage.preview.length > 0 && (
+                  <div className="result2__streaming-preview">
+                    {stage.preview.map((item, idx) => (
+                      <span key={idx} className={`result2__preview-badge result2__preview-badge--${item.risk || 'info'}`}>
+                        {item.icon} {item.name}
+                      </span>
+                    ))}
+                  </div>
+                )}
+                
                 <span className="result2__streaming-stage-icon">
                   {stage.status === 'complete' ? '✅' : 
                    stage.status === 'loading' ? '🔄' : '⏳'}
@@ -748,29 +750,7 @@ const Result2 = () => {
           </div>
         )}
 
-        {/* 전문가 조언 (Accordion) */}
-        {detailedAnalysis?.expertAdvice && (
-          <div className="result2__accordion">
-            <button 
-              className={`result2__accordion-toggle result2__accordion-toggle--expert`}
-              onClick={() => toggleSection('expertAdvice')}
-            >
-              <span className="result2__accordion-icon">💊</span>
-              <span className="result2__accordion-title">전문가 조언</span>
-              <span className={`result2__accordion-chevron ${expandedSections.expertAdvice ? 'expanded' : ''}`}>
-                ▼
-              </span>
-            </button>
-
-            {expandedSections.expertAdvice && (
-              <div className="result2__accordion-content">
-                <p className="result2__expert-content">
-                  {detailedAnalysis.expertAdvice.replace(/^💊\s*/, '')}
-                </p>
-              </div>
-            )}
-          </div>
-        )}
+        {/* 전문가 조언 제거 - summary와 중복되어 삭제 */}
 
         {/* 건강 조리법 (Accordion) */}
         {detailedAnalysis?.cookingTips && Array.isArray(detailedAnalysis.cookingTips) && detailedAnalysis.cookingTips.length > 0 && (
