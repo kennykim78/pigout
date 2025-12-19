@@ -948,10 +948,11 @@ JSON만 반환:
     interactions: Array<{
       medicine_name: string;
       risk_level: 'danger' | 'caution' | 'safe';
-      matched_components: string[];
       interaction_description: string;
       evidence_from_public_data: string;
       recommendation: string;
+      medicines?: string[]; // 최소 크기 배열 [medicine_name]
+      food_components?: string[]; // 필요한 성분만 포함 (리스크 카드용)
     }>;
     summary: string;
   }> {
@@ -1001,13 +1002,13 @@ ${components.map(c => c.name).join(', ')}
 **복용 약물 (요약):**
 ${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '정보 요약 중'}`).join('\n')}
 
-**분석 규칙:**
+**분석 규칙 (토큰 최적화):**
 1. 각 약물별로 위험도 판정 (danger/caution/safe)
 2. interaction_description: 40-60자, 음식 성분 중심 설명
 3. evidence_from_public_data: 약물 정보 근거 또는 "의학 지식 기반"
 4. recommendation: 30-50자, 구체적 행동 지침
-5. medicines: [약물명] 배열로 추가 (UI 매트릭스용)
-6. food_components: matched_components와 동일하게 설정
+5. medicines: 단일 원소 배열로 [약물명] 추가 (리스크 카드용)
+6. food_components: 이 상호작용에 관련된 성분명만 배열로 포함 (필요 최소)
 
 **출력 JSON:**
 {
@@ -1015,7 +1016,6 @@ ${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '�
     {
       "medicine_name": "타이레놀",
       "risk_level": "danger",
-      "matched_components": ["알코올"],
       "medicines": ["타이레놀"],
       "food_components": ["알코올"],
       "interaction_description": "알코올과 타이레놀 동시 섭취 시 간 손상 위험 증가",
@@ -1042,7 +1042,8 @@ ${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '�
             interactions: drugDetails.map(drug => ({
               medicine_name: drug.name,
               risk_level: 'caution',
-              matched_components: [],
+              medicines: [drug.name],
+              food_components: [],
               interaction_description: `이 음식과 ${drug.name}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
               evidence_from_public_data: 'AI 분석 일시 불가 - 보수적 권장 사항 제공',
               recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
@@ -1064,7 +1065,8 @@ ${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '�
               interactions: drugDetails.map(drug => ({
                 medicine_name: drug.name,
                 risk_level: 'caution',
-                matched_components: [],
+                medicines: [drug.name],
+                food_components: [],
                 interaction_description: `이 음식과 ${drug.name}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
                 evidence_from_public_data: 'AI 분석 일시 불가 - 보수적 권장 사항 제공',
                 recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
@@ -1078,11 +1080,15 @@ ${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '�
       
       const parsed = this.extractJsonObject(rawText);
       
-      // UI 매트릭스를 위해 medicines와 food_components 필드 추가
+      // 리스크 카드용 최소 필드만 유지 (토큰 절감)
       const interactions = (parsed.interactions || []).map((interaction: any) => ({
-        ...interaction,
+        medicine_name: interaction.medicine_name,
+        risk_level: interaction.risk_level,
+        interaction_description: interaction.interaction_description,
+        evidence_from_public_data: interaction.evidence_from_public_data,
+        recommendation: interaction.recommendation,
         medicines: interaction.medicines || [interaction.medicine_name],
-        food_components: interaction.food_components || interaction.matched_components || [],
+        food_components: interaction.food_components || [],
       }));
       
       return {
@@ -1096,9 +1102,8 @@ ${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '�
         interactions: drugDetails.map(drug => ({
           medicine_name: drug.name,
           risk_level: 'caution',
-          matched_components: [],
-          medicines: [drug.name], // UI 매트릭스용
-          food_components: [], // UI 매트릭스용
+          medicines: [drug.name],
+          food_components: [],
           interaction_description: `이 음식과 ${drug.name}의 상호작용을 분석할 수 없습니다. 안전을 위해 의료 전문가와 상담해주세요.`,
           evidence_from_public_data: '분석 불가 - 보수적 권장 사항 제공',
           recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'

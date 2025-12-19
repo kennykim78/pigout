@@ -1575,11 +1575,14 @@ export class FoodService {
         data: { dangerCount, cautionCount, preview: interactionPreview }
       });
 
-      // 🆕 약물 상호작용 데이터 미리 전송
+      // 🆕 약물 상호작용 데이터 미리 전송 (UI 호환: description 별칭 추가)
       sendEvent('partial', {
         type: 'interactions',
         data: {
-          drug_food_interactions: interactionAnalysis.interactions || []
+          drug_food_interactions: (interactionAnalysis.interactions || []).map((i: any) => ({
+            ...i,
+            description: i.interaction_description,
+          }))
         }
       });
 
@@ -1645,7 +1648,10 @@ export class FoodService {
         cons: finalAnalysis.badPoints || [],
         cookingTips: healthyRecipes || [],
         medicalAnalysis: {
-          drug_food_interactions: interactionAnalysis.interactions || []
+          drug_food_interactions: (interactionAnalysis.interactions || []).map((i: any) => ({
+            ...i,
+            description: i.interaction_description,
+          }))
         },
         foodComponents: foodAnalysis.components || [],
         riskFactors: foodAnalysis.riskFactors || {},
