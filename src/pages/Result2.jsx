@@ -6,7 +6,6 @@ import img_travel from '../assets/images/img_travel.png';
 import img_run from '../assets/images/img_run.png';
 import RecommendationCard from '../components/RecommendationCard';
 import { AnalysisDashboard } from '../components/AnalysisCharts';
-import FoodDrugInteractionMatrix from '../components/FoodDrugInteractionMatrix';
 import MedicineComponentRiskCard from '../components/MedicineComponentRiskCard';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect, useRef } from 'react';
@@ -576,7 +575,7 @@ const Result2 = () => {
             </div>
             <div className="result2__bottom-progress-info">
               <span className="result2__bottom-progress-stage">
-                {currentStage ? `${currentStage}/7 단계` : '준비 중...'}
+                {currentStage ? `${currentStage}/5 단계` : '준비 중...'}
               </span>
               <span className="result2__bottom-progress-text">{streamingMessage}</span>
             </div>
@@ -597,19 +596,7 @@ const Result2 = () => {
         </div>
       )}
 
-      {/* 🆕 음식-약물 상호작용 맵 (약물상호작용 섹션 위로 이동) */}
-      {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
-       detailedAnalysis.medicalAnalysis.drug_food_interactions.length > 0 && (
-        <FoodDrugInteractionMatrix 
-          interactions={detailedAnalysis.medicalAnalysis.drug_food_interactions}
-          medicines={detailedAnalysis.medicalAnalysis.drug_food_interactions
-            .flatMap(i => i.medicines || [])
-            .filter((v, i, a) => a.indexOf(v) === i)}
-          foodComponents={detailedAnalysis.medicalAnalysis.drug_food_interactions
-            .flatMap(i => i.food_components || [])
-            .filter((v, i, a) => a.indexOf(v) === i)}
-        />
-      )}
+      {/* 음식-약물 상호작용 맵 섹션 제거됨: 중복 콘텐츠 정리 */}
 
       {/* 약물 상호작용 - 위험/주의가 있을 때만 표시 (Accordion) */}
       {detailedAnalysis?.medicalAnalysis?.drug_food_interactions && 
