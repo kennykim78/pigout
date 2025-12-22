@@ -75,7 +75,10 @@ export interface MedicalAnalysisInput {
     recipeInfo?: any[];
     nutritionFacts?: any[];
     diseaseGuidelines?: any[];
+    cachedGeneralInfo?: any;
+    preComputedInteractions?: any[];
   };
+
 }
 
 export interface MedicalAnalysisOutput {
@@ -151,14 +154,20 @@ ${userProfile
 5) RAG 검색 결과:
 ${ragData 
   ? `
-   약물 상호작용 데이터:
+   약물 상호작용 데이터 (Rule-based Analysis Results):
    ${ragData.drugInteractions ? JSON.stringify(ragData.drugInteractions, null, 2) : '검색 결과 없음'}
    
+   (참고: 위 약물 상호작용 데이터는 신뢰할 수 있는 API를 통해 검증된 결과입니다. 이를 바탕으로 사용자에게 줄 조언을 생성하세요.)
+
    영양 데이터베이스:
    ${ragData.nutritionFacts ? JSON.stringify(ragData.nutritionFacts, null, 2) : '검색 결과 없음'}
    
    질병별 가이드라인:
    ${ragData.diseaseGuidelines ? JSON.stringify(ragData.diseaseGuidelines, null, 2) : '검색 결과 없음'}
+
+   ✅ [일반 음식 분석 정보 (Cached)]:
+   ${ragData.cachedGeneralInfo ? JSON.stringify(ragData.cachedGeneralInfo, null, 2) : '정보 없음 (새로 생성 필요)'}
+   (이 정보는 이 음식의 일반적인 효능과 부작용입니다. 사용자 상황에 맞춰 재구성하여 답변에 활용하세요.)
   `
   : '   - RAG 데이터 없음'
 }
@@ -174,42 +183,40 @@ ${ragData
   "disease_list": ${JSON.stringify(diseases)},
   "interaction_assessment": {
     "level": "safe | caution | danger | insufficient_data",
-    "evidence_summary": "출처 기반 요약",
-    "detailed_analysis": "상세 분석 내용",
-    "interaction_mechanism": "상호작용 메커니즘 (출처 명시)",
+    "evidence_summary": "종합 요약 (약물+질병+영양)",
+    "detailed_analysis": "상세 분석 내용 (사용자 친화적)",
+    "interaction_mechanism": "상호작용 메커니즘 설명",
     "citation": ["출처1", "출처2"]
   },
   "drug_food_interactions": [
     {
       "medicine_name": "약물명",
       "risk_level": "safe | caution | danger | insufficient_data",
-      "detected_patterns": ["alcohol", "timing" 등 감지된 패턴],
-      "warnings": ["경고사항1", "경고사항2"],
-      "recommendations": ["권장사항1", "권장사항2"],
+      "detected_patterns": ["감지된 패턴"],
+      "warnings": ["추가 경고 사항 (있을 경우만)"],
+      "recommendations": ["생활 속 실천 가이드 (복용 시간 조절 등)"],
       "citation": ["식품의약품안전처 e약은요"]
     }
   ],
   "nutritional_risk": {
-    "risk_factors": ["위험 요소1", "위험 요소2"],
-    "description": "출처 기반 설명",
-    "citation": ["출처1"]
+    "risk_factors": ["위험 요소"],
+    "description": "영양학적 조언 (Cached Info 활용)",
+    "citation": []
   },
   "disease_specific_notes": [
     {
       "disease": "질병명",
-      "impact": "영향 설명 (출처 기반)",
-      "citation": ["출처"]
+      "impact": "질병에 미치는 영향",
+      "citation": []
     }
   ],
   "final_score": 0-100
 }
 
 ❗ 중요: 
-- 모든 분석은 제공된 RAG 데이터와 출처에서만 근거를 추출하세요
-- 근거가 부족한 경우 "insufficient evidence"로 명시하세요
-- 절대 추론하거나 가정하지 마세요
-- drug_food_interactions 배열은 복용 중인 각 약물별로 분석하여 작성하세요
-- RAG 데이터의 drugInteractions에서 detectedPatterns, warnings, precautions를 활용하세요
-- 약물-음식 상호작용이 발견되면 반드시 구체적인 경고와 권장사항을 포함하세요
+- 약물 상호작용의 'risk_level'은 입력된 데이터의 내용을 존중하세요.
+- [일반 음식 분석 정보]를 활용하여 nutritional_risk와 detailed_analysis를 풍성하게 작성하세요.
+- 당신의 역할은 "데이터 판독"이 아니라 "사용자 맞춤형 조언 생성"입니다.
+- "이 약과는 절대 드시지 마세요" 같은 단순 경고보다는, "약 복용 후 2시간 뒤에 드시는 것이 안전합니다"와 같은 구체적인 행동 지침(Actionable Advice)을 제공하세요.
 `;
 }

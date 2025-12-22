@@ -65,8 +65,22 @@ export class AiService {
         // 일단은 분석 계속 진행
       }
 
-      // 5. 영양 데이터 가져오기 (임시로 null)
-      const nutritionData = null; // TODO: Supabase nutrition DB 연동
+      // 5. [Smart Cache] 영양 데이터 및 일반 정보 확인
+      let nutritionData = null;
+      let cachedGeneralInfo = null;
+      
+      const supabase = this.supabaseService.getClient();
+      const { data: cachedData } = await supabase
+        .from('food_cache')
+        .select('*')
+        .eq('food_name', itemName)
+        .single();
+        
+      if (cachedData) {
+        console.log(`[Result01 Cache] Hit! ${itemName} 일반 정보 활용`);
+        nutritionData = cachedData.nutrition_json;
+        cachedGeneralInfo = cachedData.general_analysis_json;
+      }
 
       // 6. 점수 계산
       const score = this.scoreCalculator.calculateScore(
@@ -75,11 +89,13 @@ export class AiService {
         nutritionData,
       );
 
-      // 7. Gemini로 장단점 요약 생성
+      // 7. Gemini로 장단점 요약 생성 (캐시 정보 있으면 활용)
       const analysis = await this.geminiClient.analyzeFoodSuitability(
         itemName,
         dto.diseases,
         nutritionData,
+        null, // publicData (기존)
+        cachedGeneralInfo // [New] 캐시된 일반 정보
       );
 
       // 8. Supabase DB에 저장
@@ -214,20 +230,70 @@ export class AiService {
     try {
       console.log(`\n=== 의학적 분석 시작: ${foodName} ===`);
       
+      const supabase = this.supabaseService.getClient();
+
+      // [Smart Cache] 일반 음식 정보 캐시 확인
+      let generalFoodInfo = null;
+      let isCached = false;
+      
+      const { data: cachedData } = await supabase
+        .from('food_cache')
+        .select('*')
+        .eq('food_name', foodName)
+        .single();
+        
+      if (cachedData) {
+        console.log(`[Smart Cache] Hit! ${foodName} 정보 캐시에서 로드`);
+        generalFoodInfo = cachedData;
+        isCached = true;
+      } else {
+        console.log(`[Smart Cache] Miss. ${foodName} 정보 새로 생성 예정`);
+      }
+
       // 1. 사용자의 복용 약물 정보 조회
       const medicines = await this.getUserMedicines(userId);
       console.log(`복용 약물: ${medicines.length}개`);
 
-      // 2. 레시피DB에서 영양 정보 조회 (성공한 API)
-      const recipeData = await this.externalApiClient.getRecipeInfo(foodName);
-      let nutritionData = null;
-      
-      if (recipeData && recipeData.length > 0) {
-        nutritionData = this.externalApiClient.extractNutritionFromRecipe(recipeData[0]);
-        console.log(`레시피DB 영양 정보 획득: ${nutritionData?.foodName}`);
-        console.log(`- 칼로리: ${nutritionData?.calories}kcal, 나트륨: ${nutritionData?.sodium}mg`);
-      } else {
-        console.log('레시피DB에서 정보를 찾을 수 없음');
+      // 2. 레시피DB에서 영양 정보 조회 (캐시가 있으면 활용)
+      let nutritionData = generalFoodInfo?.nutrition_json || null;
+      let recipeData = null;
+
+      if (!nutritionData) {
+        recipeData = await this.externalApiClient.getRecipeInfo(foodName);
+        if (recipeData && recipeData.length > 0) {
+           nutritionData = this.externalApiClient.extractNutritionFromRecipe(recipeData[0]);
+           console.log(`레시피DB 영양 정보 획득: ${nutritionData?.foodName}`);
+        }
+      }
+
+      // [Smart Cache] 일반 정보가 없으면 LLM으로 생성 후 저장
+      if (!isCached) {
+        console.log('[Smart Cache] 일반 정보 생성 중 (LLM)...');
+        const generatedGeneralInfo = await this.geminiClient.generateGeneralFoodInfo(foodName, nutritionData);
+        
+        // 캐시 테이블에 저장
+        await supabase.from('food_cache').insert({
+            food_name: foodName,
+            nutrition_json: nutritionData ? JSON.stringify(nutritionData) : null,
+            general_analysis_json: JSON.stringify({
+                general_benefit: generatedGeneralInfo.general_benefit,
+                general_harm: generatedGeneralInfo.general_harm,
+                nutrition_summary: generatedGeneralInfo.nutrition_summary
+            }),
+            cooking_tips_json: JSON.stringify(generatedGeneralInfo.cooking_tips)
+        });
+        
+        console.log('[Smart Cache] 신규 정보 저장 완료');
+
+        // 메모리 객체 업데이트
+        generalFoodInfo = {
+            general_analysis_json: {
+                general_benefit: generatedGeneralInfo.general_benefit,
+                general_harm: generatedGeneralInfo.general_harm,
+                nutrition_summary: generatedGeneralInfo.nutrition_summary
+            },
+            cooking_tips_json: generatedGeneralInfo.cooking_tips
+        };
       }
 
       // 3. 약물-음식 상호작용 정보 조회 (e약은요 API 활용)
@@ -235,7 +301,7 @@ export class AiService {
       console.log('\n--- 약물-음식 상호작용 분석 (e약은요 API) ---');
       for (const medicine of medicines) {
         const interaction = await this.externalApiClient.analyzeMedicineFoodInteraction(
-          medicine.name || medicine.medicine_name, // name 컬럼 사용
+          medicine.name || medicine.medicine_name, 
           foodName,
         );
         drugInteractions.push(interaction);
@@ -253,15 +319,9 @@ export class AiService {
         
         if (interaction.specificFoodInteraction?.hasMatch) {
           console.log(`  - 특정 음식 상호작용: ${foodName}과 관련 키워드 발견`);
-          console.log(`    매칭: ${JSON.stringify(interaction.specificFoodInteraction.matchedKeywords)}`);
         }
         
-        if (interaction.warnings && interaction.warnings.length > 0) {
-          console.log(`  - 경고사항 ${interaction.warnings.length}개`);
-        }
-        if (interaction.precautions && interaction.precautions.length > 0) {
-          console.log(`  - 주의사항 ${interaction.precautions.length}개`);
-        }
+        if (interaction.warnings?.length > 0) console.log(`  - 경고사항 ${interaction.warnings.length}개`);
       }
       console.log('--- 상호작용 분석 완료 ---\n');
 
@@ -270,7 +330,6 @@ export class AiService {
       for (const disease of diseases) {
         const guideline = await this.externalApiClient.getDiseaseGuideline(disease);
         diseaseGuidelines.push(guideline);
-        console.log(`질병 가이드라인: ${disease}`);
       }
 
       // 5. RAG 데이터 구성
@@ -279,9 +338,23 @@ export class AiService {
         recipeInfo: recipeData,
         nutritionFacts: nutritionData ? [nutritionData] : [],
         diseaseGuidelines,
+        cachedGeneralInfo: generalFoodInfo?.general_analysis_json // 캐시 정보 주입
       };
 
-      // 6. 의학적 분석 프롬프트 생성
+      // 6. [Rule-based Hybrid Logic] 약물 상호작용 1차 필터링
+      const preComputedInteractions = drugInteractions.map((interaction, idx) => {
+        const medicineName = medicines[idx]?.name || medicines[idx]?.medicine_name || '약물';
+        return {
+          medicine_name: medicineName,
+          risk_level: interaction.riskLevel as 'safe' | 'caution' | 'danger' | 'insufficient_data',
+          detected_patterns: Object.keys(interaction.detectedPatterns || {}),
+          warnings: interaction.warnings || [],
+          recommendations: interaction.precautions || [],
+          citation: ['식품의약품안전처 e약은요 DB'] 
+        };
+      });
+
+      // 7. 의학적 분석 프롬프트 생성
       const analysisInput: MedicalAnalysisInput = {
         foodName,
         foodNutrition: nutritionData,
@@ -291,17 +364,34 @@ export class AiService {
           frequency: m.frequency,
         })),
         diseases,
-        ragData,
+        ragData: {
+            ...ragData,
+            preComputedInteractions
+        }
       };
 
       const prompt = buildMedicalAnalysisPrompt(analysisInput);
 
-      // 7. Gemini Pro로 분석 수행
-      console.log('Gemini Pro 분석 요청...');
-      const analysisResult = await this.geminiClient.generateMedicalAnalysis(prompt);
-      console.log(`분석 완료 - 최종 점수: ${analysisResult.final_score}`);
+      // 8. Gemini Pro로 분석 수행 (Advice, Score 생성 위주)
+      console.log('Gemini Pro 분석 요청 (Hybrid optimized)...');
+      const llmResult = await this.geminiClient.generateMedicalAnalysis(prompt);
 
-      return analysisResult;
+      // 9. [Hybrid Merge] 결과 병합
+      const finalResult: MedicalAnalysisOutput = {
+        ...llmResult,
+        drug_food_interactions: preComputedInteractions.map((pre, idx) => {
+            const llmCounterpart = llmResult.drug_food_interactions?.find(d => d.medicine_name === pre.medicine_name);
+            return {
+                ...pre,
+                warnings: [...new Set([...pre.warnings, ...(llmCounterpart?.warnings || [])])],
+                recommendations: [...new Set([...pre.recommendations, ...(llmCounterpart?.recommendations || [])])]
+            };
+        })
+      };
+      
+      console.log(`분석 완료 - 최종 점수: ${finalResult.final_score}`);
+
+      return finalResult;
     } catch (error) {
       console.error('Medical analysis error:', error);
       // 분석 실패 시 기본 응답 반환

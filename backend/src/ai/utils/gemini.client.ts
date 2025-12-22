@@ -351,6 +351,7 @@ JSON 형식으로만 응답:
     diseases: string[],
     nutritionData?: any,
     publicData?: any,
+    cachedGeneralInfo?: any, // [New] 캐시된 일반 분석 정보
   ): Promise<{
     suitabilityScore: number;
     pros: string[];
@@ -383,6 +384,18 @@ JSON 형식으로만 응답:
           ? JSON.stringify(publicData, null, 2)
           : '공공데이터 없음';
 
+        // [Smart Cache] 캐시된 일반 정보가 있으면 프롬프트에 주입하여 토큰 절약 & 일관성 확보
+        let cacheContext = '';
+        if (cachedGeneralInfo) {
+            cacheContext = `
+[기존 분석 데이터 (활용 필수)]:
+- 일반적 효능: ${JSON.stringify(cachedGeneralInfo.general_benefit)}
+- 일반적 부작용: ${JSON.stringify(cachedGeneralInfo.general_harm)}
+- 영양 요약: ${JSON.stringify(cachedGeneralInfo.nutrition_summary)}
+(위 데이터를 바탕으로 사용자의 질병(${diseaseList})에 맞게 재구성하세요. 새로운 사실을 지어내지 마세요.)
+`;
+        }
+
         const prompt = `당신은 영양 및 질병 관리 전문가입니다.
 
 음식: ${foodName}
@@ -391,8 +404,9 @@ JSON 형식으로만 응답:
 
 공공데이터 (식품의약품안전처):
 ${publicDataInfo}
+${cacheContext}
 
-위의 공공데이터를 참고하여 다음을 상세히 분석하세요:
+위의 데이터를 참고하여 다음을 상세히 분석하세요:
 
 1. suitabilityScore (0-100): 해당 질병을 가진 사람이 이 음식을 섭취하기에 적합한 정도
    - 공공데이터의 영양성분, 레시피 정보를 기반으로 점수 산정
@@ -722,6 +736,68 @@ JSON 형식:
     } catch (error) {
       console.error('URL to base64 conversion error:', error);
       throw new Error(`Failed to convert URL to base64: ${error.message}`);
+    }
+  }
+
+  /**
+   * 일반 음식 분석 요청 (사용자 Context 제외)
+   * 캐싱용으로 사용됨 - 음식의 일반적인 효능, 부작용, 조리법 등
+   */
+  async generateGeneralFoodInfo(
+    foodName: string,
+    nutritionData?: any,
+  ): Promise<{
+    general_benefit: string[];
+    general_harm: string[];
+    cooking_tips: string[];
+    nutrition_summary: string;
+  }> {
+    const nutritionInfo = nutritionData
+        ? JSON.stringify(nutritionData, null, 2)
+        : '정보 없음';
+
+    const prompt = `
+    당신은 영양학 전문가입니다.
+    대상 음식: "${foodName}"
+    영양 정보: ${nutritionInfo}
+
+    다음 항목을 분석하여 JSON으로 제공하세요. 이 분석은 특정 질병이 없는 '일반인' 기준입니다.
+
+    1. general_benefit: 영양학적 장점/효능 (3~4가지, 배열)
+    2. general_harm: 일반적인 주의사항/부작용 (과다 섭취 시 문제 등) (2~3가지, 배열)
+    3. cooking_tips: 건강한 조리법 팁 (3가지, 배열)
+    4. nutrition_summary: 영양 성분 요약 (1줄)
+
+    JSON 응답:
+    {
+        "general_benefit": [],
+        "general_harm": [],
+        "cooking_tips": [],
+        "nutrition_summary": ""
+    }
+    `;
+
+    try {
+      let rawText: string;
+        try {
+          const result = await this.textModel.generateContent(prompt);
+          const response = await result.response;
+          rawText = response.text();
+        } catch (sdkError) {
+          rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        }
+        
+      const parsed = this.extractJsonObject(rawText);
+      return parsed;
+    } catch (error) {
+       console.error('General food info generation failed:', error);
+       // 기본값 반환
+       return {
+           general_benefit: [`${foodName}은(는) 영양가 있는 음식입니다.`],
+           general_harm: ['과다 섭취는 피하세요.'],
+           cooking_tips: [],
+           nutrition_summary: '영양 정보 분석 불가'
+       };
     }
   }
 
