@@ -444,43 +444,40 @@ export const claimReward = async (rewardId: string) => {
 export const getRewardHistory = async (type?: string, limit: number = 50, offset: number = 0) => {
   const response = await apiClient.get('/reward/history', {
     params: { type, limit, offset },
-  });
-  return response.data;
-};
-
-// ============================================
-// 통계 API
+// 통계 및 상태 API
 // ============================================
 
-// 일별 점수 조회
-export const getDailyScore = async (date?: string) => {
-  const response = await apiClient.get('/stats/daily', {
-    params: { date },
-  });
-  return response.data;
-};
-
-// 월별 통계 조회
-export const getMonthlyReport = async (year?: number, month?: number) => {
+// 월별 통계 리포트 조회
+export const getMonthlyReport = async (year: number, month: number) => {
   const response = await apiClient.get('/stats/monthly', {
     params: { year, month },
   });
   return response.data;
 };
 
-// 전체 요약 통계
-export const getStatsSummary = async () => {
-  const response = await apiClient.get('/stats/summary');
+// [NEW] 내 상태 (My Status) 조회
+export const getMyStatus = async () => {
+  const response = await apiClient.get('/stats/my-status');
   return response.data;
 };
 
-// 일별 점수 재계산
-export const calculateDailyScore = async (date?: string) => {
-  const response = await apiClient.post('/stats/calculate-daily', null, {
-    params: { date },
+// [NEW] 내 추천 (Daily Recommendation) 조회
+export const getDailyRecommendation = async () => {
+  const deviceId = getDeviceId();
+  // Note: Backend expects userId in query, but apiClient interceptor ensures X-Device-Id.
+  // Ideally backend should extract user from Auth/Guard.
+  // For now passing deviceId as userId simulation or assuming backend handles it via session.
+  // Based on your controller code: @Query('userId') userId: string.
+  // We need to pass the real userId if available, or fetch it first.
+  
+  // To keep it simple and consistent with other APIs that might rely on session/device-id:
+  const user = await getCurrentUser(); // Get user ID first
+  const response = await apiClient.get('/recommendation/daily', {
+    params: { userId: user.id }
   });
   return response.data;
 };
+
 
 // ============================================
 // AI 종합 분석 API (신규)

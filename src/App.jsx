@@ -5,8 +5,8 @@ import SelectOption from './pages/SelectOption';
 import Main from './pages/Main';
 import Medicine from './pages/Medicine';
 import MedicineAdd from './pages/MedicineAdd';
-import History from './pages/History';
-import Reward from './pages/Reward';
+import MyStatus from './pages/MyStatus';
+import MyRecommendation from './pages/MyRecommendation';
 import MyPage from './pages/MyPage';
 import Result01 from './pages/Result01';
 import Result2 from './pages/Result2';
@@ -29,8 +29,8 @@ function App() {
         <Route element={<MainLayout />}>
           <Route path="/main" element={<Main />} />
           <Route path="/medicine" element={<Medicine />} />
-          <Route path="/history" element={<History />} />
-          <Route path="/reward" element={<Reward />} />
+          <Route path="/status" element={<MyStatus />} />
+          <Route path="/recommendation" element={<MyRecommendation />} />
           <Route path="/mypage" element={<MyPage />} />
         </Route>
 

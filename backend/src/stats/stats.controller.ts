@@ -48,4 +48,14 @@ export class StatsController {
     const userId = req.user?.id || 'test-user-id';
     return this.statsService.getSummary(userId);
   }
+
+  /**
+   * GET /api/stats/my-status
+   * 내 상태 (My Status) 대시보드 데이터
+   */
+  @Get('my-status')
+  async getMyStatus(@Req() req: any) {
+    const userId = req.user?.id || 'test-user-id';
+    return this.statsService.getMyStatus(userId);
+  }
 }

@@ -1,0 +1,203 @@
+@import '../App.scss';
+
+.my-status {
+  padding: 80px 20px 100px;
+  min-height: 100vh;
+  background-color: #fff;
+  color: #000;
+
+  &.loading, &.error {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    height: 100vh;
+    font-size: 16px;
+    color: #888;
+  }
+
+  // 1. Header
+  .status-header {
+    margin-bottom: 40px;
+    
+    h1 {
+      font-size: 28px;
+      font-weight: 700;
+      margin-bottom: 24px;
+    }
+
+    .lifespan-card {
+      background: #000;
+      color: #fff;
+      border-radius: 20px;
+      padding: 30px 24px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
+      
+      .lifespan-main {
+        text-align: center;
+        margin-bottom: 24px;
+        padding-bottom: 24px;
+        border-bottom: 1px solid rgba(255,255,255,0.15);
+
+        .label {
+          display: block;
+          font-size: 14px;
+          opacity: 0.7;
+          margin-bottom: 8px;
+        }
+
+        .value {
+          font-size: 48px;
+          font-weight: 800;
+          line-height: 1;
+          margin-bottom: 8px;
+          
+          &.positive { color: #4ade80; } // Green
+          &.negative { color: #f87171; } // Red
+          &.neutral { color: #fff; }
+        }
+
+        .sub-text {
+          font-size: 13px;
+          opacity: 0.5;
+        }
+      }
+
+      .lifespan-today {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        font-size: 15px;
+        
+        .label { opacity: 0.8; }
+        .today-value {
+          font-weight: 700;
+          &.positive { color: #4ade80; }
+          &.negative { color: #f87171; }
+        }
+      }
+    }
+
+    .history-actions {
+      margin-top: 20px;
+      text-align: center;
+      
+      .history-btn {
+        background: #f5f5f5;
+        border: none;
+        padding: 12px 20px;
+        border-radius: 12px;
+        font-size: 14px;
+        font-weight: 600;
+        color: #333;
+      }
+    }
+  }
+
+  // 2. Timeline
+  .timeline-section {
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .timeline-container {
+      position: relative;
+      padding-left: 12px;
+      
+      // Vertical line
+      &::before {
+        content: '';
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        width: 2px;
+        background: #f0f0f0;
+        border-radius: 2px;
+      }
+    }
+
+    .timeline-group {
+      margin-bottom: 30px;
+      
+      .period-label {
+        font-size: 12px;
+        font-weight: 700;
+        color: #888;
+        margin-bottom: 12px;
+        padding-left: 16px;
+        text-transform: uppercase;
+        position: relative;
+        
+        // Dot on timeline
+        &::before {
+          content: '';
+          position: absolute;
+          left: -16px; // Adjust based on padding-left of container
+          top: 50%;
+          transform: translateY(-50%);
+          width: 8px;
+          height: 8px;
+          background: #000;
+          border-radius: 50%;
+          border: 2px solid #fff;
+        }
+      }
+
+      .records-list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+        padding-left: 16px;
+      }
+
+      .record-item {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 12px;
+        padding: 16px;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:active {
+          background: #f9f9f9;
+        }
+
+        .time-badge {
+          font-size: 12px;
+          color: #888;
+          font-variant-numeric: tabular-nums;
+        }
+
+        .record-info {
+          flex: 1;
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+
+          .food-name {
+            font-size: 16px;
+            font-weight: 600;
+          }
+
+          .life-change {
+            font-size: 14px;
+            font-weight: 700;
+            
+            &.pos { color: #16a34a; }
+            &.neg { color: #dc2626; }
+          }
+        }
+
+        .arrow {
+          color: #ccc;
+          font-size: 18px;
+        }
+      }
+    }
+  }
+}

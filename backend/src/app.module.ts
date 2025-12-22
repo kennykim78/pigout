@@ -3,7 +3,7 @@ import { ConfigModule } from '@nestjs/config';
 import { FoodModule } from './food/food.module';
 import { SupabaseModule } from './supabase/supabase.module';
 import { AiModule } from './ai/ai.module';
-import { RewardModule } from './reward/reward.module';
+import { RecommendationModule } from './recommendation/recommendation.module';
 import { MedicineModule } from './medicine/medicine.module';
 import { StatsModule } from './stats/stats.module';
 import { OpenDataModule } from './opendata/opendata.module';
@@ -20,7 +20,7 @@ import { UsersModule } from './users/users.module';
     UsersModule,
     FoodModule,
     AiModule,
-    RewardModule,
+    RecommendationModule, // Replaces RewardModule
     MedicineModule,
     StatsModule,
   ],

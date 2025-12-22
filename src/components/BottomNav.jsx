@@ -5,8 +5,8 @@ const BottomNav = () => {
   const navItems = [
     { path: '/main', label: 'Home', icon: '🏠' },
     { path: '/medicine', label: '약', icon: '💊' },
-    { path: '/history', label: '기록', icon: '📊' },
-    { path: '/reward', label: '리워드', icon: '🎁' },
+    { path: '/status', label: '내 상태', icon: '📊' },
+    { path: '/recommendation', label: '내 추천', icon: '🎁' },
     { path: '/mypage', label: 'My', icon: '👤' },
   ];
 

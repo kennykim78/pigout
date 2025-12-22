@@ -1,12 +1,10 @@
 import { Injectable } from '@nestjs/common';
 import { SupabaseService } from '../supabase/supabase.service';
-import { RewardService } from '../reward/reward.service';
 
 @Injectable()
 export class StatsService {
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly rewardService: RewardService,
   ) {}
 
   /**
@@ -48,7 +46,7 @@ export class StatsService {
         ? (foodTotalScore + combinedTotalScore) / (foodCount + combinedCount)
         : 0;
 
-    // 포인트 획득 여부 판단
+    // 포인트 획득 여부 판단 (기록용으로 남겨둠, 실제 적립은 없음)
     let pointsEarned = 0;
     let pointRuleApplied = null;
 
@@ -82,10 +80,10 @@ export class StatsService {
 
     if (error) throw error;
 
-    // 포인트 적립
-    if (pointsEarned > 0) {
-      await this.rewardService.earnPoints(userId, pointsEarned, pointRuleApplied, date);
-    }
+    // [DEPRECATED] Reward logic removed
+    // if (pointsEarned > 0) {
+    //   await this.rewardService.earnPoints(userId, pointsEarned, pointRuleApplied, date);
+    // }
 
     return {
       date,
@@ -233,6 +231,89 @@ export class StatsService {
     const targetMonth = month || now.getMonth() + 1;
 
     return this.calculateMonthlyReport(userId, targetYear, targetMonth);
+  }
+
+  /**
+   * 내 상태 (My Status) 대시보드 데이터 조회
+   * 1. 예상 수명 증감 (전체 누적)
+   * 2. 오늘 먹은 음식 타임라인 (아침/점심/저녁/간식)
+   */
+  async getMyStatus(userId: string) {
+    const client = this.supabaseService.getClient();
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+
+    // 1. 전체 누적 수명 계산을 위한 전체 통계
+    // 모든 기록의 점수를 가져와서 계산하면 정확하지만 데이터가 많아지면 느릴 수 있음.
+    // 일단 간단하게 food_records의 score 합계를 이용 (가중치 적용)
+    // 공식: (점수 - 70) * 0.1 시간
+    
+    // 전체 레코드 조회 (점수만)
+    const { data: allScores, error: scoreError } = await client
+      .from('food_records')
+      .select('score')
+      .eq('user_id', userId);
+
+    if (scoreError) throw scoreError;
+
+    let totalLifeChangeHours = 0;
+    if (allScores) {
+      totalLifeChangeHours = allScores.reduce((acc, curr) => {
+        const change = (curr.score - 70) * 0.1; 
+        return acc + change;
+      }, 0);
+    }
+
+    // 2. 오늘의 기록 조회 (Timeline용)
+    const { data: todayRecords, error: recordError } = await client
+      .from('food_records')
+      .select('*')
+      .eq('user_id', userId)
+      .gte('created_at', `${todayStr}T00:00:00`)
+      .lt('created_at', `${todayStr}T23:59:59`)
+      .order('created_at', { ascending: true });
+
+    if (recordError) throw recordError;
+
+    // 3. 시간대별 분류
+    const timeline = {
+      morning: [],
+      lunch: [],
+      dinner: [],
+      snack: []
+    };
+
+    let todayLifeChangeHours = 0;
+
+    (todayRecords || []).forEach(record => {
+      const date = new Date(record.created_at);
+      const hour = date.getHours();
+      let period = 'snack';
+
+      if (hour >= 5 && hour < 11) period = 'morning';
+      else if (hour >= 11 && hour < 16) period = 'lunch';
+      else if (hour >= 16 && hour < 22) period = 'dinner';
+      else period = 'snack'; // 밤참 or 새벽
+
+      // 수명 변화 계산
+      const lifeChange = (record.score - 70) * 0.1;
+      todayLifeChangeHours += lifeChange;
+
+      timeline[period].push({
+        id: record.id,
+        foodName: record.food_name,
+        score: record.score,
+        time: date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
+        lifeChange: lifeChange,
+        imageUrl: record.image_path // Note: API returns image_path, frontend might need signed URL or public URL
+      });
+    });
+
+    return {
+      totalLifeChangeHours: Number(totalLifeChangeHours.toFixed(1)),
+      todayLifeChangeHours: Number(todayLifeChangeHours.toFixed(1)),
+      timeline
+    };
   }
 
   /**

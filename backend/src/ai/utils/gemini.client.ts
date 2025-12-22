@@ -97,7 +97,7 @@ export class GeminiClient {
     return text;
   }
 
-  private extractJsonObject(raw: string): any {
+  public extractJsonObject(raw: string): any {
     // Remove markdown code blocks if present
     let cleaned = raw.trim();
     cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
@@ -109,6 +109,18 @@ export class GeminiClient {
       return JSON.parse(match[0]);
     } catch (e) {
       throw new Error('Failed to parse JSON: ' + (e as Error).message);
+    }
+  }
+
+  public async generateText(prompt: string): Promise<string> {
+    try {
+      const result = await this.textModel.generateContent(prompt);
+      const response = await result.response;
+      return response.text();
+    } catch (error) {
+       // Fallback to REST API if SDK fails (using existing logic pattern)
+       console.warn('SDK failed, trying REST API for generateText');
+       return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
     }
   }
 
