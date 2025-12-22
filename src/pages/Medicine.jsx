@@ -1014,7 +1014,7 @@ const Medicine = () => {
             </div>
           )}
         </div>
-      </div>}
+      </div>
 
       {/* 약품 상세 정보 팝업 */}
       {showMedicineDetailPopup && (
