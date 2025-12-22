@@ -62,10 +62,9 @@ export class AiService {
       // "DB의 저장된 내용을 그대로 보여주고 있는가?" 요구사항 충족
       const supabase = this.supabaseService.getClient();
       
-      // diseases 배열 비교를 위해 contains 사용
-      // 주의: diseases가 완벽히 일치해야 함. @> (contains)와 <@ (contained by) 둘 다 체크하거나,
-      // 일단 간단히 최근 같은 이름의 기록을 가져와서 앱 레벨에서 diseases 비교
-      const { data: recentRecord } = await supabase
+      // 4-1. [Self-Dedup] 본인의 최근 동일 기록 확인 (View Mode)
+      // "내 기록을 클릭하여 들어간 것과 동일하게" -> 중복 저장 없이 기존 기록 반환
+      const { data: myRecentRecord } = await supabase
         .from('food_records')
         .select('*')
         .eq('user_id', dto.userId)
@@ -74,74 +73,110 @@ export class AiService {
         .limit(1)
         .single();
 
-      if (recentRecord) {
-        // 질병 조건이 동일한지 확인 (배열 비교)
-        const recordDiseases = recentRecord.diseases || [];
+      if (myRecentRecord) {
+        const recordDiseases = myRecentRecord.diseases || [];
         const currentDiseases = dto.diseases || [];
         const isSameDiseases = 
           recordDiseases.length === currentDiseases.length && 
           recordDiseases.every(d => currentDiseases.includes(d));
 
         if (isSameDiseases) {
-          console.log(`[Result01 Deduplication] Hit! ${itemName} 기존 기록 반환 (ID: ${recentRecord.id})`);
-          const summaryJson = JSON.parse(recentRecord.summary_json || '{}');
+          console.log(`[Result01 Self-Cache] Hit! ${itemName} 본인 기존 기록 반환 (ID: ${myRecentRecord.id})`);
+          const summaryJson = JSON.parse(myRecentRecord.summary_json || '{}');
           return {
             foodName: itemName,
             category: category,
-            confidence: recentRecord.confidence,
-            score: recentRecord.score,
+            confidence: myRecentRecord.confidence,
+            score: myRecentRecord.score,
             pros: summaryJson.pros,
             cons: summaryJson.cons,
             summary: summaryJson.summary,
-            recordId: recentRecord.id,
-            fromCache: true // 플래그 추가
+            recordId: myRecentRecord.id,
+            fromCache: true
           };
         }
       }
 
-      // 5. 약품/건강보조제인 경우 Medicine 모듈로 처리
-      if (category === 'medicine' || category === 'supplement') {
-        // TODO: Medicine 모듈 연동
-        console.log(`${category} detected: ${itemName}`);
-        // 일단은 분석 계속 진행
-      }
-
-      // 5. [Smart Cache] 영양 데이터 및 일반 정보 확인
-      // 5. [Smart Cache] 영양 데이터 및 일반 정보 확인
-      let nutritionData = null;
-      let cachedGeneralInfo = null;
-      
-      // const supabase = this.supabaseService.getClient(); // reusing existing instance from line 62
-      const { data: cachedData } = await supabase
-        .from('food_cache')
+      // 4-2. [Global-Dedup] 타인의 동일 기록 확인 (Clone Mode)
+      // "상위부분이 다른 사용자가 진입하더라도... 동일하게 재 분석 ai를 호출하지 않고"
+      // -> AI 호출 없이 기존 결과 재사용하되, 내 히스토리에는 저장해야 함.
+      const { data: globalRecord } = await supabase
+        .from('food_records')
         .select('*')
         .eq('food_name', itemName)
+        .neq('user_id', dto.userId) // 내 기록 제외 (위에서 이미 체크했으므로)
+        .order('created_at', { ascending: false })
+        .limit(1)
         .single();
-        
-      if (cachedData) {
-        console.log(`[Result01 Cache] Hit! ${itemName} 일반 정보 활용`);
-        nutritionData = cachedData.nutrition_json;
-        cachedGeneralInfo = cachedData.general_analysis_json;
+
+      let reusedAnalysis = null;
+      let reusedScore = null;
+
+      if (globalRecord) {
+        const recordDiseases = globalRecord.diseases || [];
+        const currentDiseases = dto.diseases || [];
+        const isSameDiseases = 
+          recordDiseases.length === currentDiseases.length && 
+          recordDiseases.every(d => currentDiseases.includes(d));
+
+        if (isSameDiseases) {
+          console.log(`[Result01 Global-Cache] Hit! ${itemName} 타인 기록 재사용 (Source ID: ${globalRecord.id})`);
+          const summaryJson = JSON.parse(globalRecord.summary_json || '{}');
+          
+          reusedAnalysis = {
+            pros: summaryJson.pros,
+            cons: summaryJson.cons,
+            summary: summaryJson.summary,
+            category // 현재 분석된 카테고리 유지
+          };
+          reusedScore = globalRecord.score;
+        }
       }
 
-      // 6. 점수 계산
-      const score = this.scoreCalculator.calculateScore(
-        itemName,
-        dto.diseases,
-        nutritionData,
-      );
+      // 재사용 데이터가 있으면 AI 분석 스킵, 없으면 진행
+      let analysis = reusedAnalysis;
+      let score = reusedScore;
 
-      // 7. Gemini로 장단점 요약 생성 (캐시 정보 있으면 활용)
-      const analysis = await this.geminiClient.analyzeFoodSuitability(
-        itemName,
-        dto.diseases,
-        nutritionData,
-        null, // publicData (기존)
-        cachedGeneralInfo // [New] 캐시된 일반 정보
-      );
+      // 5. [Smart Cache] 영양 데이터 확인 (AI 분석 필요시에만 사용)
+      let nutritionData = null;
+      let cachedGeneralInfo = null;
 
-      // 8. Supabase DB에 저장
-      // const supabase = this.supabaseService.getClient(); // reusing existing client
+      if (!analysis) {
+        const { data: cachedData } = await supabase
+          .from('food_cache')
+          .select('*')
+          .eq('food_name', itemName)
+          .single();
+          
+        if (cachedData) {
+          console.log(`[Result01 Cache] Hit! ${itemName} 일반 정보 활용`);
+          nutritionData = cachedData.nutrition_json;
+          cachedGeneralInfo = cachedData.general_analysis_json;
+        }
+
+        // 6. 점수 계산 (재사용 없으면)
+        score = this.scoreCalculator.calculateScore(
+          itemName,
+          dto.diseases,
+          nutritionData,
+        );
+
+        // 7. Gemini 분석 (재사용 없으면)
+        analysis = await this.geminiClient.analyzeFoodSuitability(
+          itemName,
+          dto.diseases,
+          nutritionData,
+          null, 
+          cachedGeneralInfo
+        );
+      } else {
+        // 재사용 시 점수/분석은 이미 할당됨
+        console.log(`[AI Skip] Global Cache 사용으로 AI 분석 생략`);
+      }
+
+      // 8. Supabase DB에 저장 (항상 저장 - 내 히스토리용)
+      // 단, Self-Cache Hit인 경우는 위에서 리턴했으므로 여기까지 오지 않음.
+      // Global-Cache Hit인 경우는 여기까지 와서 내 기록으로 Insert됨.
       const { data: record, error } = await supabase
         .from('food_records')
         .insert({
@@ -168,7 +203,6 @@ export class AiService {
         );
       }
 
-      // 9. 응답 반환
       return {
         foodName: itemName,
         category,
@@ -178,7 +212,10 @@ export class AiService {
         cons: analysis.cons,
         summary: analysis.summary,
         recordId: record.id,
+        fromCache: !!reusedAnalysis
       };
+
+
     } catch (error) {
       console.error('Image analysis error:', error);
       throw new HttpException(
