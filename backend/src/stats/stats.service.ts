@@ -295,17 +295,18 @@ export class StatsService {
       else if (hour >= 16 && hour < 22) period = 'dinner';
       else period = 'snack'; // 밤참 or 새벽
 
-      // 수명 변화 계산
-      const lifeChange = (record.score - 70) * 0.1;
+      // 수명 변화 계산 (점수 없으면 70점으로 치고 변화 없음 처리)
+      const safeScore = record.score || 70;
+      const lifeChange = (safeScore - 70) * 0.1;
       todayLifeChangeHours += lifeChange;
 
       timeline[period].push({
         id: record.id,
         foodName: record.food_name,
-        score: record.score,
+        score: safeScore,
         time: date.toLocaleTimeString('ko-KR', { hour: '2-digit', minute: '2-digit' }),
         lifeChange: lifeChange,
-        imageUrl: record.image_path // Note: API returns image_path, frontend might need signed URL or public URL
+        imageUrl: record.image_path 
       });
     });
 

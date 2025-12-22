@@ -1,8 +1,5 @@
 import './Result01.scss';
 import imgworry from '../assets/images/img_worry.png';
-import img_travel from '../assets/images/img_travel.png';
-import img_run from '../assets/images/img_run.png';
-import RecommendationCard from '../components/RecommendationCard';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { scoreToLifeDays, getLifeComment, formatLifeDays, getLifeDaysColorClass } from '../utils/lifeScoreUtils';
