@@ -444,6 +444,10 @@ export const claimReward = async (rewardId: string) => {
 export const getRewardHistory = async (type?: string, limit: number = 50, offset: number = 0) => {
   const response = await apiClient.get('/reward/history', {
     params: { type, limit, offset },
+  });
+  return response.data;
+};
+
 // 통계 및 상태 API
 // ============================================
 
