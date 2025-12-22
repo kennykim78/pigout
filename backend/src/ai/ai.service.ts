@@ -99,7 +99,7 @@ export class AiService {
       );
 
       // 8. Supabase DB에 저장
-      const supabase = this.supabaseService.getClient();
+      // const supabase = this.supabaseService.getClient(); // reusing existing client
       const { data: record, error } = await supabase
         .from('food_records')
         .insert({
