@@ -654,6 +654,19 @@ const Result2 = () => {
 
       {/* 주요 분석 내용 */}
       <div className="result2__main-content">
+        {/* 분석 데이터 없음 처리 */}
+        {!isStreaming && !detailedAnalysis && !streamError && (
+          <div className="result2__error-section">
+            <p className="result2__error-message">⚠️ 분석 결과를 불러오지 못했습니다.</p>
+            <button 
+              className="result2__retry-btn"
+              onClick={() => startStreamingAnalysis(foodName)}
+            >
+              다시 시도
+            </button>
+          </div>
+        )}
+
         {/* 🆕 시각적 분석 대시보드 (이런 점이 좋아요 위로 이동) */}
         {!isStreaming && detailedAnalysis && (
           <AnalysisDashboard detailedAnalysis={detailedAnalysis} />

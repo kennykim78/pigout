@@ -381,7 +381,8 @@ export const analyzeAllMedicinesStream = (
             processEvent();
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith('data:')) {
-            currentData = line.slice(5).trim();
+            const dataChunk = line.slice(5).trim();
+            currentData = currentData ? currentData + '\n' + dataChunk : dataChunk;
           } else if (line === '') {
             processEvent();
           }
@@ -630,7 +631,8 @@ export const analyzeFoodByTextStream = (
             processEvent();
             currentEvent = line.slice(6).trim();
           } else if (line.startsWith('data:')) {
-            currentData = line.slice(5).trim();
+            const dataChunk = line.slice(5).trim();
+            currentData = currentData ? currentData + '\n' + dataChunk : dataChunk;
           } else if (line === '') {
             // 빈 줄은 SSE 메시지 구분자 - 이벤트 처리
             processEvent();
