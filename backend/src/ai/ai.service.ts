@@ -58,7 +58,48 @@ export class AiService {
       const confidence = visionResult.confidence;
       const category = visionResult.category;
 
-      // 4. 약품/건강보조제인 경우 Medicine 모듈로 처리
+      // 4. [NEW] 중복 분석 방지: 동일 조건(User + Food + Diseases)의 최근 기록 확인
+      // "DB의 저장된 내용을 그대로 보여주고 있는가?" 요구사항 충족
+      const supabase = this.supabaseService.getClient();
+      
+      // diseases 배열 비교를 위해 contains 사용
+      // 주의: diseases가 완벽히 일치해야 함. @> (contains)와 <@ (contained by) 둘 다 체크하거나,
+      // 일단 간단히 최근 같은 이름의 기록을 가져와서 앱 레벨에서 diseases 비교
+      const { data: recentRecord } = await supabase
+        .from('food_records')
+        .select('*')
+        .eq('user_id', dto.userId)
+        .eq('food_name', itemName)
+        .order('created_at', { ascending: false })
+        .limit(1)
+        .single();
+
+      if (recentRecord) {
+        // 질병 조건이 동일한지 확인 (배열 비교)
+        const recordDiseases = recentRecord.diseases || [];
+        const currentDiseases = dto.diseases || [];
+        const isSameDiseases = 
+          recordDiseases.length === currentDiseases.length && 
+          recordDiseases.every(d => currentDiseases.includes(d));
+
+        if (isSameDiseases) {
+          console.log(`[Result01 Deduplication] Hit! ${itemName} 기존 기록 반환 (ID: ${recentRecord.id})`);
+          const summaryJson = JSON.parse(recentRecord.summary_json || '{}');
+          return {
+            foodName: itemName,
+            category: category,
+            confidence: recentRecord.confidence,
+            score: recentRecord.score,
+            pros: summaryJson.pros,
+            cons: summaryJson.cons,
+            summary: summaryJson.summary,
+            recordId: recentRecord.id,
+            fromCache: true // 플래그 추가
+          };
+        }
+      }
+
+      // 5. 약품/건강보조제인 경우 Medicine 모듈로 처리
       if (category === 'medicine' || category === 'supplement') {
         // TODO: Medicine 모듈 연동
         console.log(`${category} detected: ${itemName}`);
@@ -66,10 +107,11 @@ export class AiService {
       }
 
       // 5. [Smart Cache] 영양 데이터 및 일반 정보 확인
+      // 5. [Smart Cache] 영양 데이터 및 일반 정보 확인
       let nutritionData = null;
       let cachedGeneralInfo = null;
       
-      const supabase = this.supabaseService.getClient();
+      // const supabase = this.supabaseService.getClient(); // reusing existing instance from line 62
       const { data: cachedData } = await supabase
         .from('food_cache')
         .select('*')

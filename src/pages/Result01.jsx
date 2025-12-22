@@ -175,18 +175,10 @@ const Result01 = () => {
           </button>
         </div>
 
-        <div className="result01__recommendations">
-          <RecommendationCard 
-            image={img_travel}
-            title="하루하루 세계 민간요법"
-            alt="하루하루 세계 민간요법"
-          />
-          <RecommendationCard 
-            image={img_run}
-            title="하루하루 추천 운동법"
-            alt="하루하루 추천 운동법"
-          />
-        </div>
+        {/* 
+          기존 추천 카드영역 제거 - 내 추천(My Recommendation) 페이지로 통합됨 
+          <div className="result01__recommendations"> ... </div> 
+        */}
       </div>
     </div>
   );
