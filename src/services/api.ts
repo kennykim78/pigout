@@ -461,17 +461,10 @@ export const getMyStatus = async () => {
 
 // [NEW] 내 추천 (Daily Recommendation) 조회
 export const getDailyRecommendation = async () => {
-  const deviceId = getDeviceId();
-  // Note: Backend expects userId in query, but apiClient interceptor ensures X-Device-Id.
-  // Ideally backend should extract user from Auth/Guard.
-  // For now passing deviceId as userId simulation or assuming backend handles it via session.
-  // Based on your controller code: @Query('userId') userId: string.
-  // We need to pass the real userId if available, or fetch it first.
-  
-  // To keep it simple and consistent with other APIs that might rely on session/device-id:
-  const user = await getCurrentUser(); // Get user ID first
+  // Get user ID from getCurrentUser response
+  const userResponse = await getCurrentUser();
   const response = await apiClient.get('/recommendation/daily', {
-    params: { userId: user.id }
+    params: { userId: userResponse.data.userId }
   });
   return response.data;
 };
