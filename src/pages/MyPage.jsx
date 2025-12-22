@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthStore } from '../store/authStore';
 import { useRewardStore } from '../store/rewardStore';
-import { getRewardPoints, getStatsSummary, getAnalysisHistory, getMyMedicines } from '../services/api';
+import { getRewardPoints, getMyStatus, getAnalysisHistory, getMyMedicines } from '../services/api';
 import { scoreToLifeDays, formatLifeDays, getLifeDaysColorClass } from '../utils/lifeScoreUtils';
 import './MyPage.scss';
 
@@ -42,7 +42,7 @@ const MyPage = () => {
       // API에서 데이터 로드
       const [pointsData, statsData, historyData, medicineData] = await Promise.all([
         getRewardPoints().catch(() => ({ currentPoints: 0 })),
-        getStatsSummary().catch(() => ({ totalRecords: 0, avgScore30Days: 0, recentDays: 0 })),
+        getMyStatus().catch(() => ({ totalRecords: 0, avgScore30Days: 0, recentDays: 0 })),
         getAnalysisHistory(5, 0).catch(() => ({ data: [] })),
         getMyMedicines(true).catch(() => []),
       ]);
