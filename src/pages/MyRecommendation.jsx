@@ -1,6 +1,6 @@
-import { useState, useEffect } from 'react';
-import { getDailyRecommendation } from '../services/api';
-import './MyRecommendation.scss';
+import { useState, useEffect } from "react";
+import { getDailyRecommendation, logActivity } from "../services/api";
+import "./MyRecommendation.scss";
 
 const MyRecommendation = () => {
   const [data, setData] = useState(null);
@@ -16,12 +16,19 @@ const MyRecommendation = () => {
       setIsLoading(true);
       const result = await getDailyRecommendation();
       setData(result);
+
+      // 활동 로그 기록 (추천 보기 +10일)
+      try {
+        await logActivity("recommendation_view", null, "오늘의 추천 보기");
+      } catch (e) {
+        console.log("[MyRecommendation] 활동 로그 기록 실패:", e);
+      }
     } catch (err) {
-      console.error('Failed to load daily recommendation:', err);
+      console.error("Failed to load daily recommendation:", err);
       // Mock Data Fallback for Demo/Error case (Option: remove if strictly API dependent)
       // setError('추천을 불러오지 못했습니다.');
       // Fallback display handled in render
-      setError('추천 콘텐츠를 불러오는 중 오류가 발생했습니다.');
+      setError("추천 콘텐츠를 불러오는 중 오류가 발생했습니다.");
     } finally {
       setIsLoading(false);
     }
@@ -40,19 +47,25 @@ const MyRecommendation = () => {
   if (error || !data) {
     return (
       <div className="recommendation-page error">
-        <p>{error || '데이터가 없습니다.'}</p>
+        <p>{error || "데이터가 없습니다."}</p>
         <button onClick={loadRecommendation}>다시 시도</button>
       </div>
     );
   }
 
-  const { food_content: food, remedy_content: remedy, exercise_content: exercise } = data;
+  const {
+    food_content: food,
+    remedy_content: remedy,
+    exercise_content: exercise,
+  } = data;
 
   return (
     <div className="recommendation-page">
       <header className="page-header">
         <h1>내 추천</h1>
-        <p className="date-label">{new Date(data.date).toLocaleDateString()} 오늘의 큐레이션</p>
+        <p className="date-label">
+          {new Date(data.date).toLocaleDateString()} 오늘의 큐레이션
+        </p>
       </header>
 
       <div className="cards-container">
@@ -97,9 +110,7 @@ const MyRecommendation = () => {
           <div className="card-body">
             <h3 className="highlight-title">{exercise.name}</h3>
             <p className="description-text">{exercise.description}</p>
-            <div className="intensity-badge">
-              난이도: {exercise.intensity}
-            </div>
+            <div className="intensity-badge">난이도: {exercise.intensity}</div>
           </div>
         </div>
       </div>
