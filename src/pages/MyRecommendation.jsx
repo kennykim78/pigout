@@ -1,19 +1,29 @@
 import { useState, useEffect } from "react";
 import { getDailyRecommendation, logActivity } from "../services/api";
+import { useRecommendationStore } from "../store/recommendationStore";
 import "./MyRecommendation.scss";
 
 const MyRecommendation = () => {
-  const [data, setData] = useState(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [error, setError] = useState(null);
+  const {
+    data,
+    setData,
+    isLoading,
+    setLoading,
+    error,
+    setError,
+    shouldRefetch,
+  } = useRecommendationStore();
 
   useEffect(() => {
-    loadRecommendation();
+    // 오늘 데이터 없으면 API 호출
+    if (shouldRefetch()) {
+      loadRecommendation();
+    }
   }, []);
 
   const loadRecommendation = async () => {
     try {
-      setIsLoading(true);
+      setLoading(true);
       const result = await getDailyRecommendation();
       setData(result);
 
@@ -25,12 +35,9 @@ const MyRecommendation = () => {
       }
     } catch (err) {
       console.error("Failed to load daily recommendation:", err);
-      // Mock Data Fallback for Demo/Error case (Option: remove if strictly API dependent)
-      // setError('추천을 불러오지 못했습니다.');
-      // Fallback display handled in render
       setError("추천 콘텐츠를 불러오는 중 오류가 발생했습니다.");
     } finally {
-      setIsLoading(false);
+      setLoading(false);
     }
   };
 

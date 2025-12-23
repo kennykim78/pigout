@@ -33,6 +33,7 @@ const Medicine = () => {
     isLoading,
     setLoading,
     setError,
+    shouldRefetch,
   } = useMedicineStore();
   const [searchKeyword, setSearchKeyword] = useState("");
   const [searchResults, setSearchResults] = useState([]);
@@ -80,7 +81,10 @@ const Medicine = () => {
   const cameraInputRef = useRef(null);
 
   useEffect(() => {
-    loadMedicines();
+    // 캐시 만료 시에만 API 호출
+    if (shouldRefetch()) {
+      loadMedicines();
+    }
   }, []);
 
   const loadMedicines = async () => {

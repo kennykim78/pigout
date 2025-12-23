@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+import { create } from "zustand";
 
 interface Medicine {
   id: string;
@@ -9,12 +9,16 @@ interface Medicine {
   created_at: string;
 }
 
+// 캐시 유효 시간: 10분
+const CACHE_TTL = 10 * 60 * 1000;
+
 interface MedicineStore {
   medicines: Medicine[];
   activeMedicines: Medicine[];
   isLoading: boolean;
   error: string | null;
-  
+  lastFetchTime: number | null;
+
   // Actions
   setMedicines: (medicines: Medicine[]) => void;
   addMedicine: (medicine: Medicine) => void;
@@ -22,18 +26,24 @@ interface MedicineStore {
   deleteMedicine: (id: string) => void;
   setLoading: (loading: boolean) => void;
   setError: (error: string | null) => void;
+
+  // 캐시 관련
+  shouldRefetch: () => boolean;
+  invalidateCache: () => void;
 }
 
-export const useMedicineStore = create<MedicineStore>((set) => ({
+export const useMedicineStore = create<MedicineStore>((set, get) => ({
   medicines: [],
   activeMedicines: [],
   isLoading: false,
   error: null,
+  lastFetchTime: null,
 
   setMedicines: (medicines) =>
     set({
       medicines,
       activeMedicines: medicines.filter((m) => m.is_active),
+      lastFetchTime: Date.now(),
     }),
 
   addMedicine: (medicine) =>
@@ -63,4 +73,15 @@ export const useMedicineStore = create<MedicineStore>((set) => ({
 
   setLoading: (isLoading) => set({ isLoading }),
   setError: (error) => set({ error }),
+
+  // 캐시 만료 여부 확인 (true = 새로 fetch 필요)
+  shouldRefetch: () => {
+    const { medicines, lastFetchTime } = get();
+    if (medicines.length === 0) return true;
+    if (!lastFetchTime) return true;
+    return Date.now() - lastFetchTime > CACHE_TTL;
+  },
+
+  // 캐시 무효화 (약 추가/삭제 시 호출)
+  invalidateCache: () => set({ lastFetchTime: null }),
 }));

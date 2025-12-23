@@ -2,21 +2,34 @@ import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyStatus, getActivityHistory } from "../services/api";
 import { getUserProfile, getSelectedDiseases } from "../utils/deviceId";
+import { useStatusStore } from "../store/statusStore";
 import "./MyStatus.scss";
 
 const MyStatus = () => {
   const navigate = useNavigate();
-  const [statusData, setStatusData] = useState(null);
-  const [historyList, setHistoryList] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const {
+    statusData,
+    setStatusData,
+    historyList,
+    setHistoryList,
+    appendHistory,
+    hasMore,
+    setHasMore,
+    offset,
+    setOffset,
+    shouldRefetch,
+  } = useStatusStore();
+
+  const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [hasMore, setHasMore] = useState(true);
-  const [offset, setOffset] = useState(0);
   const observerRef = useRef(null);
   const LIMIT = 30;
 
   useEffect(() => {
-    loadStatus();
+    // 캐시 만료 시에만 API 호출
+    if (shouldRefetch()) {
+      loadStatus();
+    }
   }, []);
 
   const loadStatus = async () => {
