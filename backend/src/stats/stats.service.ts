@@ -273,12 +273,19 @@ export class StatsService {
       .eq("user_id", userId)
       .gte("created_at", `${threeYearsAgoStr}T00:00:00`);
 
-    const { data: activityLogs } = await client
-      .from("activity_logs")
-      .select("*")
-      .eq("user_id", userId)
-      .gte("created_at", `${threeYearsAgoStr}T00:00:00`)
-      .order("created_at", { ascending: false });
+    // activity_logs 조회 (테이블이 없으면 빈 배열)
+    let activityLogs = [];
+    try {
+      const { data } = await client
+        .from("activity_logs")
+        .select("*")
+        .eq("user_id", userId)
+        .gte("created_at", `${threeYearsAgoStr}T00:00:00`)
+        .order("created_at", { ascending: false });
+      activityLogs = data || [];
+    } catch (e) {
+      console.log("[StatsService] activity_logs table not found, skipping");
+    }
 
     // 음식 기록의 수명 변화 (점수 기반)
     let totalLifeChangeDays = 0;
@@ -305,12 +312,19 @@ export class StatsService {
       .gte("created_at", `${todayStr}T00:00:00`)
       .lt("created_at", `${todayStr}T23:59:59`);
 
-    const { data: todayActivityLogs } = await client
-      .from("activity_logs")
-      .select("life_change_days")
-      .eq("user_id", userId)
-      .gte("created_at", `${todayStr}T00:00:00`)
-      .lt("created_at", `${todayStr}T23:59:59`);
+    // 오늘 activity_logs 조회 (테이블이 없으면 빈 배열)
+    let todayActivityLogs = [];
+    try {
+      const { data } = await client
+        .from("activity_logs")
+        .select("life_change_days")
+        .eq("user_id", userId)
+        .gte("created_at", `${todayStr}T00:00:00`)
+        .lt("created_at", `${todayStr}T23:59:59`);
+      todayActivityLogs = data || [];
+    } catch (e) {
+      // 테이블이 없으면 무시
+    }
 
     let todayLifeChangeDays = 0;
     if (todayFoodScores) {
@@ -338,18 +352,23 @@ export class StatsService {
       (initialLifeExpectancy + lifeChangeYears).toFixed(1)
     );
 
-    // 5. 위트 문구 조회
-    const { data: lifeMessage } = await client
-      .from("life_messages")
-      .select("message, emoji")
-      .lte("min_life_expectancy", Math.floor(currentLifeExpectancy))
-      .gte("max_life_expectancy", Math.floor(currentLifeExpectancy))
-      .limit(1)
-      .single();
+    // 5. 위트 문구 조회 (테이블이 없으면 기본 메시지)
+    let wittyMessage = "🍽️ 오늘도 건강한 식사를 시작해보세요!";
+    try {
+      const { data: lifeMessage } = await client
+        .from("life_messages")
+        .select("message, emoji")
+        .lte("min_life_expectancy", Math.floor(currentLifeExpectancy))
+        .gte("max_life_expectancy", Math.floor(currentLifeExpectancy))
+        .limit(1)
+        .single();
 
-    const wittyMessage = lifeMessage
-      ? `${lifeMessage.emoji || ""} ${lifeMessage.message}`
-      : "🍽️ 오늘도 건강한 식사를 시작해보세요!";
+      if (lifeMessage) {
+        wittyMessage = `${lifeMessage.emoji || ""} ${lifeMessage.message}`;
+      }
+    } catch (e) {
+      // 테이블이 없으면 기본 메시지 사용
+    }
 
     // 6. 활동 히스토리 조회 (최근 100건, 일자별 그룹화)
     const historyList = [];
