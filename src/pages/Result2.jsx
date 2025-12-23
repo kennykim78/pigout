@@ -505,14 +505,16 @@ const Result2 = () => {
   };
 
   const getDataSources = () => {
-    if (
-      detailedAnalysis &&
-      detailedAnalysis.dataSources &&
-      detailedAnalysis.dataSources.length > 0
-    ) {
-      return detailedAnalysis.dataSources.join(" / ");
-    }
-    return "AI 분석 결과 / 식품의약품안전처 영양성분 DB";
+    // 모든 공공데이터 출처 표시
+    const allSources = [
+      "식품의약품안전처 의약품 DB",
+      "식품의약품안전처 영양성분 DB",
+      "건강기능식품 기능성 DB",
+      "질병관리본부 질병 정보",
+      "약물-음식 상호작용 DB",
+      "AI 분석 결과",
+    ];
+    return allSources.join(" / ");
   };
 
   const riskFactorLabels = {
@@ -859,93 +861,39 @@ const Result2 = () => {
             </div>
           )}
 
-        {/* 위험 성분 분석 (Accordion) */}
+        {/* 위험 성분 시각화 */}
         {riskFactorEntries.length > 0 && (
-          <>
-            {/* 🆕 위험성분 시각화 (위험 성분 분석 섹션 위로 이동) */}
-            <div className="result2__risk-visualization">
-              <div className="result2__risk-chart-container">
-                {riskFactorEntries
-                  .filter((entry) => entry.active)
-                  .map((entry) => (
-                    <div key={entry.key} className="result2__risk-chart-item">
-                      <div className="result2__risk-chart-label">
-                        <span className="result2__risk-chart-icon">⚠️</span>
-                        <span className="result2__risk-chart-name">
-                          {entry.label}
-                        </span>
-                      </div>
-                      <div className="result2__risk-chart-bar">
-                        <div
-                          className="result2__risk-chart-fill"
-                          style={{ width: "100%" }}
-                        ></div>
-                      </div>
+          <div className="result2__risk-visualization">
+            <div className="result2__risk-chart-container">
+              {riskFactorEntries
+                .filter((entry) => entry.active)
+                .map((entry) => (
+                  <div key={entry.key} className="result2__risk-chart-item">
+                    <div className="result2__risk-chart-label">
+                      <span className="result2__risk-chart-icon">⚠️</span>
+                      <span className="result2__risk-chart-name">
+                        {entry.label}
+                      </span>
                     </div>
-                  ))}
-                {riskFactorEntries.filter((entry) => entry.active).length ===
-                  0 && (
-                  <div className="result2__risk-chart-empty">
-                    <span className="result2__risk-chart-empty-icon">✅</span>
-                    <span className="result2__risk-chart-empty-text">
-                      위험 성분이 검출되지 않았습니다
-                    </span>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            <div className="result2__accordion">
-              <button
-                className={`result2__accordion-toggle result2__accordion-toggle--risk`}
-                onClick={() => toggleSection("riskFactors")}
-              >
-                <span className="result2__accordion-icon">🔬</span>
-                <span className="result2__accordion-title">위험 성분 분석</span>
-                <span
-                  className={`result2__accordion-chevron ${
-                    expandedSections.riskFactors ? "expanded" : ""
-                  }`}
-                >
-                  ▼
-                </span>
-              </button>
-
-              {expandedSections.riskFactors && (
-                <div className="result2__accordion-content">
-                  <p className="result2__risk-subtitle">
-                    식품의약품안전처 데이터 기반
-                  </p>
-                  <div className="result2__risk-list">
-                    {riskFactorEntries.map((entry) => (
+                    <div className="result2__risk-chart-bar">
                       <div
-                        key={entry.key}
-                        className={`result2__risk-item ${
-                          entry.active
-                            ? "result2__risk-item--active"
-                            : "result2__risk-item--inactive"
-                        }`}
-                      >
-                        <div className="result2__risk-item-header">
-                          <span className="result2__risk-item-name">
-                            {entry.label}
-                          </span>
-                          <span
-                            className={`result2__risk-chip ${
-                              entry.active ? "result2__risk-chip--active" : ""
-                            }`}
-                          >
-                            {entry.active ? "검출" : "안전"}
-                          </span>
-                        </div>
-                        <p className="result2__risk-item-note">{entry.note}</p>
-                      </div>
-                    ))}
+                        className="result2__risk-chart-fill"
+                        style={{ width: "100%" }}
+                      ></div>
+                    </div>
                   </div>
+                ))}
+              {riskFactorEntries.filter((entry) => entry.active).length ===
+                0 && (
+                <div className="result2__risk-chart-empty">
+                  <span className="result2__risk-chart-empty-icon">✅</span>
+                  <span className="result2__risk-chart-empty-text">
+                    위험 성분이 검출되지 않았습니다
+                  </span>
                 </div>
               )}
             </div>
-          </>
+          </div>
         )}
 
         {/* 종합 분석 (Accordion) */}
