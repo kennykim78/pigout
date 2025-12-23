@@ -13,7 +13,7 @@ CREATE TABLE IF NOT EXISTS recommendation_global_cache (
   remedy_content JSONB,              -- 민간요법
   exercise_content JSONB,            -- 운동 추천
   created_at TIMESTAMPTZ DEFAULT NOW(),
-  expires_at TIMESTAMPTZ DEFAULT NOW() + INTERVAL '1 year',
+  expires_at TIMESTAMPTZ DEFAULT NOW() + INTERVAL '90 days',
   hit_count INTEGER DEFAULT 0,       -- 캐시 히트 횟수 (통계용)
   UNIQUE(cache_key, content_index)   -- 조건+인덱스 조합이 유니크
 );

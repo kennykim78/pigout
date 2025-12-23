@@ -139,7 +139,7 @@ export class RecommendationService {
         medicines || []
       );
 
-      // 글로벌 캐시 풀에 저장 (1년 만료)
+      // 글로벌 캐시 풀에 저장 (90일 만료 = 분기별 갱신)
       const { error: cacheError } = await client
         .from("recommendation_global_cache")
         .insert({
@@ -152,7 +152,7 @@ export class RecommendationService {
           remedy_content: recommendationContent.remedy,
           exercise_content: recommendationContent.exercise,
           expires_at: new Date(
-            Date.now() + 365 * 24 * 60 * 60 * 1000
+            Date.now() + 90 * 24 * 60 * 60 * 1000
           ).toISOString(),
           hit_count: 0,
         });
