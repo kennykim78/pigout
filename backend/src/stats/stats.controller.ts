@@ -119,6 +119,24 @@ export class StatsController {
   }
 
   /**
+   * GET /api/stats/activity-history
+   * 활동 히스토리 조회 (페이지네이션)
+   */
+  @Get("activity-history")
+  async getActivityHistory(
+    @Headers("x-device-id") deviceId: string,
+    @Query("limit") limit?: string,
+    @Query("offset") offset?: string
+  ) {
+    const userId = await this.getUserId(deviceId);
+    return this.statsService.getActivityHistory(
+      userId,
+      limit ? parseInt(limit) : 30,
+      offset ? parseInt(offset) : 0
+    );
+  }
+
+  /**
    * Helper: deviceId로 userId 조회
    */
   private async getUserId(deviceId: string): Promise<string> {

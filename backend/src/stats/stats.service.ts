@@ -448,7 +448,116 @@ export class StatsService {
       initialLifeExpectancy,
       currentLifeExpectancy,
       wittyMessage,
-      historyList: Object.values(groupedHistory).slice(0, 30), // 최근 30일
+    };
+  }
+
+  /**
+   * 활동 히스토리 조회 (페이지네이션 지원)
+   */
+  async getActivityHistory(
+    userId: string,
+    limit: number = 30,
+    offset: number = 0
+  ) {
+    const client = this.supabaseService.getClient();
+
+    // food_analysis 테이블에서 조회
+    const { data: foodAnalysis } = await client
+      .from("food_analysis")
+      .select("id, food_name, score, created_at, image_url")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    // activity_logs 조회 (테이블이 없으면 빈 배열)
+    let activityLogs = [];
+    try {
+      const { data } = await client
+        .from("activity_logs")
+        .select("*")
+        .eq("user_id", userId)
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1);
+      activityLogs = data || [];
+    } catch (e) {
+      // 테이블이 없으면 무시
+    }
+
+    // 결합 및 정렬
+    const historyList = [];
+
+    if (foodAnalysis) {
+      foodAnalysis.forEach((record) => {
+        const lifeDays = this.scoreToLifeDays(record.score || 70);
+        historyList.push({
+          id: record.id,
+          type: "food_analysis",
+          name: record.food_name,
+          lifeChangeDays: lifeDays,
+          createdAt: record.created_at,
+          referenceId: record.id,
+          imageUrl: record.image_url,
+        });
+      });
+    }
+
+    if (activityLogs.length > 0) {
+      activityLogs.forEach((log) => {
+        historyList.push({
+          id: log.id,
+          type: log.activity_type,
+          name:
+            log.reference_name || this.getActivityTypeName(log.activity_type),
+          lifeChangeDays: log.life_change_days,
+          createdAt: log.created_at,
+          referenceId: log.reference_id,
+        });
+      });
+    }
+
+    // 시간순 정렬
+    historyList.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
+
+    // 일자별 그룹화
+    const groupedHistory = {};
+    historyList.forEach((item) => {
+      const date = new Date(item.createdAt);
+      const dateKey = date.toISOString().split("T")[0];
+      const timeStr = date.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
+      });
+
+      if (!groupedHistory[dateKey]) {
+        groupedHistory[dateKey] = {
+          date: dateKey,
+          items: [],
+          dailyTotal: 0,
+        };
+      }
+
+      groupedHistory[dateKey].items.push({
+        ...item,
+        time: timeStr,
+      });
+      groupedHistory[dateKey].dailyTotal += item.lifeChangeDays;
+    });
+
+    // 전체 개수 조회 (다음 페이지 존재 여부 확인)
+    const { count: totalCount } = await client
+      .from("food_analysis")
+      .select("*", { count: "exact", head: true })
+      .eq("user_id", userId);
+
+    const hasMore = offset + limit < (totalCount || 0);
+
+    return {
+      historyList: Object.values(groupedHistory),
+      hasMore,
+      totalCount: totalCount || 0,
     };
   }
 

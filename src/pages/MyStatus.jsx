@@ -1,13 +1,19 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { getMyStatus } from "../services/api";
+import { getMyStatus, getActivityHistory } from "../services/api";
 import { getUserProfile, getSelectedDiseases } from "../utils/deviceId";
 import "./MyStatus.scss";
 
 const MyStatus = () => {
   const navigate = useNavigate();
   const [statusData, setStatusData] = useState(null);
+  const [historyList, setHistoryList] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingMore, setLoadingMore] = useState(false);
+  const [hasMore, setHasMore] = useState(true);
+  const [offset, setOffset] = useState(0);
+  const observerRef = useRef(null);
+  const LIMIT = 30;
 
   useEffect(() => {
     loadStatus();
@@ -27,8 +33,16 @@ const MyStatus = () => {
         diseases: diseases,
       };
 
-      const data = await getMyStatus(userProfile);
-      setStatusData(data);
+      // 상태 데이터와 첫 번째 히스토리 페이지 동시 로드
+      const [statusResult, historyResult] = await Promise.all([
+        getMyStatus(userProfile),
+        getActivityHistory(LIMIT, 0),
+      ]);
+
+      setStatusData(statusResult);
+      setHistoryList(historyResult.historyList || []);
+      setHasMore(historyResult.hasMore);
+      setOffset(LIMIT);
     } catch (error) {
       console.error("Failed to load status:", error);
     } finally {
@@ -36,9 +50,62 @@ const MyStatus = () => {
     }
   };
 
+  const loadMoreHistory = useCallback(async () => {
+    if (loadingMore || !hasMore) return;
+
+    try {
+      setLoadingMore(true);
+      const result = await getActivityHistory(LIMIT, offset);
+
+      if (result.historyList && result.historyList.length > 0) {
+        // 기존 날짜와 병합 (같은 날짜는 합침)
+        setHistoryList((prev) => {
+          const merged = [...prev];
+          result.historyList.forEach((newDay) => {
+            const existingIdx = merged.findIndex((d) => d.date === newDay.date);
+            if (existingIdx >= 0) {
+              // 같은 날짜가 있으면 아이템 추가
+              merged[existingIdx] = {
+                ...merged[existingIdx],
+                items: [...merged[existingIdx].items, ...newDay.items],
+                dailyTotal: merged[existingIdx].dailyTotal + newDay.dailyTotal,
+              };
+            } else {
+              merged.push(newDay);
+            }
+          });
+          return merged;
+        });
+        setOffset((prev) => prev + LIMIT);
+      }
+
+      setHasMore(result.hasMore);
+    } catch (error) {
+      console.error("Failed to load more history:", error);
+    } finally {
+      setLoadingMore(false);
+    }
+  }, [offset, loadingMore, hasMore]);
+
+  // Intersection Observer로 무한 스크롤 구현
+  const lastElementRef = useCallback(
+    (node) => {
+      if (loadingMore) return;
+      if (observerRef.current) observerRef.current.disconnect();
+
+      observerRef.current = new IntersectionObserver((entries) => {
+        if (entries[0].isIntersecting && hasMore) {
+          loadMoreHistory();
+        }
+      });
+
+      if (node) observerRef.current.observe(node);
+    },
+    [loadingMore, hasMore, loadMoreHistory]
+  );
+
   const handleHistoryItemClick = (item) => {
     if (item.type === "food_analysis") {
-      // 음식 분석 클릭 시 Result01로 이동
       navigate("/result01", {
         state: {
           foodName: item.name,
@@ -58,16 +125,6 @@ const MyStatus = () => {
       recommendation_view: "💡",
     };
     return icons[type] || "📊";
-  };
-
-  const getActivityLabel = (type) => {
-    const labels = {
-      food_analysis: "음식 분석",
-      detailed_view: "상세분석",
-      medicine_analysis: "약물 상호작용",
-      recommendation_view: "오늘의 추천",
-    };
-    return labels[type] || type;
   };
 
   const formatDate = (dateStr) => {
@@ -94,7 +151,6 @@ const MyStatus = () => {
     initialLifeExpectancy,
     currentLifeExpectancy,
     wittyMessage,
-    historyList,
   } = statusData;
 
   return (
@@ -153,63 +209,77 @@ const MyStatus = () => {
         </div>
       </header>
 
-      {/* 2. History List */}
+      {/* 2. History List with Infinite Scroll */}
       <section className="history-section">
         <h2>활동 히스토리</h2>
 
         <div className="history-list">
           {historyList && historyList.length > 0 ? (
-            historyList.map((dayGroup, idx) => (
-              <div key={idx} className="day-group">
-                <div className="day-header">
-                  <span className="day-date">{formatDate(dayGroup.date)}</span>
-                  <span
-                    className={`day-total ${
-                      dayGroup.dailyTotal >= 0 ? "positive" : "negative"
-                    }`}
-                  >
-                    {dayGroup.dailyTotal > 0 ? "+" : ""}
-                    {dayGroup.dailyTotal.toFixed(0)}일
-                  </span>
-                </div>
-
-                <div className="day-items">
-                  {dayGroup.items.map((item, itemIdx) => (
-                    <div
-                      key={itemIdx}
-                      className={`history-item ${
-                        item.type === "food_analysis" ? "clickable" : ""
+            <>
+              {historyList.map((dayGroup, idx) => (
+                <div
+                  key={dayGroup.date}
+                  className="day-group"
+                  ref={idx === historyList.length - 1 ? lastElementRef : null}
+                >
+                  <div className="day-header">
+                    <span className="day-date">
+                      {formatDate(dayGroup.date)}
+                    </span>
+                    <span
+                      className={`day-total ${
+                        dayGroup.dailyTotal >= 0 ? "positive" : "negative"
                       }`}
-                      onClick={() => handleHistoryItemClick(item)}
                     >
-                      <span className="item-icon">
-                        {getActivityIcon(item.type)}
-                      </span>
-                      <div className="item-info">
-                        <span className="item-time">{item.time}</span>
-                        <span className="item-name">{item.name}</span>
-                        {item.type !== "food_analysis" && (
-                          <span className="item-type">
-                            {getActivityLabel(item.type)}
-                          </span>
+                      {dayGroup.dailyTotal > 0 ? "+" : ""}
+                      {dayGroup.dailyTotal.toFixed(0)}일
+                    </span>
+                  </div>
+
+                  <div className="day-items">
+                    {dayGroup.items.map((item, itemIdx) => (
+                      <div
+                        key={`${item.id}-${itemIdx}`}
+                        className={`history-item ${
+                          item.type === "food_analysis" ? "clickable" : ""
+                        }`}
+                        onClick={() => handleHistoryItemClick(item)}
+                      >
+                        <span className="item-icon">
+                          {getActivityIcon(item.type)}
+                        </span>
+                        <div className="item-info">
+                          <span className="item-time">{item.time}</span>
+                          <span className="item-name">{item.name}</span>
+                        </div>
+                        <span
+                          className={`item-change ${
+                            item.lifeChangeDays >= 0 ? "positive" : "negative"
+                          }`}
+                        >
+                          {item.lifeChangeDays > 0 ? "+" : ""}
+                          {item.lifeChangeDays}일
+                        </span>
+                        {item.type === "food_analysis" && (
+                          <span className="item-arrow">›</span>
                         )}
                       </div>
-                      <span
-                        className={`item-change ${
-                          item.lifeChangeDays >= 0 ? "positive" : "negative"
-                        }`}
-                      >
-                        {item.lifeChangeDays > 0 ? "+" : ""}
-                        {item.lifeChangeDays}일
-                      </span>
-                      {item.type === "food_analysis" && (
-                        <span className="item-arrow">›</span>
-                      )}
-                    </div>
-                  ))}
+                    ))}
+                  </div>
                 </div>
-              </div>
-            ))
+              ))}
+
+              {loadingMore && (
+                <div className="loading-more">
+                  <div className="spinner-small"></div>
+                  <span>더 불러오는 중...</span>
+                </div>
+              )}
+
+              {!hasMore && historyList.length > 5 && (
+                <div className="no-more">모든 기록을 불러왔습니다</div>
+              )}
+            </>
           ) : (
             <div className="empty-history">
               <p>아직 기록이 없습니다</p>

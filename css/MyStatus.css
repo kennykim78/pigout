@@ -248,4 +248,32 @@
   margin-top: 8px;
   font-size: 13px;
   color: #999;
+}
+.my-status .history-section .loading-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: #888;
+  font-size: 14px;
+}
+.my-status .history-section .loading-more .spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+.my-status .history-section .no-more {
+  text-align: center;
+  padding: 20px;
+  color: #aaa;
+  font-size: 13px;
+}
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
 }/*# sourceMappingURL=MyStatus.css.map */

@@ -543,6 +543,17 @@ export const logActivity = async (
   return response.data;
 };
 
+// [NEW] 활동 히스토리 조회 (페이지네이션)
+export const getActivityHistory = async (
+  limit: number = 30,
+  offset: number = 0
+) => {
+  const response = await apiClient.get("/stats/activity-history", {
+    params: { limit, offset },
+  });
+  return response.data;
+};
+
 // [NEW] 내 추천 (Daily Recommendation) 조회
 export const getDailyRecommendation = async () => {
   // 백엔드에서 X-Device-Id 헤더로 사용자 식별 (다른 API와 일관성 유지)
