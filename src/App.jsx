@@ -1,19 +1,20 @@
-import { BrowserRouter as Router, Routes, Route } from 'react-router-dom';
-import IntroSplash from './pages/IntroSplash';
-import ProfileSetup from './pages/ProfileSetup';
-import SelectOption from './pages/SelectOption';
-import Main from './pages/Main';
-import Medicine from './pages/Medicine';
-import MedicineAdd from './pages/MedicineAdd';
-import MyStatus from './pages/MyStatus';
-import MyRecommendation from './pages/MyRecommendation';
-import MyPage from './pages/MyPage';
-import Result01 from './pages/Result01';
-import Result2 from './pages/Result2';
-import Settings from './pages/Settings';
-import Contact from './pages/Contact';
-import MainLayout from './layout/MainLayout';
-import './App.scss';
+import { BrowserRouter as Router, Routes, Route } from "react-router-dom";
+import IntroSplash from "./pages/IntroSplash";
+import ProfileSetup from "./pages/ProfileSetup";
+import SelectOption from "./pages/SelectOption";
+import Main from "./pages/Main";
+import Medicine from "./pages/Medicine";
+import MedicineAdd from "./pages/MedicineAdd";
+import MyStatus from "./pages/MyStatus";
+import MyRecommendation from "./pages/MyRecommendation";
+import MyPage from "./pages/MyPage";
+import History from "./pages/History";
+import Result01 from "./pages/Result01";
+import Result2 from "./pages/Result2";
+import Settings from "./pages/Settings";
+import Contact from "./pages/Contact";
+import MainLayout from "./layout/MainLayout";
+import "./App.scss";
 
 function App() {
   return (
@@ -40,10 +41,11 @@ function App() {
         {/* 결과 페이지 (네비게이션 바 없음) */}
         <Route path="/result01" element={<Result01 />} />
         <Route path="/result2" element={<Result2 />} />
-        
+
         {/* 설정 페이지 */}
         <Route path="/settings" element={<Settings />} />
         <Route path="/contact" element={<Contact />} />
+        <Route path="/history" element={<History />} />
       </Routes>
     </Router>
   );

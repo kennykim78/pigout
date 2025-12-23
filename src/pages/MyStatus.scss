@@ -1,4 +1,4 @@
-@import '../App.scss';
+@import "../App.scss";
 
 .my-status {
   padding: 80px 20px 100px;
@@ -6,7 +6,8 @@
   background-color: #fff;
   color: #000;
 
-  &.loading, &.error {
+  &.loading,
+  &.error {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -18,7 +19,7 @@
   // 1. Header
   .status-header {
     margin-bottom: 40px;
-    
+
     h1 {
       font-size: 28px;
       font-weight: 700;
@@ -30,13 +31,13 @@
       color: #fff;
       border-radius: 20px;
       padding: 30px 24px;
-      box-shadow: 0 10px 30px rgba(0,0,0,0.15);
-      
+      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+
       .lifespan-main {
         text-align: center;
         margin-bottom: 24px;
         padding-bottom: 24px;
-        border-bottom: 1px solid rgba(255,255,255,0.15);
+        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
 
         .label {
           display: block;
@@ -49,30 +50,45 @@
           font-size: 48px;
           font-weight: 800;
           line-height: 1;
-          margin-bottom: 8px;
-          
-          &.positive { color: #4ade80; } // Green
-          &.negative { color: #f87171; } // Red
-          &.neutral { color: #fff; }
-        }
 
-        .sub-text {
-          font-size: 13px;
-          opacity: 0.5;
+          &.positive {
+            color: #4ade80;
+          }
+          &.negative {
+            color: #f87171;
+          }
+          &.neutral {
+            color: #fff;
+          }
         }
       }
 
-      .lifespan-today {
+      .lifespan-sub {
         display: flex;
         justify-content: space-between;
         align-items: center;
-        font-size: 15px;
-        
-        .label { opacity: 0.8; }
-        .today-value {
-          font-weight: 700;
-          &.positive { color: #4ade80; }
-          &.negative { color: #f87171; }
+
+        .sub-item {
+          display: flex;
+          flex-direction: column;
+          gap: 4px;
+
+          .sub-label {
+            font-size: 11px;
+            opacity: 0.6;
+          }
+
+          .sub-value {
+            font-size: 14px;
+            font-weight: 600;
+
+            &.positive {
+              color: #4ade80;
+            }
+            &.negative {
+              color: #f87171;
+            }
+          }
         }
       }
     }
@@ -80,7 +96,7 @@
     .history-actions {
       margin-top: 20px;
       text-align: center;
-      
+
       .history-btn {
         background: #f5f5f5;
         border: none;
@@ -89,12 +105,20 @@
         font-size: 14px;
         font-weight: 600;
         color: #333;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #eee;
+        }
       }
     }
   }
 
   // 2. Timeline
   .timeline-section {
+    margin-bottom: 40px;
+
     h2 {
       font-size: 20px;
       font-weight: 700;
@@ -104,10 +128,9 @@
     .timeline-container {
       position: relative;
       padding-left: 12px;
-      
-      // Vertical line
+
       &::before {
-        content: '';
+        content: "";
         position: absolute;
         top: 0;
         bottom: 0;
@@ -118,9 +141,16 @@
       }
     }
 
+    .empty-today {
+      text-align: center;
+      padding: 40px 20px;
+      color: #999;
+      font-size: 14px;
+    }
+
     .timeline-group {
       margin-bottom: 30px;
-      
+
       .period-label {
         font-size: 12px;
         font-weight: 700;
@@ -129,12 +159,11 @@
         padding-left: 16px;
         text-transform: uppercase;
         position: relative;
-        
-        // Dot on timeline
+
         &::before {
-          content: '';
+          content: "";
           position: absolute;
-          left: -16px; // Adjust based on padding-left of container
+          left: -16px;
           top: 50%;
           transform: translateY(-50%);
           width: 8px;
@@ -187,15 +216,187 @@
           .life-change {
             font-size: 14px;
             font-weight: 700;
-            
-            &.pos { color: #16a34a; }
-            &.neg { color: #dc2626; }
+
+            &.pos {
+              color: #16a34a;
+            }
+            &.neg {
+              color: #dc2626;
+            }
           }
         }
 
         .arrow {
           color: #ccc;
           font-size: 18px;
+        }
+      }
+    }
+  }
+
+  // 3. Monthly History Section
+  .monthly-history-section {
+    h2 {
+      font-size: 20px;
+      font-weight: 700;
+      margin-bottom: 20px;
+    }
+
+    .month-selector {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+
+      &::-webkit-scrollbar {
+        height: 4px;
+      }
+
+      &::-webkit-scrollbar-thumb {
+        background: #ddd;
+        border-radius: 2px;
+      }
+
+      .month-btn {
+        flex-shrink: 0;
+        background: #f5f5f5;
+        border: none;
+        padding: 10px 16px;
+        border-radius: 20px;
+        font-size: 13px;
+        font-weight: 600;
+        color: #666;
+        cursor: pointer;
+        transition: all 0.2s;
+
+        &.active {
+          background: #000;
+          color: #fff;
+        }
+
+        &:hover:not(.active) {
+          background: #eee;
+        }
+      }
+    }
+
+    .month-content {
+      .month-summary {
+        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        border-radius: 16px;
+        padding: 20px;
+        color: #fff;
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        margin-bottom: 20px;
+
+        .summary-label {
+          font-size: 13px;
+          opacity: 0.8;
+        }
+
+        .summary-value {
+          font-size: 24px;
+          font-weight: 800;
+
+          &.positive {
+            color: #4ade80;
+          }
+          &.negative {
+            color: #f87171;
+          }
+        }
+
+        .summary-count {
+          font-size: 12px;
+          opacity: 0.7;
+          margin-left: auto;
+        }
+      }
+
+      .days-list {
+        display: flex;
+        flex-direction: column;
+        gap: 16px;
+      }
+
+      .day-group {
+        background: #fff;
+        border: 1px solid #eee;
+        border-radius: 16px;
+        overflow: hidden;
+
+        .day-header {
+          display: flex;
+          justify-content: space-between;
+          align-items: center;
+          padding: 14px 16px;
+          background: #fafafa;
+          border-bottom: 1px solid #eee;
+
+          .day-label {
+            font-size: 14px;
+            font-weight: 700;
+            color: #333;
+          }
+
+          .day-change {
+            font-size: 13px;
+            font-weight: 700;
+
+            &.positive {
+              color: #16a34a;
+            }
+            &.negative {
+              color: #dc2626;
+            }
+          }
+        }
+
+        .day-records {
+          .day-record-item {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+            padding: 12px 16px;
+            border-bottom: 1px solid #f0f0f0;
+            cursor: pointer;
+            transition: background 0.2s;
+
+            &:last-child {
+              border-bottom: none;
+            }
+
+            &:active {
+              background: #f9f9f9;
+            }
+
+            .record-time {
+              font-size: 12px;
+              color: #999;
+              width: 50px;
+            }
+
+            .record-name {
+              flex: 1;
+              font-size: 14px;
+              font-weight: 500;
+            }
+
+            .record-change {
+              font-size: 13px;
+              font-weight: 600;
+
+              &.pos {
+                color: #16a34a;
+              }
+              &.neg {
+                color: #dc2626;
+              }
+            }
+          }
         }
       }
     }

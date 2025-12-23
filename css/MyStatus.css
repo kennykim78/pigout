@@ -1,0 +1,370 @@
+.app {
+  min-height: 100vh;
+}
+.app__nav {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  background-color: rgba(0, 0, 0, 0.8);
+  padding: 10px;
+  display: flex;
+  justify-content: center;
+  gap: 15px;
+  z-index: 1000;
+  -webkit-backdrop-filter: blur(10px);
+          backdrop-filter: blur(10px);
+}
+.app__nav-link {
+  color: rgb(255, 255, 255);
+  text-decoration: none;
+  padding: 8px 16px;
+  border-radius: 20px;
+  font-family: "Pretendard", -apple-system, BlinkMacSystemFont, system-ui, Roboto, sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.2s ease;
+}
+.app__nav-link:hover {
+  background-color: #fff;
+  color: rgb(0, 0, 0);
+}
+.app__nav-link.active {
+  background-color: #fff;
+  color: rgb(0, 0, 0);
+}
+
+.my-status {
+  padding: 80px 20px 100px;
+  min-height: 100vh;
+  background-color: #fff;
+  color: #000;
+}
+.my-status.loading, .my-status.error {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100vh;
+  font-size: 16px;
+  color: #888;
+}
+.my-status .status-header {
+  margin-bottom: 40px;
+}
+.my-status .status-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 24px;
+}
+.my-status .status-header .lifespan-card {
+  background: #000;
+  color: #fff;
+  border-radius: 20px;
+  padding: 30px 24px;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+}
+.my-status .status-header .lifespan-card .lifespan-main {
+  text-align: center;
+  margin-bottom: 24px;
+  padding-bottom: 24px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+}
+.my-status .status-header .lifespan-card .lifespan-main .label {
+  display: block;
+  font-size: 14px;
+  opacity: 0.7;
+  margin-bottom: 8px;
+}
+.my-status .status-header .lifespan-card .lifespan-main .value {
+  font-size: 48px;
+  font-weight: 800;
+  line-height: 1;
+}
+.my-status .status-header .lifespan-card .lifespan-main .value.positive {
+  color: #4ade80;
+}
+.my-status .status-header .lifespan-card .lifespan-main .value.negative {
+  color: #f87171;
+}
+.my-status .status-header .lifespan-card .lifespan-main .value.neutral {
+  color: #fff;
+}
+.my-status .status-header .lifespan-card .lifespan-sub {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.my-status .status-header .lifespan-card .lifespan-sub .sub-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+.my-status .status-header .lifespan-card .lifespan-sub .sub-item .sub-label {
+  font-size: 11px;
+  opacity: 0.6;
+}
+.my-status .status-header .lifespan-card .lifespan-sub .sub-item .sub-value {
+  font-size: 14px;
+  font-weight: 600;
+}
+.my-status .status-header .lifespan-card .lifespan-sub .sub-item .sub-value.positive {
+  color: #4ade80;
+}
+.my-status .status-header .lifespan-card .lifespan-sub .sub-item .sub-value.negative {
+  color: #f87171;
+}
+.my-status .status-header .history-actions {
+  margin-top: 20px;
+  text-align: center;
+}
+.my-status .status-header .history-actions .history-btn {
+  background: #f5f5f5;
+  border: none;
+  padding: 12px 20px;
+  border-radius: 12px;
+  font-size: 14px;
+  font-weight: 600;
+  color: #333;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.my-status .status-header .history-actions .history-btn:hover {
+  background: #eee;
+}
+.my-status .timeline-section {
+  margin-bottom: 40px;
+}
+.my-status .timeline-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.my-status .timeline-section .timeline-container {
+  position: relative;
+  padding-left: 12px;
+}
+.my-status .timeline-section .timeline-container::before {
+  content: "";
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 2px;
+  background: #f0f0f0;
+  border-radius: 2px;
+}
+.my-status .timeline-section .empty-today {
+  text-align: center;
+  padding: 40px 20px;
+  color: #999;
+  font-size: 14px;
+}
+.my-status .timeline-section .timeline-group {
+  margin-bottom: 30px;
+}
+.my-status .timeline-section .timeline-group .period-label {
+  font-size: 12px;
+  font-weight: 700;
+  color: #888;
+  margin-bottom: 12px;
+  padding-left: 16px;
+  text-transform: uppercase;
+  position: relative;
+}
+.my-status .timeline-section .timeline-group .period-label::before {
+  content: "";
+  position: absolute;
+  left: -16px;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 8px;
+  height: 8px;
+  background: #000;
+  border-radius: 50%;
+  border: 2px solid #fff;
+}
+.my-status .timeline-section .timeline-group .records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding-left: 16px;
+}
+.my-status .timeline-section .timeline-group .record-item {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 12px;
+  padding: 16px;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.my-status .timeline-section .timeline-group .record-item:active {
+  background: #f9f9f9;
+}
+.my-status .timeline-section .timeline-group .record-item .time-badge {
+  font-size: 12px;
+  color: #888;
+  font-variant-numeric: tabular-nums;
+}
+.my-status .timeline-section .timeline-group .record-item .record-info {
+  flex: 1;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.my-status .timeline-section .timeline-group .record-item .record-info .food-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+.my-status .timeline-section .timeline-group .record-item .record-info .life-change {
+  font-size: 14px;
+  font-weight: 700;
+}
+.my-status .timeline-section .timeline-group .record-item .record-info .life-change.pos {
+  color: #16a34a;
+}
+.my-status .timeline-section .timeline-group .record-item .record-info .life-change.neg {
+  color: #dc2626;
+}
+.my-status .timeline-section .timeline-group .record-item .arrow {
+  color: #ccc;
+  font-size: 18px;
+}
+.my-status .monthly-history-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 20px;
+}
+.my-status .monthly-history-section .month-selector {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  overflow-x: auto;
+  padding-bottom: 8px;
+}
+.my-status .monthly-history-section .month-selector::-webkit-scrollbar {
+  height: 4px;
+}
+.my-status .monthly-history-section .month-selector::-webkit-scrollbar-thumb {
+  background: #ddd;
+  border-radius: 2px;
+}
+.my-status .monthly-history-section .month-selector .month-btn {
+  flex-shrink: 0;
+  background: #f5f5f5;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 20px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.my-status .monthly-history-section .month-selector .month-btn.active {
+  background: #000;
+  color: #fff;
+}
+.my-status .monthly-history-section .month-selector .month-btn:hover:not(.active) {
+  background: #eee;
+}
+.my-status .monthly-history-section .month-content .month-summary {
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+  border-radius: 16px;
+  padding: 20px;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.my-status .monthly-history-section .month-content .month-summary .summary-label {
+  font-size: 13px;
+  opacity: 0.8;
+}
+.my-status .monthly-history-section .month-content .month-summary .summary-value {
+  font-size: 24px;
+  font-weight: 800;
+}
+.my-status .monthly-history-section .month-content .month-summary .summary-value.positive {
+  color: #4ade80;
+}
+.my-status .monthly-history-section .month-content .month-summary .summary-value.negative {
+  color: #f87171;
+}
+.my-status .monthly-history-section .month-content .month-summary .summary-count {
+  font-size: 12px;
+  opacity: 0.7;
+  margin-left: auto;
+}
+.my-status .monthly-history-section .month-content .days-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+.my-status .monthly-history-section .month-content .day-group {
+  background: #fff;
+  border: 1px solid #eee;
+  border-radius: 16px;
+  overflow: hidden;
+}
+.my-status .monthly-history-section .month-content .day-group .day-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 14px 16px;
+  background: #fafafa;
+  border-bottom: 1px solid #eee;
+}
+.my-status .monthly-history-section .month-content .day-group .day-header .day-label {
+  font-size: 14px;
+  font-weight: 700;
+  color: #333;
+}
+.my-status .monthly-history-section .month-content .day-group .day-header .day-change {
+  font-size: 13px;
+  font-weight: 700;
+}
+.my-status .monthly-history-section .month-content .day-group .day-header .day-change.positive {
+  color: #16a34a;
+}
+.my-status .monthly-history-section .month-content .day-group .day-header .day-change.negative {
+  color: #dc2626;
+}
+.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  border-bottom: 1px solid #f0f0f0;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item:last-child {
+  border-bottom: none;
+}
+.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item:active {
+  background: #f9f9f9;
+}
+.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-time {
+  font-size: 12px;
+  color: #999;
+  width: 50px;
+}
+.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-name {
+  flex: 1;
+  font-size: 14px;
+  font-weight: 500;
+}
+.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-change {
+  font-size: 13px;
+  font-weight: 600;
+}
+.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-change.pos {
+  color: #16a34a;
+}
+.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-change.neg {
+  color: #dc2626;
+}/*# sourceMappingURL=MyStatus.css.map */
