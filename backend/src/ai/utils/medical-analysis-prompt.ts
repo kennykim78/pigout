@@ -1,6 +1,6 @@
 /**
  * 의약품-음식 상호작용 분석을 위한 전문 시스템 프롬프트
- * 
+ *
  * 이 프롬프트는 공인 의약품 데이터 기반 분석을 수행하는 안전성 전문가 역할을 정의합니다.
  */
 
@@ -78,7 +78,6 @@ export interface MedicalAnalysisInput {
     cachedGeneralInfo?: any;
     preComputedInteractions?: any[];
   };
-
 }
 
 export interface MedicalAnalysisOutput {
@@ -86,7 +85,7 @@ export interface MedicalAnalysisOutput {
   medicine_name: string;
   disease_list: string[];
   interaction_assessment: {
-    level: 'safe' | 'caution' | 'danger' | 'insufficient_data';
+    level: "safe" | "caution" | "danger" | "insufficient_data";
     evidence_summary: string;
     detailed_analysis: string;
     interaction_mechanism: string;
@@ -94,7 +93,7 @@ export interface MedicalAnalysisOutput {
   };
   drug_food_interactions: Array<{
     medicine_name: string;
-    risk_level: 'safe' | 'caution' | 'danger' | 'insufficient_data';
+    risk_level: "safe" | "caution" | "danger" | "insufficient_data";
     detected_patterns: string[];
     warnings: string[];
     recommendations: string[];
@@ -113,7 +112,9 @@ export interface MedicalAnalysisOutput {
   final_score: number;
 }
 
-export function buildMedicalAnalysisPrompt(input: MedicalAnalysisInput): string {
+export function buildMedicalAnalysisPrompt(
+  input: MedicalAnalysisInput
+): string {
   const {
     foodName,
     foodNutrition,
@@ -131,45 +132,77 @@ ${MEDICAL_ANALYSIS_SYSTEM_PROMPT}
 
 1) 음식 정보:
    - 음식명: ${foodName}
-   - 영양 정보: ${foodNutrition ? JSON.stringify(foodNutrition, null, 2) : '데이터 없음'}
+   - 영양 정보: ${
+     foodNutrition ? JSON.stringify(foodNutrition, null, 2) : "데이터 없음"
+   }
 
 2) 복용 중인 약물:
-${medicines.length > 0 
-  ? medicines.map(m => `   - ${m.name}${m.dosage ? ` (용량: ${m.dosage})` : ''}${m.frequency ? ` (빈도: ${m.frequency})` : ''}`).join('\n')
-  : '   - 등록된 약물 없음'
+${
+  medicines.length > 0
+    ? medicines
+        .map(
+          (m) =>
+            `   - ${m.name}${m.dosage ? ` (용량: ${m.dosage})` : ""}${
+              m.frequency ? ` (빈도: ${m.frequency})` : ""
+            }`
+        )
+        .join("\n")
+    : "   - 등록된 약물 없음"
 }
 
 3) 사용자 질병/건강 상태:
-${diseases.length > 0 
-  ? diseases.map(d => `   - ${d}`).join('\n')
-  : '   - 등록된 질병 없음'
+${
+  diseases.length > 0
+    ? diseases.map((d) => `   - ${d}`).join("\n")
+    : "   - 등록된 질병 없음"
 }
 
 4) 사용자 프로필:
-${userProfile 
-  ? `   - 나이: ${userProfile.age || '미제공'}세, 성별: ${userProfile.gender || '미제공'}, 체중: ${userProfile.weight || '미제공'}kg`
-  : '   - 프로필 정보 없음'
+${
+  userProfile
+    ? `   - 나이: ${userProfile.age || "미제공"}세, 성별: ${
+        userProfile.gender || "미제공"
+      }, 체중: ${userProfile.weight || "미제공"}kg`
+    : "   - 프로필 정보 없음"
 }
 
 5) RAG 검색 결과:
-${ragData 
-  ? `
+${
+  ragData
+    ? `
    약물 상호작용 데이터 (Rule-based Analysis Results):
-   ${ragData.drugInteractions ? JSON.stringify(ragData.drugInteractions, null, 2) : '검색 결과 없음'}
+   ${
+     ragData.drugInteractions
+       ? JSON.stringify(ragData.drugInteractions, null, 2)
+       : "검색 결과 없음"
+   }
    
-   (참고: 위 약물 상호작용 데이터는 신뢰할 수 있는 API를 통해 검증된 결과입니다. 이를 바탕으로 사용자에게 줄 조언을 생성하세요.)
+   (참고: 위 약물 상호작용 데이터는 신뢰할 수 있는 식약처/DUR 데이터를 기반으로 사전 검증된 결과입니다.)
+   (지침: 'riskLevel'이 'safe'인 경우, 억지로 위험을 찾아내려 하지 말고, '상호작용 위험 없음'으로 판단하세요. 단, 'caution'/'danger'인 항목은 제공된 경고/주의사항을 바탕으로 상세히 조언하세요.)
 
    영양 데이터베이스:
-   ${ragData.nutritionFacts ? JSON.stringify(ragData.nutritionFacts, null, 2) : '검색 결과 없음'}
+   ${
+     ragData.nutritionFacts
+       ? JSON.stringify(ragData.nutritionFacts, null, 2)
+       : "검색 결과 없음"
+   }
    
    질병별 가이드라인:
-   ${ragData.diseaseGuidelines ? JSON.stringify(ragData.diseaseGuidelines, null, 2) : '검색 결과 없음'}
+   ${
+     ragData.diseaseGuidelines
+       ? JSON.stringify(ragData.diseaseGuidelines, null, 2)
+       : "검색 결과 없음"
+   }
 
    ✅ [일반 음식 분석 정보 (Cached)]:
-   ${ragData.cachedGeneralInfo ? JSON.stringify(ragData.cachedGeneralInfo, null, 2) : '정보 없음 (새로 생성 필요)'}
+   ${
+     ragData.cachedGeneralInfo
+       ? JSON.stringify(ragData.cachedGeneralInfo, null, 2)
+       : "정보 없음 (새로 생성 필요)"
+   }
    (이 정보는 이 음식의 일반적인 효능과 부작용입니다. 사용자 상황에 맞춰 재구성하여 답변에 활용하세요.)
   `
-  : '   - RAG 데이터 없음'
+    : "   - RAG 데이터 없음"
 }
 
 ------------------------------------
@@ -179,7 +212,7 @@ ${ragData
 
 {
   "food_name": "${foodName}",
-  "medicine_name": "${medicines[0]?.name || 'N/A'}",
+  "medicine_name": "${medicines[0]?.name || "N/A"}",
   "disease_list": ${JSON.stringify(diseases)},
   "interaction_assessment": {
     "level": "safe | caution | danger | insufficient_data",

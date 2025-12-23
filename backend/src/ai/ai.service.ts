@@ -1,16 +1,16 @@
-import { Injectable, HttpException, HttpStatus } from '@nestjs/common';
-import { ConfigService } from '@nestjs/config';
-import { SupabaseService } from '../supabase/supabase.service';
-import { GeminiClient } from './utils/gemini.client';
-import { ScoreCalculator } from './utils/score-calculator';
-import { ExternalApiClient } from './utils/external-api.client';
-import { 
-  buildMedicalAnalysisPrompt, 
+import { Injectable, HttpException, HttpStatus } from "@nestjs/common";
+import { ConfigService } from "@nestjs/config";
+import { SupabaseService } from "../supabase/supabase.service";
+import { GeminiClient } from "./utils/gemini.client";
+import { ScoreCalculator } from "./utils/score-calculator";
+import { ExternalApiClient } from "./utils/external-api.client";
+import {
+  buildMedicalAnalysisPrompt,
   MedicalAnalysisInput,
-  MedicalAnalysisOutput 
-} from './utils/medical-analysis-prompt';
-import { AnalyzeImageDto } from './dtos/analyze-image.dto';
-import { AnalyzeTextDto } from './dtos/analyze-text.dto';
+  MedicalAnalysisOutput,
+} from "./utils/medical-analysis-prompt";
+import { AnalyzeImageDto } from "./dtos/analyze-image.dto";
+import { AnalyzeTextDto } from "./dtos/analyze-text.dto";
 
 @Injectable()
 export class AiService {
@@ -20,11 +20,11 @@ export class AiService {
 
   constructor(
     private configService: ConfigService,
-    private supabaseService: SupabaseService,
+    private supabaseService: SupabaseService
   ) {
-    const geminiApiKey = this.configService.get<string>('GEMINI_API_KEY');
+    const geminiApiKey = this.configService.get<string>("GEMINI_API_KEY");
     if (!geminiApiKey) {
-      throw new Error('GEMINI_API_KEY is not configured');
+      throw new Error("GEMINI_API_KEY is not configured");
     }
     this.geminiClient = new GeminiClient(geminiApiKey);
     this.scoreCalculator = new ScoreCalculator();
@@ -43,14 +43,15 @@ export class AiService {
 
       // 2. Gemini Vision API로 이미지 유효성 검증 및 분류
       const visionResult = await this.geminiClient.analyzeImageForFood(
-        imageBase64,
+        imageBase64
       );
 
       // 3. 유효하지 않은 이미지 거부
       if (!visionResult.isValid) {
         throw new HttpException(
-          visionResult.rejectReason || '촬영하신 이미지가 음식이나, 약품, 건강보조제가 아닙니다.',
-          HttpStatus.BAD_REQUEST,
+          visionResult.rejectReason ||
+            "촬영하신 이미지가 음식이나, 약품, 건강보조제가 아닙니다.",
+          HttpStatus.BAD_REQUEST
         );
       }
 
@@ -61,28 +62,30 @@ export class AiService {
       // 4. [NEW] 중복 분석 방지: 동일 조건(User + Food + Diseases)의 최근 기록 확인
       // "DB의 저장된 내용을 그대로 보여주고 있는가?" 요구사항 충족
       const supabase = this.supabaseService.getClient();
-      
+
       // 4-1. [Self-Dedup] 본인의 최근 동일 기록 확인 (View Mode)
       // "내 기록을 클릭하여 들어간 것과 동일하게" -> 중복 저장 없이 기존 기록 반환
       const { data: myRecentRecord } = await supabase
-        .from('food_records')
-        .select('*')
-        .eq('user_id', dto.userId)
-        .eq('food_name', itemName)
-        .order('created_at', { ascending: false })
+        .from("food_records")
+        .select("*")
+        .eq("user_id", dto.userId)
+        .eq("food_name", itemName)
+        .order("created_at", { ascending: false })
         .limit(1)
         .single();
 
       if (myRecentRecord) {
         const recordDiseases = myRecentRecord.diseases || [];
         const currentDiseases = dto.diseases || [];
-        const isSameDiseases = 
-          recordDiseases.length === currentDiseases.length && 
-          recordDiseases.every(d => currentDiseases.includes(d));
+        const isSameDiseases =
+          recordDiseases.length === currentDiseases.length &&
+          recordDiseases.every((d) => currentDiseases.includes(d));
 
         if (isSameDiseases) {
-          console.log(`[Result01 Self-Cache] Hit! ${itemName} 본인 기존 기록 반환 (ID: ${myRecentRecord.id})`);
-          const summaryJson = JSON.parse(myRecentRecord.summary_json || '{}');
+          console.log(
+            `[Result01 Self-Cache] Hit! ${itemName} 본인 기존 기록 반환 (ID: ${myRecentRecord.id})`
+          );
+          const summaryJson = JSON.parse(myRecentRecord.summary_json || "{}");
           return {
             foodName: itemName,
             category: category,
@@ -92,7 +95,7 @@ export class AiService {
             cons: summaryJson.cons,
             summary: summaryJson.summary,
             recordId: myRecentRecord.id,
-            fromCache: true
+            fromCache: true,
           };
         }
       }
@@ -101,11 +104,11 @@ export class AiService {
       // "상위부분이 다른 사용자가 진입하더라도... 동일하게 재 분석 ai를 호출하지 않고"
       // -> AI 호출 없이 기존 결과 재사용하되, 내 히스토리에는 저장해야 함.
       const { data: globalRecord } = await supabase
-        .from('food_records')
-        .select('*')
-        .eq('food_name', itemName)
-        .neq('user_id', dto.userId) // 내 기록 제외 (위에서 이미 체크했으므로)
-        .order('created_at', { ascending: false })
+        .from("food_records")
+        .select("*")
+        .eq("food_name", itemName)
+        .neq("user_id", dto.userId) // 내 기록 제외 (위에서 이미 체크했으므로)
+        .order("created_at", { ascending: false })
         .limit(1)
         .single();
 
@@ -115,19 +118,21 @@ export class AiService {
       if (globalRecord) {
         const recordDiseases = globalRecord.diseases || [];
         const currentDiseases = dto.diseases || [];
-        const isSameDiseases = 
-          recordDiseases.length === currentDiseases.length && 
-          recordDiseases.every(d => currentDiseases.includes(d));
+        const isSameDiseases =
+          recordDiseases.length === currentDiseases.length &&
+          recordDiseases.every((d) => currentDiseases.includes(d));
 
         if (isSameDiseases) {
-          console.log(`[Result01 Global-Cache] Hit! ${itemName} 타인 기록 재사용 (Source ID: ${globalRecord.id})`);
-          const summaryJson = JSON.parse(globalRecord.summary_json || '{}');
-          
+          console.log(
+            `[Result01 Global-Cache] Hit! ${itemName} 타인 기록 재사용 (Source ID: ${globalRecord.id})`
+          );
+          const summaryJson = JSON.parse(globalRecord.summary_json || "{}");
+
           reusedAnalysis = {
             pros: summaryJson.pros,
             cons: summaryJson.cons,
             summary: summaryJson.summary,
-            category // 현재 분석된 카테고리 유지
+            category, // 현재 분석된 카테고리 유지
           };
           reusedScore = globalRecord.score;
         }
@@ -143,11 +148,11 @@ export class AiService {
 
       if (!analysis) {
         const { data: cachedData } = await supabase
-          .from('food_cache')
-          .select('*')
-          .eq('food_name', itemName)
+          .from("food_cache")
+          .select("*")
+          .eq("food_name", itemName)
           .single();
-          
+
         if (cachedData) {
           console.log(`[Result01 Cache] Hit! ${itemName} 일반 정보 활용`);
           nutritionData = cachedData.nutrition_json;
@@ -158,7 +163,7 @@ export class AiService {
         score = this.scoreCalculator.calculateScore(
           itemName,
           dto.diseases,
-          nutritionData,
+          nutritionData
         );
 
         // 7. Gemini 분석 (재사용 없으면)
@@ -166,7 +171,7 @@ export class AiService {
           itemName,
           dto.diseases,
           nutritionData,
-          null, 
+          null,
           cachedGeneralInfo
         );
       } else {
@@ -178,7 +183,7 @@ export class AiService {
       // 단, Self-Cache Hit인 경우는 위에서 리턴했으므로 여기까지 오지 않음.
       // Global-Cache Hit인 경우는 여기까지 와서 내 기록으로 Insert됨.
       const { data: record, error } = await supabase
-        .from('food_records')
+        .from("food_records")
         .insert({
           user_id: dto.userId,
           food_name: itemName,
@@ -196,10 +201,10 @@ export class AiService {
         .single();
 
       if (error) {
-        console.error('Supabase insert error:', error);
+        console.error("Supabase insert error:", error);
         throw new HttpException(
-          'DB 저장 실패',
-          HttpStatus.INTERNAL_SERVER_ERROR,
+          "DB 저장 실패",
+          HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
 
@@ -212,15 +217,13 @@ export class AiService {
         cons: analysis.cons,
         summary: analysis.summary,
         recordId: record.id,
-        fromCache: !!reusedAnalysis
+        fromCache: !!reusedAnalysis,
       };
-
-
     } catch (error) {
-      console.error('Image analysis error:', error);
+      console.error("Image analysis error:", error);
       throw new HttpException(
-        error.message || '이미지 분석 중 오류가 발생했습니다',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || "이미지 분석 중 오류가 발생했습니다",
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -232,13 +235,13 @@ export class AiService {
     try {
       // 1. Gemini로 음식명 추출
       const foodName = await this.geminiClient.extractFoodNameFromText(
-        dto.textInput,
+        dto.textInput
       );
 
       if (!foodName) {
         throw new HttpException(
-          '텍스트에서 음식명을 추출할 수 없습니다',
-          HttpStatus.BAD_REQUEST,
+          "텍스트에서 음식명을 추출할 수 없습니다",
+          HttpStatus.BAD_REQUEST
         );
       }
 
@@ -246,7 +249,7 @@ export class AiService {
       const medicalAnalysis = await this.performMedicalAnalysis(
         foodName,
         dto.userId,
-        dto.diseases,
+        dto.diseases
       );
 
       // 3. 점수는 의학적 분석 결과에서 가져오기
@@ -258,7 +261,7 @@ export class AiService {
       // 5. Supabase DB에 저장
       const supabase = this.supabaseService.getClient();
       const { data: record, error } = await supabase
-        .from('food_records')
+        .from("food_records")
         .insert({
           user_id: dto.userId,
           food_name: foodName,
@@ -273,10 +276,10 @@ export class AiService {
         .single();
 
       if (error) {
-        console.error('Supabase insert error:', error);
+        console.error("Supabase insert error:", error);
         throw new HttpException(
-          'DB 저장 실패',
-          HttpStatus.INTERNAL_SERVER_ERROR,
+          "DB 저장 실패",
+          HttpStatus.INTERNAL_SERVER_ERROR
         );
       }
 
@@ -290,10 +293,10 @@ export class AiService {
         recordId: record.id,
       };
     } catch (error) {
-      console.error('Text analysis error:', error);
+      console.error("Text analysis error:", error);
       throw new HttpException(
-        error.message || '텍스트 분석 중 오류가 발생했습니다',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || "텍스트 분석 중 오류가 발생했습니다",
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
@@ -304,23 +307,23 @@ export class AiService {
   private async performMedicalAnalysis(
     foodName: string,
     userId: string,
-    diseases: string[] = [],
+    diseases: string[] = []
   ): Promise<MedicalAnalysisOutput> {
     try {
       console.log(`\n=== 의학적 분석 시작: ${foodName} ===`);
-      
+
       const supabase = this.supabaseService.getClient();
 
       // [Smart Cache] 일반 음식 정보 캐시 확인
       let generalFoodInfo = null;
       let isCached = false;
-      
+
       const { data: cachedData } = await supabase
-        .from('food_cache')
-        .select('*')
-        .eq('food_name', foodName)
+        .from("food_cache")
+        .select("*")
+        .eq("food_name", foodName)
         .single();
-        
+
       if (cachedData) {
         console.log(`[Smart Cache] Hit! ${foodName} 정보 캐시에서 로드`);
         generalFoodInfo = cachedData;
@@ -340,139 +343,194 @@ export class AiService {
       if (!nutritionData) {
         recipeData = await this.externalApiClient.getRecipeInfo(foodName);
         if (recipeData && recipeData.length > 0) {
-           nutritionData = this.externalApiClient.extractNutritionFromRecipe(recipeData[0]);
-           console.log(`레시피DB 영양 정보 획득: ${nutritionData?.foodName}`);
+          nutritionData = this.externalApiClient.extractNutritionFromRecipe(
+            recipeData[0]
+          );
+          console.log(`레시피DB 영양 정보 획득: ${nutritionData?.foodName}`);
         }
       }
 
       // [Smart Cache] 일반 정보가 없으면 LLM으로 생성 후 저장
       if (!isCached) {
-        console.log('[Smart Cache] 일반 정보 생성 중 (LLM)...');
-        const generatedGeneralInfo = await this.geminiClient.generateGeneralFoodInfo(foodName, nutritionData);
-        
+        console.log("[Smart Cache] 일반 정보 생성 중 (LLM)...");
+        const generatedGeneralInfo =
+          await this.geminiClient.generateGeneralFoodInfo(
+            foodName,
+            nutritionData
+          );
+
         // 캐시 테이블에 저장
-        await supabase.from('food_cache').insert({
-            food_name: foodName,
-            nutrition_json: nutritionData ? JSON.stringify(nutritionData) : null,
-            general_analysis_json: JSON.stringify({
-                general_benefit: generatedGeneralInfo.general_benefit,
-                general_harm: generatedGeneralInfo.general_harm,
-                nutrition_summary: generatedGeneralInfo.nutrition_summary
-            }),
-            cooking_tips_json: JSON.stringify(generatedGeneralInfo.cooking_tips)
+        await supabase.from("food_cache").insert({
+          food_name: foodName,
+          nutrition_json: nutritionData ? JSON.stringify(nutritionData) : null,
+          general_analysis_json: JSON.stringify({
+            general_benefit: generatedGeneralInfo.general_benefit,
+            general_harm: generatedGeneralInfo.general_harm,
+            nutrition_summary: generatedGeneralInfo.nutrition_summary,
+          }),
+          cooking_tips_json: JSON.stringify(generatedGeneralInfo.cooking_tips),
         });
-        
-        console.log('[Smart Cache] 신규 정보 저장 완료');
+
+        console.log("[Smart Cache] 신규 정보 저장 완료");
 
         // 메모리 객체 업데이트
         generalFoodInfo = {
-            general_analysis_json: {
-                general_benefit: generatedGeneralInfo.general_benefit,
-                general_harm: generatedGeneralInfo.general_harm,
-                nutrition_summary: generatedGeneralInfo.nutrition_summary
-            },
-            cooking_tips_json: generatedGeneralInfo.cooking_tips
+          general_analysis_json: {
+            general_benefit: generatedGeneralInfo.general_benefit,
+            general_harm: generatedGeneralInfo.general_harm,
+            nutrition_summary: generatedGeneralInfo.nutrition_summary,
+          },
+          cooking_tips_json: generatedGeneralInfo.cooking_tips,
         };
       }
 
       // 3. 약물-음식 상호작용 정보 조회 (e약은요 API 활용)
       const drugInteractions = [];
-      console.log('\n--- 약물-음식 상호작용 분석 (e약은요 API) ---');
+      console.log("\n--- 약물-음식 상호작용 분석 (e약은요 API) ---");
       for (const medicine of medicines) {
-        const interaction = await this.externalApiClient.analyzeMedicineFoodInteraction(
-          medicine.name || medicine.medicine_name, 
-          foodName,
-        );
+        const interaction =
+          await this.externalApiClient.analyzeMedicineFoodInteraction(
+            medicine.name || medicine.medicine_name,
+            foodName
+          );
         drugInteractions.push(interaction);
-        
+
         console.log(`\n[${medicine.name || medicine.medicine_name}]`);
         console.log(`  - 위험도: ${interaction.riskLevel}`);
-        console.log(`  - 상호작용 여부: ${interaction.hasInteraction ? '있음' : '없음'}`);
-        
-        if (interaction.detectedPatterns && Object.keys(interaction.detectedPatterns).length > 0) {
+        console.log(
+          `  - 상호작용 여부: ${interaction.hasInteraction ? "있음" : "없음"}`
+        );
+
+        if (
+          interaction.detectedPatterns &&
+          Object.keys(interaction.detectedPatterns).length > 0
+        ) {
           console.log(`  - 감지된 패턴:`);
-          for (const [category, keywords] of Object.entries(interaction.detectedPatterns)) {
-            console.log(`    • ${category}: ${(keywords as string[]).join(', ')}`);
+          for (const [category, keywords] of Object.entries(
+            interaction.detectedPatterns
+          )) {
+            console.log(
+              `    • ${category}: ${(keywords as string[]).join(", ")}`
+            );
           }
         }
-        
+
         if (interaction.specificFoodInteraction?.hasMatch) {
           console.log(`  - 특정 음식 상호작용: ${foodName}과 관련 키워드 발견`);
         }
-        
-        if (interaction.warnings?.length > 0) console.log(`  - 경고사항 ${interaction.warnings.length}개`);
+
+        if (interaction.warnings?.length > 0)
+          console.log(`  - 경고사항 ${interaction.warnings.length}개`);
       }
-      console.log('--- 상호작용 분석 완료 ---\n');
+      console.log("--- 상호작용 분석 완료 ---\n");
 
       // 4. 질병별 가이드라인 조회
       const diseaseGuidelines = [];
       for (const disease of diseases) {
-        const guideline = await this.externalApiClient.getDiseaseGuideline(disease);
+        const guideline = await this.externalApiClient.getDiseaseGuideline(
+          disease
+        );
         diseaseGuidelines.push(guideline);
       }
 
-      // 5. RAG 데이터 구성
+      // 5. RAG 데이터 구성 및 AI 토큰 최적화 (Selective Context Injection)
+      // 'Safe' 등급이고 상호작용이 없는 약물은 불필요한 텍스트 정보를 제거하여 토큰 절약
+      const optimizedDrugInteractions = drugInteractions.map((interaction) => {
+        // 위험도가 없고(Safe), 감지된 패턴도 없는 경우 -> 상세 정보 생략
+        if (interaction.riskLevel === "safe" && !interaction.hasInteraction) {
+          return {
+            medicine: interaction.medicine,
+            riskLevel: interaction.riskLevel,
+            hasInteraction: false,
+            summary:
+              "분석 결과 특별한 식이상호작용 위험이 발견되지 않았습니다.",
+            // 긴 텍스트 필드 제거 (precautions, warnings, interactions, sideEffects 등)
+          };
+        }
+        // 주의/위험 등급이거나 상호작용이 있는 경우 -> 전체 정보 유지
+        return interaction;
+      });
+
       const ragData = {
-        drugInteractions,
+        drugInteractions: optimizedDrugInteractions,
         recipeInfo: recipeData,
         nutritionFacts: nutritionData ? [nutritionData] : [],
         diseaseGuidelines,
-        cachedGeneralInfo: generalFoodInfo?.general_analysis_json // 캐시 정보 주입
+        cachedGeneralInfo: generalFoodInfo?.general_analysis_json, // 캐시 정보 주입
       };
 
       // 6. [Rule-based Hybrid Logic] 약물 상호작용 1차 필터링
-      const preComputedInteractions = drugInteractions.map((interaction, idx) => {
-        const medicineName = medicines[idx]?.name || medicines[idx]?.medicine_name || '약물';
-        return {
-          medicine_name: medicineName,
-          risk_level: interaction.riskLevel as 'safe' | 'caution' | 'danger' | 'insufficient_data',
-          detected_patterns: Object.keys(interaction.detectedPatterns || {}),
-          warnings: interaction.warnings || [],
-          recommendations: interaction.precautions || [],
-          citation: ['식품의약품안전처 e약은요 DB'] 
-        };
-      });
+      const preComputedInteractions = drugInteractions.map(
+        (interaction, idx) => {
+          const medicineName =
+            medicines[idx]?.name || medicines[idx]?.medicine_name || "약물";
+          return {
+            medicine_name: medicineName,
+            risk_level: interaction.riskLevel as
+              | "safe"
+              | "caution"
+              | "danger"
+              | "insufficient_data",
+            detected_patterns: Object.keys(interaction.detectedPatterns || {}),
+            warnings: interaction.warnings || [],
+            recommendations: interaction.precautions || [],
+            citation: ["식품의약품안전처 e약은요 DB"],
+          };
+        }
+      );
 
       // 7. 의학적 분석 프롬프트 생성
       const analysisInput: MedicalAnalysisInput = {
         foodName,
         foodNutrition: nutritionData,
-        medicines: medicines.map(m => ({
+        medicines: medicines.map((m) => ({
           name: m.medicine_name,
           dosage: m.dosage,
           frequency: m.frequency,
         })),
         diseases,
         ragData: {
-            ...ragData,
-            preComputedInteractions
-        }
+          ...ragData,
+          preComputedInteractions,
+        },
       };
 
       const prompt = buildMedicalAnalysisPrompt(analysisInput);
 
       // 8. Gemini Pro로 분석 수행 (Advice, Score 생성 위주)
-      console.log('Gemini Pro 분석 요청 (Hybrid optimized)...');
+      console.log("Gemini Pro 분석 요청 (Hybrid optimized)...");
       const llmResult = await this.geminiClient.generateMedicalAnalysis(prompt);
 
       // 9. [Hybrid Merge] 결과 병합
       const finalResult: MedicalAnalysisOutput = {
         ...llmResult,
         drug_food_interactions: preComputedInteractions.map((pre, idx) => {
-            const llmCounterpart = llmResult.drug_food_interactions?.find(d => d.medicine_name === pre.medicine_name);
-            return {
-                ...pre,
-                warnings: [...new Set([...pre.warnings, ...(llmCounterpart?.warnings || [])])],
-                recommendations: [...new Set([...pre.recommendations, ...(llmCounterpart?.recommendations || [])])]
-            };
-        })
+          const llmCounterpart = llmResult.drug_food_interactions?.find(
+            (d) => d.medicine_name === pre.medicine_name
+          );
+          return {
+            ...pre,
+            warnings: [
+              ...new Set([
+                ...pre.warnings,
+                ...(llmCounterpart?.warnings || []),
+              ]),
+            ],
+            recommendations: [
+              ...new Set([
+                ...pre.recommendations,
+                ...(llmCounterpart?.recommendations || []),
+              ]),
+            ],
+          };
+        }),
       };
-      
+
       console.log(`분석 완료 - 최종 점수: ${finalResult.final_score}`);
 
       return finalResult;
     } catch (error) {
-      console.error('Medical analysis error:', error);
+      console.error("Medical analysis error:", error);
       // 분석 실패 시 기본 응답 반환
       return this.getDefaultMedicalAnalysis(foodName, diseases);
     }
@@ -485,19 +543,19 @@ export class AiService {
     try {
       const supabase = this.supabaseService.getClient();
       const { data, error } = await supabase
-        .from('medicine_records')
-        .select('*')
-        .eq('user_id', userId)
-        .eq('is_active', true);
+        .from("medicine_records")
+        .select("*")
+        .eq("user_id", userId)
+        .eq("is_active", true);
 
       if (error) {
-        console.error('Failed to fetch medicines:', error);
+        console.error("Failed to fetch medicines:", error);
         return [];
       }
 
       return data || [];
     } catch (error) {
-      console.error('Get user medicines error:', error);
+      console.error("Get user medicines error:", error);
       return [];
     }
   }
@@ -509,16 +567,23 @@ export class AiService {
     const parts: string[] = [];
 
     // 약물-음식 상호작용 (우선순위 높음)
-    if (analysis.drug_food_interactions && analysis.drug_food_interactions.length > 0) {
-      const dangerDrugs = analysis.drug_food_interactions.filter(d => d.risk_level === 'danger');
-      const cautionDrugs = analysis.drug_food_interactions.filter(d => d.risk_level === 'caution');
-      
+    if (
+      analysis.drug_food_interactions &&
+      analysis.drug_food_interactions.length > 0
+    ) {
+      const dangerDrugs = analysis.drug_food_interactions.filter(
+        (d) => d.risk_level === "danger"
+      );
+      const cautionDrugs = analysis.drug_food_interactions.filter(
+        (d) => d.risk_level === "caution"
+      );
+
       if (dangerDrugs.length > 0) {
-        parts.push('🚨 약물 상호작용 경고:');
-        dangerDrugs.forEach(drug => {
+        parts.push("🚨 약물 상호작용 경고:");
+        dangerDrugs.forEach((drug) => {
           parts.push(`\n⚠️ ${drug.medicine_name}:`);
           if (drug.warnings && drug.warnings.length > 0) {
-            drug.warnings.slice(0, 2).forEach(warning => {
+            drug.warnings.slice(0, 2).forEach((warning) => {
               parts.push(`  • ${warning}`);
             });
           }
@@ -526,40 +591,46 @@ export class AiService {
             parts.push(`  → ${drug.recommendations[0]}`);
           }
         });
-        parts.push('');
+        parts.push("");
       }
-      
+
       if (cautionDrugs.length > 0) {
-        parts.push('⚡ 복용 중인 약물 주의사항:');
-        cautionDrugs.forEach(drug => {
+        parts.push("⚡ 복용 중인 약물 주의사항:");
+        cautionDrugs.forEach((drug) => {
           parts.push(`\n• ${drug.medicine_name}:`);
           if (drug.detected_patterns && drug.detected_patterns.length > 0) {
-            parts.push(`  패턴: ${drug.detected_patterns.join(', ')}`);
+            parts.push(`  패턴: ${drug.detected_patterns.join(", ")}`);
           }
           if (drug.recommendations && drug.recommendations.length > 0) {
             parts.push(`  → ${drug.recommendations[0]}`);
           }
         });
-        parts.push('');
+        parts.push("");
       }
     }
 
     // 전반적 상호작용 평가
-    if (analysis.interaction_assessment.level === 'danger') {
-      parts.push(`⚠️ 주의: ${analysis.interaction_assessment.evidence_summary}`);
-    } else if (analysis.interaction_assessment.level === 'caution') {
-      parts.push(`⚡ 주의사항: ${analysis.interaction_assessment.evidence_summary}`);
+    if (analysis.interaction_assessment.level === "danger") {
+      parts.push(
+        `⚠️ 주의: ${analysis.interaction_assessment.evidence_summary}`
+      );
+    } else if (analysis.interaction_assessment.level === "caution") {
+      parts.push(
+        `⚡ 주의사항: ${analysis.interaction_assessment.evidence_summary}`
+      );
     }
 
     // 영양학적 위험
     if (analysis.nutritional_risk.risk_factors.length > 0) {
-      parts.push(`\n영양학적 고려사항:\n${analysis.nutritional_risk.description}`);
+      parts.push(
+        `\n영양학적 고려사항:\n${analysis.nutritional_risk.description}`
+      );
     }
 
     // 질병별 노트
     if (analysis.disease_specific_notes.length > 0) {
       parts.push(`\n질병별 주의사항:`);
-      analysis.disease_specific_notes.forEach(note => {
+      analysis.disease_specific_notes.forEach((note) => {
         parts.push(`• ${note.disease}: ${note.impact}`);
       });
     }
@@ -567,15 +638,15 @@ export class AiService {
     // 기본 메시지
     if (parts.length === 0) {
       if (analysis.final_score >= 85) {
-        parts.push('✅ 건강한 선택입니다!');
+        parts.push("✅ 건강한 선택입니다!");
       } else if (analysis.final_score >= 70) {
-        parts.push('👍 나쁘지 않은 선택이에요.');
+        parts.push("👍 나쁘지 않은 선택이에요.");
       } else {
-        parts.push('🤔 조금 주의가 필요한 음식이에요.');
+        parts.push("🤔 조금 주의가 필요한 음식이에요.");
       }
     }
 
-    return parts.join('\n');
+    return parts.join("\n");
   }
 
   /**
@@ -583,23 +654,24 @@ export class AiService {
    */
   private getDefaultMedicalAnalysis(
     foodName: string,
-    diseases: string[],
+    diseases: string[]
   ): MedicalAnalysisOutput {
     return {
       food_name: foodName,
-      medicine_name: 'N/A',
+      medicine_name: "N/A",
       disease_list: diseases,
       interaction_assessment: {
-        level: 'insufficient_data',
-        evidence_summary: '충분한 데이터가 없어 정확한 분석이 어렵습니다.',
-        detailed_analysis: 'RAG 데이터 수집 실패로 인해 상세 분석을 제공할 수 없습니다.',
-        interaction_mechanism: '정보 없음',
+        level: "insufficient_data",
+        evidence_summary: "충분한 데이터가 없어 정확한 분석이 어렵습니다.",
+        detailed_analysis:
+          "RAG 데이터 수집 실패로 인해 상세 분석을 제공할 수 없습니다.",
+        interaction_mechanism: "정보 없음",
         citation: [],
       },
       drug_food_interactions: [],
       nutritional_risk: {
         risk_factors: [],
-        description: '영양 정보 분석 불가',
+        description: "영양 정보 분석 불가",
         citation: [],
       },
       disease_specific_notes: [],
@@ -615,40 +687,42 @@ export class AiService {
       // 1. food_records 조회
       const supabase = this.supabaseService.getClient();
       const { data: record, error } = await supabase
-        .from('food_records')
-        .select('*')
-        .eq('id', recordId)
+        .from("food_records")
+        .select("*")
+        .eq("id", recordId)
         .single();
 
       if (error || !record) {
-        throw new HttpException('기록을 찾을 수 없습니다', HttpStatus.NOT_FOUND);
+        throw new HttpException(
+          "기록을 찾을 수 없습니다",
+          HttpStatus.NOT_FOUND
+        );
       }
 
       // 2. 영양 데이터 가져오기 (임시로 null)
       const nutritionData = null; // TODO: Supabase nutrition DB 연동
 
       // 3. Gemini 1.5 Pro로 상세 분석 생성
-      const detailedAnalysis =
-        await this.geminiClient.generateDetailedAnalysis(
-          record.food_name,
-          record.diseases || [],
-          nutritionData,
-        );
+      const detailedAnalysis = await this.geminiClient.generateDetailedAnalysis(
+        record.food_name,
+        record.diseases || [],
+        nutritionData
+      );
 
       // 4. 상세 분석 결과를 DB에 업데이트 (선택사항)
       await supabase
-        .from('food_records')
+        .from("food_records")
         .update({
           detailed_analysis_json: JSON.stringify(detailedAnalysis),
         })
-        .eq('id', recordId);
+        .eq("id", recordId);
 
       return detailedAnalysis;
     } catch (error) {
-      console.error('Detailed analysis error:', error);
+      console.error("Detailed analysis error:", error);
       throw new HttpException(
-        error.message || '상세 분석 중 오류가 발생했습니다',
-        error.status || HttpStatus.INTERNAL_SERVER_ERROR,
+        error.message || "상세 분석 중 오류가 발생했습니다",
+        error.status || HttpStatus.INTERNAL_SERVER_ERROR
       );
     }
   }
