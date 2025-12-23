@@ -322,11 +322,11 @@
   border-color: #f5d547;
 }
 .medicine__card--medicine {
-  border-left: 5px solid #FF6B6B;
+  border-left: 5px solid #ff6b6b;
   background: linear-gradient(135deg, rgba(255, 107, 107, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
 }
 .medicine__card--healthfood {
-  border-left: 5px solid #51CF66;
+  border-left: 5px solid #51cf66;
   background: linear-gradient(135deg, rgba(81, 207, 102, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
 }
 .medicine__type-badge {
@@ -339,13 +339,13 @@
 }
 .medicine__type-badge--medicine {
   background: rgba(255, 107, 107, 0.15);
-  color: #FF6B6B;
-  border: 1px solid #FF6B6B;
+  color: #ff6b6b;
+  border: 1px solid #ff6b6b;
 }
 .medicine__type-badge--healthfood {
   background: rgba(81, 207, 102, 0.15);
-  color: #51CF66;
-  border: 1px solid #51CF66;
+  color: #51cf66;
+  border: 1px solid #51cf66;
 }
 .medicine__card-header {
   display: flex;
@@ -435,14 +435,14 @@
   transition: all 0.3s ease;
 }
 .medicine__scan-btn:hover {
-  background: rgb(38.25, 38.25, 38.25);
+  background: #262626;
 }
 .medicine__scan-btn--secondary {
   background: rgb(153, 153, 153);
   margin-top: 10px;
 }
 .medicine__scan-btn--secondary:hover {
-  background: rgb(127.5, 127.5, 127.5);
+  background: gray;
 }
 .medicine__qr-mode-buttons {
   display: flex;
@@ -478,7 +478,7 @@
   transition: all 0.3s ease;
 }
 .medicine__close-scanner-btn:hover {
-  background: rgb(204, 128.8, 0);
+  background: #cc8100;
 }
 .medicine__qr-input {
   margin-top: 20px;
@@ -1153,7 +1153,7 @@
   transition: all 0.2s ease;
 }
 .medicine__qr-retry-btn:hover {
-  background: rgb(204, 128.8, 0);
+  background: #cc8100;
 }
 .medicine__qr-result {
   flex: 1;
@@ -1233,7 +1233,7 @@
   transition: all 0.2s ease;
 }
 .medicine__qr-add-btn:hover {
-  background: rgb(204, 128.8, 0);
+  background: #cc8100;
 }
 .medicine__qr-add-btn:disabled {
   opacity: 0.6;
@@ -1358,7 +1358,7 @@
   cursor: pointer;
 }
 .medicine__retry-btn:hover {
-  background: rgb(204, 128.8, 0);
+  background: #cc8100;
 }
 .medicine__select-popup-overlay {
   position: fixed;
@@ -1554,7 +1554,7 @@
   transition: all 0.2s ease;
 }
 .medicine__add-selected-btn:hover:not(:disabled) {
-  background: rgb(204, 128.8, 0);
+  background: #cc8100;
 }
 .medicine__add-selected-btn:disabled {
   opacity: 0.5;
@@ -2000,4 +2000,36 @@
 }
 .medicine__retry-btn:active {
   transform: scale(0.98);
+}
+
+.medicine__load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: #888;
+  font-size: 14px;
+}
+
+.medicine__spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.medicine__all-loaded {
+  text-align: center;
+  padding: 20px;
+  color: #aaa;
+  font-size: 13px;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
 }/*# sourceMappingURL=Medicine.css.map */

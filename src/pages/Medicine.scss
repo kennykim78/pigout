@@ -1,5 +1,5 @@
-@import '../styles/variables';
-@import '../styles/mixins';
+@import "../styles/variables";
+@import "../styles/mixins";
 
 .medicine {
   width: 100%;
@@ -45,7 +45,7 @@
       flex-direction: row;
       justify-content: space-between;
       align-items: center;
-      
+
       .medicine__title {
         flex: 1;
         text-align: center;
@@ -118,7 +118,7 @@
 
     .material-symbols-rounded {
       font-size: 32px;
-      font-variation-settings: 'FILL' 0, 'wght' 400, 'GRAD' 0, 'opsz' 48;
+      font-variation-settings: "FILL" 0, "wght" 400, "GRAD" 0, "opsz" 48;
     }
 
     &--active {
@@ -129,7 +129,7 @@
       box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
 
       .material-symbols-rounded {
-        font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+        font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 48;
       }
     }
 
@@ -144,7 +144,7 @@
     gap: 8px;
     padding: 10px 20px;
     background: rgba(255, 255, 255, 0.5);
-    
+
     &--add {
       // 약 추가 페이지용 탭 스타일
       margin-bottom: 0;
@@ -396,13 +396,21 @@
 
     // 🆕 의약품/건강기능식품 구분 스타일
     &--medicine {
-      border-left: 5px solid #FF6B6B; // 의약품: 빨간색
-      background: linear-gradient(135deg, rgba(255, 107, 107, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+      border-left: 5px solid #ff6b6b; // 의약품: 빨간색
+      background: linear-gradient(
+        135deg,
+        rgba(255, 107, 107, 0.02) 0%,
+        rgba(255, 255, 255, 0) 100%
+      );
     }
 
     &--healthfood {
-      border-left: 5px solid #51CF66; // 건강기능식품: 초록색
-      background: linear-gradient(135deg, rgba(81, 207, 102, 0.02) 0%, rgba(255, 255, 255, 0) 100%);
+      border-left: 5px solid #51cf66; // 건강기능식품: 초록색
+      background: linear-gradient(
+        135deg,
+        rgba(81, 207, 102, 0.02) 0%,
+        rgba(255, 255, 255, 0) 100%
+      );
     }
   }
 
@@ -417,14 +425,14 @@
 
     &--medicine {
       background: rgba(255, 107, 107, 0.15);
-      color: #FF6B6B;
-      border: 1px solid #FF6B6B;
+      color: #ff6b6b;
+      border: 1px solid #ff6b6b;
     }
 
     &--healthfood {
       background: rgba(81, 207, 102, 0.15);
-      color: #51CF66;
-      border: 1px solid #51CF66;
+      color: #51cf66;
+      border: 1px solid #51cf66;
     }
   }
 
@@ -505,7 +513,7 @@
 
     .material-symbols-rounded {
       font-size: 28px;
-      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+      font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 48;
     }
   }
 
@@ -652,7 +660,7 @@
 
     .material-symbols-rounded {
       font-size: 24px;
-      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+      font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 48;
     }
 
     &:hover:not(:disabled) {
@@ -1067,7 +1075,7 @@
       }
 
       &::before {
-        content: '✓';
+        content: "✓";
         position: absolute;
         left: 0;
         color: #667eea;
@@ -1105,7 +1113,7 @@
         position: relative;
 
         &::before {
-          content: '•';
+          content: "•";
           position: absolute;
           left: 0;
         }
@@ -1325,8 +1333,13 @@
   }
 
   @keyframes pulse {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.5; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.5;
+    }
   }
 
   &__qr-error {
@@ -1493,7 +1506,7 @@
 
     .material-symbols-rounded {
       font-size: 24px;
-      font-variation-settings: 'FILL' 1, 'wght' 600, 'GRAD' 0, 'opsz' 48;
+      font-variation-settings: "FILL" 1, "wght" 600, "GRAD" 0, "opsz" 48;
     }
 
     &:hover:not(:disabled) {
@@ -1536,7 +1549,9 @@
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   &__captured-preview {
@@ -1965,8 +1980,14 @@
 }
 
 @keyframes fadeUp {
-  from { opacity: 0; transform: translateY(12px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 // 반응형 디자인
@@ -2171,7 +2192,9 @@
 }
 
 @keyframes spin {
-  to { transform: rotate(360deg); }
+  to {
+    transform: rotate(360deg);
+  }
 }
 
 .medicine__streaming-info {
@@ -2212,7 +2235,11 @@
 
 .medicine__streaming-progress-fill {
   height: 100%;
-  background: linear-gradient(90deg, $color-primary-yellow 0%, $color-primary-orange 100%);
+  background: linear-gradient(
+    90deg,
+    $color-primary-yellow 0%,
+    $color-primary-orange 100%
+  );
   transition: width 0.3s ease;
 }
 
@@ -2249,7 +2276,7 @@
   &--loading {
     border-color: $color-primary-orange;
     background: rgba($color-primary-yellow, 0.3);
-    
+
     .medicine__streaming-stage-icon {
       animation: pulse 1.5s ease-in-out infinite;
     }
@@ -2322,3 +2349,37 @@
   }
 }
 
+// ==========================================
+// 무한 스크롤 관련 스타일
+// ==========================================
+.medicine__load-more {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  padding: 20px;
+  color: #888;
+  font-size: 14px;
+}
+
+.medicine__spinner-small {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #e5e7eb;
+  border-top-color: #3b82f6;
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
+.medicine__all-loaded {
+  text-align: center;
+  padding: 20px;
+  color: #aaa;
+  font-size: 13px;
+}
+
+@keyframes spin {
+  100% {
+    transform: rotate(360deg);
+  }
+}
