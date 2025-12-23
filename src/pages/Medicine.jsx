@@ -20,6 +20,7 @@ import DosageBasedRiskAnalyzer from "../components/DosageBasedRiskAnalyzer";
 import MedicineDetailPopup from "../components/MedicineDetailPopup";
 import ImageSourceModal from "../components/ImageSourceModal";
 import MedicineAnalyzedInfo from "../components/MedicineAnalyzedInfo";
+import StreamingPopup from "../components/StreamingPopup";
 import "./Medicine.scss";
 
 const Medicine = () => {
@@ -948,75 +949,30 @@ const Medicine = () => {
                 </p>
               </div>
 
-              {/* 🆕 스트리밍 분석 진행 상황 표시 */}
-              {isAnalyzing && (
-                <div className="medicine__streaming-section">
-                  <div className="medicine__streaming-header">
-                    <div className="medicine__streaming-spinner"></div>
-                    <div className="medicine__streaming-info">
-                      <p className="medicine__streaming-title">
-                        약물 상호작용 분석 중
-                      </p>
-                      <p className="medicine__streaming-message">
-                        {streamingMessage}
-                      </p>
-                    </div>
-                  </div>
+              {/* 🆕 스트리밍 분석 레이어 팝업 */}
+              <StreamingPopup
+                isOpen={isAnalyzing}
+                title="약물 상호작용 분석 중"
+                stages={streamingStages}
+                progress={streamProgress}
+                onComplete={() => setIsAnalyzing(false)}
+              />
 
-                  {/* 진행 바 */}
-                  <div className="medicine__streaming-progress">
-                    <div className="medicine__streaming-progress-bar">
-                      <div
-                        className="medicine__streaming-progress-fill"
-                        style={{ width: `${streamProgress}%` }}
-                      />
-                    </div>
-                    <span className="medicine__streaming-progress-text">
-                      {Math.round(streamProgress)}%
-                    </span>
-                  </div>
-
-                  {/* 단계별 상태 */}
-                  <div className="medicine__streaming-stages">
-                    {streamingStages.map((stage) => (
-                      <div
-                        key={stage.stage}
-                        className={`medicine__streaming-stage medicine__streaming-stage--${stage.status}`}
-                      >
-                        <span className="medicine__streaming-stage-number">
-                          {stage.stage}
-                        </span>
-                        <span className="medicine__streaming-stage-name">
-                          {stage.name}
-                        </span>
-                        <span className="medicine__streaming-stage-icon">
-                          {stage.status === "complete"
-                            ? "✅"
-                            : stage.status === "loading"
-                            ? "🔄"
-                            : "⏳"}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-
-                  {/* 에러 표시 */}
-                  {streamError && (
-                    <div className="medicine__error-section">
-                      <p className="medicine__error-message">{streamError}</p>
-                      <button
-                        className="medicine__retry-btn"
-                        onClick={() => {
-                          setStreamError(null);
-                          setStreamingStages([]);
-                          setStreamProgress(0);
-                          handleAnalyzeAll();
-                        }}
-                      >
-                        🔄 다시 분석하기
-                      </button>
-                    </div>
-                  )}
+              {/* 에러 표시 */}
+              {streamError && (
+                <div className="medicine__error-section">
+                  <p className="medicine__error-message">{streamError}</p>
+                  <button
+                    className="medicine__retry-btn"
+                    onClick={() => {
+                      setStreamError(null);
+                      setStreamingStages([]);
+                      setStreamProgress(0);
+                      handleAnalyzeAll();
+                    }}
+                  >
+                    🔄 다시 분석하기
+                  </button>
                 </div>
               )}
 

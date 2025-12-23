@@ -1,0 +1,118 @@
+@import "../styles/variables";
+
+.streaming-popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+  backdrop-filter: blur(4px);
+}
+
+.streaming-popup {
+  background: linear-gradient(145deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 20px;
+  padding: 40px 50px;
+  text-align: center;
+  min-width: 320px;
+  max-width: 400px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  animation: popupSlideIn 0.3s ease-out;
+
+  @keyframes popupSlideIn {
+    from {
+      opacity: 0;
+      transform: scale(0.9) translateY(20px);
+    }
+    to {
+      opacity: 1;
+      transform: scale(1) translateY(0);
+    }
+  }
+
+  &__spinner {
+    width: 50px;
+    height: 50px;
+    margin: 0 auto 20px;
+    border: 4px solid rgba(255, 255, 255, 0.2);
+    border-top-color: #f5d547;
+    border-radius: 50%;
+    animation: spin 1s linear infinite;
+
+    @keyframes spin {
+      100% {
+        transform: rotate(360deg);
+      }
+    }
+  }
+
+  &__title {
+    font-size: 18px;
+    font-weight: 700;
+    color: #fff;
+    margin: 0 0 24px;
+  }
+
+  &__stage {
+    min-height: 36px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    margin-bottom: 24px;
+    transition: opacity 0.2s ease, transform 0.2s ease;
+
+    &.fade-in {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    &.fade-out {
+      opacity: 0;
+      transform: translateY(-10px);
+    }
+  }
+
+  &__stage-icon {
+    font-size: 20px;
+  }
+
+  &__stage-name {
+    font-size: 16px;
+    color: #f5d547;
+    font-weight: 600;
+  }
+
+  &__progress {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+
+  &__progress-bar {
+    flex: 1;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  &__progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #f5d547 0%, #f5a623 100%);
+    border-radius: 4px;
+    transition: width 0.3s ease;
+  }
+
+  &__progress-text {
+    font-size: 14px;
+    font-weight: 700;
+    color: #f5d547;
+    min-width: 45px;
+  }
+}
