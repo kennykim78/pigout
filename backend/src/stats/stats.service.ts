@@ -266,9 +266,9 @@ export class StatsService {
     threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
     const threeYearsAgoStr = threeYearsAgo.toISOString().split("T")[0];
 
-    // 1. 3년간 총 수명변화 계산 (food_records + activity_logs)
+    // 1. 3년간 총 수명변화 계산 (food_analysis + activity_logs)
     const { data: foodScores } = await client
-      .from("food_records")
+      .from("food_analysis")
       .select("score, created_at")
       .eq("user_id", userId)
       .gte("created_at", `${threeYearsAgoStr}T00:00:00`);
@@ -304,9 +304,9 @@ export class StatsService {
       totalLifeChangeDays += bonusDays;
     }
 
-    // 2. 오늘 수명 변화 계산
+    // 2. 오늘 수명 변화 계산 (food_analysis 테이블)
     const { data: todayFoodScores } = await client
-      .from("food_records")
+      .from("food_analysis")
       .select("score")
       .eq("user_id", userId)
       .gte("created_at", `${todayStr}T00:00:00`)
@@ -373,16 +373,16 @@ export class StatsService {
     // 6. 활동 히스토리 조회 (최근 100건, 일자별 그룹화)
     const historyList = [];
 
-    // food_records를 활동 형태로 변환
-    const { data: recentFoodRecords } = await client
-      .from("food_records")
-      .select("id, food_name, score, created_at, image_path")
+    // food_analysis 테이블에서 조회 (MyPage와 동일한 데이터 소스)
+    const { data: recentFoodAnalysis } = await client
+      .from("food_analysis")
+      .select("id, food_name, score, created_at, image_url")
       .eq("user_id", userId)
       .order("created_at", { ascending: false })
       .limit(50);
 
-    if (recentFoodRecords) {
-      recentFoodRecords.forEach((record) => {
+    if (recentFoodAnalysis) {
+      recentFoodAnalysis.forEach((record) => {
         const lifeDays = this.scoreToLifeDays(record.score || 70);
         historyList.push({
           id: record.id,
@@ -391,7 +391,7 @@ export class StatsService {
           lifeChangeDays: lifeDays,
           createdAt: record.created_at,
           referenceId: record.id,
-          imageUrl: record.image_path,
+          imageUrl: record.image_url,
         });
       });
     }
