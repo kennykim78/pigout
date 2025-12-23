@@ -2,11 +2,13 @@ import { Injectable, Logger } from "@nestjs/common";
 import { SupabaseService } from "../supabase/supabase.service";
 import { GeminiClient } from "../ai/utils/gemini.client";
 import { ConfigService } from "@nestjs/config";
+import * as crypto from "crypto";
 
 @Injectable()
 export class RecommendationService {
   private readonly logger = new Logger(RecommendationService.name);
   private geminiClient: GeminiClient;
+  private readonly POOL_SIZE = 30; // 30일 풀
 
   constructor(
     private readonly supabaseService: SupabaseService,
@@ -32,7 +34,6 @@ export class RecommendationService {
 
   /**
    * 글로벌 캐시 키 생성
-   * 형식: "나이대_성별_질병1,질병2" (질병은 정렬됨)
    */
   private generateCacheKey(
     ageGroup: string,
@@ -41,6 +42,18 @@ export class RecommendationService {
   ): string {
     const sortedDiseases = [...diseases].sort().join(",") || "없음";
     return `${ageGroup}_${gender || "미설정"}_${sortedDiseases}`;
+  }
+
+  /**
+   * 해시 기반 랜덤 인덱스 계산 (같은 날, 같은 조건 → 같은 인덱스)
+   */
+  private getRandomIndex(cacheKey: string, date: string): number {
+    const hash = crypto
+      .createHash("md5")
+      .update(cacheKey + date)
+      .digest("hex");
+    const num = parseInt(hash.substring(0, 8), 16);
+    return num % this.POOL_SIZE;
   }
 
   async getDailyContent(userId: string) {
@@ -59,7 +72,12 @@ export class RecommendationService {
     const diseases = userProfile?.diseases || [];
     const cacheKey = this.generateCacheKey(ageGroup, gender, diseases);
 
-    this.logger.log(`[Recommendation] Cache Key: ${cacheKey}`);
+    // 오늘의 랜덤 인덱스 (해시 기반)
+    const contentIndex = this.getRandomIndex(cacheKey, today);
+
+    this.logger.log(
+      `[Recommendation] Key: ${cacheKey}, Index: ${contentIndex}/30`
+    );
 
     // 2. 오늘 이 사용자가 이미 받은 추천이 있는지 확인 (개인 캐시)
     const { data: userToday } = await client
@@ -76,11 +94,12 @@ export class RecommendationService {
       return userToday;
     }
 
-    // 3. 글로벌 캐시 조회 (동일 조건 사용자)
+    // 3. 글로벌 캐시 풀에서 해당 인덱스 조회
     const { data: globalCache } = await client
       .from("recommendation_global_cache")
       .select("*")
       .eq("cache_key", cacheKey)
+      .eq("content_index", contentIndex)
       .gt("expires_at", new Date().toISOString())
       .single();
 
@@ -88,7 +107,9 @@ export class RecommendationService {
 
     if (globalCache) {
       // 글로벌 캐시 히트! AI 호출 없이 반환
-      this.logger.log(`[Global Cache Hit] ✅ Key: ${cacheKey}`);
+      this.logger.log(
+        `[Global Cache Hit] ✅ Key: ${cacheKey}, Index: ${contentIndex}`
+      );
 
       // 히트 카운트 증가
       await client
@@ -103,7 +124,9 @@ export class RecommendationService {
       };
     } else {
       // 글로벌 캐시 미스 → AI 생성
-      this.logger.log(`[Global Cache Miss] 🔄 Generating for key: ${cacheKey}`);
+      this.logger.log(
+        `[Global Cache Miss] 🔄 Generating Key: ${cacheKey}, Index: ${contentIndex}`
+      );
 
       const { data: medicines } = await client
         .from("medicine_records")
@@ -116,30 +139,30 @@ export class RecommendationService {
         medicines || []
       );
 
-      // 글로벌 캐시에 저장
+      // 글로벌 캐시 풀에 저장 (1년 만료)
       const { error: cacheError } = await client
         .from("recommendation_global_cache")
-        .upsert(
-          {
-            cache_key: cacheKey,
-            age_group: ageGroup,
-            gender: gender,
-            diseases: diseases,
-            food_content: recommendationContent.food,
-            remedy_content: recommendationContent.remedy,
-            exercise_content: recommendationContent.exercise,
-            expires_at: new Date(
-              Date.now() + 7 * 24 * 60 * 60 * 1000
-            ).toISOString(),
-            hit_count: 0,
-          },
-          { onConflict: "cache_key" }
-        );
+        .insert({
+          cache_key: cacheKey,
+          content_index: contentIndex,
+          age_group: ageGroup,
+          gender: gender,
+          diseases: diseases,
+          food_content: recommendationContent.food,
+          remedy_content: recommendationContent.remedy,
+          exercise_content: recommendationContent.exercise,
+          expires_at: new Date(
+            Date.now() + 365 * 24 * 60 * 60 * 1000
+          ).toISOString(),
+          hit_count: 0,
+        });
 
       if (cacheError) {
         this.logger.warn("Failed to save global cache", cacheError);
       } else {
-        this.logger.log(`[Global Cache Saved] ✅ Key: ${cacheKey}`);
+        this.logger.log(
+          `[Global Cache Saved] ✅ Key: ${cacheKey}, Index: ${contentIndex}`
+        );
       }
     }
 
@@ -165,13 +188,11 @@ export class RecommendationService {
   }
 
   private async generateDailyContent(userProfile: any, medicines: any[]) {
-    // Construct Prompt
     const age = userProfile?.age || "미설정";
     const gender = userProfile?.gender || "미설정";
     const diseases = userProfile?.diseases || [];
     const medicineNames = medicines.map((m) => m.name).join(", ");
 
-    // Random Country for Remedy (Simple List)
     const countries = [
       "한국",
       "중국",
@@ -228,7 +249,6 @@ JSON만 출력하세요.
       return this.geminiClient.extractJsonObject(result);
     } catch (e) {
       this.logger.error("Gemini Generation Failed", e);
-      // Fallback
       return {
         food: {
           name: "현미밥",
