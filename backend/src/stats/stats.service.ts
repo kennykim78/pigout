@@ -248,177 +248,299 @@ export class StatsService {
 
   /**
    * 내 상태 (My Status) 대시보드 데이터 조회
-   * 1. 최근 1주일 수명 변화
-   * 2. 초기 기대수명 + 오늘 변화량
-   * 3. 오늘 먹은 음식 타임라인 (아침/점심/저녁/간식)
-   * 4. 월별 히스토리
+   * 1. 총 수명변화 (3년 데이터)
+   * 2. 초기기대수명, 현재기대수명, 오늘변화
+   * 3. 위트 문구 (DB 기반)
+   * 4. 활동 로그 기반 히스토리
    */
-  async getMyStatus(userId: string) {
+  async getMyStatus(
+    userId: string,
+    userProfile?: { age?: number; gender?: string; diseases?: string[] }
+  ) {
     const client = this.supabaseService.getClient();
     const now = new Date();
     const todayStr = now.toISOString().split("T")[0];
 
-    // 1주일 전 날짜 계산
-    const oneWeekAgo = new Date(now);
-    oneWeekAgo.setDate(oneWeekAgo.getDate() - 7);
-    const oneWeekAgoStr = oneWeekAgo.toISOString().split("T")[0];
+    // 3년 전 날짜 계산
+    const threeYearsAgo = new Date(now);
+    threeYearsAgo.setFullYear(threeYearsAgo.getFullYear() - 3);
+    const threeYearsAgoStr = threeYearsAgo.toISOString().split("T")[0];
 
-    // 3개월 전 날짜 계산
-    const threeMonthsAgo = new Date(now);
-    threeMonthsAgo.setMonth(threeMonthsAgo.getMonth() - 3);
-    const threeMonthsAgoStr = threeMonthsAgo.toISOString().split("T")[0];
-
-    // 1. 전체 누적 수명 계산
-    const { data: allScores, error: scoreError } = await client
+    // 1. 3년간 총 수명변화 계산 (food_records + activity_logs)
+    const { data: foodScores } = await client
       .from("food_records")
-      .select("score")
-      .eq("user_id", userId);
-
-    if (scoreError) throw scoreError;
-
-    let totalLifeChangeHours = 0;
-    if (allScores) {
-      totalLifeChangeHours = allScores.reduce((acc, curr) => {
-        const change = (curr.score - 70) * 0.1;
-        return acc + change;
-      }, 0);
-    }
-
-    // 2. 최근 1주일 수명 변화 계산
-    const { data: weeklyScores, error: weeklyError } = await client
-      .from("food_records")
-      .select("score")
+      .select("score, created_at")
       .eq("user_id", userId)
-      .gte("created_at", `${oneWeekAgoStr}T00:00:00`)
-      .lte("created_at", `${todayStr}T23:59:59`);
+      .gte("created_at", `${threeYearsAgoStr}T00:00:00`);
 
-    if (weeklyError) throw weeklyError;
-
-    let weeklyLifeChangeHours = 0;
-    if (weeklyScores) {
-      weeklyLifeChangeHours = weeklyScores.reduce((acc, curr) => {
-        const change = (curr.score - 70) * 0.1;
-        return acc + change;
-      }, 0);
-    }
-
-    // 3. 오늘의 기록 조회 (Timeline용)
-    const { data: todayRecords, error: recordError } = await client
-      .from("food_records")
+    const { data: activityLogs } = await client
+      .from("activity_logs")
       .select("*")
       .eq("user_id", userId)
+      .gte("created_at", `${threeYearsAgoStr}T00:00:00`)
+      .order("created_at", { ascending: false });
+
+    // 음식 기록의 수명 변화 (점수 기반)
+    let totalLifeChangeDays = 0;
+    if (foodScores) {
+      totalLifeChangeDays = foodScores.reduce((acc, curr) => {
+        return acc + this.scoreToLifeDays(curr.score || 70);
+      }, 0);
+    }
+
+    // 활동 로그의 보너스 추가
+    if (activityLogs) {
+      const bonusDays = activityLogs.reduce(
+        (acc, log) => acc + (log.life_change_days || 0),
+        0
+      );
+      totalLifeChangeDays += bonusDays;
+    }
+
+    // 2. 오늘 수명 변화 계산
+    const { data: todayFoodScores } = await client
+      .from("food_records")
+      .select("score")
+      .eq("user_id", userId)
       .gte("created_at", `${todayStr}T00:00:00`)
-      .lt("created_at", `${todayStr}T23:59:59`)
-      .order("created_at", { ascending: true });
+      .lt("created_at", `${todayStr}T23:59:59`);
 
-    if (recordError) throw recordError;
+    const { data: todayActivityLogs } = await client
+      .from("activity_logs")
+      .select("life_change_days")
+      .eq("user_id", userId)
+      .gte("created_at", `${todayStr}T00:00:00`)
+      .lt("created_at", `${todayStr}T23:59:59`);
 
-    // 시간대별 분류
-    const timeline = {
-      morning: [],
-      lunch: [],
-      dinner: [],
-      snack: [],
-    };
+    let todayLifeChangeDays = 0;
+    if (todayFoodScores) {
+      todayLifeChangeDays = todayFoodScores.reduce((acc, curr) => {
+        return acc + this.scoreToLifeDays(curr.score || 70);
+      }, 0);
+    }
+    if (todayActivityLogs) {
+      todayLifeChangeDays += todayActivityLogs.reduce(
+        (acc, log) => acc + (log.life_change_days || 0),
+        0
+      );
+    }
 
-    let todayLifeChangeHours = 0;
+    // 3. 초기 기대수명 계산 (나이/성별/질병 기반)
+    const initialLifeExpectancy = this.calculateInitialLifeExpectancy(
+      userProfile?.age,
+      userProfile?.gender,
+      userProfile?.diseases
+    );
 
-    (todayRecords || []).forEach((record) => {
-      const date = new Date(record.created_at);
-      const hour = date.getHours();
-      let period = "snack";
+    // 4. 현재 기대수명 계산 (초기 + 수명변화를 년도로 변환)
+    const lifeChangeYears = totalLifeChangeDays / 365;
+    const currentLifeExpectancy = Number(
+      (initialLifeExpectancy + lifeChangeYears).toFixed(1)
+    );
 
-      if (hour >= 5 && hour < 11) period = "morning";
-      else if (hour >= 11 && hour < 16) period = "lunch";
-      else if (hour >= 16 && hour < 22) period = "dinner";
-      else period = "snack";
+    // 5. 위트 문구 조회
+    const { data: lifeMessage } = await client
+      .from("life_messages")
+      .select("message, emoji")
+      .lte("min_life_expectancy", Math.floor(currentLifeExpectancy))
+      .gte("max_life_expectancy", Math.floor(currentLifeExpectancy))
+      .limit(1)
+      .single();
 
-      const safeScore = record.score || 70;
-      const lifeChange = (safeScore - 70) * 0.1;
-      todayLifeChangeHours += lifeChange;
+    const wittyMessage = lifeMessage
+      ? `${lifeMessage.emoji || ""} ${lifeMessage.message}`
+      : "🍽️ 오늘도 건강한 식사를 시작해보세요!";
 
-      timeline[period].push({
-        id: record.id,
-        foodName: record.food_name,
-        score: safeScore,
-        time: date.toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        lifeChange: lifeChange,
-        imageUrl: record.image_path,
-      });
-    });
+    // 6. 활동 히스토리 조회 (최근 100건, 일자별 그룹화)
+    const historyList = [];
 
-    // 4. 월별 히스토리 조회 (최근 3개월)
-    const { data: historyRecords, error: historyError } = await client
+    // food_records를 활동 형태로 변환
+    const { data: recentFoodRecords } = await client
       .from("food_records")
       .select("id, food_name, score, created_at, image_path")
       .eq("user_id", userId)
-      .gte("created_at", `${threeMonthsAgoStr}T00:00:00`)
-      .order("created_at", { ascending: false });
+      .order("created_at", { ascending: false })
+      .limit(50);
 
-    if (historyError) throw historyError;
+    if (recentFoodRecords) {
+      recentFoodRecords.forEach((record) => {
+        const lifeDays = this.scoreToLifeDays(record.score || 70);
+        historyList.push({
+          id: record.id,
+          type: "food_analysis",
+          name: record.food_name,
+          lifeChangeDays: lifeDays,
+          createdAt: record.created_at,
+          referenceId: record.id,
+          imageUrl: record.image_path,
+        });
+      });
+    }
 
-    // 월별/일별로 그룹화
-    const monthlyHistory = {};
-    (historyRecords || []).forEach((record) => {
-      const date = new Date(record.created_at);
-      const monthKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, "0")}`;
-      const dayKey = `${date.getFullYear()}-${String(
-        date.getMonth() + 1
-      ).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+    // activity_logs 추가
+    if (activityLogs) {
+      activityLogs.slice(0, 50).forEach((log) => {
+        historyList.push({
+          id: log.id,
+          type: log.activity_type,
+          name:
+            log.reference_name || this.getActivityTypeName(log.activity_type),
+          lifeChangeDays: log.life_change_days,
+          createdAt: log.created_at,
+          referenceId: log.reference_id,
+        });
+      });
+    }
 
-      if (!monthlyHistory[monthKey]) {
-        monthlyHistory[monthKey] = {
-          month: monthKey,
-          days: {},
-          totalLifeChange: 0,
-          recordCount: 0,
-        };
-      }
+    // 시간순 정렬
+    historyList.sort(
+      (a, b) =>
+        new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime()
+    );
 
-      if (!monthlyHistory[monthKey].days[dayKey]) {
-        monthlyHistory[monthKey].days[dayKey] = {
-          date: dayKey,
-          records: [],
-          dailyLifeChange: 0,
-        };
-      }
-
-      const safeScore = record.score || 70;
-      const lifeChange = (safeScore - 70) * 0.1;
-
-      monthlyHistory[monthKey].days[dayKey].records.push({
-        id: record.id,
-        foodName: record.food_name,
-        score: safeScore,
-        lifeChange: lifeChange,
-        time: date.toLocaleTimeString("ko-KR", {
-          hour: "2-digit",
-          minute: "2-digit",
-        }),
-        imageUrl: record.image_path,
+    // 일자별 그룹화
+    const groupedHistory = {};
+    historyList.slice(0, 100).forEach((item) => {
+      const date = new Date(item.createdAt);
+      const dateKey = date.toISOString().split("T")[0];
+      const timeStr = date.toLocaleTimeString("ko-KR", {
+        hour: "2-digit",
+        minute: "2-digit",
       });
 
-      monthlyHistory[monthKey].days[dayKey].dailyLifeChange += lifeChange;
-      monthlyHistory[monthKey].totalLifeChange += lifeChange;
-      monthlyHistory[monthKey].recordCount++;
+      if (!groupedHistory[dateKey]) {
+        groupedHistory[dateKey] = {
+          date: dateKey,
+          items: [],
+          dailyTotal: 0,
+        };
+      }
+
+      groupedHistory[dateKey].items.push({
+        ...item,
+        time: timeStr,
+      });
+      groupedHistory[dateKey].dailyTotal += item.lifeChangeDays;
     });
 
-    // 초기 기대수명 (기본값: 80년, 추후 프로필 기반 계산 가능)
-    const initialLifeExpectancy = 80;
-
     return {
-      weeklyLifeChangeHours: Number(weeklyLifeChangeHours.toFixed(1)),
-      totalLifeChangeHours: Number(totalLifeChangeHours.toFixed(1)),
-      todayLifeChangeHours: Number(todayLifeChangeHours.toFixed(1)),
+      totalLifeChangeDays: Number(totalLifeChangeDays.toFixed(1)),
+      todayLifeChangeDays: Number(todayLifeChangeDays.toFixed(1)),
       initialLifeExpectancy,
-      timeline,
-      monthlyHistory,
+      currentLifeExpectancy,
+      wittyMessage,
+      historyList: Object.values(groupedHistory).slice(0, 30), // 최근 30일
     };
+  }
+
+  /**
+   * 점수를 수명 일수로 변환 (프론트엔드 lifeScoreUtils와 동일 로직)
+   */
+  private scoreToLifeDays(score: number): number {
+    if (score >= 95) return Math.round(70 + ((score - 95) / 5) * 30);
+    if (score >= 85) return Math.round(40 + ((score - 85) / 9) * 29);
+    if (score >= 75) return Math.round(15 + ((score - 75) / 9) * 24);
+    if (score >= 65) return Math.round(1 + ((score - 65) / 9) * 13);
+    if (score >= 50) return -Math.round(1 + ((64 - score) / 14) * 13);
+    if (score >= 35) return -Math.round(15 + ((49 - score) / 14) * 24);
+    if (score >= 20) return -Math.round(40 + ((34 - score) / 14) * 29);
+    return -Math.round(70 + ((19 - score) / 19) * 30);
+  }
+
+  /**
+   * 초기 기대수명 계산 (나이/성별/질병 기반)
+   */
+  private calculateInitialLifeExpectancy(
+    age?: number,
+    gender?: string,
+    diseases?: string[]
+  ): number {
+    // 기본값 (한국 평균 기대수명)
+    let baseExpectancy = gender === "female" ? 86.5 : 80.5;
+
+    // 질병별 보정
+    const diseaseDeductions: { [key: string]: number } = {
+      당뇨: 5,
+      당뇨병: 5,
+      고혈압: 3,
+      암: 10,
+      심장질환: 8,
+      심혈관질환: 8,
+      뇌졸중: 7,
+      폐질환: 6,
+      간질환: 5,
+      신장질환: 5,
+      비만: 4,
+      고지혈증: 2,
+    };
+
+    if (diseases && diseases.length > 0) {
+      diseases.forEach((disease) => {
+        const deduction = diseaseDeductions[disease] || 2; // 기타 질병은 2년 차감
+        baseExpectancy -= deduction;
+      });
+    }
+
+    // 현재 나이 보정 (70세 이상인 경우)
+    if (age && age > 70) {
+      baseExpectancy = Math.max(baseExpectancy, age + 10);
+    }
+
+    return Math.round(baseExpectancy * 10) / 10;
+  }
+
+  /**
+   * 활동 타입 이름 반환
+   */
+  private getActivityTypeName(type: string): string {
+    const typeNames: { [key: string]: string } = {
+      detailed_view: "상세분석 보기",
+      medicine_analysis: "약물 상호작용 분석",
+      recommendation_view: "오늘의 추천 보기",
+      food_analysis: "음식 분석",
+    };
+    return typeNames[type] || type;
+  }
+
+  /**
+   * 활동 로그 기록 (보너스 포인트 포함)
+   */
+  async logActivity(
+    userId: string,
+    activityType: string,
+    referenceId?: string,
+    referenceName?: string,
+    lifeChangeDays?: number
+  ) {
+    const client = this.supabaseService.getClient();
+
+    // 활동별 기본 보너스 설정
+    const defaultBonuses: { [key: string]: number } = {
+      detailed_view: 20,
+      medicine_analysis: 20,
+      recommendation_view: 10,
+    };
+
+    const bonus = lifeChangeDays ?? defaultBonuses[activityType] ?? 0;
+
+    const { data, error } = await client
+      .from("activity_logs")
+      .insert({
+        user_id: userId,
+        activity_type: activityType,
+        reference_id: referenceId || null,
+        reference_name: referenceName || null,
+        life_change_days: bonus,
+      })
+      .select()
+      .single();
+
+    if (error) {
+      console.error("[StatsService] Failed to log activity:", error);
+      throw error;
+    }
+
+    return data;
   }
 
   /**

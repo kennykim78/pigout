@@ -3,7 +3,7 @@
 .my-status {
   padding: 80px 20px 100px;
   min-height: 100vh;
-  background-color: #fff;
+  background-color: #f8f9fa;
   color: #000;
 
   &.loading,
@@ -16,38 +16,39 @@
     color: #888;
   }
 
-  // 1. Header
+  // Header
   .status-header {
-    margin-bottom: 40px;
+    margin-bottom: 24px;
 
     h1 {
       font-size: 28px;
       font-weight: 700;
-      margin-bottom: 24px;
+      margin-bottom: 20px;
     }
 
-    .lifespan-card {
-      background: #000;
+    .life-card {
+      background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
       color: #fff;
-      border-radius: 20px;
-      padding: 30px 24px;
-      box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+      border-radius: 24px;
+      padding: 28px 24px;
+      box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 
-      .lifespan-main {
+      .life-main {
         text-align: center;
         margin-bottom: 24px;
-        padding-bottom: 24px;
-        border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+        padding-bottom: 20px;
+        border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 
-        .label {
+        .life-label {
           display: block;
-          font-size: 14px;
+          font-size: 13px;
           opacity: 0.7;
           margin-bottom: 8px;
+          letter-spacing: 1px;
         }
 
-        .value {
-          font-size: 48px;
+        .life-value {
+          font-size: 52px;
           font-weight: 800;
           line-height: 1;
 
@@ -57,294 +58,168 @@
           &.negative {
             color: #f87171;
           }
-          &.neutral {
-            color: #fff;
-          }
         }
       }
 
-      .lifespan-sub {
+      .life-metrics {
         display: flex;
         justify-content: space-between;
         align-items: center;
+        margin-bottom: 20px;
 
-        .sub-item {
-          display: flex;
-          flex-direction: column;
-          gap: 4px;
+        .metric-item {
+          flex: 1;
+          text-align: center;
 
-          .sub-label {
+          .metric-label {
+            display: block;
             font-size: 11px;
             opacity: 0.6;
+            margin-bottom: 6px;
           }
 
-          .sub-value {
-            font-size: 14px;
-            font-weight: 600;
+          .metric-value {
+            font-size: 18px;
+            font-weight: 700;
 
-            &.positive {
+            &.up {
               color: #4ade80;
             }
-            &.negative {
+            &.down {
               color: #f87171;
             }
           }
         }
+
+        .metric-divider {
+          width: 1px;
+          height: 36px;
+          background: rgba(255, 255, 255, 0.15);
+        }
       }
-    }
 
-    .history-actions {
-      margin-top: 20px;
-      text-align: center;
-
-      .history-btn {
-        background: #f5f5f5;
-        border: none;
-        padding: 12px 20px;
-        border-radius: 12px;
+      .witty-message {
+        text-align: center;
         font-size: 14px;
-        font-weight: 600;
-        color: #333;
-        cursor: pointer;
-        transition: background 0.2s;
-
-        &:hover {
-          background: #eee;
-        }
-      }
-    }
-  }
-
-  // 2. Timeline
-  .timeline-section {
-    margin-bottom: 40px;
-
-    h2 {
-      font-size: 20px;
-      font-weight: 700;
-      margin-bottom: 20px;
-    }
-
-    .timeline-container {
-      position: relative;
-      padding-left: 12px;
-
-      &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        bottom: 0;
-        left: 0;
-        width: 2px;
-        background: #f0f0f0;
-        border-radius: 2px;
-      }
-    }
-
-    .empty-today {
-      text-align: center;
-      padding: 40px 20px;
-      color: #999;
-      font-size: 14px;
-    }
-
-    .timeline-group {
-      margin-bottom: 30px;
-
-      .period-label {
-        font-size: 12px;
-        font-weight: 700;
-        color: #888;
-        margin-bottom: 12px;
-        padding-left: 16px;
-        text-transform: uppercase;
-        position: relative;
-
-        &::before {
-          content: "";
-          position: absolute;
-          left: -16px;
-          top: 50%;
-          transform: translateY(-50%);
-          width: 8px;
-          height: 8px;
-          background: #000;
-          border-radius: 50%;
-          border: 2px solid #fff;
-        }
-      }
-
-      .records-list {
-        display: flex;
-        flex-direction: column;
-        gap: 12px;
-        padding-left: 16px;
-      }
-
-      .record-item {
-        background: #fff;
-        border: 1px solid #eee;
+        padding: 12px 16px;
+        background: rgba(255, 255, 255, 0.08);
         border-radius: 12px;
-        padding: 16px;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        cursor: pointer;
-        transition: background 0.2s;
-
-        &:active {
-          background: #f9f9f9;
-        }
-
-        .time-badge {
-          font-size: 12px;
-          color: #888;
-          font-variant-numeric: tabular-nums;
-        }
-
-        .record-info {
-          flex: 1;
-          display: flex;
-          justify-content: space-between;
-          align-items: center;
-
-          .food-name {
-            font-size: 16px;
-            font-weight: 600;
-          }
-
-          .life-change {
-            font-size: 14px;
-            font-weight: 700;
-
-            &.pos {
-              color: #16a34a;
-            }
-            &.neg {
-              color: #dc2626;
-            }
-          }
-        }
-
-        .arrow {
-          color: #ccc;
-          font-size: 18px;
-        }
+        color: rgba(255, 255, 255, 0.9);
+        line-height: 1.5;
       }
     }
   }
 
-  // 3. Monthly History Section
-  .monthly-history-section {
+  // History Section
+  .history-section {
     h2 {
       font-size: 20px;
       font-weight: 700;
-      margin-bottom: 20px;
+      margin-bottom: 16px;
+      color: #333;
     }
 
-    .month-selector {
+    .history-list {
       display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      overflow-x: auto;
-      padding-bottom: 8px;
-
-      &::-webkit-scrollbar {
-        height: 4px;
-      }
-
-      &::-webkit-scrollbar-thumb {
-        background: #ddd;
-        border-radius: 2px;
-      }
-
-      .month-btn {
-        flex-shrink: 0;
-        background: #f5f5f5;
-        border: none;
-        padding: 10px 16px;
-        border-radius: 20px;
-        font-size: 13px;
-        font-weight: 600;
-        color: #666;
-        cursor: pointer;
-        transition: all 0.2s;
-
-        &.active {
-          background: #000;
-          color: #fff;
-        }
-
-        &:hover:not(.active) {
-          background: #eee;
-        }
-      }
+      flex-direction: column;
+      gap: 16px;
     }
 
-    .month-content {
-      .month-summary {
-        background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-        border-radius: 16px;
-        padding: 20px;
-        color: #fff;
-        display: flex;
-        align-items: center;
-        gap: 12px;
-        margin-bottom: 20px;
+    .day-group {
+      background: #fff;
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 
-        .summary-label {
-          font-size: 13px;
-          opacity: 0.8;
+      .day-header {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        padding: 14px 20px;
+        background: #f8f9fa;
+        border-bottom: 1px solid #eee;
+
+        .day-date {
+          font-size: 14px;
+          font-weight: 700;
+          color: #333;
         }
 
-        .summary-value {
-          font-size: 24px;
-          font-weight: 800;
+        .day-total {
+          font-size: 14px;
+          font-weight: 700;
 
           &.positive {
-            color: #4ade80;
+            color: #16a34a;
           }
           &.negative {
-            color: #f87171;
+            color: #dc2626;
           }
         }
-
-        .summary-count {
-          font-size: 12px;
-          opacity: 0.7;
-          margin-left: auto;
-        }
       }
 
-      .days-list {
-        display: flex;
-        flex-direction: column;
-        gap: 16px;
-      }
-
-      .day-group {
-        background: #fff;
-        border: 1px solid #eee;
-        border-radius: 16px;
-        overflow: hidden;
-
-        .day-header {
+      .day-items {
+        .history-item {
           display: flex;
-          justify-content: space-between;
           align-items: center;
-          padding: 14px 16px;
-          background: #fafafa;
-          border-bottom: 1px solid #eee;
+          gap: 12px;
+          padding: 14px 20px;
+          border-bottom: 1px solid #f0f0f0;
+          transition: background 0.2s;
 
-          .day-label {
-            font-size: 14px;
-            font-weight: 700;
-            color: #333;
+          &:last-child {
+            border-bottom: none;
           }
 
-          .day-change {
-            font-size: 13px;
+          &.clickable {
+            cursor: pointer;
+
+            &:hover {
+              background: #f9f9f9;
+            }
+            &:active {
+              background: #f0f0f0;
+            }
+          }
+
+          .item-icon {
+            font-size: 20px;
+            width: 32px;
+            text-align: center;
+          }
+
+          .item-info {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+
+            .item-time {
+              font-size: 11px;
+              color: #999;
+            }
+
+            .item-name {
+              font-size: 15px;
+              font-weight: 600;
+              color: #333;
+            }
+
+            .item-type {
+              font-size: 11px;
+              color: #666;
+              background: #f0f0f0;
+              padding: 2px 6px;
+              border-radius: 4px;
+              width: fit-content;
+            }
+          }
+
+          .item-change {
+            font-size: 15px;
             font-weight: 700;
+            min-width: 50px;
+            text-align: right;
 
             &.positive {
               color: #16a34a;
@@ -353,51 +228,32 @@
               color: #dc2626;
             }
           }
-        }
 
-        .day-records {
-          .day-record-item {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-            padding: 12px 16px;
-            border-bottom: 1px solid #f0f0f0;
-            cursor: pointer;
-            transition: background 0.2s;
-
-            &:last-child {
-              border-bottom: none;
-            }
-
-            &:active {
-              background: #f9f9f9;
-            }
-
-            .record-time {
-              font-size: 12px;
-              color: #999;
-              width: 50px;
-            }
-
-            .record-name {
-              flex: 1;
-              font-size: 14px;
-              font-weight: 500;
-            }
-
-            .record-change {
-              font-size: 13px;
-              font-weight: 600;
-
-              &.pos {
-                color: #16a34a;
-              }
-              &.neg {
-                color: #dc2626;
-              }
-            }
+          .item-arrow {
+            color: #ccc;
+            font-size: 20px;
+            margin-left: 4px;
           }
         }
+      }
+    }
+
+    .empty-history {
+      text-align: center;
+      padding: 60px 20px;
+      background: #fff;
+      border-radius: 16px;
+
+      p {
+        font-size: 16px;
+        color: #666;
+        margin: 0;
+      }
+
+      .empty-hint {
+        margin-top: 8px;
+        font-size: 13px;
+        color: #999;
       }
     }
   }

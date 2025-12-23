@@ -1,13 +1,13 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { getMyStatus } from "../services/api";
+import { getUserProfile, getSelectedDiseases } from "../utils/deviceId";
 import "./MyStatus.scss";
 
 const MyStatus = () => {
   const navigate = useNavigate();
   const [statusData, setStatusData] = useState(null);
   const [loading, setLoading] = useState(true);
-  const [selectedMonth, setSelectedMonth] = useState(null);
 
   useEffect(() => {
     loadStatus();
@@ -16,16 +16,19 @@ const MyStatus = () => {
   const loadStatus = async () => {
     try {
       setLoading(true);
-      const data = await getMyStatus();
-      setStatusData(data);
 
-      // 월별 히스토리에서 첫 번째 월 선택
-      if (data.monthlyHistory) {
-        const months = Object.keys(data.monthlyHistory).sort().reverse();
-        if (months.length > 0) {
-          setSelectedMonth(months[0]);
-        }
-      }
+      // 프로필 정보 가져오기
+      const profile = getUserProfile();
+      const diseases = getSelectedDiseases();
+
+      const userProfile = {
+        age: profile?.age,
+        gender: profile?.gender,
+        diseases: diseases,
+      };
+
+      const data = await getMyStatus(userProfile);
+      setStatusData(data);
     } catch (error) {
       console.error("Failed to load status:", error);
     } finally {
@@ -33,39 +36,52 @@ const MyStatus = () => {
     }
   };
 
-  const handleRecordClick = (record) => {
-    navigate("/result01", {
-      state: {
-        foodName: record.foodName,
-        score: record.score,
-        analysisId: record.id,
-        imageUrl: record.imageUrl,
-        fromHistory: true,
-      },
-    });
+  const handleHistoryItemClick = (item) => {
+    if (item.type === "food_analysis") {
+      // 음식 분석 클릭 시 Result01로 이동
+      navigate("/result01", {
+        state: {
+          foodName: item.name,
+          analysisId: item.referenceId,
+          imageUrl: item.imageUrl,
+          fromHistory: true,
+        },
+      });
+    }
   };
 
-  // Helper to colorize lifespan change
-  const getChangeClass = (val) => {
-    if (val > 0) return "positive";
-    if (val < 0) return "negative";
-    return "neutral";
+  const getActivityIcon = (type) => {
+    const icons = {
+      food_analysis: "🍽️",
+      detailed_view: "🔍",
+      medicine_analysis: "💊",
+      recommendation_view: "💡",
+    };
+    return icons[type] || "📊";
   };
 
-  const getChangeText = (val) => {
-    const absVal = Math.abs(val);
-    const sign = val > 0 ? "+" : val < 0 ? "-" : "";
-    return `${sign}${absVal}시간`;
+  const getActivityLabel = (type) => {
+    const labels = {
+      food_analysis: "음식 분석",
+      detailed_view: "상세분석",
+      medicine_analysis: "약물 상호작용",
+      recommendation_view: "오늘의 추천",
+    };
+    return labels[type] || type;
   };
 
-  const formatMonthLabel = (monthKey) => {
-    const [year, month] = monthKey.split("-");
-    return `${year}년 ${parseInt(month)}월`;
-  };
+  const formatDate = (dateStr) => {
+    const date = new Date(dateStr);
+    const today = new Date();
+    const yesterday = new Date(today);
+    yesterday.setDate(yesterday.getDate() - 1);
 
-  const formatDayLabel = (dayKey) => {
-    const parts = dayKey.split("-");
-    return `${parseInt(parts[1])}월 ${parseInt(parts[2])}일`;
+    if (dateStr === today.toISOString().split("T")[0]) return "오늘";
+    if (dateStr === yesterday.toISOString().split("T")[0]) return "어제";
+
+    const month = date.getMonth() + 1;
+    const day = date.getDate();
+    return `${month}월 ${day}일`;
   };
 
   if (loading) return <div className="my-status loading">로딩 중...</div>;
@@ -73,214 +89,137 @@ const MyStatus = () => {
     return <div className="my-status error">데이터를 불러올 수 없습니다.</div>;
 
   const {
-    weeklyLifeChangeHours,
-    todayLifeChangeHours,
+    totalLifeChangeDays,
+    todayLifeChangeDays,
     initialLifeExpectancy,
-    timeline,
-    monthlyHistory,
+    currentLifeExpectancy,
+    wittyMessage,
+    historyList,
   } = statusData;
-
-  const months = monthlyHistory
-    ? Object.keys(monthlyHistory).sort().reverse()
-    : [];
 
   return (
     <div className="my-status">
-      {/* 1. Header: Lifespan Stats */}
+      {/* 1. Header: Main Life Stats Card */}
       <header className="status-header">
         <h1>내 상태</h1>
-        <div className="lifespan-card">
-          <div className="lifespan-main">
-            <span className="label">최근 1주일 수명 변화</span>
-            <div className={`value ${getChangeClass(weeklyLifeChangeHours)}`}>
-              {getChangeText(weeklyLifeChangeHours)}
+
+        <div className="life-card">
+          {/* 총 수명변화 (메인) */}
+          <div className="life-main">
+            <span className="life-label">총 수명 변화</span>
+            <div
+              className={`life-value ${
+                totalLifeChangeDays >= 0 ? "positive" : "negative"
+              }`}
+            >
+              {totalLifeChangeDays > 0 ? "+" : ""}
+              {totalLifeChangeDays}일
             </div>
           </div>
 
-          <div className="lifespan-sub">
-            <div className="sub-item">
-              <span className="sub-label">초기 기대수명</span>
-              <span className="sub-value">{initialLifeExpectancy}년</span>
+          {/* 3개 지표 */}
+          <div className="life-metrics">
+            <div className="metric-item">
+              <span className="metric-label">초기 기대수명</span>
+              <span className="metric-value">{initialLifeExpectancy}세</span>
             </div>
-            <div className="sub-item">
-              <span className="sub-label">오늘 변화</span>
+            <div className="metric-divider"></div>
+            <div className="metric-item">
+              <span className="metric-label">현재 기대수명</span>
               <span
-                className={`sub-value ${getChangeClass(todayLifeChangeHours)}`}
+                className={`metric-value ${
+                  currentLifeExpectancy >= initialLifeExpectancy ? "up" : "down"
+                }`}
               >
-                {getChangeText(todayLifeChangeHours)}
+                {currentLifeExpectancy}세
+              </span>
+            </div>
+            <div className="metric-divider"></div>
+            <div className="metric-item">
+              <span className="metric-label">오늘 변화</span>
+              <span
+                className={`metric-value ${
+                  todayLifeChangeDays >= 0 ? "up" : "down"
+                }`}
+              >
+                {todayLifeChangeDays > 0 ? "+" : ""}
+                {todayLifeChangeDays}일
               </span>
             </div>
           </div>
-        </div>
 
-        {/* History Button */}
-        <div className="history-actions">
-          <button className="history-btn" onClick={() => navigate("/history")}>
-            📅 히스토리 보기
-          </button>
+          {/* 위트 문구 */}
+          <div className="witty-message">{wittyMessage}</div>
         </div>
       </header>
 
-      {/* 2. Today Timeline */}
-      <div className="timeline-section">
-        <h2>오늘의 기록</h2>
+      {/* 2. History List */}
+      <section className="history-section">
+        <h2>활동 히스토리</h2>
 
-        <div className="timeline-container">
-          {/* Morning */}
-          <TimelineGroup
-            period="아침"
-            records={timeline.morning}
-            onItemClick={handleRecordClick}
-          />
-          {/* Lunch */}
-          <TimelineGroup
-            period="점심"
-            records={timeline.lunch}
-            onItemClick={handleRecordClick}
-          />
-          {/* Dinner */}
-          <TimelineGroup
-            period="저녁"
-            records={timeline.dinner}
-            onItemClick={handleRecordClick}
-          />
-          {/* Snack */}
-          <TimelineGroup
-            period="간식/야식"
-            records={timeline.snack}
-            onItemClick={handleRecordClick}
-          />
-          {!timeline.morning?.length &&
-            !timeline.lunch?.length &&
-            !timeline.dinner?.length &&
-            !timeline.snack?.length && (
-              <div className="empty-today">
-                <p>오늘 기록이 없습니다</p>
-              </div>
-            )}
-        </div>
-      </div>
+        <div className="history-list">
+          {historyList && historyList.length > 0 ? (
+            historyList.map((dayGroup, idx) => (
+              <div key={idx} className="day-group">
+                <div className="day-header">
+                  <span className="day-date">{formatDate(dayGroup.date)}</span>
+                  <span
+                    className={`day-total ${
+                      dayGroup.dailyTotal >= 0 ? "positive" : "negative"
+                    }`}
+                  >
+                    {dayGroup.dailyTotal > 0 ? "+" : ""}
+                    {dayGroup.dailyTotal.toFixed(0)}일
+                  </span>
+                </div>
 
-      {/* 3. Monthly History */}
-      {months.length > 0 && (
-        <div className="monthly-history-section">
-          <h2>월별 히스토리</h2>
-
-          {/* Month Selector */}
-          <div className="month-selector">
-            {months.map((month) => (
-              <button
-                key={month}
-                className={`month-btn ${
-                  selectedMonth === month ? "active" : ""
-                }`}
-                onClick={() => setSelectedMonth(month)}
-              >
-                {formatMonthLabel(month)}
-              </button>
-            ))}
-          </div>
-
-          {/* Selected Month Data */}
-          {selectedMonth && monthlyHistory[selectedMonth] && (
-            <div className="month-content">
-              <div className="month-summary">
-                <span className="summary-label">월간 수명 변화</span>
-                <span
-                  className={`summary-value ${getChangeClass(
-                    monthlyHistory[selectedMonth].totalLifeChange
-                  )}`}
-                >
-                  {getChangeText(monthlyHistory[selectedMonth].totalLifeChange)}
-                </span>
-                <span className="summary-count">
-                  ({monthlyHistory[selectedMonth].recordCount}개 기록)
-                </span>
-              </div>
-
-              <div className="days-list">
-                {Object.keys(monthlyHistory[selectedMonth].days)
-                  .sort()
-                  .reverse()
-                  .map((dayKey) => {
-                    const dayData = monthlyHistory[selectedMonth].days[dayKey];
-                    return (
-                      <div key={dayKey} className="day-group">
-                        <div className="day-header">
-                          <span className="day-label">
-                            {formatDayLabel(dayKey)}
+                <div className="day-items">
+                  {dayGroup.items.map((item, itemIdx) => (
+                    <div
+                      key={itemIdx}
+                      className={`history-item ${
+                        item.type === "food_analysis" ? "clickable" : ""
+                      }`}
+                      onClick={() => handleHistoryItemClick(item)}
+                    >
+                      <span className="item-icon">
+                        {getActivityIcon(item.type)}
+                      </span>
+                      <div className="item-info">
+                        <span className="item-time">{item.time}</span>
+                        <span className="item-name">{item.name}</span>
+                        {item.type !== "food_analysis" && (
+                          <span className="item-type">
+                            {getActivityLabel(item.type)}
                           </span>
-                          <span
-                            className={`day-change ${getChangeClass(
-                              dayData.dailyLifeChange
-                            )}`}
-                          >
-                            {getChangeText(dayData.dailyLifeChange)}
-                          </span>
-                        </div>
-                        <div className="day-records">
-                          {dayData.records.map((record) => (
-                            <div
-                              key={record.id}
-                              className="day-record-item"
-                              onClick={() => handleRecordClick(record)}
-                            >
-                              <span className="record-time">{record.time}</span>
-                              <span className="record-name">
-                                {record.foodName}
-                              </span>
-                              <span
-                                className={`record-change ${
-                                  record.lifeChange >= 0 ? "pos" : "neg"
-                                }`}
-                              >
-                                {record.lifeChange > 0 ? "+" : ""}
-                                {record.lifeChange.toFixed(1)}h
-                              </span>
-                            </div>
-                          ))}
-                        </div>
+                        )}
                       </div>
-                    );
-                  })}
+                      <span
+                        className={`item-change ${
+                          item.lifeChangeDays >= 0 ? "positive" : "negative"
+                        }`}
+                      >
+                        {item.lifeChangeDays > 0 ? "+" : ""}
+                        {item.lifeChangeDays}일
+                      </span>
+                      {item.type === "food_analysis" && (
+                        <span className="item-arrow">›</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
               </div>
+            ))
+          ) : (
+            <div className="empty-history">
+              <p>아직 기록이 없습니다</p>
+              <p className="empty-hint">
+                음식을 분석하면 여기에 기록이 표시됩니다
+              </p>
             </div>
           )}
         </div>
-      )}
-    </div>
-  );
-};
-
-const TimelineGroup = ({ period, records, onItemClick }) => {
-  if (!records || records.length === 0) return null;
-
-  return (
-    <div className="timeline-group">
-      <div className="period-label">{period}</div>
-      <div className="records-list">
-        {records.map((record) => (
-          <div
-            key={record.id}
-            className="record-item"
-            onClick={() => onItemClick(record)}
-          >
-            <div className="time-badge">{record.time}</div>
-            <div className="record-info">
-              <span className="food-name">{record.foodName}</span>
-              <span
-                className={`life-change ${
-                  record.lifeChange >= 0 ? "pos" : "neg"
-                }`}
-              >
-                {record.lifeChange > 0 ? "+" : ""}
-                {record.lifeChange.toFixed(1)}h
-              </span>
-            </div>
-            <div className="arrow">›</div>
-          </div>
-        ))}
-      </div>
+      </section>
     </div>
   );
 };

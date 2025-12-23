@@ -512,8 +512,34 @@ export const getMonthlyReport = async (year: number, month: number) => {
 };
 
 // [NEW] 내 상태 (My Status) 조회
-export const getMyStatus = async () => {
-  const response = await apiClient.get("/stats/my-status");
+export const getMyStatus = async (userProfile?: {
+  age?: number;
+  gender?: string;
+  diseases?: string[];
+}) => {
+  const params: any = {};
+  if (userProfile?.age) params.age = userProfile.age;
+  if (userProfile?.gender) params.gender = userProfile.gender;
+  if (userProfile?.diseases)
+    params.diseases = JSON.stringify(userProfile.diseases);
+
+  const response = await apiClient.get("/stats/my-status", { params });
+  return response.data;
+};
+
+// [NEW] 활동 로그 기록 (보너스 포인트)
+export const logActivity = async (
+  activityType: string,
+  referenceId?: string,
+  referenceName?: string,
+  lifeChangeDays?: number
+) => {
+  const response = await apiClient.post("/stats/log-activity", {
+    activityType,
+    referenceId,
+    referenceName,
+    lifeChangeDays,
+  });
   return response.data;
 };
 

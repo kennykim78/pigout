@@ -37,7 +37,7 @@
 .my-status {
   padding: 80px 20px 100px;
   min-height: 100vh;
-  background-color: #fff;
+  background-color: #f8f9fa;
   color: #000;
 }
 .my-status.loading, .my-status.error {
@@ -49,322 +49,203 @@
   color: #888;
 }
 .my-status .status-header {
-  margin-bottom: 40px;
+  margin-bottom: 24px;
 }
 .my-status .status-header h1 {
   font-size: 28px;
   font-weight: 700;
-  margin-bottom: 24px;
+  margin-bottom: 20px;
 }
-.my-status .status-header .lifespan-card {
-  background: #000;
+.my-status .status-header .life-card {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
   color: #fff;
-  border-radius: 20px;
-  padding: 30px 24px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.15);
+  border-radius: 24px;
+  padding: 28px 24px;
+  box-shadow: 0 12px 40px rgba(0, 0, 0, 0.2);
 }
-.my-status .status-header .lifespan-card .lifespan-main {
+.my-status .status-header .life-card .life-main {
   text-align: center;
   margin-bottom: 24px;
-  padding-bottom: 24px;
-  border-bottom: 1px solid rgba(255, 255, 255, 0.15);
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
 }
-.my-status .status-header .lifespan-card .lifespan-main .label {
+.my-status .status-header .life-card .life-main .life-label {
   display: block;
-  font-size: 14px;
+  font-size: 13px;
   opacity: 0.7;
   margin-bottom: 8px;
+  letter-spacing: 1px;
 }
-.my-status .status-header .lifespan-card .lifespan-main .value {
-  font-size: 48px;
+.my-status .status-header .life-card .life-main .life-value {
+  font-size: 52px;
   font-weight: 800;
   line-height: 1;
 }
-.my-status .status-header .lifespan-card .lifespan-main .value.positive {
+.my-status .status-header .life-card .life-main .life-value.positive {
   color: #4ade80;
 }
-.my-status .status-header .lifespan-card .lifespan-main .value.negative {
+.my-status .status-header .life-card .life-main .life-value.negative {
   color: #f87171;
 }
-.my-status .status-header .lifespan-card .lifespan-main .value.neutral {
-  color: #fff;
-}
-.my-status .status-header .lifespan-card .lifespan-sub {
+.my-status .status-header .life-card .life-metrics {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  margin-bottom: 20px;
 }
-.my-status .status-header .lifespan-card .lifespan-sub .sub-item {
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
+.my-status .status-header .life-card .life-metrics .metric-item {
+  flex: 1;
+  text-align: center;
 }
-.my-status .status-header .lifespan-card .lifespan-sub .sub-item .sub-label {
+.my-status .status-header .life-card .life-metrics .metric-item .metric-label {
+  display: block;
   font-size: 11px;
   opacity: 0.6;
+  margin-bottom: 6px;
 }
-.my-status .status-header .lifespan-card .lifespan-sub .sub-item .sub-value {
-  font-size: 14px;
-  font-weight: 600;
-}
-.my-status .status-header .lifespan-card .lifespan-sub .sub-item .sub-value.positive {
-  color: #4ade80;
-}
-.my-status .status-header .lifespan-card .lifespan-sub .sub-item .sub-value.negative {
-  color: #f87171;
-}
-.my-status .status-header .history-actions {
-  margin-top: 20px;
-  text-align: center;
-}
-.my-status .status-header .history-actions .history-btn {
-  background: #f5f5f5;
-  border: none;
-  padding: 12px 20px;
-  border-radius: 12px;
-  font-size: 14px;
-  font-weight: 600;
-  color: #333;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.my-status .status-header .history-actions .history-btn:hover {
-  background: #eee;
-}
-.my-status .timeline-section {
-  margin-bottom: 40px;
-}
-.my-status .timeline-section h2 {
-  font-size: 20px;
-  font-weight: 700;
-  margin-bottom: 20px;
-}
-.my-status .timeline-section .timeline-container {
-  position: relative;
-  padding-left: 12px;
-}
-.my-status .timeline-section .timeline-container::before {
-  content: "";
-  position: absolute;
-  top: 0;
-  bottom: 0;
-  left: 0;
-  width: 2px;
-  background: #f0f0f0;
-  border-radius: 2px;
-}
-.my-status .timeline-section .empty-today {
-  text-align: center;
-  padding: 40px 20px;
-  color: #999;
-  font-size: 14px;
-}
-.my-status .timeline-section .timeline-group {
-  margin-bottom: 30px;
-}
-.my-status .timeline-section .timeline-group .period-label {
-  font-size: 12px;
-  font-weight: 700;
-  color: #888;
-  margin-bottom: 12px;
-  padding-left: 16px;
-  text-transform: uppercase;
-  position: relative;
-}
-.my-status .timeline-section .timeline-group .period-label::before {
-  content: "";
-  position: absolute;
-  left: -16px;
-  top: 50%;
-  transform: translateY(-50%);
-  width: 8px;
-  height: 8px;
-  background: #000;
-  border-radius: 50%;
-  border: 2px solid #fff;
-}
-.my-status .timeline-section .timeline-group .records-list {
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-  padding-left: 16px;
-}
-.my-status .timeline-section .timeline-group .record-item {
-  background: #fff;
-  border: 1px solid #eee;
-  border-radius: 12px;
-  padding: 16px;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-.my-status .timeline-section .timeline-group .record-item:active {
-  background: #f9f9f9;
-}
-.my-status .timeline-section .timeline-group .record-item .time-badge {
-  font-size: 12px;
-  color: #888;
-  font-variant-numeric: tabular-nums;
-}
-.my-status .timeline-section .timeline-group .record-item .record-info {
-  flex: 1;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-.my-status .timeline-section .timeline-group .record-item .record-info .food-name {
-  font-size: 16px;
-  font-weight: 600;
-}
-.my-status .timeline-section .timeline-group .record-item .record-info .life-change {
-  font-size: 14px;
-  font-weight: 700;
-}
-.my-status .timeline-section .timeline-group .record-item .record-info .life-change.pos {
-  color: #16a34a;
-}
-.my-status .timeline-section .timeline-group .record-item .record-info .life-change.neg {
-  color: #dc2626;
-}
-.my-status .timeline-section .timeline-group .record-item .arrow {
-  color: #ccc;
+.my-status .status-header .life-card .life-metrics .metric-item .metric-value {
   font-size: 18px;
-}
-.my-status .monthly-history-section h2 {
-  font-size: 20px;
   font-weight: 700;
-  margin-bottom: 20px;
 }
-.my-status .monthly-history-section .month-selector {
-  display: flex;
-  gap: 8px;
-  margin-bottom: 20px;
-  overflow-x: auto;
-  padding-bottom: 8px;
-}
-.my-status .monthly-history-section .month-selector::-webkit-scrollbar {
-  height: 4px;
-}
-.my-status .monthly-history-section .month-selector::-webkit-scrollbar-thumb {
-  background: #ddd;
-  border-radius: 2px;
-}
-.my-status .monthly-history-section .month-selector .month-btn {
-  flex-shrink: 0;
-  background: #f5f5f5;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 20px;
-  font-size: 13px;
-  font-weight: 600;
-  color: #666;
-  cursor: pointer;
-  transition: all 0.2s;
-}
-.my-status .monthly-history-section .month-selector .month-btn.active {
-  background: #000;
-  color: #fff;
-}
-.my-status .monthly-history-section .month-selector .month-btn:hover:not(.active) {
-  background: #eee;
-}
-.my-status .monthly-history-section .month-content .month-summary {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  border-radius: 16px;
-  padding: 20px;
-  color: #fff;
-  display: flex;
-  align-items: center;
-  gap: 12px;
-  margin-bottom: 20px;
-}
-.my-status .monthly-history-section .month-content .month-summary .summary-label {
-  font-size: 13px;
-  opacity: 0.8;
-}
-.my-status .monthly-history-section .month-content .month-summary .summary-value {
-  font-size: 24px;
-  font-weight: 800;
-}
-.my-status .monthly-history-section .month-content .month-summary .summary-value.positive {
+.my-status .status-header .life-card .life-metrics .metric-item .metric-value.up {
   color: #4ade80;
 }
-.my-status .monthly-history-section .month-content .month-summary .summary-value.negative {
+.my-status .status-header .life-card .life-metrics .metric-item .metric-value.down {
   color: #f87171;
 }
-.my-status .monthly-history-section .month-content .month-summary .summary-count {
-  font-size: 12px;
-  opacity: 0.7;
-  margin-left: auto;
+.my-status .status-header .life-card .life-metrics .metric-divider {
+  width: 1px;
+  height: 36px;
+  background: rgba(255, 255, 255, 0.15);
 }
-.my-status .monthly-history-section .month-content .days-list {
+.my-status .status-header .life-card .witty-message {
+  text-align: center;
+  font-size: 14px;
+  padding: 12px 16px;
+  background: rgba(255, 255, 255, 0.08);
+  border-radius: 12px;
+  color: rgba(255, 255, 255, 0.9);
+  line-height: 1.5;
+}
+.my-status .history-section h2 {
+  font-size: 20px;
+  font-weight: 700;
+  margin-bottom: 16px;
+  color: #333;
+}
+.my-status .history-section .history-list {
   display: flex;
   flex-direction: column;
   gap: 16px;
 }
-.my-status .monthly-history-section .month-content .day-group {
+.my-status .history-section .day-group {
   background: #fff;
-  border: 1px solid #eee;
   border-radius: 16px;
   overflow: hidden;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
 }
-.my-status .monthly-history-section .month-content .day-group .day-header {
+.my-status .history-section .day-group .day-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 14px 16px;
-  background: #fafafa;
+  padding: 14px 20px;
+  background: #f8f9fa;
   border-bottom: 1px solid #eee;
 }
-.my-status .monthly-history-section .month-content .day-group .day-header .day-label {
+.my-status .history-section .day-group .day-header .day-date {
   font-size: 14px;
   font-weight: 700;
   color: #333;
 }
-.my-status .monthly-history-section .month-content .day-group .day-header .day-change {
-  font-size: 13px;
+.my-status .history-section .day-group .day-header .day-total {
+  font-size: 14px;
   font-weight: 700;
 }
-.my-status .monthly-history-section .month-content .day-group .day-header .day-change.positive {
+.my-status .history-section .day-group .day-header .day-total.positive {
   color: #16a34a;
 }
-.my-status .monthly-history-section .month-content .day-group .day-header .day-change.negative {
+.my-status .history-section .day-group .day-header .day-total.negative {
   color: #dc2626;
 }
-.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item {
+.my-status .history-section .day-group .day-items .history-item {
   display: flex;
   align-items: center;
   gap: 12px;
-  padding: 12px 16px;
+  padding: 14px 20px;
   border-bottom: 1px solid #f0f0f0;
-  cursor: pointer;
   transition: background 0.2s;
 }
-.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item:last-child {
+.my-status .history-section .day-group .day-items .history-item:last-child {
   border-bottom: none;
 }
-.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item:active {
+.my-status .history-section .day-group .day-items .history-item.clickable {
+  cursor: pointer;
+}
+.my-status .history-section .day-group .day-items .history-item.clickable:hover {
   background: #f9f9f9;
 }
-.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-time {
-  font-size: 12px;
-  color: #999;
-  width: 50px;
+.my-status .history-section .day-group .day-items .history-item.clickable:active {
+  background: #f0f0f0;
 }
-.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-name {
+.my-status .history-section .day-group .day-items .history-item .item-icon {
+  font-size: 20px;
+  width: 32px;
+  text-align: center;
+}
+.my-status .history-section .day-group .day-items .history-item .item-info {
   flex: 1;
-  font-size: 14px;
-  font-weight: 500;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
 }
-.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-change {
-  font-size: 13px;
+.my-status .history-section .day-group .day-items .history-item .item-info .item-time {
+  font-size: 11px;
+  color: #999;
+}
+.my-status .history-section .day-group .day-items .history-item .item-info .item-name {
+  font-size: 15px;
   font-weight: 600;
+  color: #333;
 }
-.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-change.pos {
+.my-status .history-section .day-group .day-items .history-item .item-info .item-type {
+  font-size: 11px;
+  color: #666;
+  background: #f0f0f0;
+  padding: 2px 6px;
+  border-radius: 4px;
+  width: -moz-fit-content;
+  width: fit-content;
+}
+.my-status .history-section .day-group .day-items .history-item .item-change {
+  font-size: 15px;
+  font-weight: 700;
+  min-width: 50px;
+  text-align: right;
+}
+.my-status .history-section .day-group .day-items .history-item .item-change.positive {
   color: #16a34a;
 }
-.my-status .monthly-history-section .month-content .day-group .day-records .day-record-item .record-change.neg {
+.my-status .history-section .day-group .day-items .history-item .item-change.negative {
   color: #dc2626;
+}
+.my-status .history-section .day-group .day-items .history-item .item-arrow {
+  color: #ccc;
+  font-size: 20px;
+  margin-left: 4px;
+}
+.my-status .history-section .empty-history {
+  text-align: center;
+  padding: 60px 20px;
+  background: #fff;
+  border-radius: 16px;
+}
+.my-status .history-section .empty-history p {
+  font-size: 16px;
+  color: #666;
+  margin: 0;
+}
+.my-status .history-section .empty-history .empty-hint {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #999;
 }/*# sourceMappingURL=MyStatus.css.map */
