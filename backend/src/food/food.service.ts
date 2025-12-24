@@ -1033,9 +1033,51 @@ export class FoodService {
       });
       // ================================================================
 
-      // DB 저장
+      // 🆕 텍스트 분석 시 이미지 생성 (UGC 우선 -> Unsplash fallback)
+      let imageUrl = null;
+      try {
+        console.log("[SimpleAnalyze] 이미지 생성 시도:", normalizedFoodName);
+
+        // 1. 기존 DB에서 동일 음식 이미지 검색
+        const existingImageUrl =
+          await this.supabaseService.findExistingFoodImage(normalizedFoodName);
+
+        if (existingImageUrl) {
+          imageUrl = existingImageUrl;
+          console.log("[SimpleAnalyze] 기존 이미지 재활용:", imageUrl);
+        } else {
+          // 2. Unsplash에서 검색
+          console.log("[SimpleAnalyze] Unsplash 검색 시도");
+          const translated = await this.imageService.translateToEnglish(
+            normalizedFoodName
+          );
+          console.log("[SimpleAnalyze] 번역 결과:", translated);
+
+          const unsplashUrl = await this.imageService.searchUnsplash(
+            `${translated} food`
+          );
+          console.log("[SimpleAnalyze] Unsplash URL:", unsplashUrl);
+
+          if (unsplashUrl) {
+            const safeFileName = `simple_${Date.now()}`;
+            imageUrl = await this.imageService.processAndUploadImage(
+              unsplashUrl,
+              safeFileName
+            );
+            console.log(
+              "[SimpleAnalyze] Unsplash 이미지 업로드 완료:",
+              imageUrl
+            );
+          }
+        }
+      } catch (imgErr) {
+        console.warn("[SimpleAnalyze] 이미지 생성 실패:", imgErr.message);
+      }
+
+      // DB 저장 (imageUrl 포함)
       const result = await this.supabaseService.saveFoodAnalysis({
         foodName: normalizedFoodName, // 🆕 정규화된 음식명으로 저장
+        imageUrl, // 🆕 이미지 URL 추가
         score,
         analysis,
         diseases,
@@ -1048,6 +1090,7 @@ export class FoodService {
       const responseData = {
         id: result[0].id,
         foodName: result[0].food_name,
+        imageUrl: result[0].image_url, // 🆕 이미지 URL 추가
         score: result[0].score,
         analysis: result[0].analysis,
         detailedAnalysis: compressedDetails,
