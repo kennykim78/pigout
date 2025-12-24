@@ -1,6 +1,7 @@
 import { Injectable, Logger } from "@nestjs/common";
 import { SupabaseService } from "../supabase/supabase.service";
 import { GeminiClient } from "../ai/utils/gemini.client";
+import { ImageService } from "../image/image.service";
 import { ConfigService } from "@nestjs/config";
 import * as crypto from "crypto";
 
@@ -12,7 +13,8 @@ export class RecommendationService {
 
   constructor(
     private readonly supabaseService: SupabaseService,
-    private readonly configService: ConfigService
+    private readonly configService: ConfigService,
+    private readonly imageService: ImageService
   ) {
     const geminiApiKey = this.configService.get<string>("GEMINI_API_KEY");
     if (geminiApiKey) {
@@ -227,18 +229,21 @@ export class RecommendationService {
   "food": {
     "name": "음식명",
     "reason": "추천 이유 (질병/약물 고려)",
-    "pros": "주요 장점 1줄"
+    "pros": "주요 장점 1줄",
+    "searchKeyword": "음식 검색 키워드 (예: 현미밥 효능)"
   },
   "remedy": {
     "country": "${randomCountry}",
     "title": "요법 이름",
     "description": "요법 설명 (흥미롭게)",
-    "warning": "※ 이 요법은 ${randomCountry}의 민간요법으로 과학적 근거가 부족할 수 있습니다. 따라하기 전 반드시 전문가와 상담하세요."
+    "warning": "※ 이 요법은 ${randomCountry}의 민간요법으로 과학적 근거가 부족할 수 있습니다. 따라하기 전 반드시 전문가와 상담하세요.",
+    "searchKeyword": "요법 검색 키워드 (예: 그리스 올리브오일 민간요법)"
   },
   "exercise": {
     "name": "운동명",
     "description": "운동 방법 및 효과",
-    "intensity": "난이도 (하/중/상)"
+    "intensity": "난이도 (하/중/상)",
+    "searchKeyword": "운동 검색 키워드 (예: 30분 걷기 운동)"
   }
 }
 JSON만 출력하세요.
@@ -246,7 +251,68 @@ JSON만 출력하세요.
 
     try {
       const result = await this.geminiClient.generateText(prompt);
-      return this.geminiClient.extractJsonObject(result);
+      const parsed = this.geminiClient.extractJsonObject(result);
+
+      // 🖼️ 이미지 및 링크 생성 (음식 & 운동)
+      const foodName = parsed.food?.name;
+      const exerciseName = parsed.exercise?.name;
+      const foodKeyword = parsed.food?.searchKeyword || foodName;
+      const exerciseKeyword = parsed.exercise?.searchKeyword || exerciseName;
+
+      // 번역은 여기서 한 번만 해서 넘김 (FoodService 등에서도 재사용하므로)
+      const [translatedFood, translatedExercise] = await Promise.all([
+        this.imageService.translateToEnglish(foodKeyword),
+        this.imageService.translateToEnglish(exerciseKeyword),
+      ]);
+
+      // 최상위 로직 수행 (실제 URL 찾기 및 이미지 매칭)
+      const [foodResult, exerciseResult] = await Promise.all([
+        this.generateContentResult(foodKeyword, translatedFood, "food"),
+        this.generateContentResult(
+          exerciseKeyword,
+          translatedExercise,
+          "exercise"
+        ),
+      ]);
+
+      // 🏳️ 국가 국기 매핑
+      const flagMap: Record<string, string> = {
+        한국: "🇰🇷",
+        중국: "🇨🇳",
+        일본: "🇯🇵",
+        인도: "🇮🇳",
+        미국: "🇺🇸",
+        독일: "🇩🇪",
+        프랑스: "🇫🇷",
+        이집트: "🇪🇬",
+        그리스: "🇬🇷",
+        러시아: "🇷🇺",
+      };
+
+      const remedyCountry = parsed.remedy?.country || "한국";
+      const flagEmoji = flagMap[remedyCountry] || "🏳️";
+
+      return {
+        ...parsed,
+        food: {
+          ...parsed.food,
+          imageUrl: foodResult.imageUrl,
+          relatedLink: foodResult.link,
+        },
+        remedy: {
+          ...parsed.remedy,
+          flag: flagEmoji,
+          relatedLink: `https://www.google.com/search?q=${encodeURIComponent(
+            parsed.remedy?.searchKeyword ||
+              remedyCountry + " " + parsed.remedy?.title
+          )}`,
+        },
+        exercise: {
+          ...parsed.exercise,
+          imageUrl: exerciseResult.imageUrl,
+          relatedLink: exerciseResult.link,
+        },
+      };
     } catch (e) {
       this.logger.error("Gemini Generation Failed", e);
       return {
@@ -254,19 +320,95 @@ JSON만 출력하세요.
           name: "현미밥",
           reason: "건강한 탄수화물 섭취",
           pros: "혈당 조절에 도움",
+          imageUrl: "",
+          relatedLink: "https://www.youtube.com/results?search_query=현미밥",
         },
         remedy: {
           country: "한국",
           title: "따뜻한 물 마시기",
           description: "아침 공복에 따뜻한 물은 신진대사를 깨웁니다.",
           warning: "※ 전문가와 상담하세요.",
+          flag: "🇰🇷",
+          relatedLink: "https://www.google.com/search?q=따뜻한 물 효능",
         },
         exercise: {
           name: "걷기",
           description: "가볍게 30분 걷기",
           intensity: "하",
+          imageUrl: "",
+          relatedLink: "https://www.youtube.com/results?search_query=걷기 운동",
         },
       };
+    }
+  }
+
+  /**
+   * 콘텐츠 결과 생성 (실제 URL + 이미지)
+   * 우선순위: Google Search -> OG Image -> Unsplash Fallback
+   */
+  private async generateContentResult(
+    keyword: string,
+    englishKeyword: string,
+    type: "food" | "exercise"
+  ): Promise<{ imageUrl: string; link: string }> {
+    const defaultLinks = {
+      food: `https://www.youtube.com/results?search_query=${encodeURIComponent(
+        keyword + " 레시피"
+      )}`,
+      exercise: `https://www.youtube.com/results?search_query=${encodeURIComponent(
+        keyword + " 운동법"
+      )}`,
+    };
+
+    try {
+      // 1. 실제 URL 찾기 (Google Custom Search)
+      const searchPrefix = type === "exercise" ? "운동 방법 " : "추천 레시피 ";
+      const realUrl = await this.imageService.searchCrawlableUrl(
+        searchPrefix + keyword
+      );
+
+      let imageUrl = "";
+      let finalLink = realUrl || defaultLinks[type];
+
+      if (realUrl) {
+        this.logger.log(`[Link] Found Real URL: ${realUrl}`);
+        // 2. OG 이미지 추출
+        const ogImageUrl = await this.imageService.fetchOgImage(realUrl);
+        if (ogImageUrl) {
+          this.logger.log(`[Image] Found OG Image: ${ogImageUrl}`);
+          imageUrl =
+            (await this.imageService.processAndUploadImage(
+              ogImageUrl,
+              `${type}_og_${Date.now()}`
+            )) || "";
+        }
+      }
+
+      // 3. OG 이미지 실패 시 Unsplash Fallback
+      if (!imageUrl) {
+        this.logger.log(
+          `[Image] OG Image failed, falling back to Unsplash for: ${englishKeyword}`
+        );
+        const searchKeyword =
+          type === "exercise"
+            ? `${englishKeyword} workout`
+            : `${englishKeyword} food`;
+        const unsplashUrl = await this.imageService.searchUnsplash(
+          searchKeyword
+        );
+        if (unsplashUrl) {
+          imageUrl =
+            (await this.imageService.processAndUploadImage(
+              unsplashUrl,
+              `${type}_unsplash_${Date.now()}`
+            )) || "";
+        }
+      }
+
+      return { imageUrl, link: finalLink };
+    } catch (e) {
+      this.logger.error(`[Image/Link] Pipeline failed for ${keyword}`, e);
+      return { imageUrl: "", link: defaultLinks[type] };
     }
   }
 }

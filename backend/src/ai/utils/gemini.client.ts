@@ -1,5 +1,5 @@
-import { GoogleGenerativeAI } from '@google/generative-ai';
-import axios from 'axios';
+import { GoogleGenerativeAI } from "@google/generative-ai";
+import axios from "axios";
 
 interface GenerateContentCandidatePartText {
   text?: string;
@@ -26,15 +26,22 @@ export class GeminiClient {
   constructor(apiKey: string) {
     this.genAI = new GoogleGenerativeAI(apiKey);
     // Library models (will internally hit v1). Keep for primary path.
-    this.visionModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    this.textModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
-    this.proModel = this.genAI.getGenerativeModel({ model: 'gemini-2.5-pro' });
-    
+    this.visionModel = this.genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
+    this.textModel = this.genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
+    // [Cost Optimization] 'proModel' 변수는 유지하되, 실제 모델은 'gemini-2.5-flash'를 연결하여 비용 절감
+    this.proModel = this.genAI.getGenerativeModel({
+      model: "gemini-2.5-flash",
+    });
+
     // 백업 API 키 설정 (메인 키가 무효하면 백업 키를 메인으로 사용)
     const backupKey = process.env.GEMINI_API_KEY_BACKUP;
     if (backupKey) {
       this.genAIBackup = new GoogleGenerativeAI(backupKey);
-      console.log('[Gemini] 백업 API 키가 설정되었습니다.');
+      console.log("[Gemini] 백업 API 키가 설정되었습니다.");
     }
   }
 
@@ -42,37 +49,46 @@ export class GeminiClient {
   private async throttleRequest(): Promise<void> {
     const now = Date.now();
     const timeSinceLastRequest = now - this.lastRequestTime;
-    
+
     if (timeSinceLastRequest < this.minRequestInterval) {
       const waitTime = this.minRequestInterval - timeSinceLastRequest;
       console.log(`[Gemini] Rate limiting: ${waitTime}ms 대기 중...`);
-      await new Promise(resolve => setTimeout(resolve, waitTime));
+      await new Promise((resolve) => setTimeout(resolve, waitTime));
     }
-    
+
     this.lastRequestTime = Date.now();
   }
 
   private getBaseUrl(): string {
     // Use v1beta for gemini-2.5-pro/flash models (required for proper quota management)
-    return process.env.GEMINI_API_BASE?.trim() || 'https://generativelanguage.googleapis.com/v1beta';
+    return (
+      process.env.GEMINI_API_BASE?.trim() ||
+      "https://generativelanguage.googleapis.com/v1beta"
+    );
   }
 
   private getCurrentApiKey(): string {
     if (this.useBackupKey && process.env.GEMINI_API_KEY_BACKUP) {
       return process.env.GEMINI_API_KEY_BACKUP;
     }
-    return process.env.GEMINI_API_KEY || '';
+    return process.env.GEMINI_API_KEY || "";
   }
 
   private switchToBackupKey(): boolean {
     if (!this.useBackupKey && process.env.GEMINI_API_KEY_BACKUP) {
       this.useBackupKey = true;
-      console.log('[Gemini] 🔄 백업 API 키로 전환합니다.');
+      console.log("[Gemini] 🔄 백업 API 키로 전환합니다.");
       // 백업 키로 모델 재설정
       if (this.genAIBackup) {
-        this.visionModel = this.genAIBackup.getGenerativeModel({ model: 'gemini-2.5-flash' });
-        this.textModel = this.genAIBackup.getGenerativeModel({ model: 'gemini-2.5-flash' });
-        this.proModel = this.genAIBackup.getGenerativeModel({ model: 'gemini-2.5-pro' });
+        this.visionModel = this.genAIBackup.getGenerativeModel({
+          model: "gemini-2.5-flash",
+        });
+        this.textModel = this.genAIBackup.getGenerativeModel({
+          model: "gemini-2.5-flash",
+        });
+        this.proModel = this.genAIBackup.getGenerativeModel({
+          model: "gemini-2.5-pro",
+        });
       }
       return true;
     }
@@ -86,29 +102,36 @@ export class GeminiClient {
   ): Promise<string> {
     // Rate limiting 적용
     await this.throttleRequest();
-    
+
     const key = apiKey || this.getCurrentApiKey();
-    if (!key) throw new Error('GEMINI_API_KEY not set');
+    if (!key) throw new Error("GEMINI_API_KEY not set");
     const url = `${this.getBaseUrl()}/models/${model}:generateContent?key=${key}`;
     const body = { contents: [{ parts }] };
     const resp = await axios.post(url, body, { timeout: 30000 });
     const data: GenerateContentResponse = resp.data;
-    const text = data.candidates?.[0]?.content?.parts?.map(p => p.text).filter(Boolean).join('\n') || '';
+    const text =
+      data.candidates?.[0]?.content?.parts
+        ?.map((p) => p.text)
+        .filter(Boolean)
+        .join("\n") || "";
     return text;
   }
 
   public extractJsonObject(raw: string): any {
     // Remove markdown code blocks if present
     let cleaned = raw.trim();
-    cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
-    
+    cleaned = cleaned
+      .replace(/^```json\s*/i, "")
+      .replace(/^```\s*/, "")
+      .replace(/```\s*$/, "");
+
     // Try to find JSON object
     const match = cleaned.match(/\{[\s\S]*\}/);
-    if (!match) throw new Error('No JSON object found in model response');
+    if (!match) throw new Error("No JSON object found in model response");
     try {
       return JSON.parse(match[0]);
     } catch (e) {
-      throw new Error('Failed to parse JSON: ' + (e as Error).message);
+      throw new Error("Failed to parse JSON: " + (e as Error).message);
     }
   }
 
@@ -118,15 +141,18 @@ export class GeminiClient {
       const response = await result.response;
       return response.text();
     } catch (error) {
-       // Fallback to REST API if SDK fails (using existing logic pattern)
-       console.warn('SDK failed, trying REST API for generateText');
-       return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+      // Fallback to REST API if SDK fails (using existing logic pattern)
+      console.warn("SDK failed, trying REST API for generateText");
+      return await this.callWithRestApi("gemini-2.5-flash", [{ text: prompt }]);
     }
   }
 
-  async analyzeImageForFood(imageBase64: string, retries = 2): Promise<{
+  async analyzeImageForFood(
+    imageBase64: string,
+    retries = 2
+  ): Promise<{
     isValid: boolean;
-    category: 'food' | 'medicine' | 'supplement' | 'invalid';
+    category: "food" | "medicine" | "supplement" | "invalid";
     itemName: string;
     confidence: number;
     rejectReason?: string;
@@ -170,7 +196,7 @@ JSON 형식으로만 응답:
             prompt,
             {
               inlineData: {
-                mimeType: 'image/jpeg',
+                mimeType: "image/jpeg",
                 data: imageBase64,
               },
             },
@@ -178,11 +204,14 @@ JSON 형식으로만 응답:
           const response = await result.response;
           rawText = response.text();
         } catch (sdkError) {
-          console.log(`Vision SDK 오류, REST API 시도 (${attempt + 1}/${retries + 1}):`, sdkError.message);
+          console.log(
+            `Vision SDK 오류, REST API 시도 (${attempt + 1}/${retries + 1}):`,
+            sdkError.message
+          );
           // Fallback: direct v1 REST
-          rawText = await this.callWithRestApi('gemini-2.5-flash', [
+          rawText = await this.callWithRestApi("gemini-2.5-flash", [
             { text: prompt },
-            { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
+            { inline_data: { mime_type: "image/jpeg", data: imageBase64 } },
           ]);
         }
 
@@ -190,18 +219,25 @@ JSON 형식으로만 응답:
         return parsed;
       } catch (error) {
         lastError = error;
-        console.error(`Gemini 이미지 분석 실패 (시도 ${attempt + 1}/${retries + 1}):`, error.message);
-        
+        console.error(
+          `Gemini 이미지 분석 실패 (시도 ${attempt + 1}/${retries + 1}):`,
+          error.message
+        );
+
         if (attempt < retries) {
           const waitTime = Math.pow(2, attempt) * 1000;
           console.log(`${waitTime}ms 후 재시도...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
       }
     }
 
     // 모든 재시도 실패 시 에러
-    throw new Error(`Gemini image analysis failed after ${retries + 1} attempts: ${lastError?.message}`);
+    throw new Error(
+      `Gemini image analysis failed after ${retries + 1} attempts: ${
+        lastError?.message
+      }`
+    );
   }
 
   /**
@@ -210,20 +246,28 @@ JSON 형식으로만 응답:
    * @param imageBase64 이미지 Base64 데이터
    * @returns 인식된 약품 목록
    */
-  async analyzeMedicineImage(imageBase64: string, retries = 2): Promise<{
+  async analyzeMedicineImage(
+    imageBase64: string,
+    retries = 2
+  ): Promise<{
     success: boolean;
     medicines: Array<{
-      name: string;           // 약품명
-      manufacturer?: string;  // 제조사 (인식된 경우)
-      dosage?: string;        // 용량 (인식된 경우)
-      shape?: string;         // 약품 형태 (정제, 캡슐, 시럽 등)
-      color?: string;         // 색상
-      imprint?: string;       // 각인 문자
-      confidence: number;     // 인식 신뢰도 (0-100)
+      name: string; // 약품명
+      manufacturer?: string; // 제조사 (인식된 경우)
+      dosage?: string; // 용량 (인식된 경우)
+      shape?: string; // 약품 형태 (정제, 캡슐, 시럽 등)
+      color?: string; // 색상
+      imprint?: string; // 각인 문자
+      confidence: number; // 인식 신뢰도 (0-100)
     }>;
     totalCount: number;
-    imageType: 'prescription_bag' | 'pill_package' | 'loose_pills' | 'medicine_bottle' | 'unknown';
-    rawText?: string;         // OCR로 인식된 전체 텍스트
+    imageType:
+      | "prescription_bag"
+      | "pill_package"
+      | "loose_pills"
+      | "medicine_bottle"
+      | "unknown";
+    rawText?: string; // OCR로 인식된 전체 텍스트
     message?: string;
   }> {
     let lastError: any;
@@ -286,7 +330,7 @@ JSON 형식으로만 응답:
             prompt,
             {
               inlineData: {
-                mimeType: 'image/jpeg',
+                mimeType: "image/jpeg",
                 data: imageBase64,
               },
             },
@@ -294,25 +338,35 @@ JSON 형식으로만 응답:
           const response = await result.response;
           rawText = response.text();
         } catch (sdkError) {
-          console.log(`[약품 이미지 분석] SDK 오류, REST API 시도 (${attempt + 1}/${retries + 1}):`, sdkError.message);
+          console.log(
+            `[약품 이미지 분석] SDK 오류, REST API 시도 (${attempt + 1}/${
+              retries + 1
+            }):`,
+            sdkError.message
+          );
           // Fallback: direct v1 REST
-          rawText = await this.callWithRestApi('gemini-2.5-flash', [
+          rawText = await this.callWithRestApi("gemini-2.5-flash", [
             { text: prompt },
-            { inline_data: { mime_type: 'image/jpeg', data: imageBase64 } },
+            { inline_data: { mime_type: "image/jpeg", data: imageBase64 } },
           ]);
         }
 
         const parsed = this.extractJsonObject(rawText);
-        console.log(`[약품 이미지 분석] 성공: ${parsed.totalCount}개 약품 인식`);
+        console.log(
+          `[약품 이미지 분석] 성공: ${parsed.totalCount}개 약품 인식`
+        );
         return parsed;
       } catch (error) {
         lastError = error;
-        console.error(`[약품 이미지 분석] 실패 (시도 ${attempt + 1}/${retries + 1}):`, error.message);
-        
+        console.error(
+          `[약품 이미지 분석] 실패 (시도 ${attempt + 1}/${retries + 1}):`,
+          error.message
+        );
+
         if (attempt < retries) {
           const waitTime = Math.pow(2, attempt) * 1000;
           console.log(`${waitTime}ms 후 재시도...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
       }
     }
@@ -323,8 +377,8 @@ JSON 형식으로만 응답:
       success: false,
       medicines: [],
       totalCount: 0,
-      imageType: 'unknown',
-      message: '이미지 분석에 실패했습니다. 다시 시도해주세요.',
+      imageType: "unknown",
+      message: "이미지 분석에 실패했습니다. 다시 시도해주세요.",
     };
   }
 
@@ -348,12 +402,14 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
       const parsed = this.extractJsonObject(rawText);
       return parsed.foodName;
     } catch (error) {
-      console.error('Gemini text extraction error:', error);
+      console.error("Gemini text extraction error:", error);
       throw new Error(`Gemini text extraction failed: ${error.message}`);
     }
   }
@@ -363,7 +419,7 @@ JSON 형식으로만 응답:
     diseases: string[],
     nutritionData?: any,
     publicData?: any,
-    cachedGeneralInfo?: any, // [New] 캐시된 일반 분석 정보
+    cachedGeneralInfo?: any // [New] 캐시된 일반 분석 정보
   ): Promise<{
     suitabilityScore: number;
     pros: string[];
@@ -387,19 +443,19 @@ JSON 형식으로만 응답:
 
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
-        const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
+        const diseaseList = diseases.length > 0 ? diseases.join(", ") : "없음";
         const nutritionInfo = nutritionData
           ? JSON.stringify(nutritionData, null, 2)
-          : '영양 정보 없음';
-        
+          : "영양 정보 없음";
+
         const publicDataInfo = publicData
           ? JSON.stringify(publicData, null, 2)
-          : '공공데이터 없음';
+          : "공공데이터 없음";
 
         // [Smart Cache] 캐시된 일반 정보가 있으면 프롬프트에 주입하여 토큰 절약 & 일관성 확보
-        let cacheContext = '';
+        let cacheContext = "";
         if (cachedGeneralInfo) {
-            cacheContext = `
+          cacheContext = `
 [기존 분석 데이터 (활용 필수)]:
 - 일반적 효능: ${JSON.stringify(cachedGeneralInfo.general_benefit)}
 - 일반적 부작용: ${JSON.stringify(cachedGeneralInfo.general_harm)}
@@ -485,48 +541,60 @@ JSON 형식으로만 응답:
           const response = await result.response;
           rawText = response.text();
         } catch (sdkError) {
-          console.log(`SDK 오류, REST API로 재시도 (시도 ${attempt + 1}/${maxRetries + 1})...`);
-          rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+          console.log(
+            `SDK 오류, REST API로 재시도 (시도 ${attempt + 1}/${
+              maxRetries + 1
+            })...`
+          );
+          rawText = await this.callWithRestApi("gemini-2.5-flash", [
+            { text: prompt },
+          ]);
         }
         return this.extractJsonObject(rawText);
       } catch (error) {
         lastError = error;
-        console.error(`Gemini 분석 실패 (시도 ${attempt + 1}/${maxRetries + 1}):`, error.message);
-        
+        console.error(
+          `Gemini 분석 실패 (시도 ${attempt + 1}/${maxRetries + 1}):`,
+          error.message
+        );
+
         if (attempt < maxRetries) {
           // 재시도 전 대기 (exponential backoff)
           const waitTime = Math.pow(2, attempt) * 1000;
           console.log(`${waitTime}ms 후 재시도...`);
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
       }
     }
 
     // 모든 재시도 실패 시 기본값 반환
-    console.warn('Gemini API 호출 실패, 기본 분석 반환');
+    console.warn("Gemini API 호출 실패, 기본 분석 반환");
     return {
       suitabilityScore: 65,
       pros: [
         `${foodName}은(는) 적절히 섭취하면 영양소를 공급할 수 있습니다.`,
-        '다양한 식재료와 함께 드시면 영양 균형을 맞출 수 있습니다.'
+        "다양한 식재료와 함께 드시면 영양 균형을 맞출 수 있습니다.",
       ],
-      cons: diseases.length > 0 
-        ? [
-            `${diseases.join(', ')} 질환이 있으시다면 섭취량에 주의가 필요합니다.`,
-            '과도한 섭취는 피하시는 것이 좋습니다.'
-          ]
-        : [
-            '과도한 섭취는 피하시는 것이 좋습니다.',
-            '균형잡힌 식단의 일부로 섭취하세요.'
-          ],
+      cons:
+        diseases.length > 0
+          ? [
+              `${diseases.join(
+                ", "
+              )} 질환이 있으시다면 섭취량에 주의가 필요합니다.`,
+              "과도한 섭취는 피하시는 것이 좋습니다.",
+            ]
+          : [
+              "과도한 섭취는 피하시는 것이 좋습니다.",
+              "균형잡힌 식단의 일부로 섭취하세요.",
+            ],
       summary: `${foodName}은(는) 균형있게 섭취하시면 좋습니다.`,
       cookingTips: [
-        '신선한 재료를 사용하세요',
-        '조리 시 염분과 당분을 적게 사용하세요',
-        '채소를 많이 추가하면 더 건강해요'
+        "신선한 재료를 사용하세요",
+        "조리 시 염분과 당분을 적게 사용하세요",
+        "채소를 많이 추가하면 더 건강해요",
       ],
       dataSources: [],
-      riskComponents: {}
+      riskComponents: {},
     };
   }
 
@@ -552,7 +620,7 @@ JSON 형식으로만 응답:
       caution_foods: string[];
       dietary_reason: string;
     }>,
-    userProfile?: { age?: number; gender?: string },
+    userProfile?: { age?: number; gender?: string }
   ): Promise<{
     suitabilityScore: number;
     pros: string;
@@ -567,46 +635,55 @@ JSON 형식으로만 응답:
     for (let attempt = 0; attempt <= maxRetries; attempt++) {
       try {
         // 🆕 질병 강화 정보가 있으면 활용, 없으면 기존 방식 (질병 이름만)
-        let diseaseInfo = '';
+        let diseaseInfo = "";
         if (diseaseEnhancedInfo && diseaseEnhancedInfo.length > 0) {
           diseaseInfo = diseaseEnhancedInfo
-            .map(d => {
-              const avoid = d.avoid_foods.length > 0 
-                ? `피할음식: ${d.avoid_foods.slice(0, 3).join(', ')}` 
-                : '';
-              const caution = d.caution_foods.length > 0
-                ? `주의음식: ${d.caution_foods.slice(0, 3).join(', ')}`
-                : '';
+            .map((d) => {
+              const avoid =
+                d.avoid_foods.length > 0
+                  ? `피할음식: ${d.avoid_foods.slice(0, 3).join(", ")}`
+                  : "";
+              const caution =
+                d.caution_foods.length > 0
+                  ? `주의음식: ${d.caution_foods.slice(0, 3).join(", ")}`
+                  : "";
               return `${d.disease_name}(${d.category}, ${d.severity}) ${avoid} ${caution}`.trim();
             })
-            .join(' | ');
+            .join(" | ");
         } else {
-          diseaseInfo = diseases.length > 0 ? diseases.join(', ') : '없음';
+          diseaseInfo = diseases.length > 0 ? diseases.join(", ") : "없음";
         }
-        
+
         // 🆕 약 강화 정보가 있으면 활용, 없으면 기존 방식 (약 이름만)
-        let medicineInfo = '';
+        let medicineInfo = "";
         if (enhancedMedicineInfo && enhancedMedicineInfo.length > 0) {
           medicineInfo = enhancedMedicineInfo
-            .map(m => {
-              const avoid = m.foodInteractions.avoid.length > 0 
-                ? `금기: ${m.foodInteractions.avoid.join(', ')}` 
-                : '';
-              const caution = m.foodInteractions.caution.length > 0
-                ? `주의: ${m.foodInteractions.caution.join(', ')}`
-                : '';
+            .map((m) => {
+              const avoid =
+                m.foodInteractions.avoid.length > 0
+                  ? `금기: ${m.foodInteractions.avoid.join(", ")}`
+                  : "";
+              const caution =
+                m.foodInteractions.caution.length > 0
+                  ? `주의: ${m.foodInteractions.caution.join(", ")}`
+                  : "";
               return `${m.name}(${m.category}) ${avoid} ${caution}`.trim();
             })
-            .join(' | ');
+            .join(" | ");
         } else {
-          medicineInfo = medicines.length > 0 ? medicines.join(', ') : '없음';
+          medicineInfo = medicines.length > 0 ? medicines.join(", ") : "없음";
         }
 
         // 🆕 환자 정보 추가
-        let patientInfo = '';
+        let patientInfo = "";
         if (userProfile && userProfile.age && userProfile.gender) {
-          const genderKo = userProfile.gender === 'male' ? '남성' : '여성';
-          const ageGroup = userProfile.age < 18 ? '소아/청소년' : userProfile.age >= 65 ? '고령자' : '성인';
+          const genderKo = userProfile.gender === "male" ? "남성" : "여성";
+          const ageGroup =
+            userProfile.age < 18
+              ? "소아/청소년"
+              : userProfile.age >= 65
+              ? "고령자"
+              : "성인";
           patientInfo = `\n환자 정보: ${userProfile.age}세, ${genderKo} (${ageGroup})`;
         }
 
@@ -647,40 +724,55 @@ JSON 형식:
           const response = await result.response;
           rawText = response.text();
         } catch (sdkError) {
-          console.log(`quickAIAnalysis SDK 오류, REST API로 재시도 (시도 ${attempt + 1}/${maxRetries + 1})...`);
-          rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+          console.log(
+            `quickAIAnalysis SDK 오류, REST API로 재시도 (시도 ${attempt + 1}/${
+              maxRetries + 1
+            })...`
+          );
+          rawText = await this.callWithRestApi("gemini-2.5-flash", [
+            { text: prompt },
+          ]);
         }
-        
+
         const parsed = this.extractJsonObject(rawText);
-        console.log('[quickAIAnalysis] 분석 완료:', { score: parsed.suitabilityScore, food: foodName });
+        console.log("[quickAIAnalysis] 분석 완료:", {
+          score: parsed.suitabilityScore,
+          food: foodName,
+        });
         return parsed;
       } catch (error) {
         lastError = error;
-        console.error(`quickAIAnalysis 실패 (시도 ${attempt + 1}/${maxRetries + 1}):`, error.message);
-        
+        console.error(
+          `quickAIAnalysis 실패 (시도 ${attempt + 1}/${maxRetries + 1}):`,
+          error.message
+        );
+
         if (attempt < maxRetries) {
           const waitTime = Math.pow(2, attempt) * 1000;
-          await new Promise(resolve => setTimeout(resolve, waitTime));
+          await new Promise((resolve) => setTimeout(resolve, waitTime));
         }
       }
     }
 
     // 실패 시 기본값
-    console.warn('quickAIAnalysis 실패, 기본값 반환');
+    console.warn("quickAIAnalysis 실패, 기본값 반환");
     return {
       suitabilityScore: 60,
       pros: `${foodName}은(는) 적절히 섭취하면 영양을 공급합니다`,
-      cons: '과다 섭취는 피하시는 것이 좋습니다',
+      cons: "과다 섭취는 피하시는 것이 좋습니다",
       summary: `${foodName}은(는) 적당량 섭취를 권장합니다`,
-      warnings: diseases.length > 0 ? `${diseases[0]} 환자는 섭취량 조절이 필요합니다` : '',
-      expertAdvice: '균형 잡힌 식단의 일부로 섭취하세요'
+      warnings:
+        diseases.length > 0
+          ? `${diseases[0]} 환자는 섭취량 조절이 필요합니다`
+          : "",
+      expertAdvice: "균형 잡힌 식단의 일부로 섭취하세요",
     };
   }
 
   async generateDetailedAnalysis(
     foodName: string,
     diseases: string[],
-    nutritionData?: any,
+    nutritionData?: any
   ): Promise<{
     detailed_reason: string;
     risk_factors: string[];
@@ -689,10 +781,10 @@ JSON 형식:
     global_remedies: Array<{ country: string; method: string }>;
   }> {
     try {
-      const diseaseList = diseases.join(', ');
+      const diseaseList = diseases.join(", ");
       const nutritionInfo = nutritionData
         ? JSON.stringify(nutritionData)
-        : '영양 정보 없음';
+        : "영양 정보 없음";
 
       const prompt = `당신은 세계적인 영양학 및 질병 관리 전문가입니다.
 
@@ -728,11 +820,13 @@ JSON 형식:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
       return this.extractJsonObject(rawText);
     } catch (error) {
-      console.error('Gemini detailed analysis error:', error);
+      console.error("Gemini detailed analysis error:", error);
       throw new Error(`Gemini detailed analysis failed: ${error.message}`);
     }
   }
@@ -740,13 +834,13 @@ JSON 형식:
   async urlToBase64(imageUrl: string): Promise<string> {
     try {
       const response = await axios.get(imageUrl, {
-        responseType: 'arraybuffer',
+        responseType: "arraybuffer",
       });
 
-      const base64 = Buffer.from(response.data, 'binary').toString('base64');
+      const base64 = Buffer.from(response.data, "binary").toString("base64");
       return base64;
     } catch (error) {
-      console.error('URL to base64 conversion error:', error);
+      console.error("URL to base64 conversion error:", error);
       throw new Error(`Failed to convert URL to base64: ${error.message}`);
     }
   }
@@ -757,7 +851,7 @@ JSON 형식:
    */
   async generateGeneralFoodInfo(
     foodName: string,
-    nutritionData?: any,
+    nutritionData?: any
   ): Promise<{
     general_benefit: string[];
     general_harm: string[];
@@ -765,8 +859,8 @@ JSON 형식:
     nutrition_summary: string;
   }> {
     const nutritionInfo = nutritionData
-        ? JSON.stringify(nutritionData, null, 2)
-        : '정보 없음';
+      ? JSON.stringify(nutritionData, null, 2)
+      : "정보 없음";
 
     const prompt = `
     당신은 영양학 전문가입니다.
@@ -791,25 +885,27 @@ JSON 형식:
 
     try {
       let rawText: string;
-        try {
-          const result = await this.textModel.generateContent(prompt);
-          const response = await result.response;
-          rawText = response.text();
-        } catch (sdkError) {
-          rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
-        }
-        
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
+      }
+
       const parsed = this.extractJsonObject(rawText);
       return parsed;
     } catch (error) {
-       console.error('General food info generation failed:', error);
-       // 기본값 반환
-       return {
-           general_benefit: [`${foodName}은(는) 영양가 있는 음식입니다.`],
-           general_harm: ['과다 섭취는 피하세요.'],
-           cooking_tips: [],
-           nutrition_summary: '영양 정보 분석 불가'
-       };
+      console.error("General food info generation failed:", error);
+      // 기본값 반환
+      return {
+        general_benefit: [`${foodName}은(는) 영양가 있는 음식입니다.`],
+        general_harm: ["과다 섭취는 피하세요."],
+        cooking_tips: [],
+        nutrition_summary: "영양 정보 분석 불가",
+      };
     }
   }
 
@@ -824,21 +920,23 @@ JSON 형식:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
-      
+
       const jsonResult = this.extractJsonObject(rawText);
-      
+
       // 점수가 없으면 기본값 설정
       if (!jsonResult.final_score) {
         jsonResult.final_score = this.calculateScoreFromLevel(
-          jsonResult.interaction_assessment?.level || 'insufficient_data'
+          jsonResult.interaction_assessment?.level || "insufficient_data"
         );
       }
-      
+
       return jsonResult;
     } catch (error) {
-      console.error('Gemini medical analysis error:', error);
+      console.error("Gemini medical analysis error:", error);
       throw new Error(`Gemini medical analysis failed: ${error.message}`);
     }
   }
@@ -848,10 +946,10 @@ JSON 형식:
    */
   private calculateScoreFromLevel(level: string): number {
     const scoreMap = {
-      'safe': 90,
-      'caution': 70,
-      'danger': 40,
-      'insufficient_data': 65,
+      safe: 90,
+      caution: 70,
+      danger: 40,
+      insufficient_data: 65,
     };
     return scoreMap[level] || 65;
   }
@@ -870,18 +968,30 @@ JSON 형식:
         return await fn();
       } catch (error: any) {
         const status = error.response?.status || error.status;
-        const isRateLimitError = status === 429 || error.message?.includes('429');
-        
+        const isRateLimitError =
+          status === 429 || error.message?.includes("429");
+
         // 에러 메시지 분석
-        const errorMsg = error.message || '';
-        const isQuotaExceeded = errorMsg.includes('quota') || errorMsg.includes('limit: 0');
-        const isPerMinuteLimit = errorMsg.includes('PerMinute');
-        const isPerDayLimit = errorMsg.includes('PerDay');
-        const isAuthError = status === 401 || status === 403 || errorMsg.includes('API key') || errorMsg.includes('PERMISSION');
+        const errorMsg = error.message || "";
+        const isQuotaExceeded =
+          errorMsg.includes("quota") || errorMsg.includes("limit: 0");
+        const isPerMinuteLimit = errorMsg.includes("PerMinute");
+        const isPerDayLimit = errorMsg.includes("PerDay");
+        const isAuthError =
+          status === 401 ||
+          status === 403 ||
+          errorMsg.includes("API key") ||
+          errorMsg.includes("PERMISSION");
 
         // 인증/권한 오류 발생 시 백업 키로 전환 시도 (한 번만)
-        if (isAuthError && !this.useBackupKey && process.env.GEMINI_API_KEY_BACKUP) {
-          console.warn(`[Gemini] 인증/권한 오류 감지 (status=${status}) - 백업 키로 전환 시도`);
+        if (
+          isAuthError &&
+          !this.useBackupKey &&
+          process.env.GEMINI_API_KEY_BACKUP
+        ) {
+          console.warn(
+            `[Gemini] 인증/권한 오류 감지 (status=${status}) - 백업 키로 전환 시도`
+          );
           if (this.switchToBackupKey()) {
             try {
               return await fn();
@@ -893,7 +1003,12 @@ JSON 형식:
         }
 
         // 할당량 완전 소진(limit: 0)은 백업 키로 전환, 그 외는 재시도하지 않음
-        if (isRateLimitError && isQuotaExceeded && !this.useBackupKey && attempt === 0) {
+        if (
+          isRateLimitError &&
+          isQuotaExceeded &&
+          !this.useBackupKey &&
+          attempt === 0
+        ) {
           console.warn(`[Gemini] ⚠️ 할당량 소진 감지, 백업 키로 전환 시도...`);
           if (this.switchToBackupKey()) {
             try {
@@ -906,7 +1021,7 @@ JSON 형식:
         }
 
         // 할당량 완전 소진(limit: 0)은 재시도하지 않고 즉시 에러 발생
-        if (isQuotaExceeded && errorMsg.includes('limit: 0')) {
+        if (isQuotaExceeded && errorMsg.includes("limit: 0")) {
           console.warn(`[Gemini] 할당량 완전 소진(limit: 0) - 즉시 에러 발생`);
           throw error;
         }
@@ -914,7 +1029,11 @@ JSON 형식:
         // 분당 요청 제한만 재시도 (1회)
         if (isRateLimitError && isPerMinuteLimit && attempt < maxRetries) {
           const delay = 2000 + Math.random() * 1000; // 2-3초
-          console.warn(`[Gemini] 분당 요청 제한 – ${delay.toFixed(0)}ms 후 재시도 (${attempt + 1}/${maxRetries})`);
+          console.warn(
+            `[Gemini] 분당 요청 제한 – ${delay.toFixed(0)}ms 후 재시도 (${
+              attempt + 1
+            }/${maxRetries})`
+          );
           await new Promise((resolve) => setTimeout(resolve, delay));
           continue;
         }
@@ -925,11 +1044,16 @@ JSON 형식:
           throw error;
         }
 
-        console.warn(`[Gemini] 요청 실패: status=${status}, attempt=${attempt}, msg=${errorMsg.substring(0, 100)}`);
+        console.warn(
+          `[Gemini] 요청 실패: status=${status}, attempt=${attempt}, msg=${errorMsg.substring(
+            0,
+            100
+          )}`
+        );
         throw error;
       }
     }
-    throw new Error('Max retries exceeded');
+    throw new Error("Max retries exceeded");
   }
 
   async analyzeFoodComponents(
@@ -961,24 +1085,27 @@ JSON 형식:
     referenceData?: any;
   }> {
     try {
-      const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
-      
+      const diseaseList = diseases.length > 0 ? diseases.join(", ") : "없음";
+
       // 🆕 공개데이터 다이제스트 (전체가 아닌 필요한 부분만)
-      let nutritionSummary = '데이터 없음';
-      if (publicDatasets?.nutrition?.items && Array.isArray(publicDatasets.nutrition.items)) {
+      let nutritionSummary = "데이터 없음";
+      if (
+        publicDatasets?.nutrition?.items &&
+        Array.isArray(publicDatasets.nutrition.items)
+      ) {
         const item = publicDatasets.nutrition.items[0];
         if (item) {
-          const calories = item.AMT_NUM1 || '정보 없음';
-          const protein = item.AMT_NUM3 || '정보 없음';
-          const fat = item.AMT_NUM4 || '정보 없음';
-          const carbs = item.AMT_NUM5 || '정보 없음';
-          const sodium = item.AMT_NUM13 || '정보 없음';
-          const foodName = item.FOOD_NM_KR || '음식';
-          
+          const calories = item.AMT_NUM1 || "정보 없음";
+          const protein = item.AMT_NUM3 || "정보 없음";
+          const fat = item.AMT_NUM4 || "정보 없음";
+          const carbs = item.AMT_NUM5 || "정보 없음";
+          const sodium = item.AMT_NUM13 || "정보 없음";
+          const foodName = item.FOOD_NM_KR || "음식";
+
           nutritionSummary = `[${foodName}] 100g당: 에너지 ${calories}kcal, 단백질 ${protein}g, 지방 ${fat}g, 탄수화물 ${carbs}g, 나트륨 ${sodium}mg`;
         }
       }
-      
+
       const prompt = `영양 분석 요청
 음식: ${foodName}
 질병: ${diseaseList}
@@ -999,26 +1126,19 @@ JSON만 반환:
 }`;
 
       let rawText: string;
-      try {
-        rawText = await this.callWithRetry(async () => {
-          const result = await this.proModel.generateContent(prompt);
-          const response = await result.response;
-          return response.text();
-        }, 4);
-      } catch (sdkError) {
-        console.warn('[Gemini] pro 모델 실패, 2.5-flash로 fallback 시도:', sdkError.message);
-        rawText = await this.callWithRetry(async () => {
-          return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
-        }, 4);
-      }
-      
+      rawText = await this.callWithRetry(async () => {
+        const result = await this.proModel.generateContent(prompt);
+        const response = await result.response;
+        return response.text();
+      }, 4);
+
       const parsed = this.extractJsonObject(rawText);
       return {
         ...parsed,
         referenceData: publicDatasets,
       };
     } catch (error) {
-      console.error('AI 음식 성분 분석 실패:', error);
+      console.error("AI 음식 성분 분석 실패:", error);
       throw new Error(`AI food component analysis failed: ${error.message}`);
     }
   }
@@ -1029,13 +1149,18 @@ JSON만 반환:
   async analyzeDrugFoodInteractions(
     foodName: string,
     foodAnalysis: any,
-    drugDetails: Array<{ name: string; analyzedInfo?: any; publicData?: any; enhancedInfo?: any }>,
+    drugDetails: Array<{
+      name: string;
+      analyzedInfo?: any;
+      publicData?: any;
+      enhancedInfo?: any;
+    }>,
     diseases: string[],
     userProfile?: { age?: number; gender?: string }
   ): Promise<{
     interactions: Array<{
       medicine_name: string;
-      risk_level: 'danger' | 'caution' | 'safe';
+      risk_level: "danger" | "caution" | "safe";
       interaction_description: string;
       evidence_from_public_data: string;
       recommendation: string;
@@ -1045,10 +1170,16 @@ JSON만 반환:
     summary: string;
   }> {
     try {
-      const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
-      const profileInfo = userProfile 
-        ? `${userProfile.age}세 ${userProfile.gender === 'male' ? '남성' : userProfile.gender === 'female' ? '여성' : ''}`
-        : '정보 없음';
+      const diseaseList = diseases.length > 0 ? diseases.join(", ") : "없음";
+      const profileInfo = userProfile
+        ? `${userProfile.age}세 ${
+            userProfile.gender === "male"
+              ? "남성"
+              : userProfile.gender === "female"
+              ? "여성"
+              : ""
+          }`
+        : "정보 없음";
       const components = foodAnalysis.components || [];
       const riskFactors = foodAnalysis.riskFactors || {};
 
@@ -1058,37 +1189,47 @@ JSON만 반환:
           // 등록 시 저장된 AI 분석 사용 (이미 요약됨)
           return {
             name: drug.name,
-            efficacy: drug.analyzedInfo.efficacy || '정보 없음',
-            usage: drug.analyzedInfo.usage || '정보 없음',
-            sideEffects: drug.analyzedInfo.sideEffects || '정보 없음',
-            precautions: drug.analyzedInfo.precautions || '정보 없음',
-            interactions: drug.analyzedInfo.interactions || '정보 없음',
+            efficacy: drug.analyzedInfo.efficacy || "정보 없음",
+            usage: drug.analyzedInfo.usage || "정보 없음",
+            sideEffects: drug.analyzedInfo.sideEffects || "정보 없음",
+            precautions: drug.analyzedInfo.precautions || "정보 없음",
+            interactions: drug.analyzedInfo.interactions || "정보 없음",
             components: drug.analyzedInfo.components || [],
           };
         } else if (drug.publicData) {
           // 공공데이터 요약 (필수 필드만)
           return {
             name: drug.name,
-            efficacy: drug.publicData.efcyQesitm ? drug.publicData.efcyQesitm.substring(0, 200) + '...' : '정보 없음',
-            precautions: drug.publicData.atpnQesitm ? drug.publicData.atpnQesitm.substring(0, 150) + '...' : '정보 없음',
-            interactions: drug.publicData.intrcQesitm ? drug.publicData.intrcQesitm.substring(0, 150) + '...' : '정보 없음',
-            sideEffects: drug.publicData.seQesitm ? drug.publicData.seQesitm.substring(0, 100) + '...' : '정보 없음',
+            efficacy: drug.publicData.efcyQesitm
+              ? drug.publicData.efcyQesitm.substring(0, 200) + "..."
+              : "정보 없음",
+            precautions: drug.publicData.atpnQesitm
+              ? drug.publicData.atpnQesitm.substring(0, 150) + "..."
+              : "정보 없음",
+            interactions: drug.publicData.intrcQesitm
+              ? drug.publicData.intrcQesitm.substring(0, 150) + "..."
+              : "정보 없음",
+            sideEffects: drug.publicData.seQesitm
+              ? drug.publicData.seQesitm.substring(0, 100) + "..."
+              : "정보 없음",
           };
         } else {
-          return { name: drug.name, note: 'AI 분석 필요' };
+          return { name: drug.name, note: "AI 분석 필요" };
         }
       });
-      
+
       const prompt = `# 약물-음식 상호작용 분석
 
 **입력 데이터:**
 음식: ${foodName} | 질병: ${diseaseList} | 사용자: ${profileInfo}
 
 **음식 성분:**
-${components.map(c => c.name).join(', ')}
+${components.map((c) => c.name).join(", ")}
 
 **복용 약물 (요약):**
-${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '정보 요약 중'}`).join('\n')}
+${medicinesSummary
+  .map((m) => `${m.name}: ${m.interactions || m.precautions || "정보 요약 중"}`)
+  .join("\n")}
 
 **분석 규칙 (토큰 최적화):**
 1. 각 약물별로 위험도 판정 (danger/caution/safe)
@@ -1124,79 +1265,95 @@ ${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '�
         });
       } catch (sdkError: any) {
         // 429 할당량 소진 시 기본 안전 응답 반환
-        if (sdkError.message?.includes('429') || sdkError.status === 429) {
-          console.warn('[analyzeDrugFoodInteractions] 429 에러 - 안전 기본 응답 반환');
+        if (sdkError.message?.includes("429") || sdkError.status === 429) {
+          console.warn(
+            "[analyzeDrugFoodInteractions] 429 에러 - 안전 기본 응답 반환"
+          );
           return {
-            interactions: drugDetails.map(drug => ({
+            interactions: drugDetails.map((drug) => ({
               medicine_name: drug.name,
-              risk_level: 'caution',
+              risk_level: "caution",
               medicines: [drug.name],
               food_components: [],
               interaction_description: `이 음식과 ${drug.name}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
-              evidence_from_public_data: 'AI 분석 일시 불가 - 보수적 권장 사항 제공',
-              recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
+              evidence_from_public_data:
+                "AI 분석 일시 불가 - 보수적 권장 사항 제공",
+              recommendation:
+                "복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.",
             })),
-            summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`
+            summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`,
           };
         }
-        
-        console.warn('[analyzeDrugFoodInteractions] SDK 실패, REST API로 폴백:', sdkError.message);
+
+        console.warn(
+          "[analyzeDrugFoodInteractions] SDK 실패, REST API로 폴백:",
+          sdkError.message
+        );
         try {
           rawText = await this.callWithRetry(async () => {
-            return await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+            return await this.callWithRestApi("gemini-2.5-flash", [
+              { text: prompt },
+            ]);
           });
         } catch (v1Error: any) {
           // V1도 실패 시 기본 안전 응답
-          if (v1Error.message?.includes('429') || v1Error.status === 429) {
-            console.warn('[analyzeDrugFoodInteractions] V1도 429 에러 - 안전 기본 응답 반환');
+          if (v1Error.message?.includes("429") || v1Error.status === 429) {
+            console.warn(
+              "[analyzeDrugFoodInteractions] V1도 429 에러 - 안전 기본 응답 반환"
+            );
             return {
-              interactions: drugDetails.map(drug => ({
+              interactions: drugDetails.map((drug) => ({
                 medicine_name: drug.name,
-                risk_level: 'caution',
+                risk_level: "caution",
                 medicines: [drug.name],
                 food_components: [],
                 interaction_description: `이 음식과 ${drug.name}의 상호작용을 AI로 분석하지 못했습니다. 안전을 위해 의료 전문가와 상담하세요.`,
-                evidence_from_public_data: 'AI 분석 일시 불가 - 보수적 권장 사항 제공',
-                recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
+                evidence_from_public_data:
+                  "AI 분석 일시 불가 - 보수적 권장 사항 제공",
+                recommendation:
+                  "복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.",
               })),
-              summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`
+              summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 상세 상담 필요`,
             };
           }
           throw v1Error;
         }
       }
-      
+
       const parsed = this.extractJsonObject(rawText);
-      
+
       // 리스크 카드용 최소 필드만 유지 (토큰 절감)
-      const interactions = (parsed.interactions || []).map((interaction: any) => ({
-        medicine_name: interaction.medicine_name,
-        risk_level: interaction.risk_level,
-        interaction_description: interaction.interaction_description,
-        evidence_from_public_data: interaction.evidence_from_public_data,
-        recommendation: interaction.recommendation,
-        medicines: interaction.medicines || [interaction.medicine_name],
-        food_components: interaction.food_components || [],
-      }));
-      
+      const interactions = (parsed.interactions || []).map(
+        (interaction: any) => ({
+          medicine_name: interaction.medicine_name,
+          risk_level: interaction.risk_level,
+          interaction_description: interaction.interaction_description,
+          evidence_from_public_data: interaction.evidence_from_public_data,
+          recommendation: interaction.recommendation,
+          medicines: interaction.medicines || [interaction.medicine_name],
+          food_components: interaction.food_components || [],
+        })
+      );
+
       return {
         interactions,
         summary: parsed.summary || `${drugDetails.length}개 약물 분석 완료`,
       };
     } catch (error) {
-      console.error('AI 약물-음식 상호작용 분석 실패:', error);
+      console.error("AI 약물-음식 상호작용 분석 실패:", error);
       // 최후의 fallback - 모든 약물에 대해 caution 반환
       return {
-        interactions: drugDetails.map(drug => ({
+        interactions: drugDetails.map((drug) => ({
           medicine_name: drug.name,
-          risk_level: 'caution',
+          risk_level: "caution",
           medicines: [drug.name],
           food_components: [],
           interaction_description: `이 음식과 ${drug.name}의 상호작용을 분석할 수 없습니다. 안전을 위해 의료 전문가와 상담해주세요.`,
-          evidence_from_public_data: '분석 불가 - 보수적 권장 사항 제공',
-          recommendation: '복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.'
+          evidence_from_public_data: "분석 불가 - 보수적 권장 사항 제공",
+          recommendation:
+            "복용 시간과 식사 시간을 1-2시간 간격으로 분리하고, 약사 또는 의사와 상담하세요.",
         })),
-        summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 전문가 상담 필수`
+        summary: `${drugDetails.length}개 약물 모두 보수적 주의 권장 - 전문가 상담 필수`,
       };
     }
   }
@@ -1220,9 +1377,12 @@ ${medicinesSummary.map(m => `${m.name}: ${m.interactions || m.precautions || '�
     summary: string;
   }> {
     try {
-      const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
-      const drugList = interactionAnalysis?.interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
-      
+      const diseaseList = diseases.length > 0 ? diseases.join(", ") : "없음";
+      const drugList =
+        interactionAnalysis?.interactions
+          ?.map((i: any) => i.medicine_name)
+          .join(", ") || "없음";
+
       const prompt = `# Role Definition
 당신은 **Pigout AI**입니다. 임상 약학, 영양학 전문지식과 식품의약품안전처 등 공공데이터를 종합 분석하여 사용자에게 **근거 중심(Evidence-based)**의 정밀 분석 리포트를 제공합니다.
 
@@ -1308,23 +1468,26 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
-      
+
       const parsed = this.extractJsonObject(rawText);
-      
+
       // warnings가 없으면 빈 배열로 설정
       if (!parsed.warnings) {
         parsed.warnings = [];
       }
       // expertAdvice가 없으면 기본값 설정
       if (!parsed.expertAdvice) {
-        parsed.expertAdvice = '균형 잡힌 식단의 일부로 적당량 섭취하시면 건강에 도움이 됩니다.';
+        parsed.expertAdvice =
+          "균형 잡힌 식단의 일부로 적당량 섭취하시면 건강에 도움이 됩니다.";
       }
-      
+
       return parsed;
     } catch (error) {
-      console.error('AI 최종 분석 실패:', error);
+      console.error("AI 최종 분석 실패:", error);
       throw new Error(`AI final analysis failed: ${error.message}`);
     }
   }
@@ -1339,9 +1502,12 @@ JSON 형식으로만 응답:
     diseases: string[]
   ): Promise<string[]> {
     try {
-      const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
-      const drugList = finalAnalysis?.medicalAnalysis?.drug_food_interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
-      
+      const diseaseList = diseases.length > 0 ? diseases.join(", ") : "없음";
+      const drugList =
+        finalAnalysis?.medicalAnalysis?.drug_food_interactions
+          ?.map((i: any) => i.medicine_name)
+          .join(", ") || "없음";
+
       const prompt = `# Role Definition
 당신은 **Pigout AI**입니다. 영양학, 임상 약학 전문지식과 공공데이터 분석 결과를 바탕으로 사용자를 돕습니다.
 사용자는 특정 음식(메뉴)을 먹고 싶어 하며, 당신의 역할은 이 음식을 **'금지'하는 것이 아니라, 사용자의 질병과 복용 약물에 맞춰 '가장 건강하게 먹는 방법'을 컨설팅**하는 것입니다.
@@ -1420,17 +1586,19 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
-      
+
       const result = this.extractJsonObject(rawText);
       return result.recipes || [];
     } catch (error) {
-      console.error('AI 레시피 추천 실패:', error);
+      console.error("AI 레시피 추천 실패:", error);
       return [
-        '신선한 재료를 사용하세요',
-        '조리 시 염분과 당분을 적게 사용하세요',
-        '채소를 많이 추가하면 더 건강해요'
+        "신선한 재료를 사용하세요",
+        "조리 시 염분과 당분을 적게 사용하세요",
+        "채소를 많이 추가하면 더 건강해요",
       ];
     }
   }
@@ -1464,34 +1632,60 @@ JSON 형식으로만 응답:
       timingGuide?: { medication: string; waitHours: number; reason: string }[];
       alternatives?: { name: string; reason: string }[];
       servingSize?: { amount: string; unit: string; note: string };
-      nutrition?: { calories: number; protein: number; carbs: number; fat: number; sodium: number };
+      nutrition?: {
+        calories: number;
+        protein: number;
+        carbs: number;
+        fat: number;
+        sodium: number;
+      };
     };
     healthyRecipes: string[];
   }> {
     try {
-      const diseaseList = diseases.length > 0 ? diseases.join(', ') : '없음';
-      const profileInfo = userProfile 
-        ? `${userProfile.age}세 ${userProfile.gender === 'male' ? '남성' : userProfile.gender === 'female' ? '여성' : ''}`
-        : '정보 없음';
-      const drugList = interactionAnalysis?.interactions?.map((i: any) => i.medicine_name).join(', ') || '없음';
-      
+      const diseaseList = diseases.length > 0 ? diseases.join(", ") : "없음";
+      const profileInfo = userProfile
+        ? `${userProfile.age}세 ${
+            userProfile.gender === "male"
+              ? "남성"
+              : userProfile.gender === "female"
+              ? "여성"
+              : ""
+          }`
+        : "정보 없음";
+      const drugList =
+        interactionAnalysis?.interactions
+          ?.map((i: any) => i.medicine_name)
+          .join(", ") || "없음";
+
       // 공공데이터 부족 시 AI가 더 상세하게 분석하도록 지시
-      const needDetailedAnalysis = options?.needDetailedNutrition || options?.needDetailedRecipes || options?.publicDataFailed;
-      const detailInstruction = needDetailedAnalysis ? `
+      const needDetailedAnalysis =
+        options?.needDetailedNutrition ||
+        options?.needDetailedRecipes ||
+        options?.publicDataFailed;
+      const detailInstruction = needDetailedAnalysis
+        ? `
 ⚠️ **공공데이터 없음**: 상세하게 작성 필요
 - goodPoints: 각 80자 이상
 - badPoints: 각 80자 이상
 - summary: 200자 이상
 - healthyRecipes: 각 100자 이상
-` : '';
-      
+`
+        : "";
+
       const prompt = `# Pigout AI - 음식 분석 (간결 모드)
 
 **입력 데이터:**
 - 음식: ${foodName}
 - 사용자: ${profileInfo} | 질병: ${diseaseList} | 약물: ${drugList}
-- 음식 성분: ${foodAnalysis.components?.map(c => c.name).join(', ') || '분석 중'}
-- 약물 상호작용: ${interactionAnalysis.interactions?.length || 0}건 (위험 ${interactionAnalysis.interactions?.filter((i: any) => i.risk_level === 'danger').length || 0}건)
+- 음식 성분: ${
+        foodAnalysis.components?.map((c) => c.name).join(", ") || "분석 중"
+      }
+- 약물 상호작용: ${interactionAnalysis.interactions?.length || 0}건 (위험 ${
+        interactionAnalysis.interactions?.filter(
+          (i: any) => i.risk_level === "danger"
+        ).length || 0
+      }건)
 ${detailInstruction}
 ---
 
@@ -1541,57 +1735,79 @@ ${detailInstruction}
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
-      
+
       const parsed = this.extractJsonObject(rawText);
-      
+
       // 기본값 설정 및 검증
       const finalAnalysis = parsed.finalAnalysis || {};
-      
+
       // goodPoints 검증 - 배열이 아니거나 비어있으면 기본값
-      if (!Array.isArray(finalAnalysis.goodPoints) || finalAnalysis.goodPoints.length === 0) {
+      if (
+        !Array.isArray(finalAnalysis.goodPoints) ||
+        finalAnalysis.goodPoints.length === 0
+      ) {
         finalAnalysis.goodPoints = [
           `✅ ${foodName}에는 다양한 영양소가 포함되어 있어 균형 잡힌 식단에 도움이 됩니다.`,
           `✅ 적절한 양을 섭취하면 일일 영양 권장량을 채우는 데 기여합니다.`,
           `✅ 다양한 조리법으로 즐길 수 있어 식단의 다양성을 높여줍니다.`,
         ];
       }
-      
+
       // badPoints 검증
-      if (!Array.isArray(finalAnalysis.badPoints) || finalAnalysis.badPoints.length === 0) {
+      if (
+        !Array.isArray(finalAnalysis.badPoints) ||
+        finalAnalysis.badPoints.length === 0
+      ) {
         finalAnalysis.badPoints = [
           `⚠️ 과다 섭취 시 영양 불균형이 발생할 수 있으니 적정량을 유지하세요.`,
           `⚠️ 복용 중인 약물이 있다면 식사 시간과 약 복용 시간을 분리하는 것이 좋습니다.`,
         ];
       }
-      
+
       if (!finalAnalysis.warnings) finalAnalysis.warnings = [];
-      
+
       // 🆕 추가 필드 기본값 설정
       if (!finalAnalysis.timingGuide) {
-        finalAnalysis.timingGuide = interactionAnalysis?.interactions?.slice(0, 2).map((i: any) => ({
-          medication: i.medicine_name,
-          waitHours: 2,
-          reason: '흡수 간섭 방지'
-        })) || [];
+        finalAnalysis.timingGuide =
+          interactionAnalysis?.interactions?.slice(0, 2).map((i: any) => ({
+            medication: i.medicine_name,
+            waitHours: 2,
+            reason: "흡수 간섭 방지",
+          })) || [];
       }
       if (!finalAnalysis.alternatives) finalAnalysis.alternatives = [];
       if (!finalAnalysis.servingSize) {
-        finalAnalysis.servingSize = { amount: '200', unit: 'g', note: '1인분 기준' };
+        finalAnalysis.servingSize = {
+          amount: "200",
+          unit: "g",
+          note: "1인분 기준",
+        };
       }
       if (!finalAnalysis.nutrition) {
-        finalAnalysis.nutrition = { calories: 200, protein: 10, carbs: 25, fat: 8, sodium: 500 };
+        finalAnalysis.nutrition = {
+          calories: 200,
+          protein: 10,
+          carbs: 25,
+          fat: 8,
+          sodium: 500,
+        };
       }
-      
+
       if (!finalAnalysis.summary || finalAnalysis.summary.length < 100) {
         finalAnalysis.summary = `${foodName}은(는) 다양한 영양소를 함유하고 있는 음식입니다. 복용 중인 약물과의 상호작용을 고려하여 식사 시간을 조절하시고, 질병 상태에 따라 섭취량을 적절히 조절하시면 건강한 식단의 일부로 즐기실 수 있습니다.`;
       }
-      
-      if (!finalAnalysis.briefSummary || finalAnalysis.briefSummary.length < 30) {
+
+      if (
+        !finalAnalysis.briefSummary ||
+        finalAnalysis.briefSummary.length < 30
+      ) {
         finalAnalysis.briefSummary = `${foodName}은(는) 영양가 있는 음식이지만, 복용 약물과의 상호작용을 고려하여 적절히 섭취하세요.`;
       }
-      
+
       // healthyRecipes 검증 - 정확히 3개로 조정
       let healthyRecipes = parsed.healthyRecipes || [];
       if (!Array.isArray(healthyRecipes) || healthyRecipes.length !== 3) {
@@ -1601,10 +1817,10 @@ ${detailInstruction}
           `[섭취 방법] ${foodName}를 드실 때 신선한 채소(상추, 깻잎, 양배추)와 함께 싸서 드시면 식이섬유가 나트륨 배출을 돕고 포만감도 오래 지속됩니다. 약 복용 중이라면 식사 후 1-2시간 뒤 복용을 권장합니다.`,
         ];
       }
-      
+
       return { finalAnalysis, healthyRecipes };
     } catch (error) {
-      console.error('AI 통합 분석 실패:', error);
+      console.error("AI 통합 분석 실패:", error);
       // 폴백: 상세한 기본값 반환
       return {
         finalAnalysis: {
@@ -1622,8 +1838,14 @@ ${detailInstruction}
           warnings: [],
           timingGuide: [],
           alternatives: [],
-          servingSize: { amount: '200', unit: 'g', note: '1인분 기준' },
-          nutrition: { calories: 200, protein: 10, carbs: 25, fat: 8, sodium: 500 },
+          servingSize: { amount: "200", unit: "g", note: "1인분 기준" },
+          nutrition: {
+            calories: 200,
+            protein: 10,
+            carbs: 25,
+            fat: 8,
+            sodium: 500,
+          },
           summary: `🔬 [최종 종합 분석] ${foodName}은(는) 다양한 영양소를 함유하고 있는 음식입니다. 복용 중인 약물과의 상호작용을 고려하여 식사 시간을 조절하시고, 질병 상태에 따라 섭취량을 적절히 조절하시면 건강한 식단의 일부로 즐기실 수 있습니다.`,
         },
         healthyRecipes: [
@@ -1638,8 +1860,11 @@ ${detailInstruction}
   /**
    * 복용 중인 모든 약물 간 상호작용 종합 분석
    */
-  async analyzeAllDrugInteractions(drugDetails: any[], userProfile?: { age?: number; gender?: string }): Promise<{
-    overallSafety: 'safe' | 'caution' | 'danger';
+  async analyzeAllDrugInteractions(
+    drugDetails: any[],
+    userProfile?: { age?: number; gender?: string }
+  ): Promise<{
+    overallSafety: "safe" | "caution" | "danger";
     overallScore: number;
     dangerousCombinations: Array<{
       drug1: string;
@@ -1662,15 +1887,15 @@ ${detailInstruction}
     recommendations: string[];
   }> {
     try {
-      const drugNames = drugDetails.map(d => d.name).join(', ');
-      
+      const drugNames = drugDetails.map((d) => d.name).join(", ");
+
       // 환자 정보 추가
-      let patientInfo = '';
+      let patientInfo = "";
       if (userProfile && userProfile.age && userProfile.gender) {
-        const genderKo = userProfile.gender === 'male' ? '남성' : '여성';
+        const genderKo = userProfile.gender === "male" ? "남성" : "여성";
         patientInfo = `\n\n**환자 정보:**\n- 나이: ${userProfile.age}세\n- 성별: ${genderKo}\n`;
       }
-      
+
       const prompt = `# Role Definition
 당신은 **Pigout AI**입니다. 임상 약학 전문지식과 공공데이터를 활용하여 약물 간 상호작용을 분석합니다.
 사용자가 복용 중인 모든 약물의 상호작용을 종합적으로 분석하여, **동시 복용의 안전성**을 평가하는 것이 목표입니다.
@@ -1752,52 +1977,74 @@ JSON 형식으로만 응답:
 
       let rawText: string;
       let lastError: any;
-      
+
       // 🔄 재시도 로직: 503/429 에러 시 최대 3회 재시도 (지수 백오프)
       for (let attempt = 1; attempt <= 3; attempt++) {
         try {
           console.log(`[analyzeAllDrugInteractions] 시도 ${attempt}/3`);
-          rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+          rawText = await this.callWithRestApi("gemini-2.5-flash", [
+            { text: prompt },
+          ]);
           break; // 성공 시 루프 종료
         } catch (apiError: any) {
           lastError = apiError;
           const status = apiError.response?.status || apiError.status;
-          console.error(`[analyzeAllDrugInteractions] 시도 ${attempt} 실패:`, status, apiError.message);
-          
+          console.error(
+            `[analyzeAllDrugInteractions] 시도 ${attempt} 실패:`,
+            status,
+            apiError.message
+          );
+
           // 503 (Service Unavailable) 또는 429 (Rate Limit) 에러 시 재시도
           if ((status === 503 || status === 429) && attempt < 3) {
             const waitTime = Math.pow(2, attempt) * 1000; // 2초, 4초, 8초
-            console.warn(`[analyzeAllDrugInteractions] ${waitTime}ms 대기 후 재시도...`);
-            await new Promise(resolve => setTimeout(resolve, waitTime));
+            console.warn(
+              `[analyzeAllDrugInteractions] ${waitTime}ms 대기 후 재시도...`
+            );
+            await new Promise((resolve) => setTimeout(resolve, waitTime));
             continue;
           }
-          
+
           // 마지막 시도 실패 또는 재시도 불가능한 에러 - 안전 기본 응답 반환
-          console.warn('[analyzeAllDrugInteractions] 모든 시도 실패 - 안전 기본 응답 반환');
+          console.warn(
+            "[analyzeAllDrugInteractions] 모든 시도 실패 - 안전 기본 응답 반환"
+          );
           return {
-            overallSafety: 'caution' as const,
+            overallSafety: "caution" as const,
             overallScore: 70,
             dangerousCombinations: [],
-            cautionCombinations: drugDetails.length > 1 ? [{
-              drug1: drugDetails[0]?.name || '약물1',
-              drug2: drugDetails[1]?.name || '약물2',
-              interaction: `현재 AI 분석 서비스가 일시적으로 사용 불가능합니다 (${status === 503 ? '서버 과부하' : status === 429 ? 'API 한도 초과' : '서비스 오류'}). 안전을 위해 의사 또는 약사와 상담하세요.`,
-              recommendation: '복용 전 반드시 의료 전문가와 상담하세요.'
-            }] : [],
+            cautionCombinations:
+              drugDetails.length > 1
+                ? [
+                    {
+                      drug1: drugDetails[0]?.name || "약물1",
+                      drug2: drugDetails[1]?.name || "약물2",
+                      interaction: `현재 AI 분석 서비스가 일시적으로 사용 불가능합니다 (${
+                        status === 503
+                          ? "서버 과부하"
+                          : status === 429
+                          ? "API 한도 초과"
+                          : "서비스 오류"
+                      }). 안전을 위해 의사 또는 약사와 상담하세요.`,
+                      recommendation:
+                        "복용 전 반드시 의료 전문가와 상담하세요.",
+                    },
+                  ]
+                : [],
             synergisticEffects: [],
             summary: `${drugDetails.length}개 약물의 상호작용 분석이 일시적으로 불가능합니다. 안전한 복용을 위해 의사 또는 약사와 상담하시기 바랍니다.`,
             recommendations: [
-              '각 약물의 복용 시간을 최소 2시간 이상 간격으로 조절하세요.',
-              '복용 전 반드시 의사 또는 약사와 상담하세요.',
-              '이상 증상 발생 시 즉시 복용을 중단하고 전문가와 상담하세요.'
-            ]
+              "각 약물의 복용 시간을 최소 2시간 이상 간격으로 조절하세요.",
+              "복용 전 반드시 의사 또는 약사와 상담하세요.",
+              "이상 증상 발생 시 즉시 복용을 중단하고 전문가와 상담하세요.",
+            ],
           };
         }
       }
-      
+
       return this.extractJsonObject(rawText);
     } catch (error) {
-      console.error('AI 약물 상호작용 분석 실패:', error);
+      console.error("AI 약물 상호작용 분석 실패:", error);
       throw new Error(`AI drug interaction analysis failed: ${error.message}`);
     }
   }
@@ -1807,14 +2054,20 @@ JSON 형식으로만 응답:
    * @param productName 제품명
    * @param numOfRows 생성할 결과 수
    */
-  async generateMedicineInfo(productName: string, numOfRows: number = 5): Promise<any[]> {
+  async generateMedicineInfo(
+    productName: string,
+    numOfRows: number = 5
+  ): Promise<any[]> {
     try {
       console.log(`[AI] 의약품/건강기능식품 정보 생성: ${productName}`);
-      
+
       const prompt = `당신은 의약품 및 건강기능식품 전문가입니다.
 사용자가 "${productName}"을(를) 검색했습니다.
 
-이 제품과 관련된 의약품 또는 건강기능식품 정보를 ${Math.min(numOfRows, 5)}개 생성해주세요.
+이 제품과 관련된 의약품 또는 건강기능식품 정보를 ${Math.min(
+        numOfRows,
+        5
+      )}개 생성해주세요.
 실제로 존재하는 제품명과 유사하게 생성하되, 정확한 정보를 제공해주세요.
 
 다음 JSON 배열 형식으로 응답하세요:
@@ -1847,34 +2100,36 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
 
       const parsed = this.extractJsonArray(rawText);
-      
+
       if (parsed && parsed.length > 0) {
         // e약은요 형식으로 변환하여 반환
         return parsed.map((item: any, idx: number) => ({
           itemName: item.itemName || productName,
-          entpName: item.entpName || 'AI 생성',
+          entpName: item.entpName || "AI 생성",
           itemSeq: item.itemSeq || `AI_${Date.now()}_${idx}`,
-          efcyQesitm: item.efcyQesitm || '',
-          useMethodQesitm: item.useMethodQesitm || '',
-          atpnWarnQesitm: item.atpnWarnQesitm || '',
-          atpnQesitm: item.atpnQesitm || '',
-          intrcQesitm: item.intrcQesitm || '',
-          seQesitm: item.seQesitm || '',
-          depositMethodQesitm: item.depositMethodQesitm || '',
-          itemImage: '',
+          efcyQesitm: item.efcyQesitm || "",
+          useMethodQesitm: item.useMethodQesitm || "",
+          atpnWarnQesitm: item.atpnWarnQesitm || "",
+          atpnQesitm: item.atpnQesitm || "",
+          intrcQesitm: item.intrcQesitm || "",
+          seQesitm: item.seQesitm || "",
+          depositMethodQesitm: item.depositMethodQesitm || "",
+          itemImage: "",
           _isAIGenerated: true,
-          _source: 'AI 생성 (Gemini)',
-          _productType: item.productType || '정보 없음',
+          _source: "AI 생성 (Gemini)",
+          _productType: item.productType || "정보 없음",
         }));
       }
-      
+
       return [];
     } catch (error) {
-      console.error('[AI] 의약품 정보 생성 실패:', error.message);
+      console.error("[AI] 의약품 정보 생성 실패:", error.message);
       return [];
     }
   }
@@ -1885,16 +2140,22 @@ JSON 형식으로만 응답:
    * @param keyword 검색 키워드 (예: 오메가3, 비타민D, 유산균)
    * @param numOfRows 생성할 결과 수
    */
-  async generateHealthFoodInfo(keyword: string, numOfRows: number = 10): Promise<any[]> {
+  async generateHealthFoodInfo(
+    keyword: string,
+    numOfRows: number = 10
+  ): Promise<any[]> {
     try {
       console.log(`[AI] 건강기능식품 정보 생성: ${keyword}`);
-      
+
       const prompt = `당신은 건강기능식품 전문가입니다.
 사용자가 "${keyword}"을(를) 검색했습니다.
 
 **중요: 실제로 한국에서 판매되고 있는 건강기능식품 제품을 기반으로 정보를 제공해주세요.**
 
-"${keyword}"과 관련된 실제 건강기능식품 정보를 ${Math.min(numOfRows, 10)}개 생성해주세요.
+"${keyword}"과 관련된 실제 건강기능식품 정보를 ${Math.min(
+        numOfRows,
+        10
+      )}개 생성해주세요.
 
 다음 JSON 배열 형식으로 응답하세요:
 [
@@ -1926,35 +2187,37 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
 
       const parsed = this.extractJsonArray(rawText);
-      
+
       if (parsed && parsed.length > 0) {
         // e약은요 형식으로 변환하여 반환
         return parsed.map((item: any, idx: number) => ({
           itemName: item.itemName || keyword,
-          entpName: item.entpName || 'AI 생성',
+          entpName: item.entpName || "AI 생성",
           itemSeq: item.itemSeq || `AI_HF_${Date.now()}_${idx}`,
-          efcyQesitm: item.efcyQesitm || '',
-          useMethodQesitm: item.useMethodQesitm || '',
-          atpnWarnQesitm: item.atpnWarnQesitm || '',
-          atpnQesitm: item.atpnQesitm || '',
-          intrcQesitm: item.intrcQesitm || '',
-          seQesitm: item.seQesitm || '',
-          depositMethodQesitm: item.depositMethodQesitm || '',
-          itemImage: '',
+          efcyQesitm: item.efcyQesitm || "",
+          useMethodQesitm: item.useMethodQesitm || "",
+          atpnWarnQesitm: item.atpnWarnQesitm || "",
+          atpnQesitm: item.atpnQesitm || "",
+          intrcQesitm: item.intrcQesitm || "",
+          seQesitm: item.seQesitm || "",
+          depositMethodQesitm: item.depositMethodQesitm || "",
+          itemImage: "",
           _isAIGenerated: true,
           _isHealthFunctionalFood: true,
-          _source: 'AI 생성 (Gemini)',
-          _rawMaterial: item.rawMaterial || '',
+          _source: "AI 생성 (Gemini)",
+          _rawMaterial: item.rawMaterial || "",
         }));
       }
-      
+
       return [];
     } catch (error) {
-      console.error('[AI] 건강기능식품 정보 생성 실패:', error.message);
+      console.error("[AI] 건강기능식품 정보 생성 실패:", error.message);
       return [];
     }
   }
@@ -1964,10 +2227,12 @@ JSON 형식으로만 응답:
    * @param keyword 검색 키워드
    * @returns 'medicine' | 'healthFood' | 'unknown'
    */
-  async classifyProductType(keyword: string): Promise<'medicine' | 'healthFood' | 'unknown'> {
+  async classifyProductType(
+    keyword: string
+  ): Promise<"medicine" | "healthFood" | "unknown"> {
     try {
       console.log(`[AI] 제품 유형 분류: ${keyword}`);
-      
+
       const prompt = `당신은 의약품과 건강기능식품을 분류하는 전문가입니다.
 
 "${keyword}"이(가) 다음 중 어디에 해당하는지 판단해주세요:
@@ -1990,23 +2255,58 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text().trim().toLowerCase();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
         rawText = rawText.trim().toLowerCase();
       }
 
       console.log(`[AI] 제품 유형 분류 응답: ${rawText}`);
-      
-      if (rawText.includes('healthfood') || rawText.includes('health_food') || rawText.includes('건강기능식품')) {
-        return 'healthFood';
+
+      if (
+        rawText.includes("healthfood") ||
+        rawText.includes("health_food") ||
+        rawText.includes("건강기능식품")
+      ) {
+        return "healthFood";
       }
-      if (rawText.includes('medicine') || rawText.includes('의약품')) {
-        return 'medicine';
+      if (rawText.includes("medicine") || rawText.includes("의약품")) {
+        return "medicine";
       }
-      
-      return 'unknown';
+
+      return "unknown";
     } catch (error) {
-      console.error('[AI] 제품 유형 분류 실패:', error.message);
-      return 'unknown';
+      console.error("[AI] 제품 유형 분류 실패:", error.message);
+      return "unknown";
+    }
+  }
+
+  /**
+   * 텍스트 번역 (한글 -> 영어)
+   * Unsplash 검색어 생성을 위해 사용 (Gemini Flash 모델 사용)
+   */
+  async translateText(text: string): Promise<string> {
+    try {
+      const prompt = `Translate the following Korean food name or keyword into English for image search.
+      Korean: "${text}"
+      
+      Output ONLY the English translation. No other text.`;
+
+      let rawText: string;
+      try {
+        const result = await this.textModel.generateContent(prompt);
+        const response = await result.response;
+        rawText = response.text();
+      } catch (sdkError) {
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
+      }
+
+      return rawText.trim();
+    } catch (error) {
+      console.warn(`[Gemini] 번역 실패: ${error.message}`);
+      return text; // 실패 시 원본 반환
     }
   }
 
@@ -2016,17 +2316,20 @@ JSON 형식으로만 응답:
   private extractJsonArray(raw: string): any[] {
     try {
       let cleaned = raw.trim();
-      cleaned = cleaned.replace(/^```json\s*/i, '').replace(/^```\s*/, '').replace(/```\s*$/, '');
-      
+      cleaned = cleaned
+        .replace(/^```json\s*/i, "")
+        .replace(/^```\s*/, "")
+        .replace(/```\s*$/, "");
+
       // 배열 시작/끝 찾기
-      const startIdx = cleaned.indexOf('[');
-      const endIdx = cleaned.lastIndexOf(']');
-      
+      const startIdx = cleaned.indexOf("[");
+      const endIdx = cleaned.lastIndexOf("]");
+
       if (startIdx !== -1 && endIdx !== -1 && endIdx > startIdx) {
         const jsonStr = cleaned.substring(startIdx, endIdx + 1);
         return JSON.parse(jsonStr);
       }
-      
+
       return [];
     } catch {
       return [];
@@ -2051,8 +2354,8 @@ JSON 형식으로만 응답:
 
 ## 약품 정보
 - 제품명: ${itemName}
-- 제조사: ${entpName || '알 수 없음'}
-- 효능/효과: ${efcyQesitm || '정보 없음'}
+- 제조사: ${entpName || "알 수 없음"}
+- 효능/효과: ${efcyQesitm || "정보 없음"}
 
 ## 요청사항
 1. 이 약품의 **주요 활성성분** 1~5개를 추출하세요
@@ -2083,22 +2386,36 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [ { text: prompt } ]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
 
       const parsed = this.extractJsonObject(rawText);
-      
+
       return {
         mainIngredient: parsed.mainIngredient || itemName,
-        drugClass: parsed.drugClass || '일반의약품',
-        components: parsed.components || [{ name: itemName, category: '알 수 없음', description: '성분 정보 없음' }],
+        drugClass: parsed.drugClass || "일반의약품",
+        components: parsed.components || [
+          {
+            name: itemName,
+            category: "알 수 없음",
+            description: "성분 정보 없음",
+          },
+        ],
       };
     } catch (error) {
-      console.error('[AI] 약물 성분 추출 실패:', error.message);
+      console.error("[AI] 약물 성분 추출 실패:", error.message);
       return {
         mainIngredient: itemName,
-        drugClass: '알 수 없음',
-        components: [{ name: itemName, category: '알 수 없음', description: '성분 추출 실패' }],
+        drugClass: "알 수 없음",
+        components: [
+          {
+            name: itemName,
+            category: "알 수 없음",
+            description: "성분 추출 실패",
+          },
+        ],
       };
     }
   }
@@ -2121,10 +2438,12 @@ JSON 형식으로만 응답:
     interactions: string;
     storageMethod: string;
     components: Array<{ name: string; description: string }>;
-    dataCompleteness: 'complete' | 'partial' | 'ai_enhanced';
+    dataCompleteness: "complete" | "partial" | "ai_enhanced";
   }> {
     try {
-      const publicDataStr = publicData ? JSON.stringify(publicData, null, 2) : '공공데이터 없음';
+      const publicDataStr = publicData
+        ? JSON.stringify(publicData, null, 2)
+        : "공공데이터 없음";
 
       const prompt = `당신은 의약품 정보 분석 및 보완 전문가입니다.
 
@@ -2212,22 +2531,24 @@ JSON 형식으로만 응답:
         const response = await result.response;
         rawText = response.text();
       } catch (sdkError) {
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
 
       return this.extractJsonObject(rawText);
     } catch (error) {
-      console.error('[AI] 약품 정보 분석 실패:', error.message);
+      console.error("[AI] 약품 정보 분석 실패:", error.message);
       return {
         name: medicineName,
-        efficacy: '정보 없음',
-        usage: '정보 없음',
-        sideEffects: '정보 없음',
-        precautions: '정보 없음',
-        interactions: '정보 없음',
-        storageMethod: '정보 없음',
+        efficacy: "정보 없음",
+        usage: "정보 없음",
+        sideEffects: "정보 없음",
+        precautions: "정보 없음",
+        interactions: "정보 없음",
+        storageMethod: "정보 없음",
         components: [],
-        dataCompleteness: 'partial',
+        dataCompleteness: "partial",
       };
     }
   }
@@ -2239,17 +2560,19 @@ JSON 형식으로만 응답:
    */
   async analyzeMedicineInfoBatch(
     medicines: Array<{ name: string; publicData?: any }>
-  ): Promise<Array<{
-    name: string;
-    efficacy: string;
-    usage: string;
-    sideEffects: string;
-    precautions: string;
-    interactions: string;
-    storageMethod: string;
-    components: Array<{ name: string; description: string }>;
-    dataCompleteness: 'complete' | 'partial' | 'ai_enhanced';
-  }>> {
+  ): Promise<
+    Array<{
+      name: string;
+      efficacy: string;
+      usage: string;
+      sideEffects: string;
+      precautions: string;
+      interactions: string;
+      storageMethod: string;
+      components: Array<{ name: string; description: string }>;
+      dataCompleteness: "complete" | "partial" | "ai_enhanced";
+    }>
+  > {
     console.log(`[AI] ${medicines.length}개 약품 일괄 분석 시작...`);
 
     const results = await Promise.all(
@@ -2258,14 +2581,14 @@ JSON 형식으로만 응답:
           console.warn(`[AI] ${med.name} 분석 실패:`, err.message);
           return {
             name: med.name,
-            efficacy: '정보 없음',
-            usage: '정보 없음',
-            sideEffects: '정보 없음',
-            precautions: '정보 없음',
-            interactions: '정보 없음',
-            storageMethod: '정보 없음',
+            efficacy: "정보 없음",
+            usage: "정보 없음",
+            sideEffects: "정보 없음",
+            precautions: "정보 없음",
+            interactions: "정보 없음",
+            storageMethod: "정보 없음",
             components: [],
-            dataCompleteness: 'partial' as const,
+            dataCompleteness: "partial" as const,
           };
         })
       )
@@ -2286,12 +2609,14 @@ JSON 형식으로만 응답:
     publicData?: any
   ): Promise<{
     timesPerDay: number;
-    timeSlots: Array<'morning' | 'afternoon' | 'evening'>;
+    timeSlots: Array<"morning" | "afternoon" | "evening">;
     dosagePerTime: string;
     recommendation: string;
   }> {
     try {
-      const publicDataStr = publicData ? JSON.stringify(publicData, null, 2) : '공공데이터 없음';
+      const publicDataStr = publicData
+        ? JSON.stringify(publicData, null, 2)
+        : "공공데이터 없음";
 
       const prompt = `당신은 약품 복용 시간 분석 전문가입니다.
 
@@ -2373,30 +2698,38 @@ JSON 형식으로만 응답:
       let rawText: string;
       try {
         rawText = await this.callWithRetry(async () => {
-          return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+          return await this.callWithRestApi("gemini-2.5-flash", [
+            { text: prompt },
+          ]);
         });
       } catch (error) {
-        console.warn('[AI] 복용 시간 분석 실패, REST API 재시도:', error.message);
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+        console.warn(
+          "[AI] 복용 시간 분석 실패, REST API 재시도:",
+          error.message
+        );
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
 
       const result = this.extractJsonObject(rawText);
-      
+
       // 기본값 보장
       return {
         timesPerDay: result.timesPerDay || 1,
-        timeSlots: result.timeSlots || ['morning'],
-        dosagePerTime: result.dosagePerTime || '1정',
-        recommendation: result.recommendation || '의사 또는 약사의 지시에 따라 복용하세요.',
+        timeSlots: result.timeSlots || ["morning"],
+        dosagePerTime: result.dosagePerTime || "1정",
+        recommendation:
+          result.recommendation || "의사 또는 약사의 지시에 따라 복용하세요.",
       };
     } catch (error) {
-      console.error('[AI] 복용 시간 분석 실패:', error.message);
+      console.error("[AI] 복용 시간 분석 실패:", error.message);
       // 기본값 반환 (1일 1회, 아침)
       return {
         timesPerDay: 1,
-        timeSlots: ['morning'],
-        dosagePerTime: '1정',
-        recommendation: '정확한 복용 시간은 의사 또는 약사와 상담하세요.',
+        timeSlots: ["morning"],
+        dosagePerTime: "1정",
+        recommendation: "정확한 복용 시간은 의사 또는 약사와 상담하세요.",
       };
     }
   }
@@ -2427,7 +2760,7 @@ JSON 형식으로만 응답:
     };
     category: string;
     tags: string[];
-    riskLevel: 'low' | 'medium' | 'high';
+    riskLevel: "low" | "medium" | "high";
     keyPrecautions: string[];
     summarizedInfo: {
       efficacy: string;
@@ -2441,15 +2774,23 @@ JSON 형식으로만 응답:
       console.log(`[AI 약 정보 강화] 시작: ${medicineData.itemName}`);
 
       // AI 분석 정보가 있으면 우선 사용
-      const efficacy = medicineData.aiAnalyzedInfo?.efficacy || medicineData.efcyQesitm || '';
-      const usage = medicineData.aiAnalyzedInfo?.usage || medicineData.useMethodQesitm || '';
-      const sideEffects = medicineData.aiAnalyzedInfo?.sideEffects || medicineData.seQesitm || '';
-      const precautions = 
-        medicineData.aiAnalyzedInfo?.precautions || 
-        medicineData.atpnWarnQesitm || 
-        medicineData.atpnQesitm || 
-        '';
-      const interactions = medicineData.aiAnalyzedInfo?.interactions || medicineData.intrcQesitm || '';
+      const efficacy =
+        medicineData.aiAnalyzedInfo?.efficacy || medicineData.efcyQesitm || "";
+      const usage =
+        medicineData.aiAnalyzedInfo?.usage ||
+        medicineData.useMethodQesitm ||
+        "";
+      const sideEffects =
+        medicineData.aiAnalyzedInfo?.sideEffects || medicineData.seQesitm || "";
+      const precautions =
+        medicineData.aiAnalyzedInfo?.precautions ||
+        medicineData.atpnWarnQesitm ||
+        medicineData.atpnQesitm ||
+        "";
+      const interactions =
+        medicineData.aiAnalyzedInfo?.interactions ||
+        medicineData.intrcQesitm ||
+        "";
 
       const prompt = `당신은 약물 정보 분석 전문가입니다.
 다음 약물 정보를 분석하여 토큰 절약을 위한 핵심 정보만 추출하세요.
@@ -2501,22 +2842,32 @@ ${interactions.substring(0, 500)}
       let rawText: string;
       try {
         rawText = await this.callWithRetry(async () => {
-          return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+          return await this.callWithRestApi("gemini-2.5-flash", [
+            { text: prompt },
+          ]);
         });
       } catch (error) {
-        console.warn('[AI 약 정보 강화] REST API 재시도:', error.message);
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+        console.warn("[AI 약 정보 강화] REST API 재시도:", error.message);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
 
       const result = this.extractJsonObject(rawText);
-      
-      console.log(`[AI 약 정보 강화] 성공: ${medicineData.itemName} - 카테고리: ${result.category}`);
-      
+
+      console.log(
+        `[AI 약 정보 강화] 성공: ${medicineData.itemName} - 카테고리: ${result.category}`
+      );
+
       return {
-        foodInteractions: result.foodInteractions || { avoid: [], caution: [], reason: '' },
-        category: result.category || '일반의약품',
+        foodInteractions: result.foodInteractions || {
+          avoid: [],
+          caution: [],
+          reason: "",
+        },
+        category: result.category || "일반의약품",
         tags: result.tags || [],
-        riskLevel: result.riskLevel || 'low',
+        riskLevel: result.riskLevel || "low",
         keyPrecautions: result.keyPrecautions || [],
         summarizedInfo: result.summarizedInfo || {
           efficacy: efficacy.substring(0, 100),
@@ -2527,25 +2878,28 @@ ${interactions.substring(0, 500)}
         },
       };
     } catch (error) {
-      console.error('[AI 약 정보 강화] 실패:', error.message);
+      console.error("[AI 약 정보 강화] 실패:", error.message);
       // 기본값 반환
       return {
-        foodInteractions: { avoid: [], caution: [], reason: '정보 없음' },
-        category: '일반의약품',
+        foodInteractions: { avoid: [], caution: [], reason: "정보 없음" },
+        category: "일반의약품",
         tags: [],
-        riskLevel: 'low',
+        riskLevel: "low",
         keyPrecautions: [],
         summarizedInfo: {
-          efficacy: medicineData.efcyQesitm?.substring(0, 100) || '',
-          usage: medicineData.useMethodQesitm?.substring(0, 80) || '',
-          sideEffects: medicineData.seQesitm?.substring(0, 100) || '',
-          precautions: (medicineData.atpnWarnQesitm || medicineData.atpnQesitm || '').substring(0, 150),
-          interactions: medicineData.intrcQesitm?.substring(0, 150) || '',
+          efficacy: medicineData.efcyQesitm?.substring(0, 100) || "",
+          usage: medicineData.useMethodQesitm?.substring(0, 80) || "",
+          sideEffects: medicineData.seQesitm?.substring(0, 100) || "",
+          precautions: (
+            medicineData.atpnWarnQesitm ||
+            medicineData.atpnQesitm ||
+            ""
+          ).substring(0, 150),
+          interactions: medicineData.intrcQesitm?.substring(0, 150) || "",
         },
       };
     }
   }
-
 
   /**
    * 질병별 강화 정보 생성 (미리 캐싱용)
@@ -2554,7 +2908,7 @@ ${interactions.substring(0, 500)}
    */
   async generateDiseaseEnhancedInfo(diseaseName: string): Promise<{
     category: string;
-    severity: 'low' | 'medium' | 'high';
+    severity: "low" | "medium" | "high";
     chronicType: string;
     tags: string[];
     recommendedFoods: string[];
@@ -2609,26 +2963,32 @@ ${interactions.substring(0, 500)}
       let rawText: string;
       try {
         rawText = await this.callWithRetry(async () => {
-          return await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+          return await this.callWithRestApi("gemini-2.5-flash", [
+            { text: prompt },
+          ]);
         });
       } catch (error) {
-        console.warn('[AI 질병 정보 강화] REST API 재시도:', error.message);
-        rawText = await this.callWithRestApi('gemini-2.5-flash', [{ text: prompt }]);
+        console.warn("[AI 질병 정보 강화] REST API 재시도:", error.message);
+        rawText = await this.callWithRestApi("gemini-2.5-flash", [
+          { text: prompt },
+        ]);
       }
 
       const result = this.extractJsonObject(rawText);
-      
-      console.log(`[AI 질병 정보 강화] 성공: ${diseaseName} - 카테고리: ${result.category}`);
-      
+
+      console.log(
+        `[AI 질병 정보 강화] 성공: ${diseaseName} - 카테고리: ${result.category}`
+      );
+
       return {
-        category: result.category || '기타질환',
-        severity: result.severity || 'medium',
-        chronicType: result.chronicType || '만성질환',
+        category: result.category || "기타질환",
+        severity: result.severity || "medium",
+        chronicType: result.chronicType || "만성질환",
         tags: result.tags || [],
         recommendedFoods: result.recommendedFoods || [],
         avoidFoods: result.avoidFoods || [],
         cautionFoods: result.cautionFoods || [],
-        dietaryReason: result.dietaryReason || '',
+        dietaryReason: result.dietaryReason || "",
         keyNutrients: result.keyNutrients || {
           increase: [],
           decrease: [],
@@ -2638,16 +2998,16 @@ ${interactions.substring(0, 500)}
         generalPrecautions: result.generalPrecautions || [],
       };
     } catch (error) {
-      console.error('[AI 질병 정보 강화] 실패:', error.message);
+      console.error("[AI 질병 정보 강화] 실패:", error.message);
       return {
-        category: '기타질환',
-        severity: 'medium',
-        chronicType: '만성질환',
+        category: "기타질환",
+        severity: "medium",
+        chronicType: "만성질환",
         tags: [],
         recommendedFoods: [],
         avoidFoods: [],
         cautionFoods: [],
-        dietaryReason: '',
+        dietaryReason: "",
         keyNutrients: {
           increase: [],
           decrease: [],
