@@ -3,6 +3,9 @@
   "version": "1.0.0",
   "description": "NestJS + Supabase 기반 백엔드 서버",
   "main": "index.js",
+  "engines": {
+    "node": ">=20.0.0"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.24.1",
     "@nestjs/common": "^11.1.8",
