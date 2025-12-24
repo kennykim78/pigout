@@ -3,7 +3,7 @@ import { ConfigService } from "@nestjs/config";
 import { SupabaseService } from "../supabase/supabase.service";
 import { GeminiClient } from "../ai/utils/gemini.client";
 import axios from "axios";
-import * as sharp from "sharp";
+import sharp from "sharp";
 
 @Injectable()
 export class ImageService {

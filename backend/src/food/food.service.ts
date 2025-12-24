@@ -3,7 +3,6 @@ import { SupabaseService } from "../supabase/supabase.service";
 import { AiService } from "../ai/ai.service";
 import { OpenDataService } from "../opendata/opendata.service";
 import { ExternalApiClient } from "../ai/utils/external-api.client";
-import { ExternalApiClient } from "../ai/utils/external-api.client";
 import { UsersService } from "../users/users.service";
 import { ImageService } from "../image/image.service";
 
