@@ -99,7 +99,7 @@ const Result01 = () => {
       state: {
         foodName,
         foodImage: location.state?.foodImage,
-        imageUrl: foodImage,
+        imageUrl: foodImage || location.state?.imageUrl, // 🆕 fallback 추가
         score: score, // Result01 점수를 기본값으로 전달
         analysis: analysis,
         detailedAnalysis: detailedAnalysis || null, // 있으면 전달
