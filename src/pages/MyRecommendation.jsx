@@ -82,6 +82,11 @@ const MyRecommendation = () => {
             <span className="icon">🥗</span>
             <h2>오늘의 추천 음식</h2>
           </div>
+          {food.imageUrl && (
+            <div className="card-image">
+              <img src={food.imageUrl} alt={food.name} />
+            </div>
+          )}
           <div className="card-body">
             <h3 className="highlight-title">{food.name}</h3>
             <p className="reason-text">{food.reason}</p>
@@ -89,6 +94,16 @@ const MyRecommendation = () => {
               <span className="badge">Benefit</span>
               <p>{food.pros}</p>
             </div>
+            {food.relatedLink && (
+              <a
+                href={food.relatedLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="related-link-btn"
+              >
+                🔗 더 알아보기
+              </a>
+            )}
           </div>
         </div>
 
@@ -99,12 +114,25 @@ const MyRecommendation = () => {
             <h2>세계의 민간요법</h2>
           </div>
           <div className="card-body">
-            <div className="country-badge">{remedy.country}</div>
+            <div className="country-badge">
+              {remedy.flag && <span className="flag">{remedy.flag}</span>}
+              {remedy.country}
+            </div>
             <h3 className="highlight-title">{remedy.title}</h3>
             <p className="description-text">{remedy.description}</p>
             <div className="warning-box">
               <p>{remedy.warning}</p>
             </div>
+            {remedy.relatedLink && (
+              <a
+                href={remedy.relatedLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="related-link-btn"
+              >
+                🔗 더 알아보기
+              </a>
+            )}
           </div>
         </div>
 
@@ -114,10 +142,25 @@ const MyRecommendation = () => {
             <span className="icon">💪</span>
             <h2>오늘의 추천 운동</h2>
           </div>
+          {exercise.imageUrl && (
+            <div className="card-image">
+              <img src={exercise.imageUrl} alt={exercise.name} />
+            </div>
+          )}
           <div className="card-body">
             <h3 className="highlight-title">{exercise.name}</h3>
             <p className="description-text">{exercise.description}</p>
             <div className="intensity-badge">난이도: {exercise.intensity}</div>
+            {exercise.relatedLink && (
+              <a
+                href={exercise.relatedLink}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="related-link-btn"
+              >
+                🔗 더 알아보기
+              </a>
+            )}
           </div>
         </div>
       </div>
