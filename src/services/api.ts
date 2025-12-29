@@ -42,10 +42,12 @@ export const getCurrentUser = async () => {
   return response.data;
 };
 
-// 사용자 프로필 업데이트 (닉네임 등)
+// 사용자 프로필 업데이트 (닉네임, 질병, 나이, 성별)
 export const updateUserProfile = async (profile: {
   nickname?: string;
   diseases?: string[];
+  age?: number;
+  gender?: string;
 }) => {
   const response = await apiClient.patch("/users/me", profile);
   return response.data;

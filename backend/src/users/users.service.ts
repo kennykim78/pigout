@@ -8,6 +8,8 @@ export interface User {
   email?: string;
   phone?: string;
   diseases?: string[];
+  age?: number;
+  gender?: string;
   is_verified: boolean;
   created_at: string;
   updated_at: string;
@@ -108,7 +110,7 @@ export class UsersService {
    */
   async updateProfile(
     userId: string,
-    updates: { nickname?: string; diseases?: string[] }
+    updates: { nickname?: string; diseases?: string[]; age?: number; gender?: string }
   ): Promise<User> {
     const client = this.supabaseService.getClient();
 
@@ -122,6 +124,14 @@ export class UsersService {
     if (updates.diseases !== undefined) {
       updateData.diseases = updates.diseases;
     }
+    if (updates.age !== undefined) {
+      updateData.age = updates.age;
+    }
+    if (updates.gender !== undefined) {
+      updateData.gender = updates.gender;
+    }
+
+    console.log(`[Users] updateProfile: userId=${userId}, updates=`, updateData);
 
     const { data, error } = await client
       .from('users')

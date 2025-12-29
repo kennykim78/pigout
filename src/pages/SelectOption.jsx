@@ -4,7 +4,7 @@ import './SelectOption.scss';
 import img_dental from '../assets/images/img_dental.png';
 import MedicineAlertModal from '../components/MedicineAlertModal';
 import { setOnboardingComplete, saveSelectedDiseases } from '../utils/deviceId';
-import { getMyMedicines } from '../services/api';
+import { getMyMedicines, updateUserProfile } from '../services/api';
 
 const diseases = [
   '탈모', '당뇨', '고혈압', '고지혈증', '통풍', '감기', '비염',
@@ -98,7 +98,7 @@ const SelectOption = () => {
     }
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (selectedDiseases.length === 0) {
       alert('질병을 1가지 이상 선택해주셔야 합니다.');
       return;
@@ -107,6 +107,15 @@ const SelectOption = () => {
     // 선택된 질병 저장 (localStorage)
     saveSelectedDiseases(selectedDiseases);
     console.log('질병 정보 저장됨:', selectedDiseases);
+    
+    // 🔥 백엔드에 사용자 프로필 동기화
+    try {
+      await updateUserProfile({ diseases: selectedDiseases });
+      console.log('[SelectOption] 백엔드 프로필 동기화 완료');
+    } catch (error) {
+      console.error('[SelectOption] 백엔드 프로필 동기화 실패:', error);
+      // 실패해도 로컬 저장은 완료되었으므로 계속 진행
+    }
     
     // 복용 중인 약이 없을 때만 약 추가 팝업 표시
     if (savedMedicinesCount === 0) {
