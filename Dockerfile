@@ -2,7 +2,18 @@
 FROM node:20-alpine AS builder
 
 # Install build dependencies for native modules (sharp, etc.)
-RUN apk add --no-cache python3 make g++ vips-dev pkgconfig
+RUN apk add --no-cache \
+    python3 \
+    make \
+    g++ \
+    vips-dev \
+    pkgconfig \
+    libc6-compat
+
+# Set sharp to use pre-built binaries for musl (Alpine)
+ENV SHARP_IGNORE_GLOBAL_LIBVIPS=1
+ENV npm_config_platform=linuxmusl
+ENV npm_config_arch=x64
 
 WORKDIR /app
 
@@ -10,7 +21,9 @@ WORKDIR /app
 COPY backend/package.json backend/package-lock.json* ./
 
 # Install ALL dependencies (including devDependencies for build)
-RUN npm ci --legacy-peer-deps || npm install --legacy-peer-deps
+# Force sharp to download pre-built binary
+RUN npm install --legacy-peer-deps --ignore-scripts && \
+    npm rebuild sharp
 
 # Copy source code
 COPY backend/tsconfig.json ./
@@ -23,15 +36,19 @@ RUN npm run build
 FROM node:20-alpine AS runner
 
 # Install runtime dependencies for sharp
-RUN apk add --no-cache vips
+RUN apk add --no-cache vips libc6-compat
 
 WORKDIR /app
+
+# Set sharp environment
+ENV SHARP_IGNORE_GLOBAL_LIBVIPS=1
 
 # Copy package files
 COPY backend/package.json backend/package-lock.json* ./
 
 # Install production dependencies only
-RUN npm ci --legacy-peer-deps --omit=dev || npm install --legacy-peer-deps --omit=dev
+RUN npm install --legacy-peer-deps --omit=dev --ignore-scripts && \
+    npm rebuild sharp
 
 # Copy built files from builder
 COPY --from=builder /app/dist ./dist
@@ -42,10 +59,6 @@ ENV PORT=3001
 
 # Expose port
 EXPOSE 3001
-
-# Health check
-HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
-  CMD wget --no-verbose --tries=1 --spider http://localhost:3001/api || exit 1
 
 # Start the application
 CMD ["node", "dist/main.js"]
