@@ -118,7 +118,8 @@ $color-safe: #3b82f6;
     height: calc(100vh - 80px);
     overflow-y: auto;
     scroll-behavior: smooth;
-    scroll-snap-type: y mandatory;
+    // scroll-snap을 proximity로 변경 - 스크롤 끝에서 자연스럽게 풀림
+    scroll-snap-type: y proximity;
 
     // 스크롤바 스타일링
     &::-webkit-scrollbar {
@@ -131,12 +132,12 @@ $color-safe: #3b82f6;
     }
   }
 
-  // 슬라이딩 카드 섹션 (1-4번)
+  // 슬라이딩 카드 섹션 (1-5번)
   &__slide-section {
     .result2-card--slide {
       min-height: 100vh;
       scroll-snap-align: start;
-      scroll-snap-stop: always;
+      scroll-snap-stop: normal; // always에서 normal로 변경 - 빠른 스크롤 시 건너뛰기 허용
       padding: 20px;
       display: flex;
       align-items: center;
@@ -166,15 +167,21 @@ $color-safe: #3b82f6;
           opacity: 1;
         }
       }
+
+      // 마지막 슬라이드에서 scroll-snap 해제
+      &:last-child {
+        scroll-snap-align: none;
+      }
     }
   }
 
-  // 일반 스크롤 섹션 (5-7번)
+  // 일반 스크롤 섹션 (6-8번) - scroll-snap 적용 안함
   &__scroll-section {
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 24px;
+    scroll-snap-align: none; // 스냅 해제
   }
 
   // 면책 조항
@@ -215,32 +222,30 @@ $color-safe: #3b82f6;
 }
 
 // ==========================================
-// 1. 태그 클라우드 섹션
+// 1. 워드클라우드 섹션 (Slido 스타일)
 // ==========================================
-.tagcloud {
-  width: 100%;
-  overflow: hidden;
+.wordcloud {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
   padding: 16px 0;
-
-  &__track {
-    display: flex;
-    gap: 12px;
-    animation: slideRightToLeft 30s linear infinite;
-    width: max-content;
-  }
+  min-height: 200px;
 
   &__tag {
-    display: flex;
+    display: inline-flex;
     align-items: center;
-    gap: 8px;
-    padding: 12px 20px;
+    gap: 6px;
     border-radius: 30px;
-    white-space: nowrap;
     font-weight: 600;
-    transition: transform 0.2s;
+    white-space: nowrap;
+    transition: transform 0.2s, box-shadow 0.2s;
+    cursor: default;
 
     &:hover {
-      transform: scale(1.05);
+      transform: scale(1.08);
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
     }
 
     &--good {
@@ -255,38 +260,39 @@ $color-safe: #3b82f6;
       border: 1px solid #fca5a5;
     }
 
-    // 랜덤 크기
-    &--small {
-      font-size: $result2-font-small;
-      padding: 10px 16px;
+    // 다양한 크기 (Slido 스타일)
+    &--xs {
+      font-size: 12px;
+      padding: 6px 12px;
     }
 
-    &--medium {
-      font-size: $result2-font-base;
-      padding: 12px 20px;
+    &--sm {
+      font-size: 14px;
+      padding: 8px 14px;
     }
 
-    &--large {
-      font-size: $result2-font-medium;
-      padding: 14px 24px;
+    &--md {
+      font-size: 16px;
+      padding: 10px 18px;
+    }
+
+    &--lg {
+      font-size: 20px;
+      padding: 12px 22px;
+    }
+
+    &--xl {
+      font-size: 24px;
+      padding: 14px 28px;
     }
   }
 
   &__icon {
-    font-size: 18px;
+    font-size: inherit;
   }
 
   &__text {
-    line-height: 1.3;
-  }
-}
-
-@keyframes slideRightToLeft {
-  0% {
-    transform: translateX(0);
-  }
-  100% {
-    transform: translateX(-50%);
+    line-height: 1.2;
   }
 }
 

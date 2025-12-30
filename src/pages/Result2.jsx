@@ -9,7 +9,7 @@ import { getDeviceId } from "../utils/deviceId";
 import StreamingPopup from "../components/StreamingPopup";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
 
-// 🆕 1. 장단점 태그 클라우드 컴포넌트 (무한 슬라이딩)
+// 🆕 1. 장단점 워드클라우드 컴포넌트 (Slido 스타일 - 정적 배치)
 const TagCloudSection = ({ pros = [], cons = [] }) => {
   // pros와 cons를 섞어서 태그 배열 생성
   const allTags = [
@@ -25,37 +25,40 @@ const TagCloudSection = ({ pros = [], cons = [] }) => {
     })),
   ];
 
-  // 랜덤 크기 배열 (small, medium, large)
-  const sizes = ["small", "medium", "large"];
-  const getRandomSize = (idx) => sizes[idx % 3];
+  // 다양한 크기 배열 (Slido 스타일 - 더 다양한 크기)
+  const sizes = ["xs", "sm", "md", "lg", "xl"];
 
-  // 태그를 섞기
-  const shuffledTags = [...allTags].sort(() => Math.random() - 0.5);
+  // 시드 기반 랜덤 크기 생성 (일관성 유지)
+  const getSize = (idx, text) => {
+    const seed = text.length + idx;
+    return sizes[seed % sizes.length];
+  };
 
-  // 무한 슬라이드를 위해 태그 복제
-  const duplicatedTags = [...shuffledTags, ...shuffledTags];
+  // 태그를 섞기 (일관된 순서)
+  const shuffledTags = [...allTags].sort(
+    (a, b) =>
+      a.text.length + a.id.charCodeAt(0) - (b.text.length + b.id.charCodeAt(0))
+  );
 
   if (allTags.length === 0) return null;
 
   return (
     <div className="result2-card result2-card--tagcloud">
       <h2 className="result2-card__title">장단점 분석</h2>
-      <div className="tagcloud">
-        <div className="tagcloud__track">
-          {duplicatedTags.map((tag, idx) => (
-            <div
-              key={`${tag.id}-${idx}`}
-              className={`tagcloud__tag tagcloud__tag--${
-                tag.type
-              } tagcloud__tag--${getRandomSize(idx)}`}
-            >
-              <span className="tagcloud__icon">
-                {tag.type === "good" ? "👍" : "👎"}
-              </span>
-              <span className="tagcloud__text">{tag.text}</span>
-            </div>
-          ))}
-        </div>
+      <div className="wordcloud">
+        {shuffledTags.map((tag, idx) => (
+          <div
+            key={tag.id}
+            className={`wordcloud__tag wordcloud__tag--${
+              tag.type
+            } wordcloud__tag--${getSize(idx, tag.text)}`}
+          >
+            <span className="wordcloud__icon">
+              {tag.type === "good" ? "👍" : "👎"}
+            </span>
+            <span className="wordcloud__text">{tag.text}</span>
+          </div>
+        ))}
       </div>
     </div>
   );
