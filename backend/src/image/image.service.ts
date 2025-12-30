@@ -90,6 +90,64 @@ export class ImageService {
   }
 
   /**
+   * YouTube에서 관련 영상 검색 및 썸네일/링크 반환
+   */
+  async searchYoutubeContent(
+    keyword: string
+  ): Promise<{ link: string; imageUrl: string } | null> {
+    const apiKey = this.configService.get<string>("GOOGLE_SEARCH_API_KEY");
+    const cx = this.configService.get<string>("GOOGLE_SEARCH_CX");
+
+    if (!apiKey || !cx) {
+      this.logger.warn("Google Search API Key or CX is missing for Youtube");
+      return null;
+    }
+
+    try {
+      const response = await axios.get(
+        "https://www.googleapis.com/customsearch/v1",
+        {
+          params: {
+            key: apiKey,
+            cx: cx,
+            q: `site:youtube.com ${keyword}`,
+            num: 1,
+          },
+        }
+      );
+
+      if (response.data.items && response.data.items.length > 0) {
+        const item = response.data.items[0];
+        const link = item.link;
+        let imageUrl = "";
+
+        // 1. CSE 메타데이터에서 썸네일 추출 시도
+        if (item.pagemap?.cse_image?.[0]?.src) {
+          imageUrl = item.pagemap.cse_image[0].src;
+        } else if (item.pagemap?.cse_thumbnail?.[0]?.src) {
+          imageUrl = item.pagemap.cse_thumbnail[0].src;
+        }
+
+        // 2. 실패 시 URL에서 Video ID 추출하여 직접 생성
+        if (!imageUrl && link.includes("watch?v=")) {
+          const videoId = link.split("v=")[1]?.split("&")[0];
+          if (videoId) {
+            imageUrl = `https://img.youtube.com/vi/${videoId}/mqdefault.jpg`;
+          }
+        }
+
+        return { link, imageUrl };
+      }
+      return null;
+    } catch (error) {
+      this.logger.error(
+        `Youtube Search failed for ${keyword}: ${error.message}`
+      );
+      return null;
+    }
+  }
+
+  /**
    * URL에서 OG 이미지 추출
    */
   async fetchOgImage(url: string): Promise<string | null> {

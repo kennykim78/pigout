@@ -79,7 +79,9 @@ export class RecommendationService {
 
     // 🔍 디버깅: 사용자 프로필과 캐시 키 상세 로그
     this.logger.log(
-      `[Recommendation] User: ${userId}, Age: ${userProfile?.age}, Gender: ${gender}, Diseases: ${JSON.stringify(diseases)}`
+      `[Recommendation] User: ${userId}, Age: ${
+        userProfile?.age
+      }, Gender: ${gender}, Diseases: ${JSON.stringify(diseases)}`
     );
     this.logger.log(
       `[Recommendation] CacheKey: "${cacheKey}", Index: ${contentIndex}/30`
@@ -214,6 +216,20 @@ export class RecommendationService {
     const randomCountry =
       countries[Math.floor(Math.random() * countries.length)];
 
+    // 운동 카테고리 다양화
+    const exerciseCategories = [
+      "실내 스트레칭",
+      "요가 동작",
+      "맨몸 근력 운동",
+      "필라테스 동작",
+      "유산소 운동",
+      "명상 및 호흡법",
+      "사무실에서 할 수 있는 운동",
+      "코어 강화 운동",
+    ];
+    const randomExerciseCategory =
+      exerciseCategories[Math.floor(Math.random() * exerciseCategories.length)];
+
     const prompt = `
 당신은 개인 맞춤형 건강 비서입니다. 하루 1회 사용자에게 맞춤형 콘텐츠를 제공합니다.
 다음 사용자 정보를 바탕으로 3가지 항목(추천 음식, 민간요법, 추천 운동)을 생성하세요.
@@ -223,31 +239,31 @@ export class RecommendationService {
 - 보유 질병: ${diseases.join(", ") || "없음"}
 - 복용 약물: ${medicineNames || "없음"}
 
-[요청 사항]
-1. **오늘의 추천 음식**: 사용자의 질병/약물과 상충하지 않으면서 건강에 도움이 되는 음식 1가지를 추천해주세요.
-2. **세계의 민간요법**: 오늘은 **${randomCountry}**의 민간요법을 하나 소개해주세요. 비과학적일 수 있으므로 재미 흥미 위주로 작성하되, 경고 문구를 포함하세요.
-3. **오늘의 운동**: 사용자 컨디션(질병/나이 고려)에 적합한 운동 1가지를 추천해주세요.
+[요청 사항 - 간결하게 작성]
+- 모든 설명은 **핵심만 1-2문장으로 축약**하여 작성하세요.
+
+1. **오늘의 추천 음식**: 사용자의 질병/약물과 상충하지 않는 건강 음식 1가지.
+2. **세계의 민간요법**: **${randomCountry}**의 민간요법 1가지. 재미 위주로.
+3. **오늘의 추천 운동**: **"${randomExerciseCategory}"** 카테고리에서, 구체적인 운동 1가지. (걷기/달리기 제외)
 
 [응답 형식 - JSON]
 {
   "food": {
     "name": "음식명",
-    "reason": "추천 이유 (질병/약물 고려)",
-    "pros": "주요 장점 1줄",
-    "searchKeyword": "음식 검색 키워드 (예: 현미밥 효능)"
+    "summary": "핵심 장점 1문장",
+    "searchKeyword": "음식 검색 키워드"
   },
   "remedy": {
     "country": "${randomCountry}",
     "title": "요법 이름",
-    "description": "요법 설명 (흥미롭게)",
-    "warning": "※ 이 요법은 ${randomCountry}의 민간요법으로 과학적 근거가 부족할 수 있습니다. 따라하기 전 반드시 전문가와 상담하세요.",
-    "searchKeyword": "요법 검색 키워드 (예: 그리스 올리브오일 민간요법)"
+    "summary": "요법 설명 1-2문장",
+    "searchKeyword": "요법 검색 키워드"
   },
   "exercise": {
     "name": "운동명",
-    "description": "운동 방법 및 효과",
+    "summary": "운동 효과 1문장",
     "intensity": "난이도 (하/중/상)",
-    "searchKeyword": "운동 검색 키워드 (예: 30분 걷기 운동)"
+    "searchKeyword": "운동 검색 키워드"
   }
 }
 JSON만 출력하세요.
@@ -270,13 +286,18 @@ JSON만 출력하세요.
       ]);
 
       // 최상위 로직 수행 (실제 URL 찾기 및 이미지 매칭)
-      const [foodResult, exerciseResult] = await Promise.all([
+      const remedyKeyword =
+        parsed.remedy?.searchKeyword ||
+        parsed.remedy?.country + " " + parsed.remedy?.title;
+
+      const [foodResult, exerciseResult, remedyResult] = await Promise.all([
         this.generateContentResult(foodKeyword, translatedFood, "food"),
         this.generateContentResult(
           exerciseKeyword,
           translatedExercise,
           "exercise"
         ),
+        this.generateContentResult(remedyKeyword, "", "food"), // remedy도 YouTube 검색
       ]);
 
       // 🏳️ 국가 국기 매핑
@@ -301,19 +322,20 @@ JSON만 출력하세요.
         food: {
           ...parsed.food,
           imageUrl: foodResult.imageUrl,
+          videoId: foodResult.videoId,
           relatedLink: foodResult.link,
         },
         remedy: {
           ...parsed.remedy,
           flag: flagEmoji,
-          relatedLink: `https://www.google.com/search?q=${encodeURIComponent(
-            parsed.remedy?.searchKeyword ||
-              remedyCountry + " " + parsed.remedy?.title
-          )}`,
+          imageUrl: remedyResult.imageUrl,
+          videoId: remedyResult.videoId,
+          relatedLink: remedyResult.link,
         },
         exercise: {
           ...parsed.exercise,
           imageUrl: exerciseResult.imageUrl,
+          videoId: exerciseResult.videoId,
           relatedLink: exerciseResult.link,
         },
       };
@@ -322,39 +344,41 @@ JSON만 출력하세요.
       return {
         food: {
           name: "현미밥",
-          reason: "건강한 탄수화물 섭취",
-          pros: "혈당 조절에 도움",
+          summary: "혈당 조절에 도움되는 건강한 탄수화물",
           imageUrl: "",
+          videoId: null,
           relatedLink: "https://www.youtube.com/results?search_query=현미밥",
         },
         remedy: {
           country: "한국",
           title: "따뜻한 물 마시기",
-          description: "아침 공복에 따뜻한 물은 신진대사를 깨웁니다.",
-          warning: "※ 전문가와 상담하세요.",
+          summary: "아침 공복에 따뜻한 물은 신진대사를 깨웁니다.",
           flag: "🇰🇷",
-          relatedLink: "https://www.google.com/search?q=따뜻한 물 효능",
+          imageUrl: "",
+          videoId: null,
+          relatedLink: "https://www.google.com/search?q=따뜻한+물+효능",
         },
         exercise: {
-          name: "걷기",
-          description: "가볍게 30분 걷기",
+          name: "스트레칭",
+          summary: "전신 근육을 이완하는 간단한 10분 스트레칭",
           intensity: "하",
           imageUrl: "",
-          relatedLink: "https://www.youtube.com/results?search_query=걷기 운동",
+          videoId: null,
+          relatedLink:
+            "https://www.youtube.com/results?search_query=스트레칭+운동",
         },
       };
     }
   }
 
-  /**
-   * 콘텐츠 결과 생성 (실제 URL + 이미지)
-   * 우선순위: Google Search -> OG Image -> Unsplash Fallback
-   */
   private async generateContentResult(
     keyword: string,
     englishKeyword: string,
     type: "food" | "exercise"
-  ): Promise<{ imageUrl: string; link: string }> {
+  ): Promise<{ imageUrl: string; link: string; videoId: string | null }> {
+    const searchKeyword =
+      type === "exercise" ? `${keyword} 운동법` : `${keyword} 레시피`;
+
     const defaultLinks = {
       food: `https://www.youtube.com/results?search_query=${encodeURIComponent(
         keyword + " 레시피"
@@ -364,22 +388,51 @@ JSON만 출력하세요.
       )}`,
     };
 
+    // YouTube URL에서 Video ID 추출 헬퍼 함수
+    const extractVideoId = (url: string): string | null => {
+      if (!url) return null;
+      const match = url.match(/[?&]v=([^&]+)/);
+      return match ? match[1] : null;
+    };
+
     try {
-      // 1. 실제 URL 찾기 (Google Custom Search)
-      const searchPrefix = type === "exercise" ? "운동 방법 " : "추천 레시피 ";
-      const realUrl = await this.imageService.searchCrawlableUrl(
-        searchPrefix + keyword
+      // 1. YouTube 전용 검색 시도
+      this.logger.log(`[Youtube] Searching for: ${searchKeyword}`);
+      const ytResult = await this.imageService.searchYoutubeContent(
+        searchKeyword
       );
 
-      let imageUrl = "";
-      let finalLink = realUrl || defaultLinks[type];
+      if (ytResult && ytResult.link && ytResult.imageUrl) {
+        this.logger.log(`[Youtube] Found: ${ytResult.link}`);
+        const videoId = extractVideoId(ytResult.link);
 
+        // 썸네일을 우리 Supabase Storage에 최적화하여 업로드
+        const optimizedImageUrl = await this.imageService.processAndUploadImage(
+          ytResult.imageUrl,
+          `${type}_yt_${Date.now()}`
+        );
+
+        return {
+          imageUrl: optimizedImageUrl || ytResult.imageUrl,
+          link: ytResult.link,
+          videoId: videoId,
+        };
+      }
+
+      // 2. YouTube 검색 실패 시 Fallback (이미지 + 구글 검색 링크)
+      this.logger.warn(`[Youtube] Search failed, falling back for ${keyword}`);
+
+      let imageUrl = "";
+      // Fallback: 구글 검색으로 전환
+      const fallbackLink = `https://www.google.com/search?q=${encodeURIComponent(
+        searchKeyword
+      )}`;
+
+      // OG 이미지 또는 Unsplash 이미지로 폴백
+      const realUrl = await this.imageService.searchCrawlableUrl(searchKeyword);
       if (realUrl) {
-        this.logger.log(`[Link] Found Real URL: ${realUrl}`);
-        // 2. OG 이미지 추출
         const ogImageUrl = await this.imageService.fetchOgImage(realUrl);
         if (ogImageUrl) {
-          this.logger.log(`[Image] Found OG Image: ${ogImageUrl}`);
           imageUrl =
             (await this.imageService.processAndUploadImage(
               ogImageUrl,
@@ -388,17 +441,13 @@ JSON만 출력하세요.
         }
       }
 
-      // 3. OG 이미지 실패 시 Unsplash Fallback
       if (!imageUrl) {
-        this.logger.log(
-          `[Image] OG Image failed, falling back to Unsplash for: ${englishKeyword}`
-        );
-        const searchKeyword =
+        const unsplashKeyword =
           type === "exercise"
             ? `${englishKeyword} workout`
             : `${englishKeyword} food`;
         const unsplashUrl = await this.imageService.searchUnsplash(
-          searchKeyword
+          unsplashKeyword
         );
         if (unsplashUrl) {
           imageUrl =
@@ -409,10 +458,10 @@ JSON만 출력하세요.
         }
       }
 
-      return { imageUrl, link: finalLink };
+      return { imageUrl, link: fallbackLink, videoId: null };
     } catch (e) {
       this.logger.error(`[Image/Link] Pipeline failed for ${keyword}`, e);
-      return { imageUrl: "", link: defaultLinks[type] };
+      return { imageUrl: "", link: defaultLinks[type], videoId: null };
     }
   }
 }

@@ -117,22 +117,22 @@ export class FoodService {
             reusedImage = true;
             console.log("기존 사용자 이미지 재활용 성공:", imageUrl);
           } else {
-            // 2. 없으면 Unsplash 검색
-            console.log("기존 이미지 없음 - Unsplash 검색 시도");
-            const translated = await this.imageService.translateToEnglish(
+            // 2. YouTube 검색 시도 (Unsplash 대체)
+            console.log(
+              "기존 이미지 없음 - YouTube 검색 시도:",
               actualFoodName
             );
-            const unsplashUrl = await this.imageService.searchUnsplash(
-              `${translated} food`
+            const ytResult = await this.imageService.searchYoutubeContent(
+              `${actualFoodName} 레시피`
             );
 
-            if (unsplashUrl) {
-              const safeFileName = `food_analysis_${Date.now()}`;
+            if (ytResult && ytResult.imageUrl) {
+              const safeFileName = `food_yt_analysis_${Date.now()}`;
               imageUrl = await this.imageService.processAndUploadImage(
-                unsplashUrl,
+                ytResult.imageUrl,
                 safeFileName
               );
-              console.log("Unsplash 이미지 생성 성공:", imageUrl);
+              console.log("YouTube 썸네일 이미지 생성 성공:", imageUrl);
             }
           }
         } catch (imgErr) {
@@ -1046,26 +1046,21 @@ export class FoodService {
           imageUrl = existingImageUrl;
           console.log("[SimpleAnalyze] 기존 이미지 재활용:", imageUrl);
         } else {
-          // 2. Unsplash에서 검색
-          console.log("[SimpleAnalyze] Unsplash 검색 시도");
-          const translated = await this.imageService.translateToEnglish(
-            normalizedFoodName
-          );
-          console.log("[SimpleAnalyze] 번역 결과:", translated);
+          // 2. YouTube 검색 시도 (Unsplash 대체)
+          console.log("[SimpleAnalyze] YouTube 검색 시도:", normalizedFoodName);
 
-          const unsplashUrl = await this.imageService.searchUnsplash(
-            `${translated} food`
+          const ytResult = await this.imageService.searchYoutubeContent(
+            `${normalizedFoodName} 레시피`
           );
-          console.log("[SimpleAnalyze] Unsplash URL:", unsplashUrl);
 
-          if (unsplashUrl) {
-            const safeFileName = `simple_${Date.now()}`;
+          if (ytResult && ytResult.imageUrl) {
+            const safeFileName = `simple_yt_${Date.now()}`;
             imageUrl = await this.imageService.processAndUploadImage(
-              unsplashUrl,
+              ytResult.imageUrl,
               safeFileName
             );
             console.log(
-              "[SimpleAnalyze] Unsplash 이미지 업로드 완료:",
+              "[SimpleAnalyze] YouTube 썸네일 이미지 업로드 완료:",
               imageUrl
             );
           }
