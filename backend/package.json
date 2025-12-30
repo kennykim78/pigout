@@ -291,7 +291,8 @@
     "build": "tsc",
     "start": "node dist/main.js",
     "clear-cache": "ts-node scripts/clear-cache.ts",
-    "clear-all": "ts-node scripts/clear-all-data.ts"
+    "clear-all": "ts-node scripts/clear-all-data.ts",
+    "clear-recommendation": "ts-node scripts/clear-recommendation-cache.ts"
   },
   "keywords": [],
   "author": "",

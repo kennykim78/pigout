@@ -4,6 +4,8 @@ interface FoodContent {
   name: string;
   reason: string;
   pros: string;
+  imageUrl?: string;
+  relatedLink?: string;
 }
 
 interface RemedyContent {
@@ -11,12 +13,16 @@ interface RemedyContent {
   title: string;
   description: string;
   warning: string;
+  flag?: string;
+  relatedLink?: string;
 }
 
 interface ExerciseContent {
   name: string;
   description: string;
   intensity: string;
+  imageUrl?: string;
+  relatedLink?: string;
 }
 
 interface RecommendationData {

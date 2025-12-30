@@ -77,8 +77,12 @@ export class RecommendationService {
     // 오늘의 랜덤 인덱스 (해시 기반)
     const contentIndex = this.getRandomIndex(cacheKey, today);
 
+    // 🔍 디버깅: 사용자 프로필과 캐시 키 상세 로그
     this.logger.log(
-      `[Recommendation] Key: ${cacheKey}, Index: ${contentIndex}/30`
+      `[Recommendation] User: ${userId}, Age: ${userProfile?.age}, Gender: ${gender}, Diseases: ${JSON.stringify(diseases)}`
+    );
+    this.logger.log(
+      `[Recommendation] CacheKey: "${cacheKey}", Index: ${contentIndex}/30`
     );
 
     // 2. 오늘 이 사용자가 이미 받은 추천이 있는지 확인 (개인 캐시)

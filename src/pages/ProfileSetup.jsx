@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import './ProfileSetup.scss';
 import img_main from '../assets/images/img_main.png';
 import { saveUserProfile, getSelectedDiseases } from '../utils/deviceId';
+import { updateUserProfile } from '../services/api';
 
 const ProfileSetup = () => {
   const navigate = useNavigate();
@@ -44,7 +45,7 @@ const ProfileSetup = () => {
     setGender(selectedGender);
   };
 
-  const handleNext = () => {
+  const handleNext = async () => {
     // 유효성 검증
     if (!birthYear || birthYear.length !== 4) {
       setValidationError('출생 연도를 정확히 입력해주세요');
@@ -65,9 +66,18 @@ const ProfileSetup = () => {
     // 나이 계산
     const age = currentYear - year;
 
-    // 프로필 저장
+    // 프로필 저장 (로컬)
     saveUserProfile({ birthYear: year, gender, age });
     console.log('프로필 저장됨:', { birthYear: year, gender, age });
+
+    // 🔥 백엔드에 사용자 프로필 동기화
+    try {
+      const genderKorean = gender === 'male' ? '남성' : '여성';
+      await updateUserProfile({ age, gender: genderKorean });
+      console.log('[ProfileSetup] 백엔드 프로필 동기화 완료');
+    } catch (error) {
+      console.error('[ProfileSetup] 백엔드 프로필 동기화 실패:', error);
+    }
 
     // 질병 정보 확인
     const diseases = getSelectedDiseases();
