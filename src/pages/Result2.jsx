@@ -147,7 +147,71 @@ const AnalysisSummarySection = ({
   );
 };
 
-// 🆕 3. 약물 상호작용 현황 컴포넌트
+// 🆕 3. 영양성분정보 컴포넌트
+const NutritionSection = ({ nutrition, servingSize }) => {
+  if (!nutrition) return null;
+
+  const { calories, protein, carbs, fat, sodium } = nutrition;
+
+  const nutritionData = [
+    {
+      name: "칼로리",
+      value: calories,
+      unit: "kcal",
+      icon: "🔥",
+      desc: "에너지원",
+    },
+    {
+      name: "단백질",
+      value: protein,
+      unit: "g",
+      icon: "💪",
+      desc: "근육 형성",
+    },
+    {
+      name: "탄수화물",
+      value: carbs,
+      unit: "g",
+      icon: "🍚",
+      desc: "두뇌 활동",
+    },
+    { name: "지방", value: fat, unit: "g", icon: "🥑", desc: "필수 지방산" },
+    {
+      name: "나트륨",
+      value: sodium,
+      unit: "mg",
+      icon: "🧂",
+      desc: "체액 균형",
+    },
+  ];
+
+  return (
+    <div className="result2-card result2-card--nutrition">
+      <h2 className="result2-card__title">영양 성분 정보</h2>
+      {servingSize && (
+        <p className="nutrition__serving">
+          {servingSize.amount}
+          {servingSize.unit} 기준
+        </p>
+      )}
+      <div className="nutrition__grid">
+        {nutritionData.map((item) => (
+          <div key={item.name} className="nutrition__item">
+            <span className="nutrition__icon">{item.icon}</span>
+            <div className="nutrition__value">
+              <span className="nutrition__number">{item.value || 0}</span>
+              <span className="nutrition__unit">{item.unit}</span>
+            </div>
+            <span className="nutrition__name">{item.name}</span>
+            <span className="nutrition__desc">{item.desc}</span>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
+// 🆕 4. 약물 상호작용 현황 컴포넌트
 const DrugInteractionSection = ({ interactions = [] }) => {
   if (!interactions || interactions.length === 0) {
     return (
@@ -213,7 +277,7 @@ const DrugInteractionSection = ({ interactions = [] }) => {
   );
 };
 
-// 🆕 4. 위험 성분 분석 컴포넌트
+// 🆕 5. 위험 성분 분석 컴포넌트
 const RiskFactorSection = ({ riskFactors = {}, riskFactorNotes = {} }) => {
   const riskLabels = {
     alcohol: "알코올",
@@ -291,7 +355,7 @@ const RiskFactorSection = ({ riskFactors = {}, riskFactorNotes = {} }) => {
   );
 };
 
-// 🆕 5. 스마트 레시피 컴포넌트
+// 🆕 6. 스마트 레시피 컴포넌트
 const SmartRecipeSection = ({ recipe }) => {
   if (!recipe) return null;
 
@@ -606,6 +670,17 @@ const Result2 = () => {
                 activeCardIndex === 2 ? "active" : ""
               }`}
             >
+              <NutritionSection
+                nutrition={detailedAnalysis.nutrition}
+                servingSize={detailedAnalysis.servingSize}
+              />
+            </div>
+
+            <div
+              className={`result2-card--slide ${
+                activeCardIndex === 3 ? "active" : ""
+              }`}
+            >
               <DrugInteractionSection
                 interactions={
                   detailedAnalysis.medicalAnalysis?.drug_food_interactions
@@ -615,7 +690,7 @@ const Result2 = () => {
 
             <div
               className={`result2-card--slide ${
-                activeCardIndex === 3 ? "active" : ""
+                activeCardIndex === 4 ? "active" : ""
               }`}
             >
               <RiskFactorSection

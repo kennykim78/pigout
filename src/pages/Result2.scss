@@ -365,7 +365,89 @@ $color-safe: #3b82f6;
 }
 
 // ==========================================
-// 3. 약물 상호작용 현황
+// 3. 영양성분 정보
+// ==========================================
+.nutrition {
+  &__serving {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+    text-align: center;
+    margin: -16px 0 20px;
+  }
+
+  &__grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 12px;
+
+    @media (max-width: 360px) {
+      grid-template-columns: repeat(2, 1fr);
+    }
+  }
+
+  &__item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    padding: 16px 12px;
+    background: #f9fafb;
+    border-radius: 16px;
+    text-align: center;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: translateY(-2px);
+    }
+
+    // 5번째 나트륨은 전체 너비로
+    &:nth-child(5) {
+      grid-column: span 3;
+
+      @media (max-width: 360px) {
+        grid-column: span 2;
+      }
+    }
+  }
+
+  &__icon {
+    font-size: 28px;
+    margin-bottom: 8px;
+  }
+
+  &__value {
+    display: flex;
+    align-items: baseline;
+    gap: 2px;
+    margin-bottom: 4px;
+  }
+
+  &__number {
+    font-size: $result2-font-xlarge;
+    font-weight: 700;
+    color: $result2-accent;
+    line-height: 1;
+  }
+
+  &__unit {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+  }
+
+  &__name {
+    font-size: $result2-font-base;
+    font-weight: 600;
+    color: $result2-text-primary;
+    margin-bottom: 2px;
+  }
+
+  &__desc {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+  }
+}
+
+// ==========================================
+// 4. 약물 상호작용 현황
 // ==========================================
 .drug-section {
   display: flex;
