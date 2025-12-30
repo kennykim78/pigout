@@ -1,1421 +1,660 @@
 @import "../styles/variables";
 @import "../styles/mixins";
 
-.result2 {
-  min-height: 100vh;
-  background-color: $color-primary-yellow;
-  padding-bottom: 40px;
+// 기본 폰트 사이즈 변수 (40-50대 대상 - 최소 14px)
+$result2-font-base: 16px;
+$result2-font-small: 14px;
+$result2-font-medium: 18px;
+$result2-font-large: 22px;
+$result2-font-xlarge: 28px;
 
-  // ========================================
-  // 헤더 (Result01과 동일한 스타일)
-  // ========================================
+// 컬러 팔레트 (흰바탕 + 검정포인트)
+$result2-bg: #ffffff;
+$result2-card-bg: #ffffff;
+$result2-text-primary: #1a1a1a;
+$result2-text-secondary: #666666;
+$result2-accent: #000000;
+$result2-border: #e5e5e5;
+$result2-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+
+// 상태 컬러
+$color-good: #22c55e;
+$color-caution: #f97316;
+$color-danger: #ef4444;
+$color-safe: #3b82f6;
+
+.result2 {
+  width: 100%;
+  min-height: 100vh;
+  background: $result2-bg;
+  font-family: $font-family;
+  font-size: $result2-font-base;
+  color: $result2-text-primary;
+
+  // 헤더
   &__header {
-    background-color: $color-black-overlay;
-    padding: 60px 20px 50px;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+    background: $result2-bg;
+    padding: 16px 20px;
     text-align: center;
-    position: relative;
-    overflow: hidden;
-    box-shadow: $shadow-default;
+    border-bottom: 1px solid $result2-border;
   }
 
   &__back-btn {
     position: absolute;
-    top: 20px;
-    left: 20px;
-    z-index: 10;
-    background: transparent;
+    left: 16px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 44px;
+    height: 44px;
+    background: none;
     border: none;
-    padding: 8px;
-    cursor: pointer;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
-
-    .material-symbols-rounded {
-      font-size: $font-size-large;
-      color: $color-white;
-    }
+    cursor: pointer;
+    transition: background 0.2s;
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.2);
+      background: rgba(0, 0, 0, 0.05);
+    }
+
+    .material-symbols-rounded {
+      font-size: 28px;
+      color: $result2-accent;
     }
   }
 
-  &__header-bg {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-    position: absolute;
-    top: 0;
-    left: 0;
-    z-index: -1;
-    opacity: 0.7;
-
-    &--placeholder {
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #000;
-
-      span {
-        color: #fff;
-        font-size: $font-size-large;
-      }
-    }
-  }
-
-  &__food-name {
-    font-family: $font-family;
-    font-size: $font-size-xxlarge;
-    font-weight: $font-weight-black;
-    color: $color-white;
-    margin: 0 0 8px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
-  }
-
-  &__question {
-    font-family: $font-family;
-    font-size: $font-size-large;
-    font-weight: $font-weight-semibold;
-    color: $color-white;
-    margin: 0;
-    text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
-  }
-
-  // ========================================
-  // 점수 섹션
-  // ========================================
-  &__score-section {
-    max-width: 412px;
-    margin: -40px auto 0;
-    padding: 0 20px;
-    position: relative;
-    z-index: 2;
-  }
-
-  &__score-circle {
-    @include card-base;
-    width: 140px;
-    height: 140px;
-    border-radius: 50%;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    margin: 0 auto 16px;
-    box-shadow: 0 8px 20px rgba(0, 0, 0, 0.15);
-  }
-
-  &__score-value {
-    font-family: $font-family;
-    font-size: $font-size-score;
-    font-weight: $font-weight-black;
-    color: $color-primary-orange;
-    line-height: 1;
-  }
-
-  &__score-label {
-    font-family: $font-family;
-    font-size: $font-size-base;
-    font-weight: $font-weight-semibold;
-    color: $color-black;
-  }
-
-  &__score-comment {
-    text-align: center;
-    font-family: $font-family;
-    font-size: $font-size-large;
-    font-weight: $font-weight-black;
-    color: $color-white;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  // ========================================
-  // 약물 상호작용 경고
-  // ========================================
-  &__medicine-alert {
-    max-width: 412px;
-    margin: 30px auto 0;
-    padding: 0 20px;
-  }
-
-  &__medicine-alert-title {
-    font-family: $font-family;
-    font-size: $font-size-large;
-    font-weight: $font-weight-black;
-    color: $color-white;
-    margin: 0 0 16px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-    text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.3);
-  }
-
-  &__medicine-alert-icon {
-    font-size: $font-size-large;
-  }
-
-  &__medicine-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  &__medicine-card {
-    @include card-base;
-    padding: 16px;
-    border-left: 4px solid;
-
-    &--danger {
-      border-left-color: #ff4444;
-      background: linear-gradient(
-        to right,
-        rgba(255, 68, 68, 0.08) 0%,
-        $color-white 15%
-      );
-    }
-
-    &--caution {
-      border-left-color: #ffaa00;
-      background: linear-gradient(
-        to right,
-        rgba(255, 170, 0, 0.08) 0%,
-        $color-white 15%
-      );
-    }
-  }
-
-  &__medicine-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 10px;
-  }
-
-  &__medicine-name {
-    font-family: $font-family;
-    font-size: $font-size-base;
-    font-weight: $font-weight-black;
-    color: $color-black;
-  }
-
-  &__risk-badge {
-    padding: 4px 10px;
-    border-radius: 12px;
-    font-family: $font-family;
-    font-size: $font-size-small;
-    font-weight: $font-weight-semibold;
-    color: $color-white;
-
-    &--danger {
-      background: #ff4444;
-    }
-
-    &--caution {
-      background: #ffaa00;
-    }
-  }
-
-  &__medicine-desc,
-  &__medicine-recommend {
-    font-family: $font-family;
-    font-size: $font-size-small;
-    line-height: 1.6;
-    color: $color-gray;
-    margin: 6px 0 0;
-  }
-
-  &__medicine-recommend {
-    color: $color-black;
-    font-weight: $font-weight-semibold;
-    padding-top: 8px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-    margin-top: 10px;
-  }
-
-  // ========================================
-  // 메인 컨텐츠
-  // ========================================
-  &__main-content {
-    max-width: 412px;
-    margin: 30px auto 0;
-    padding: 0 20px;
-  }
-
-  // ========================================
-  // 분석 섹션 (좋은점/나쁜점/경고)
-  // ========================================
-  &__analysis-section {
-    @include card-base;
-    padding: 20px;
-    margin-bottom: 16px;
-
-    &--good {
-      border-left: 4px solid #4caf50;
-    }
-
-    &--bad {
-      border-left: 4px solid #ffaa00;
-    }
-
-    &--warning {
-      border-left: 4px solid #ff4444;
-    }
-  }
-
-  &__analysis-title {
-    font-family: $font-family;
-    font-size: $font-size-large;
-    font-weight: $font-weight-black;
-    color: $color-black;
-    margin: 0 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__analysis-icon {
-    font-size: $font-size-large;
-  }
-
-  &__analysis-list {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-
-    li {
-      font-family: $font-family;
-      font-size: $font-size-base;
-      line-height: 1.6;
-      color: $color-black;
-      padding-left: 20px;
-      position: relative;
-      margin-bottom: 8px;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-
-      &::before {
-        content: "•";
-        position: absolute;
-        left: 0;
-        color: $color-primary-orange;
-        font-weight: $font-weight-black;
-      }
-    }
-  }
-
-  // ========================================
-  // 전문가 조언
-  // ========================================
-  &__expert-section {
-    @include card-base;
-    padding: 20px;
-    margin-bottom: 16px;
-    background: linear-gradient(
-      135deg,
-      rgba(255, 193, 7, 0.1) 0%,
-      $color-white 50%
-    );
-  }
-
-  &__expert-title {
-    font-family: $font-family;
-    font-size: $font-size-large;
-    font-weight: $font-weight-black;
-    color: $color-black;
-    margin: 0 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__expert-icon {
-    font-size: $font-size-large;
-  }
-
-  &__expert-content {
-    font-family: $font-family;
-    font-size: $font-size-base;
-    line-height: 1.7;
-    color: $color-black;
-    margin: 0;
-  }
-
-  // ========================================
-  // 조리법 팁
-  // ========================================
-  &__tips-section {
-    @include card-base;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-
-  &__tips-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    margin-bottom: 16px;
-  }
-
-  &__tips-title {
-    font-family: $font-family;
-    font-size: $font-size-large;
-    font-weight: $font-weight-black;
-    color: $color-black;
-    margin: 0;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__tips-emoji {
-    font-size: $font-size-large;
-  }
-
-  &__tips-pig {
-    width: 80px;
-    height: 80px;
-  }
-
-  &__tips-list {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  &__tip-item {
-    display: flex;
-    gap: 12px;
-    align-items: flex-start;
-  }
-
-  &__tip-number {
-    flex-shrink: 0;
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    background: $color-primary-orange;
-    color: $color-white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-family: $font-family;
-    font-size: $font-size-small;
-    font-weight: $font-weight-black;
-  }
-
-  &__tip-text {
-    font-family: $font-family;
-    font-size: $font-size-base;
-    line-height: 1.6;
-    color: $color-black;
-    flex: 1;
-  }
-
-  // ========================================
-  // 위험 성분 분석
-  // ========================================
-  &__risk-section {
-    @include card-base;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-
-  &__risk-title {
-    font-family: $font-family;
-    font-size: $font-size-large;
-    font-weight: $font-weight-black;
-    color: $color-black;
-    margin: 0 0 4px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__risk-icon {
-    font-size: $font-size-large;
-  }
-
-  &__risk-subtitle {
-    font-family: $font-family;
-    font-size: $font-size-small;
-    font-weight: $font-weight-regular;
-    color: $color-gray;
-    margin: 0 0 16px;
-  }
-
-  &__risk-list {
-    display: flex;
-    flex-direction: column;
-    gap: 10px;
-  }
-
-  &__risk-item {
-    padding: 12px;
-    border-radius: $border-radius-sm;
-    background: rgba(0, 0, 0, 0.02);
-    border: 1px solid rgba(0, 0, 0, 0.05);
-
-    &--active {
-      background: rgba(255, 193, 7, 0.08);
-      border-color: rgba(255, 193, 7, 0.3);
-    }
-
-    &--inactive {
-      opacity: 0.6;
-    }
-  }
-
-  &__risk-item-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 6px;
-  }
-
-  &__risk-item-name {
-    font-family: $font-family;
-    font-size: $font-size-base;
-    font-weight: $font-weight-black;
-    color: $color-black;
-  }
-
-  &__risk-chip {
-    padding: 3px 8px;
-    border-radius: 10px;
-    font-family: $font-family;
-    font-size: $font-size-small;
-    font-weight: $font-weight-semibold;
-    background: rgba(0, 0, 0, 0.08);
-    color: $color-gray;
-
-    &--active {
-      background: rgba(255, 193, 7, 0.3);
-      color: #f57c00;
-    }
-  }
-
-  &__risk-item-note {
-    font-family: $font-family;
-    font-size: $font-size-small;
-    line-height: 1.5;
-    color: $color-gray;
-    margin: 0;
-  }
-
-  // ========================================
-  // 종합 분석
-  // ========================================
-  &__summary-section {
-    @include card-base;
-    padding: 20px;
-    margin-bottom: 16px;
-  }
-
-  &__summary-title {
-    font-family: $font-family;
-    font-size: $font-size-large;
-    font-weight: $font-weight-black;
-    color: $color-black;
-    margin: 0 0 12px;
-    display: flex;
-    align-items: center;
-    gap: 8px;
-  }
-
-  &__summary-icon {
-    font-size: $font-size-large;
-  }
-
-  &__summary-content {
-    font-family: $font-family;
-    font-size: $font-size-base;
-    line-height: 1.7;
-    color: $color-black;
-    margin: 0;
-    white-space: pre-line;
-  }
-
-  // ========================================
-  // 데이터 출처
-  // ========================================
-  &__source-section {
-    padding: 16px;
-    margin-bottom: 24px;
-    text-align: center;
-  }
-
-  &__source-label {
-    font-family: $font-family;
-    font-size: $font-size-small;
-    font-weight: $font-weight-semibold;
-    color: $color-gray;
+  &__food-title {
+    font-size: $result2-font-large;
+    font-weight: 700;
+    color: $result2-accent;
     margin: 0 0 4px;
   }
 
-  &__source-value {
-    font-family: $font-family;
-    font-size: $font-size-small;
-    font-weight: $font-weight-regular;
-    color: $color-black;
+  &__subtitle {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
     margin: 0;
   }
 
-  // ========================================
-  // 추천 카드
-  // ========================================
-  &__recommendations {
-    @include flex-column;
-    gap: 16px;
-    margin-bottom: 24px;
-    align-items: center;
+  &__food-image {
+    display: none; // 헤더에서는 이미지 숨김
   }
 
-  // ========================================
-  // 면책 조항
-  // ========================================
-  &__disclaimer {
-    padding: 16px;
+  // 에러 섹션
+  &__error {
+    padding: 40px 20px;
     text-align: center;
 
     p {
-      font-family: $font-family;
-      font-size: $font-size-small;
-      font-weight: $font-weight-regular;
-      color: $color-gray;
-      line-height: 1.5;
-      margin: 0 0 6px;
-
-      &:last-child {
-        margin-bottom: 0;
-      }
-    }
-  }
-
-  // ========================================
-  // 🆕 스트리밍 진행 상태 UI (미니멀 디자인)
-  // ========================================
-  &__streaming-section {
-    background: $color-white;
-    margin: 16px 16px 0;
-    padding: 20px;
-    border-radius: 16px;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
-    border: 1px solid rgba(0, 0, 0, 0.06);
-  }
-
-  &__streaming-header {
-    display: flex;
-    align-items: center;
-    gap: 16px;
-    margin-bottom: 16px;
-  }
-
-  &__streaming-spinner {
-    width: 36px;
-    height: 36px;
-    border: 3px solid $color-primary-yellow;
-    border-top-color: $color-black;
-    border-radius: 50%;
-    animation: spin 0.8s linear infinite;
-    flex-shrink: 0;
-  }
-
-  @keyframes spin {
-    to {
-      transform: rotate(360deg);
-    }
-  }
-
-  &__streaming-info {
-    flex: 1;
-  }
-
-  &__streaming-title {
-    font-size: $font-size-medium;
-    font-weight: 700;
-    color: $color-black;
-    margin: 0 0 4px;
-  }
-
-  &__streaming-message {
-    font-size: $font-size-small;
-    font-weight: 500;
-    color: $color-gray;
-    margin: 0;
-  }
-
-  @keyframes fadeInOut {
-    0%,
-    100% {
-      opacity: 1;
-    }
-    50% {
-      opacity: 0.6;
-    }
-  }
-
-  // 진행바
-  &__streaming-progress {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    margin-bottom: 16px;
-  }
-
-  &__streaming-progress-bar {
-    flex: 1;
-    height: 6px;
-    background: rgba(0, 0, 0, 0.08);
-    border-radius: 3px;
-    overflow: hidden;
-  }
-
-  &__streaming-progress-fill {
-    height: 100%;
-    background: $color-black;
-    border-radius: 3px;
-    transition: width 0.5s ease-out;
-  }
-
-  &__streaming-progress-text {
-    font-size: $font-size-small;
-    font-weight: 700;
-    color: $color-black;
-    min-width: 40px;
-    text-align: right;
-  }
-
-  // 단계별 상태 (미니멀)
-  &__streaming-stages {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  &__streaming-stage {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    padding: 8px 12px;
-    border-radius: 8px;
-    font-size: $font-size-small;
-    font-weight: 500;
-    background: rgba(0, 0, 0, 0.02);
-    transition: all 0.2s ease;
-
-    &--waiting {
-      opacity: 0.4;
+      font-size: $result2-font-medium;
+      color: $color-danger;
+      margin-bottom: 16px;
     }
 
-    &--loading {
-      background: $color-primary-yellow;
-      opacity: 1;
-    }
-
-    &--complete {
-      background: rgba(0, 0, 0, 0.04);
-      opacity: 0.7;
-    }
-  }
-
-  &__streaming-stage-number {
-    width: 20px;
-    height: 20px;
-    border-radius: 50%;
-    background: rgba(0, 0, 0, 0.1);
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    font-size: $font-size-xs;
-    font-weight: 700;
-    color: $color-black;
-    flex-shrink: 0;
-
-    .result2__streaming-stage--loading & {
-      background: $color-black;
-      color: $color-white;
-    }
-
-    .result2__streaming-stage--complete & {
-      background: $color-black;
-      color: $color-white;
-    }
-  }
-
-  &__streaming-stage-name {
-    flex: 1;
-    color: $color-black;
-  }
-
-  &__streaming-stage-icon {
-    font-size: $font-size-base;
-  }
-
-  // 🆕 스트리밍 미리보기 배지
-  &__streaming-preview {
-    display: flex;
-    gap: 4px;
-    margin-top: 4px;
-    flex-wrap: wrap;
-  }
-
-  &__preview-badge {
-    font-size: 10px;
-    padding: 2px 6px;
-    border-radius: 4px;
-    background: rgba(0, 0, 0, 0.05);
-    color: $color-black;
-
-    &--danger {
-      background: rgba(255, 0, 0, 0.1);
-      color: #c00;
-    }
-
-    &--caution {
-      background: rgba(255, 165, 0, 0.1);
-      color: #c60;
-    }
-
-    &--info {
-      background: rgba(0, 0, 0, 0.05);
-      color: $color-black;
-    }
-  }
-
-  // ========================================
-  // 🆕 Analysis Tags 스타일
-  // ========================================
-  .analysis-tags {
-    @include flex-column;
-    gap: 16px;
-    margin-bottom: 24px;
-    background: #fff;
-    padding: 20px;
-    border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-
-    &__section {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    &__title {
-      font-size: 16px;
-      font-weight: 800;
-      color: #333;
-      margin: 0;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    &__list {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    &__tag {
-      padding: 6px 14px;
-      border-radius: 20px;
-      font-size: 14px;
-      font-weight: 700;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
-
-      &--pro {
-        background: #e8f5e9;
-        color: #2e7d32;
-        border: 1px solid #c8e6c9;
-      }
-
-      &--con {
-        background: #fff3e0;
-        color: #ef6c00;
-        border: 1px solid #ffe0b2;
-      }
-    }
-  }
-
-  // ========================================
-  // 🆕 Smart Recipe Card 스타일
-  // ========================================
-  .smart-recipe-card {
-    background: #fff;
-    border-radius: 16px;
-    padding: 20px;
-    margin-bottom: 24px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-    overflow: hidden;
-
-    &__title {
-      font-size: 18px;
-      font-weight: 900;
-      color: #333;
-      margin: 0 0 16px;
-      display: flex;
-      align-items: center;
-      gap: 6px;
-    }
-
-    &__video-wrapper {
-      position: relative;
-      padding-bottom: 56.25%; /* 16:9 비율 */
-      height: 0;
-      overflow: hidden;
+    button {
+      padding: 14px 32px;
+      background: $result2-accent;
+      color: #fff;
+      border: none;
       border-radius: 12px;
-      margin-bottom: 20px;
-      background: #000;
-    }
-
-    &__video {
-      position: absolute;
-      top: 0;
-      left: 0;
-      width: 100%;
-      height: 100%;
-    }
-
-    &__video-placeholder {
-      width: 100%;
-      height: 200px;
-      background: #f5f5f5;
-      border-radius: 12px;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      margin-bottom: 20px;
-      color: #999;
-      gap: 8px;
-
-      span {
-        font-size: 48px;
-        opacity: 0.5;
-      }
-
-      p {
-        font-size: 14px;
-        font-weight: 500;
-      }
-    }
-
-    &__content {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    &__step {
-      display: flex;
-      align-items: flex-start;
-      gap: 12px;
-      padding: 12px;
-      background: #f9f9f9;
-      border-radius: 10px;
-      transition: transform 0.2s ease;
+      font-size: $result2-font-base;
+      font-weight: 600;
+      cursor: pointer;
+      transition: opacity 0.2s;
 
       &:hover {
-        transform: translateY(-2px);
-        background: #f0f0f0;
+        opacity: 0.9;
       }
     }
+  }
 
-    &__icon {
-      font-size: 20px;
-      background: #fff;
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
+  // 메인 컨텐츠 영역
+  &__content {
+    height: calc(100vh - 80px);
+    overflow-y: auto;
+    scroll-behavior: smooth;
+    scroll-snap-type: y mandatory;
+
+    // 스크롤바 스타일링
+    &::-webkit-scrollbar {
+      width: 4px;
+    }
+
+    &::-webkit-scrollbar-thumb {
+      background: rgba(0, 0, 0, 0.2);
+      border-radius: 2px;
+    }
+  }
+
+  // 슬라이딩 카드 섹션 (1-4번)
+  &__slide-section {
+    .result2-card--slide {
+      min-height: 100vh;
+      scroll-snap-align: start;
+      scroll-snap-stop: always;
+      padding: 20px;
       display: flex;
       align-items: center;
       justify-content: center;
-      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
-    }
+      position: relative;
 
-    &__text {
-      flex: 1;
-      font-size: 14px;
-      line-height: 1.5;
-      color: #555;
-      padding-top: 2px; // 아이콘과 수직 정렬 보정
+      // 겹쳐서 올라오는 효과
+      &::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        height: 60px;
+        background: linear-gradient(
+          to bottom,
+          rgba(255, 255, 255, 1),
+          rgba(255, 255, 255, 0)
+        );
+        pointer-events: none;
+        z-index: 1;
+      }
 
-      strong {
-        color: #333;
-        font-weight: 700;
-        margin-right: 4px;
-        display: block; // 모바일 가독성 증대
-        margin-bottom: 2px;
+      &.active {
+        .result2-card {
+          transform: translateY(0);
+          opacity: 1;
+        }
       }
     }
   }
 
-  // ========================================
-  // 🆕 Alternative Food Carousel 스타일
-  // ========================================
-  .alternative-food-carousel {
-    margin-bottom: 24px;
+  // 일반 스크롤 섹션 (5-7번)
+  &__scroll-section {
     padding: 20px;
-    background: #fff;
-    border-radius: 16px;
-    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
-
-    &__title {
-      font-size: 18px;
-      font-weight: 900;
-      color: #333;
-      margin: 0 0 16px;
-    }
-
-    &__container {
-      display: flex;
-      overflow-x: auto;
-      gap: 12px;
-      padding-bottom: 10px;
-      -webkit-overflow-scrolling: touch;
-
-      // 스크롤바 숨기기 (선택사항)
-      &::-webkit-scrollbar {
-        height: 6px;
-      }
-      &::-webkit-scrollbar-thumb {
-        background: rgba(0, 0, 0, 0.1);
-        border-radius: 3px;
-      }
-    }
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
   }
 
-  .alternative-food-card {
-    min-width: 140px;
-    width: 140px;
-    background: #fff;
+  // 면책 조항
+  &__disclaimer {
+    padding: 20px;
+    background: #f9f9f9;
     border-radius: 12px;
-    overflow: hidden;
-    flex-shrink: 0;
-    border: 1px solid #eee;
+    margin-top: 20px;
+
+    p {
+      font-size: $result2-font-small;
+      color: $result2-text-secondary;
+      text-align: center;
+      margin: 0;
+      line-height: 1.5;
+    }
+  }
+}
+
+// 공통 카드 스타일
+.result2-card {
+  background: $result2-card-bg;
+  border-radius: 24px;
+  padding: 32px 24px;
+  box-shadow: $result2-shadow;
+  border: 1px solid $result2-border;
+  width: 100%;
+  max-width: 440px;
+  margin: 0 auto;
+
+  &__title {
+    font-size: $result2-font-large;
+    font-weight: 700;
+    color: $result2-accent;
+    margin: 0 0 24px;
+    text-align: center;
+  }
+}
+
+// ==========================================
+// 1. 태그 클라우드 섹션
+// ==========================================
+.tagcloud {
+  width: 100%;
+  overflow: hidden;
+  padding: 16px 0;
+
+  &__track {
+    display: flex;
+    gap: 12px;
+    animation: slideRightToLeft 30s linear infinite;
+    width: max-content;
+  }
+
+  &__tag {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 20px;
+    border-radius: 30px;
+    white-space: nowrap;
+    font-weight: 600;
     transition: transform 0.2s;
 
     &:hover {
-      transform: translateY(-3px);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+      transform: scale(1.05);
     }
 
-    &__image-wrapper {
+    &--good {
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    &--bad {
+      background: linear-gradient(135deg, #fef2f2 0%, #fecaca 100%);
+      color: #991b1b;
+      border: 1px solid #fca5a5;
+    }
+
+    // 랜덤 크기
+    &--small {
+      font-size: $result2-font-small;
+      padding: 10px 16px;
+    }
+
+    &--medium {
+      font-size: $result2-font-base;
+      padding: 12px 20px;
+    }
+
+    &--large {
+      font-size: $result2-font-medium;
+      padding: 14px 24px;
+    }
+  }
+
+  &__icon {
+    font-size: 18px;
+  }
+
+  &__text {
+    line-height: 1.3;
+  }
+}
+
+@keyframes slideRightToLeft {
+  0% {
+    transform: translateX(0);
+  }
+  100% {
+    transform: translateX(-50%);
+  }
+}
+
+// ==========================================
+// 2. 분석 결과 요약
+// ==========================================
+.summary-chart {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 20px;
+
+  &__graph {
+    position: relative;
+    width: 180px;
+    height: 180px;
+  }
+
+  &__center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  &__icon {
+    font-size: 40px;
+  }
+
+  &__percent {
+    font-size: $result2-font-large;
+    font-weight: 700;
+    color: $result2-accent;
+  }
+
+  &__status {
+    display: flex;
+    justify-content: center;
+  }
+
+  &__badge {
+    padding: 10px 28px;
+    border-radius: 30px;
+    font-size: $result2-font-base;
+    font-weight: 700;
+
+    &--good {
+      background: #dcfce7;
+      color: #166534;
+    }
+
+    &--normal {
+      background: #fef3c7;
+      color: #92400e;
+    }
+
+    &--bad {
+      background: #fef2f2;
+      color: #991b1b;
+    }
+  }
+
+  &__text {
+    font-size: $result2-font-base;
+    color: $result2-text-secondary;
+    text-align: center;
+    line-height: 1.6;
+    margin: 0;
+    padding: 0 8px;
+  }
+}
+
+// ==========================================
+// 3. 약물 상호작용 현황
+// ==========================================
+.drug-section {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+
+  &--empty {
+    text-align: center;
+    padding: 32px 16px;
+    background: #f8fafc;
+    border-radius: 16px;
+
+    .drug-section__icon {
+      font-size: 48px;
+      display: block;
+      margin-bottom: 12px;
+    }
+
+    .drug-section__text {
+      font-size: $result2-font-base;
+      color: $result2-text-secondary;
+      margin: 0;
+    }
+  }
+}
+
+.drug-item {
+  padding: 16px 20px;
+  border-radius: 16px;
+  border-left: 4px solid;
+
+  &--danger {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border-left-color: $color-danger;
+  }
+
+  &--caution {
+    background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+    border-left-color: $color-caution;
+  }
+
+  &--safe {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border-left-color: $color-good;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  &__badge {
+    font-size: $result2-font-small;
+    font-weight: 700;
+  }
+
+  &__name {
+    font-size: $result2-font-base;
+    font-weight: 600;
+    color: $result2-accent;
+  }
+
+  &__message {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+// ==========================================
+// 4. 위험 성분 분석
+// ==========================================
+.risk-section {
+  &__list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    justify-content: center;
+    margin-bottom: 20px;
+  }
+
+  &__empty {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    padding: 24px;
+    background: #f0fdf4;
+    border-radius: 16px;
+    color: #166534;
+    font-size: $result2-font-base;
+    font-weight: 600;
+    margin-bottom: 20px;
+  }
+
+  &__check {
+    font-size: 24px;
+  }
+
+  &__comment {
+    font-size: $result2-font-base;
+    color: $result2-text-secondary;
+    text-align: center;
+    line-height: 1.6;
+    margin: 0;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+  }
+}
+
+.risk-item {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 12px 18px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border: 1px solid #fecaca;
+  border-radius: 30px;
+  font-weight: 600;
+  color: #991b1b;
+
+  &__icon {
+    font-size: 20px;
+  }
+
+  &__label {
+    font-size: $result2-font-small;
+  }
+}
+
+// ==========================================
+// 5. 스마트 레시피
+// ==========================================
+.result2-card--recipe {
+  .recipe-video {
+    width: 100%;
+    aspect-ratio: 16/9;
+    border-radius: 16px;
+    overflow: hidden;
+    margin-bottom: 20px;
+
+    iframe {
       width: 100%;
-      height: 100px;
-      background: #f5f5f5;
-      overflow: hidden;
+      height: 100%;
+    }
+  }
+
+  .recipe-content {
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  .recipe-item {
+    display: flex;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
+
+    &__icon {
+      font-size: 24px;
+      flex-shrink: 0;
     }
 
-    &__image {
+    &__text {
+      font-size: $result2-font-base;
+      color: $result2-text-primary;
+      line-height: 1.5;
+
+      strong {
+        color: $result2-accent;
+        font-weight: 600;
+      }
+    }
+  }
+}
+
+// ==========================================
+// 6. 대체 음식 추천
+// ==========================================
+.alternative-list {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.alternative-item {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 16px;
+  background: #f9fafb;
+  border-radius: 16px;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateX(4px);
+  }
+
+  &__image {
+    width: 64px;
+    height: 64px;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    background: #e5e7eb;
+
+    img {
       width: 100%;
       height: 100%;
       object-fit: cover;
     }
-
-    &__placeholder {
-      width: 100%;
-      height: 100%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background-color: #eee;
-      color: #aaa;
-      font-size: 12px;
-      font-weight: 700;
-    }
-
-    &__content {
-      padding: 10px;
-    }
-
-    &__name {
-      font-size: 14px;
-      font-weight: 800;
-      color: #333;
-      margin: 0 0 4px;
-      white-space: nowrap;
-      overflow: hidden;
-      text-overflow: ellipsis;
-    }
-
-    &__reason {
-      font-size: 11px;
-      color: #777;
-      margin: 0;
-      line-height: 1.3;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
   }
 
-  // 🆕 하단 고정 진행 바 (미니멀)
-  &__bottom-progress {
-    position: fixed;
-    bottom: 0;
-    left: 0;
-    right: 0;
-    background: $color-white;
-    padding: 12px 16px 20px;
-    box-shadow: 0 -2px 12px rgba(0, 0, 0, 0.1);
-    z-index: 1000;
-    border-top: 2px solid $color-black;
-  }
-
-  &__bottom-progress-inner {
-    max-width: 412px;
-    margin: 0 auto;
-  }
-
-  &__bottom-progress-bar {
-    height: 4px;
-    background: rgba(0, 0, 0, 0.1);
-    border-radius: 2px;
-    overflow: hidden;
-    margin-bottom: 8px;
-  }
-
-  &__bottom-progress-fill {
-    height: 100%;
-    background: $color-black;
-    border-radius: 2px;
-    transition: width 0.5s ease-out;
-  }
-
-  &__bottom-progress-info {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-  }
-
-  &__bottom-progress-stage {
-    font-size: $font-size-small;
-    font-weight: 700;
-    color: $color-black;
-    background: $color-primary-yellow;
-    padding: 4px 10px;
-    border-radius: 12px;
-  }
-
-  &__bottom-progress-text {
-    font-size: $font-size-small;
-    font-weight: 500;
-    color: $color-gray;
-    max-width: 60%;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-  }
-
-  // 에러 섹션
-  &__error-section {
-    background: $color-white;
-    margin: 16px 16px 0;
-    padding: 16px 20px;
-    border-radius: 12px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    text-align: center;
-  }
-
-  &__error-message {
-    font-size: $font-size-base;
-    color: $color-black;
-    margin-bottom: 12px;
-  }
-
-  &__retry-btn {
-    background: $color-black;
-    color: $color-white;
-    border: none;
-    padding: 10px 24px;
-    border-radius: 8px;
-    font-size: $font-size-base;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.2s ease;
-
-    &:hover {
-      opacity: 0.8;
-    }
-  }
-
-  // 점수 로딩 상태
-  &__score-circle--loading {
-    opacity: 0.6;
-    animation: pulse 1.5s ease-in-out infinite;
-  }
-
-  // ========================================
-  // 🆕 Accordion 스타일
-  // ========================================
-  &__accordion {
-    margin: 0 16px 12px;
-    border: 1px solid rgba(0, 0, 0, 0.1);
-    border-radius: 12px;
-    overflow: hidden;
-    background: $color-white;
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
-  }
-
-  &__accordion-toggle {
+  &__placeholder {
     width: 100%;
-    background: $color-white;
-    border: none;
-    padding: 16px 20px;
-    text-align: left;
-    cursor: pointer;
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    transition: all 0.2s ease;
-    font-size: $font-size-medium;
-    font-weight: 600;
-    color: $color-black;
-    border-bottom: 1px solid rgba(0, 0, 0, 0.05);
-
-    &:hover {
-      background-color: rgba(0, 0, 0, 0.02);
-    }
-
-    &:active {
-      background-color: rgba(0, 0, 0, 0.05);
-    }
-
-    // 타입별 색상
-    &--good {
-      border-bottom-color: rgba(76, 175, 80, 0.2);
-    }
-
-    &--bad {
-      border-bottom-color: rgba(255, 152, 0, 0.2);
-    }
-
-    &--warning {
-      border-bottom-color: rgba(244, 67, 54, 0.2);
-    }
-
-    &--expert {
-      border-bottom-color: rgba(33, 150, 243, 0.2);
-    }
-
-    &--tips {
-      border-bottom-color: rgba(156, 39, 176, 0.2);
-    }
-
-    &--risk {
-      border-bottom-color: rgba(76, 175, 80, 0.2);
-    }
-
-    &--summary {
-      border-bottom-color: rgba(63, 81, 181, 0.2);
-    }
-
-    &--medicines {
-      border-bottom-color: rgba(255, 152, 0, 0.2);
-    }
-  }
-
-  &__accordion-icon {
-    font-size: $font-size-large;
-    min-width: 24px;
-    display: inline-block;
-  }
-
-  &__accordion-title {
-    flex: 1;
-    font-size: $font-size-medium;
-    font-weight: 600;
-    color: $color-black;
-  }
-
-  &__accordion-chevron {
-    font-size: $font-size-small;
-    color: rgba(0, 0, 0, 0.5);
-    transition: transform 0.3s ease;
-    display: inline-block;
-    width: 16px;
-    text-align: center;
-
-    &.expanded {
-      transform: rotate(0deg);
-    }
-
-    &:not(.expanded) {
-      transform: rotate(-90deg);
-    }
-  }
-
-  &__accordion-content {
-    padding: 16px 20px;
-    background: rgba(0, 0, 0, 0.01);
-    animation: slideDown 0.3s ease;
-
-    .result2__analysis-list {
-      margin: 0;
-      padding: 0;
-      list-style: none;
-
-      li {
-        padding: 8px 0;
-        font-size: $font-size-medium;
-        color: $color-black;
-        line-height: 1.5;
-
-        &:before {
-          content: "• ";
-          margin-right: 8px;
-          color: rgba(0, 0, 0, 0.5);
-        }
-      }
-    }
-
-    .result2__medicine-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .result2__tips-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .result2__risk-list {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    .result2__expert-content,
-    .result2__summary-content {
-      margin: 0;
-      font-size: $font-size-medium;
-      color: $color-black;
-      line-height: 1.6;
-      white-space: pre-wrap;
-    }
-
-    .result2__risk-subtitle {
-      font-size: $font-size-small;
-      color: rgba(0, 0, 0, 0.5);
-      margin: 0 0 12px;
-    }
-  }
-
-  // ========================================
-  // 약물 성분별 위험도
-  // ========================================
-  &__medicine-components {
-    margin-top: 12px;
-    padding-top: 12px;
-    border-top: 1px solid rgba(0, 0, 0, 0.08);
-  }
-
-  &__medicine-components-title {
-    margin: 0 0 8px 0;
-    font-size: $font-size-small;
-    color: #666;
-    font-weight: 600;
-  }
-
-  // ========================================
-  // 위험성분 시각화 (위험 성분 분석 섹션 위)
-  // ========================================
-  &__risk-visualization {
-    margin: 0 20px 16px;
-    padding: 20px;
-    background: $color-white;
-    border-radius: 16px;
-    box-shadow: $shadow-default;
-  }
-
-  &__risk-chart-container {
-    display: flex;
-    flex-direction: column;
-    gap: 12px;
-  }
-
-  &__risk-chart-item {
-    display: flex;
-    flex-direction: column;
-    gap: 6px;
-  }
-
-  &__risk-chart-label {
-    display: flex;
-    align-items: center;
-    gap: 6px;
-    font-size: $font-size-small;
-    font-weight: 600;
-    color: $color-black;
-  }
-
-  &__risk-chart-icon {
-    font-size: 16px;
-  }
-
-  &__risk-chart-name {
-    flex: 1;
-  }
-
-  &__risk-chart-bar {
-    width: 100%;
-    height: 24px;
-    background: rgba(255, 107, 107, 0.1);
-    border-radius: 12px;
-    overflow: hidden;
-    position: relative;
-  }
-
-  &__risk-chart-fill {
     height: 100%;
-    background: linear-gradient(90deg, #ff6b6b, #ee5a6f);
-    border-radius: 12px;
-    transition: width 0.6s ease;
     display: flex;
-    align-items: center;
-    justify-content: flex-end;
-    padding-right: 8px;
-    color: $color-white;
-    font-size: $font-size-xs;
-    font-weight: 600;
-  }
-
-  &__risk-chart-empty {
-    display: flex;
-    flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 30px 20px;
-    gap: 8px;
+    font-size: $result2-font-large;
+    font-weight: 700;
+    color: #9ca3af;
+    background: #e5e7eb;
   }
 
-  &__risk-chart-empty-icon {
-    font-size: 40px;
+  &__content {
+    flex: 1;
+    min-width: 0;
   }
 
-  &__risk-chart-empty-text {
-    font-size: $font-size-medium;
-    color: #27ae60;
+  &__name {
+    font-size: $result2-font-base;
     font-weight: 600;
+    color: $result2-accent;
+    margin: 0 0 4px;
   }
 
-  @keyframes slideDown {
-    from {
-      opacity: 0;
-      transform: translateY(-10px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  &__reason {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+// ==========================================
+// 7. 종합 분석
+// ==========================================
+.final-content {
+  padding: 24px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 16px;
+  border: 1px solid #bae6fd;
+
+  p {
+    font-size: $result2-font-base;
+    color: $result2-text-primary;
+    line-height: 1.7;
+    margin: 0;
+    text-align: center;
+  }
+}
+
+// ==========================================
+// 애니메이션
+// ==========================================
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(30px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
   }
 }
