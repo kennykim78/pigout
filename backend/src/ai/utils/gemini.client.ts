@@ -774,11 +774,21 @@ JSON 형식:
     diseases: string[],
     nutritionData?: any
   ): Promise<{
-    detailed_reason: string;
-    risk_factors: string[];
-    nutrition_explanation: string;
-    recommendation: string;
-    global_remedies: Array<{ country: string; method: string }>;
+    pros: string[];
+    cons: string[];
+    nutrition: {
+      calories: number;
+      summary: string;
+      highlight: string;
+    };
+    recipe: {
+      substitutes: string;
+      cookingMethod: string;
+      intakeGuide: string;
+      searchKeyword: string;
+    };
+    alternatives: Array<{ name: string; reason: string }>;
+    summary: string;
   }> {
     try {
       const diseaseList = diseases.join(", ");
@@ -786,32 +796,59 @@ JSON 형식:
         ? JSON.stringify(nutritionData)
         : "영양 정보 없음";
 
-      const prompt = `당신은 세계적인 영양학 및 질병 관리 전문가입니다.
+      const prompt = `당신은 세계적인 임상 영양학 전문가입니다.
+사용자 맞춤형 정밀 분석을 수행하고, 결과를 **극도로 간결하고 직관적인 데이터**로 제공하세요.
 
 음식: ${foodName}
 질병: ${diseaseList}
-영양정보: ${nutritionInfo}
+영양정보 Context: ${nutritionInfo}
 
-다음 항목을 상세히 분석하여 JSON으로 제공하세요:
+다음 요구사항에 맞춰 엄격한 JSON 형식으로 응답하세요. (서술형 금지, 단어/구 단위 작성)
 
-1. detailed_reason: 이 음식이 해당 질병에 적합한지 부적합한지 상세한 이유 (200자 이상)
-2. risk_factors: 주의해야 할 위험 요소 배열 (3~5개)
-3. nutrition_explanation: 영양 성분별 설명 (150자 이상)
-4. recommendation: 섭취 권장사항 (100자 이상)
-5. global_remedies: 한국, 중국, 인도, 미국 4개국의 전통/현대 건강 관리법
+1. **pros (장점)**: 사용자의 건강/질병에 도움이 되는 핵심 장점 4~5개를 '단어' 또는 '짧은 구' 형태의 태그로 작성.
+   - 예: ["근육 형성", "고단백", "활력 증진", "빈혈 예방"]
 
-JSON 형식:
+2. **cons (단점/주의)**: 주의해야 할 점 4~5개를 '단어' 또는 '짧은 구' 형태의 태그로 작성.
+   - 예: ["나트륨 주의", "높은 칼로리", "산성 성분"]
+
+3. **nutrition (영양 정보)**:
+   - calories: 1인분 대략적 칼로리 (숫자만, 예: 350)
+   - summary: 영양 구성 한 줄 요약 (예: "탄수화물 위주의 고열량 식단입니다.")
+   - highlight: 가장 돋보이는 영양 성분 1가지 (예: "비타민 D 풍부")
+
+4. **recipe (스마트 레시피)**:
+   - substitutes: 건강을 위한 재료 대체 팁 (1줄) (예: "설탕 대신 알룰로스 사용 권장")
+   - cookingMethod: 건강한 조리법 핵심 (1줄) (예: "기름에 튀기지 않고 에어프라이어 조리")
+   - intakeGuide: 섭취 방법 가이드 (1줄) (예: "국물은 남기고 건더기 위주로 섭취")
+   - searchKeyword: YouTube에서 레시피 검색을 위한 최적 키워드 (예: "저염식 ${foodName} 레시피")
+
+5. **alternatives (대체 음식 추천)**: 상세 분석 결과, 이 음식이 부담스러울 경우 선택할 수 있는 더 건강한 대체 음식 3가지.
+   - name: 대체 음식 이름
+   - reason: 추천 이유 (간결하게 10자 내외) (예: "나트륨이 50% 적음")
+
+6. **summary**: 전체 종합 분석 (기존 서술형 유지, 3문장 내외로 전문적인 조언)
+
+JSON 포맷:
 {
-  "detailed_reason": "...",
-  "risk_factors": ["요소1", "요소2", "요소3"],
-  "nutrition_explanation": "...",
-  "recommendation": "...",
-  "global_remedies": [
-    { "country": "Korea", "method": "..." },
-    { "country": "China", "method": "..." },
-    { "country": "India", "method": "..." },
-    { "country": "USA", "method": "..." }
-  ]
+  "pros": ["태그1", "태그2", ...],
+  "cons": ["태그1", "태그2", ...],
+  "nutrition": {
+    "calories": 0,
+    "summary": "...",
+    "highlight": "..."
+  },
+  "recipe": {
+    "substitutes": "...",
+    "cookingMethod": "...",
+    "intakeGuide": "...",
+    "searchKeyword": "..."
+  },
+  "alternatives": [
+    { "name": "...", "reason": "..." },
+    { "name": "...", "reason": "..." },
+    { "name": "...", "reason": "..." }
+  ],
+  "summary": "..."
 }`;
 
       let rawText: string;
@@ -1622,25 +1659,28 @@ JSON 형식으로만 응답:
     userProfile?: { age?: number; gender?: string }
   ): Promise<{
     finalAnalysis: {
-      suitabilityScore: number;
-      briefSummary: string;
-      goodPoints: string[];
-      badPoints: string[];
-      warnings: string[];
-      summary: string;
-      // 🆕 추가 필드
-      timingGuide?: { medication: string; waitHours: number; reason: string }[];
-      alternatives?: { name: string; reason: string }[];
-      servingSize?: { amount: string; unit: string; note: string };
-      nutrition?: {
+      pros: string[];
+      cons: string[];
+      nutrition: {
         calories: number;
-        protein: number;
-        carbs: number;
-        fat: number;
-        sodium: number;
+        summary: string;
+        highlight: string;
       };
+      recipe: {
+        substitutes: string;
+        cookingMethod: string;
+        intakeGuide: string;
+        searchKeyword: string;
+        videoId?: string;
+        videoThumbnail?: string;
+      };
+      alternatives: Array<{
+        name: string;
+        reason: string;
+        imageUrl?: string | null;
+      }>;
+      summary: string;
     };
-    healthyRecipes: string[];
   }> {
     try {
       const diseaseList = diseases.length > 0 ? diseases.join(", ") : "없음";
@@ -1658,22 +1698,8 @@ JSON 형식으로만 응답:
           ?.map((i: any) => i.medicine_name)
           .join(", ") || "없음";
 
-      // 공공데이터 부족 시 AI가 더 상세하게 분석하도록 지시
-      const needDetailedAnalysis =
-        options?.needDetailedNutrition ||
-        options?.needDetailedRecipes ||
-        options?.publicDataFailed;
-      const detailInstruction = needDetailedAnalysis
-        ? `
-⚠️ **공공데이터 없음**: 상세하게 작성 필요
-- goodPoints: 각 80자 이상
-- badPoints: 각 80자 이상
-- summary: 200자 이상
-- healthyRecipes: 각 100자 이상
-`
-        : "";
-
-      const prompt = `# Pigout AI - 음식 분석 (간결 모드)
+      const prompt = `# Pigout AI - 음식 정밀 분석
+사용자 맞춤형 정밀 분석을 수행하고, 결과를 **극도로 간결하고 직관적인 데이터**로 제공하세요.
 
 **입력 데이터:**
 - 음식: ${foodName}
@@ -1686,47 +1712,42 @@ JSON 형식으로만 응답:
           (i: any) => i.risk_level === "danger"
         ).length || 0
       }건)
-${detailInstruction}
----
 
-## 분석 요구사항 (토큰 최적화)
+답변은 반드시 아래 JSON 형식을 엄수하세요. (서술형 금지, 단어/구 단위 작성)
 
-**Part 1: 핵심 분석**
-1. goodPoints (2-3개): 영양학적 장점만, 각 40-60자
-2. badPoints (1-2개): 주의사항, 각 40-60자
-3. warnings (0-2개): 심각한 경고만, 각 50자 이하
-4. summary: 핵심 종합 분석, 100-150자
-5. briefSummary: 한 줄 요약, 50자 이하
+1. **pros (장점)**: 사용자의 건강/질병에 도움이 되는 핵심 장점 4~5개를 '단어' 또는 '짧은 구' 형태의 태그로 작성.
+   - 예: ["근육 형성", "고단백", "활력 증진", "빈혈 예방"]
 
-**Part 2: 섭취 가이드** (정확히 3개, 각 80-120자)
-- healthyRecipes: [재료 대체], [조리법], [섭취 방법] 중 선택
+2. **cons (단점/주의)**: 주의해야 할 점 4~5개를 '단어' 또는 '짧은 구' 형태의 태그로 작성.
+   - 예: ["나트륨 주의", "높은 칼로리", "산성 성분"]
 
-**Part 3: 추가 정보 (간결하게)**
-6. timingGuide: 약물별 섭취 간격 [{medication, waitHours(숫자), reason(20자)}] (최대 2개)
-7. alternatives: 위험 시 대체 음식 [{name, reason(15자)}] (최대 2개, 안전하면 빈 배열)
-8. servingSize: 1회 적정량 {amount(숫자), unit(g/ml/인분), note(15자)}
-9. nutrition: 1회분 기준 {calories, protein, carbs, fat, sodium} (숫자만, 단위 없음)
+3. **nutrition (영양 정보)**:
+   - calories: 1인분 대략적 칼로리 (숫자만, 예: 350)
+   - summary: 영양 구성 한 줄 요약 (예: "탄수화물 위주의 고열량 식단입니다.")
+   - highlight: 가장 돋보이는 영양 성분 1가지 (예: "비타민 D 풍부")
 
----
+4. **recipe (스마트 레시피)**: 이 음식을 가장 건강하게 먹는 방법
+   - substitutes: 건강을 위한 재료 대체 팁 (1줄) (예: "설탕 대신 알룰로스 사용 권장")
+   - cookingMethod: 건강한 조리법 핵심 (1줄) (예: "기름에 튀기지 않고 에어프라이어 조리")
+   - intakeGuide: 섭취 방법 가이드 (1줄) (예: "국물은 남기고 건더기 위주로 섭취")
+   - searchKeyword: YouTube에서 레시피 검색을 위한 최적 키워드 (예: "저염식 ${foodName} 레시피")
 
-# JSON 출력
+5. **alternatives (대체 음식 추천)**: 이 음식이 부담스러울 경우 선택할 수 있는 더 건강한 대체 음식 3가지.
+   - name: 대체 음식 이름
+   - reason: 추천 이유 (간결하게 10자 내외) (예: "나트륨이 50% 적음")
+
+6. **summary**: 전체 종합 분석 (기존 서술형 유지, 3문장 내외로 전문적인 조언)
+
+JSON 출력:
 {
   "finalAnalysis": {
-    "goodPoints": ["영양 장점 1", "영양 장점 2"],
-    "badPoints": ["주의사항 1"],
-    "warnings": [],
-    "summary": "핵심 종합 분석 (100-150자)",
-    "briefSummary": "한 줄 요약",
-    "timingGuide": [{"medication": "타이레놀", "waitHours": 2, "reason": "간 부담 감소"}],
-    "alternatives": [{"name": "닭가슴살", "reason": "저지방 단백질"}],
-    "servingSize": {"amount": "150", "unit": "g", "note": "1인분 기준"},
-    "nutrition": {"calories": 250, "protein": 20, "carbs": 15, "fat": 12, "sodium": 800}
-  },
-  "healthyRecipes": [
-    "[재료 대체] 상세 설명 (80-120자)",
-    "[조리법] 상세 설명 (80-120자)",
-    "[섭취 방법] 상세 설명 (80-120자)"
-  ]
+    "pros": ["태그1", "태그2"],
+    "cons": ["태그1", "태그2"],
+    "nutrition": { "calories": 0, "summary": "...", "highlight": "..." },
+    "recipe": { "substitutes": "...", "cookingMethod": "...", "intakeGuide": "...", "searchKeyword": "..." },
+    "alternatives": [{ "name": "...", "reason": "..." }],
+    "summary": "..."
+  }
 }`;
 
       let rawText: string;
@@ -1745,114 +1766,49 @@ ${detailInstruction}
       // 기본값 설정 및 검증
       const finalAnalysis = parsed.finalAnalysis || {};
 
-      // goodPoints 검증 - 배열이 아니거나 비어있으면 기본값
-      if (
-        !Array.isArray(finalAnalysis.goodPoints) ||
-        finalAnalysis.goodPoints.length === 0
-      ) {
-        finalAnalysis.goodPoints = [
-          `✅ ${foodName}에는 다양한 영양소가 포함되어 있어 균형 잡힌 식단에 도움이 됩니다.`,
-          `✅ 적절한 양을 섭취하면 일일 영양 권장량을 채우는 데 기여합니다.`,
-          `✅ 다양한 조리법으로 즐길 수 있어 식단의 다양성을 높여줍니다.`,
-        ];
-      }
-
-      // badPoints 검증
-      if (
-        !Array.isArray(finalAnalysis.badPoints) ||
-        finalAnalysis.badPoints.length === 0
-      ) {
-        finalAnalysis.badPoints = [
-          `⚠️ 과다 섭취 시 영양 불균형이 발생할 수 있으니 적정량을 유지하세요.`,
-          `⚠️ 복용 중인 약물이 있다면 식사 시간과 약 복용 시간을 분리하는 것이 좋습니다.`,
-        ];
-      }
-
-      if (!finalAnalysis.warnings) finalAnalysis.warnings = [];
-
-      // 🆕 추가 필드 기본값 설정
-      if (!finalAnalysis.timingGuide) {
-        finalAnalysis.timingGuide =
-          interactionAnalysis?.interactions?.slice(0, 2).map((i: any) => ({
-            medication: i.medicine_name,
-            waitHours: 2,
-            reason: "흡수 간섭 방지",
-          })) || [];
-      }
-      if (!finalAnalysis.alternatives) finalAnalysis.alternatives = [];
-      if (!finalAnalysis.servingSize) {
-        finalAnalysis.servingSize = {
-          amount: "200",
-          unit: "g",
-          note: "1인분 기준",
-        };
-      }
+      if (!finalAnalysis.pros) finalAnalysis.pros = [`영양가 있는 ${foodName}`];
+      if (!finalAnalysis.cons) finalAnalysis.cons = ["과식 주의"];
       if (!finalAnalysis.nutrition) {
         finalAnalysis.nutrition = {
-          calories: 200,
-          protein: 10,
-          carbs: 25,
-          fat: 8,
-          sodium: 500,
+          calories: 0,
+          summary: "영양 정보 분석 불가",
+          highlight: "",
         };
       }
-
-      if (!finalAnalysis.summary || finalAnalysis.summary.length < 100) {
-        finalAnalysis.summary = `${foodName}은(는) 다양한 영양소를 함유하고 있는 음식입니다. 복용 중인 약물과의 상호작용을 고려하여 식사 시간을 조절하시고, 질병 상태에 따라 섭취량을 적절히 조절하시면 건강한 식단의 일부로 즐기실 수 있습니다.`;
+      if (!finalAnalysis.recipe) {
+        finalAnalysis.recipe = {
+          substitutes: "신선한 재료 사용",
+          cookingMethod: "건강한 조리법 권장",
+          intakeGuide: "적당량 섭취",
+          searchKeyword: `${foodName} 건강 레시피`,
+        };
       }
+      if (!finalAnalysis.alternatives) finalAnalysis.alternatives = [];
+      if (!finalAnalysis.summary)
+        finalAnalysis.summary = `${foodName}에 대한 분석 결과입니다.`;
 
-      if (
-        !finalAnalysis.briefSummary ||
-        finalAnalysis.briefSummary.length < 30
-      ) {
-        finalAnalysis.briefSummary = `${foodName}은(는) 영양가 있는 음식이지만, 복용 약물과의 상호작용을 고려하여 적절히 섭취하세요.`;
-      }
-
-      // healthyRecipes 검증 - 정확히 3개로 조정
-      let healthyRecipes = parsed.healthyRecipes || [];
-      if (!Array.isArray(healthyRecipes) || healthyRecipes.length !== 3) {
-        healthyRecipes = [
-          `[재료 대체] ${foodName} 조리 시 일반 소금 대신 저염 간장이나 천연 향신료(마늘, 생강, 후추)를 사용하면 나트륨 섭취를 30% 줄이면서도 풍미는 유지할 수 있습니다. 고혈압이 있으신 분께 특히 추천합니다.`,
-          `[조리법] 기름에 튀기는 대신 에어프라이어(180도 15분)나 오븐 굽기를 활용하면 지방 섭취를 50% 줄이고 영양소 손실도 최소화할 수 있습니다. 바삭함은 유지되면서 건강하게 즐길 수 있습니다.`,
-          `[섭취 방법] ${foodName}를 드실 때 신선한 채소(상추, 깻잎, 양배추)와 함께 싸서 드시면 식이섬유가 나트륨 배출을 돕고 포만감도 오래 지속됩니다. 약 복용 중이라면 식사 후 1-2시간 뒤 복용을 권장합니다.`,
-        ];
-      }
-
-      return { finalAnalysis, healthyRecipes };
+      return { finalAnalysis };
     } catch (error) {
       console.error("AI 통합 분석 실패:", error);
-      // 폴백: 상세한 기본값 반환
+      // 폴백
       return {
         finalAnalysis: {
-          suitabilityScore: 50,
-          briefSummary: `${foodName}은(는) 영양가 있는 음식이지만, 복용 약물과의 상호작용을 고려하여 적절히 섭취하세요.`,
-          goodPoints: [
-            `✅ ${foodName}에는 다양한 영양소가 포함되어 있어 균형 잡힌 식단에 도움이 됩니다.`,
-            `✅ 적절한 양을 섭취하면 일일 영양 권장량을 채우는 데 기여합니다.`,
-            `✅ 다양한 조리법으로 즐길 수 있어 식단의 다양성을 높여줍니다.`,
-          ],
-          badPoints: [
-            `⚠️ 과다 섭취 시 영양 불균형이 발생할 수 있으니 적정량을 유지하세요.`,
-            `⚠️ 복용 중인 약물이 있다면 식사 시간과 약 복용 시간을 분리하는 것이 좋습니다.`,
-          ],
-          warnings: [],
-          timingGuide: [],
-          alternatives: [],
-          servingSize: { amount: "200", unit: "g", note: "1인분 기준" },
+          pros: [`영양가 있는 ${foodName}`],
+          cons: ["과식 주의"],
           nutrition: {
-            calories: 200,
-            protein: 10,
-            carbs: 25,
-            fat: 8,
-            sodium: 500,
+            calories: 0,
+            summary: "분석 실패",
+            highlight: "",
           },
-          summary: `🔬 [최종 종합 분석] ${foodName}은(는) 다양한 영양소를 함유하고 있는 음식입니다. 복용 중인 약물과의 상호작용을 고려하여 식사 시간을 조절하시고, 질병 상태에 따라 섭취량을 적절히 조절하시면 건강한 식단의 일부로 즐기실 수 있습니다.`,
+          recipe: {
+            substitutes: "신선한 재료 사용",
+            cookingMethod: "기름 적게 사용",
+            intakeGuide: "적당량 섭취",
+            searchKeyword: `${foodName} 레시피`,
+          },
+          alternatives: [],
+          summary: `${foodName} 분석 중 오류가 발생했습니다.`,
         },
-        healthyRecipes: [
-          `[재료 변경] ${foodName} 조리 시 소금 대신 저염 양념이나 천연 향신료를 사용하면 나트륨 섭취를 줄일 수 있습니다`,
-          `[조리법 변경] 튀기는 대신 굽거나 찌는 조리법을 선택하면 지방 섭취를 줄이고 영양소 손실을 최소화할 수 있습니다`,
-          `[섭취 팁] 채소와 함께 섭취하면 식이섬유가 소화를 도와 영양 흡수를 개선합니다`,
-        ],
       };
     }
   }

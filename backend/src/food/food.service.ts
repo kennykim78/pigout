@@ -1962,7 +1962,7 @@ export class FoodService {
       const recipeData = await recipeDataPromise;
       const recipeApiSuccess = recipeData && recipeData.length > 0;
 
-      const { finalAnalysis, healthyRecipes } =
+      const { finalAnalysis } =
         await geminiClient.generateFinalAnalysisWithRecipes(
           foodName,
           foodAnalysis,
@@ -1977,14 +1977,63 @@ export class FoodService {
           profileInfo
         );
 
-      const score = finalAnalysis.suitabilityScore || 50;
+      const score = 75; // 기본 점수 (TODO: 로직 개선)
+
+      // 🆕 대체 음식 이미지 병렬 검색
+      if (finalAnalysis.alternatives && finalAnalysis.alternatives.length > 0) {
+        sendEvent("stage", {
+          stage: 4,
+          name: "종합 평가",
+          status: "loading",
+          message: "대체 음식 이미지를 찾고 있어요...",
+        });
+
+        try {
+          const alternativesWithImages = await Promise.all(
+            finalAnalysis.alternatives.map(async (alt) => {
+              try {
+                const imageResult = await this.imageService.searchImageToUrl(
+                  alt.name
+                );
+                return {
+                  name: alt.name,
+                  reason: alt.reason,
+                  imageUrl: imageResult || null,
+                };
+              } catch (e) {
+                return { name: alt.name, reason: alt.reason, imageUrl: null };
+              }
+            })
+          );
+          finalAnalysis.alternatives =
+            alternativesWithImages as typeof finalAnalysis.alternatives;
+        } catch (error) {
+          console.warn("[대체음식] 이미지 검색 실패:", error.message);
+        }
+      }
+
+      // 🆕 YouTube 레시피 썸네일/비디오ID 검색 (Parallel)
+      if (finalAnalysis.recipe && finalAnalysis.recipe.searchKeyword) {
+        try {
+          const ytResult = await this.imageService.searchYoutubeContent(
+            finalAnalysis.recipe.searchKeyword
+          );
+          if (ytResult) {
+            (finalAnalysis.recipe as any).videoId = ytResult.videoId || "";
+            (finalAnalysis.recipe as any).videoThumbnail =
+              ytResult.imageUrl || "";
+          }
+        } catch (e) {
+          console.warn("[레시피] 유튜브 검색 실패:", e.message);
+        }
+      }
 
       sendEvent("stage", {
         stage: 4,
         name: "종합 평가",
         status: "complete",
-        message: `섭취 가이드 ${healthyRecipes?.length || 3}개 생성 완료`,
-        data: { recipeCount: healthyRecipes?.length || 0 },
+        message: `분석 완료!`,
+        data: { recipeCount: 1 },
       });
 
       // ========== 5단계: 완료 ==========
@@ -2006,19 +2055,25 @@ export class FoodService {
         dataSourceSet.add("식품의약품안전처 식품영양성분DB");
       if (healthFoodRows?.length > 0)
         dataSourceSet.add("식품의약품안전처 건강기능식품정보");
-      if (healthyRecipes?.length > 0)
+      if (recipeData?.length > 0)
         dataSourceSet.add("식품안전나라 조리식품 레시피DB");
 
-      // 최종 결과 전송
+      // 최종 결과 전송 (구조화된 데이터)
       const detailedAnalysis = {
-        goodPoints: finalAnalysis.goodPoints || [],
-        badPoints: finalAnalysis.badPoints || [],
-        warnings: finalAnalysis.warnings || [],
-        expertAdvice: finalAnalysis.expertAdvice || "",
-        summary: finalAnalysis.summary || "",
-        pros: finalAnalysis.goodPoints || [],
-        cons: finalAnalysis.badPoints || [],
-        cookingTips: healthyRecipes || [],
+        // 기존 호환성 유지 (필요시)
+        goodPoints: finalAnalysis.pros || [],
+        badPoints: finalAnalysis.cons || [],
+        warnings: [], // 새로운 구조에서는 별도 warnings 태그 없음
+        expertAdvice: finalAnalysis.summary, // 요약문을 expertAdvice로 매핑
+        summary: finalAnalysis.summary,
+
+        // 🆕 신규 구조화 데이터
+        pros: finalAnalysis.pros,
+        cons: finalAnalysis.cons,
+        nutrition: finalAnalysis.nutrition,
+        recipe: finalAnalysis.recipe,
+        alternatives: finalAnalysis.alternatives,
+
         medicalAnalysis: {
           drug_food_interactions: (interactionAnalysis.interactions || []).map(
             (i: any) => ({
@@ -2040,8 +2095,7 @@ export class FoodService {
           id: "stream-" + Date.now(),
           foodName,
           score,
-          analysis:
-            finalAnalysis.briefSummary || `${foodName}에 대한 분석 결과입니다.`,
+          analysis: finalAnalysis.summary || `${foodName} 분석 결과`,
           detailedAnalysis,
           createdAt: new Date().toISOString(),
         },
@@ -2059,7 +2113,7 @@ export class FoodService {
           cacheKey,
           foodName,
           score,
-          analysis: finalAnalysis.briefSummary || "",
+          analysis: finalAnalysis.summary || "",
           detailedAnalysis,
           diseases,
           medicines: medicineNames,

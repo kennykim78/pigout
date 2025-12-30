@@ -205,6 +205,53 @@ export class ImageService {
   }
 
   /**
+   * 음식 이름으로 이미지 URL 검색 (Google Custom Search + Unsplash Fallback)
+   */
+  async searchImageToUrl(foodName: string): Promise<string | null> {
+    try {
+      // 1. 우선 Unsplash에서 검색 (번역 후)
+      const englishKeyword = await this.translateToEnglish(foodName + " food");
+      const unsplashResult = await this.searchUnsplash(englishKeyword);
+      if (unsplashResult) {
+        return unsplashResult;
+      }
+
+      // 2. Google Custom Search 이미지 검색 폴백
+      const googleApiKey = this.configService.get<string>(
+        "GOOGLE_SEARCH_API_KEY"
+      );
+      const googleCx = this.configService.get<string>("GOOGLE_SEARCH_CX");
+
+      if (googleApiKey && googleCx) {
+        const response = await axios.get(
+          "https://www.googleapis.com/customsearch/v1",
+          {
+            params: {
+              key: googleApiKey,
+              cx: googleCx,
+              q: foodName,
+              searchType: "image",
+              num: 1,
+              safe: "high",
+            },
+          }
+        );
+
+        if (response.data.items && response.data.items.length > 0) {
+          return response.data.items[0].link;
+        }
+      }
+
+      return null;
+    } catch (error) {
+      this.logger.error(
+        `Image search failed for ${foodName}: ${error.message}`
+      );
+      return null;
+    }
+  }
+
+  /**
    * 이미지 다운로드, 리사이징, 압축 (<50KB), Supabase 업로드
    * @returns Supabase Public URL
    */

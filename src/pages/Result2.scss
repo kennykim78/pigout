@@ -1,5 +1,5 @@
-@import '../styles/variables';
-@import '../styles/mixins';
+@import "../styles/variables";
+@import "../styles/mixins";
 
 .result2 {
   min-height: 100vh;
@@ -58,7 +58,7 @@
       align-items: center;
       justify-content: center;
       background-color: #000;
-      
+
       span {
         color: #fff;
         font-size: $font-size-large;
@@ -170,12 +170,20 @@
 
     &--danger {
       border-left-color: #ff4444;
-      background: linear-gradient(to right, rgba(255, 68, 68, 0.08) 0%, $color-white 15%);
+      background: linear-gradient(
+        to right,
+        rgba(255, 68, 68, 0.08) 0%,
+        $color-white 15%
+      );
     }
 
     &--caution {
       border-left-color: #ffaa00;
-      background: linear-gradient(to right, rgba(255, 170, 0, 0.08) 0%, $color-white 15%);
+      background: linear-gradient(
+        to right,
+        rgba(255, 170, 0, 0.08) 0%,
+        $color-white 15%
+      );
     }
   }
 
@@ -245,7 +253,7 @@
     margin-bottom: 16px;
 
     &--good {
-      border-left: 4px solid #4CAF50;
+      border-left: 4px solid #4caf50;
     }
 
     &--bad {
@@ -291,7 +299,7 @@
       }
 
       &::before {
-        content: '•';
+        content: "•";
         position: absolute;
         left: 0;
         color: $color-primary-orange;
@@ -307,7 +315,11 @@
     @include card-base;
     padding: 20px;
     margin-bottom: 16px;
-    background: linear-gradient(135deg, rgba(255, 193, 7, 0.1) 0%, $color-white 50%);
+    background: linear-gradient(
+      135deg,
+      rgba(255, 193, 7, 0.1) 0%,
+      $color-white 50%
+    );
   }
 
   &__expert-title {
@@ -614,7 +626,9 @@
   }
 
   @keyframes spin {
-    to { transform: rotate(360deg); }
+    to {
+      transform: rotate(360deg);
+    }
   }
 
   &__streaming-info {
@@ -636,8 +650,13 @@
   }
 
   @keyframes fadeInOut {
-    0%, 100% { opacity: 1; }
-    50% { opacity: 0.6; }
+    0%,
+    100% {
+      opacity: 1;
+    }
+    50% {
+      opacity: 0.6;
+    }
   }
 
   // 진행바
@@ -736,7 +755,7 @@
   &__streaming-stage-icon {
     font-size: $font-size-base;
   }
-  
+
   // 🆕 스트리밍 미리보기 배지
   &__streaming-preview {
     display: flex;
@@ -744,27 +763,296 @@
     margin-top: 4px;
     flex-wrap: wrap;
   }
-  
+
   &__preview-badge {
     font-size: 10px;
     padding: 2px 6px;
     border-radius: 4px;
     background: rgba(0, 0, 0, 0.05);
     color: $color-black;
-    
+
     &--danger {
       background: rgba(255, 0, 0, 0.1);
       color: #c00;
     }
-    
+
     &--caution {
       background: rgba(255, 165, 0, 0.1);
       color: #c60;
     }
-    
+
     &--info {
       background: rgba(0, 0, 0, 0.05);
       color: $color-black;
+    }
+  }
+
+  // ========================================
+  // 🆕 Analysis Tags 스타일
+  // ========================================
+  .analysis-tags {
+    @include flex-column;
+    gap: 16px;
+    margin-bottom: 24px;
+    background: #fff;
+    padding: 20px;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+    &__section {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+
+    &__title {
+      font-size: 16px;
+      font-weight: 800;
+      color: #333;
+      margin: 0;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    &__list {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    &__tag {
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.05);
+
+      &--pro {
+        background: #e8f5e9;
+        color: #2e7d32;
+        border: 1px solid #c8e6c9;
+      }
+
+      &--con {
+        background: #fff3e0;
+        color: #ef6c00;
+        border: 1px solid #ffe0b2;
+      }
+    }
+  }
+
+  // ========================================
+  // 🆕 Smart Recipe Card 스타일
+  // ========================================
+  .smart-recipe-card {
+    background: #fff;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 24px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+    overflow: hidden;
+
+    &__title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #333;
+      margin: 0 0 16px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    &__video-wrapper {
+      position: relative;
+      padding-bottom: 56.25%; /* 16:9 비율 */
+      height: 0;
+      overflow: hidden;
+      border-radius: 12px;
+      margin-bottom: 20px;
+      background: #000;
+    }
+
+    &__video {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+    }
+
+    &__video-placeholder {
+      width: 100%;
+      height: 200px;
+      background: #f5f5f5;
+      border-radius: 12px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      margin-bottom: 20px;
+      color: #999;
+      gap: 8px;
+
+      span {
+        font-size: 48px;
+        opacity: 0.5;
+      }
+
+      p {
+        font-size: 14px;
+        font-weight: 500;
+      }
+    }
+
+    &__content {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    &__step {
+      display: flex;
+      align-items: flex-start;
+      gap: 12px;
+      padding: 12px;
+      background: #f9f9f9;
+      border-radius: 10px;
+      transition: transform 0.2s ease;
+
+      &:hover {
+        transform: translateY(-2px);
+        background: #f0f0f0;
+      }
+    }
+
+    &__icon {
+      font-size: 20px;
+      background: #fff;
+      width: 36px;
+      height: 36px;
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+    }
+
+    &__text {
+      flex: 1;
+      font-size: 14px;
+      line-height: 1.5;
+      color: #555;
+      padding-top: 2px; // 아이콘과 수직 정렬 보정
+
+      strong {
+        color: #333;
+        font-weight: 700;
+        margin-right: 4px;
+        display: block; // 모바일 가독성 증대
+        margin-bottom: 2px;
+      }
+    }
+  }
+
+  // ========================================
+  // 🆕 Alternative Food Carousel 스타일
+  // ========================================
+  .alternative-food-carousel {
+    margin-bottom: 24px;
+    padding: 20px;
+    background: #fff;
+    border-radius: 16px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.05);
+
+    &__title {
+      font-size: 18px;
+      font-weight: 900;
+      color: #333;
+      margin: 0 0 16px;
+    }
+
+    &__container {
+      display: flex;
+      overflow-x: auto;
+      gap: 12px;
+      padding-bottom: 10px;
+      -webkit-overflow-scrolling: touch;
+
+      // 스크롤바 숨기기 (선택사항)
+      &::-webkit-scrollbar {
+        height: 6px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.1);
+        border-radius: 3px;
+      }
+    }
+  }
+
+  .alternative-food-card {
+    min-width: 140px;
+    width: 140px;
+    background: #fff;
+    border-radius: 12px;
+    overflow: hidden;
+    flex-shrink: 0;
+    border: 1px solid #eee;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: translateY(-3px);
+      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.08);
+    }
+
+    &__image-wrapper {
+      width: 100%;
+      height: 100px;
+      background: #f5f5f5;
+      overflow: hidden;
+    }
+
+    &__image {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    &__placeholder {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background-color: #eee;
+      color: #aaa;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    &__content {
+      padding: 10px;
+    }
+
+    &__name {
+      font-size: 14px;
+      font-weight: 800;
+      color: #333;
+      margin: 0 0 4px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    &__reason {
+      font-size: 11px;
+      color: #777;
+      margin: 0;
+      line-height: 1.3;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
     }
   }
 
@@ -981,7 +1269,7 @@
         line-height: 1.5;
 
         &:before {
-          content: '• ';
+          content: "• ";
           margin-right: 8px;
           color: rgba(0, 0, 0, 0.5);
         }

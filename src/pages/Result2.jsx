@@ -13,6 +13,127 @@ import { analyzeFoodByTextStream, getMyMedicines } from "../services/api";
 import { getDeviceId } from "../utils/deviceId";
 import StreamingPopup from "../components/StreamingPopup";
 
+// 🆕 AnalysisTags 컴포넌트
+const AnalysisTags = ({ pros, cons }) => {
+  return (
+    <div className="analysis-tags">
+      <div className="analysis-tags__section">
+        <h3 className="analysis-tags__title">👍 이래서 좋아요!</h3>
+        <div className="analysis-tags__list">
+          {pros &&
+            pros.map((tag, idx) => (
+              <span
+                key={idx}
+                className="analysis-tags__tag analysis-tags__tag--pro"
+              >
+                {tag}
+              </span>
+            ))}
+        </div>
+      </div>
+      <div className="analysis-tags__section">
+        <h3 className="analysis-tags__title">👎 이건 조심하세요!</h3>
+        <div className="analysis-tags__list">
+          {cons &&
+            cons.map((tag, idx) => (
+              <span
+                key={idx}
+                className="analysis-tags__tag analysis-tags__tag--con"
+              >
+                {tag}
+              </span>
+            ))}
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 🆕 SmartRecipeCard 컴포넌트
+const SmartRecipeCard = ({ recipe }) => {
+  if (!recipe) return null;
+
+  return (
+    <div className="smart-recipe-card">
+      <h3 className="smart-recipe-card__title">🥗 스마트 레시피</h3>
+      {recipe.videoId ? (
+        <div className="smart-recipe-card__video-wrapper">
+          <iframe
+            className="smart-recipe-card__video"
+            src={`https://www.youtube.com/embed/${recipe.videoId}`}
+            title="Healthy Recipe Video"
+            frameBorder="0"
+            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+            allowFullScreen
+          ></iframe>
+        </div>
+      ) : (
+        <div className="smart-recipe-card__video-placeholder">
+          <span className="material-symbols-rounded">play_circle</span>
+          <p>관련 영상을 찾을 수 없습니다.</p>
+        </div>
+      )}
+      <div className="smart-recipe-card__content">
+        <div className="smart-recipe-card__step">
+          <span className="smart-recipe-card__icon">🔄</span>
+          <div className="smart-recipe-card__text">
+            <strong>재료 대체:</strong>{" "}
+            {recipe.substitutes || "특별한 대체 팁 없음"}
+          </div>
+        </div>
+        <div className="smart-recipe-card__step">
+          <span className="smart-recipe-card__icon">🍳</span>
+          <div className="smart-recipe-card__text">
+            <strong>조리법:</strong>{" "}
+            {recipe.cookingMethod || "일반적인 조리법 사용"}
+          </div>
+        </div>
+        <div className="smart-recipe-card__step">
+          <span className="smart-recipe-card__icon">🍽️</span>
+          <div className="smart-recipe-card__text">
+            <strong>섭취 가이드:</strong>{" "}
+            {recipe.intakeGuide || "적당량 섭취 권장"}
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+// 🆕 AlternativeFoodCarousel 컴포넌트
+const AlternativeFoodCarousel = ({ alternatives }) => {
+  if (!alternatives || alternatives.length === 0) return null;
+
+  return (
+    <div className="alternative-food-carousel">
+      <h3 className="alternative-food-carousel__title">🔄 대신 이건 어때요?</h3>
+      <div className="alternative-food-carousel__container">
+        {alternatives.map((item, idx) => (
+          <div key={idx} className="alternative-food-card">
+            <div className="alternative-food-card__image-wrapper">
+              {item.imageUrl ? (
+                <img
+                  src={item.imageUrl}
+                  alt={item.name}
+                  className="alternative-food-card__image"
+                />
+              ) : (
+                <div className="alternative-food-card__placeholder">
+                  <span>{item.name}</span>
+                </div>
+              )}
+            </div>
+            <div className="alternative-food-card__content">
+              <h4 className="alternative-food-card__name">{item.name}</h4>
+              <p className="alternative-food-card__reason">{item.reason}</p>
+            </div>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+};
+
 const imgsorce =
   "https://img.bizthenaum.co.kr/data/img/1000000869/ori/1000000869_11.jpg";
 
@@ -597,6 +718,7 @@ const Result2 = () => {
       />
 
       {/* 에러 표시 */}
+      {/* 에러 표시 */}
       {streamError && (
         <div className="result2__error-section">
           <p className="result2__error-message">⚠️ {streamError}</p>
@@ -609,353 +731,123 @@ const Result2 = () => {
         </div>
       )}
 
-      {/* 음식-약물 상호작용 맵 섹션 제거됨: 중복 콘텐츠 정리 */}
+      {/* 분석 데이터 없음 처리 */}
+      {!isStreaming && !detailedAnalysis && !streamError && (
+        <div className="result2__error-section">
+          <p className="result2__error-message">
+            ⚠️ 분석 결과를 불러오지 못했습니다.
+          </p>
+          <button
+            className="result2__retry-btn"
+            onClick={() => startStreamingAnalysis(foodName)}
+          >
+            다시 시도
+          </button>
+        </div>
+      )}
 
-      {/* 약물 상호작용 - 위험/주의가 있을 때만 표시 (Accordion) */}
-      {detailedAnalysis?.medicalAnalysis?.drug_food_interactions &&
-        detailedAnalysis.medicalAnalysis.drug_food_interactions.some(
-          (d) => d.risk_level === "danger" || d.risk_level === "caution"
-        ) && (
-          <div className="result2__accordion">
-            <button
-              className={`result2__accordion-toggle result2__accordion-toggle--medicines`}
-              onClick={() => toggleSection("medicines")}
-            >
-              <span className="result2__accordion-icon">⚠️</span>
-              <span className="result2__accordion-title">
-                복용 중인 약과의 상호작용
-              </span>
-              <span
-                className={`result2__accordion-chevron ${
-                  expandedSections.medicines ? "expanded" : ""
-                }`}
-              >
-                ▼
-              </span>
-            </button>
-
-            {expandedSections.medicines && (
-              <div className="result2__accordion-content">
-                <div className="result2__medicine-list">
-                  {detailedAnalysis.medicalAnalysis.drug_food_interactions
-                    .filter(
-                      (d) =>
-                        d.risk_level === "danger" || d.risk_level === "caution"
-                    )
-                    .map((drug, idx) => (
-                      <div
-                        key={idx}
-                        className={`result2__medicine-card result2__medicine-card--${drug.risk_level}`}
-                      >
-                        <div className="result2__medicine-header">
-                          <span className="result2__medicine-name">
-                            {drug.medicine_name}
-                          </span>
-                          <span
-                            className={`result2__risk-badge result2__risk-badge--${drug.risk_level}`}
-                          >
-                            {drug.risk_level === "danger" ? "위험" : "주의"}
-                          </span>
-                        </div>
-                        {drug.interaction_description && (
-                          <p className="result2__medicine-desc">
-                            {drug.interaction_description}
-                          </p>
-                        )}
-                        {drug.recommendation && (
-                          <p className="result2__medicine-recommend">
-                            💡 {drug.recommendation}
-                          </p>
-                        )}
-
-                        {/* 🆕 성분별 위험도 표시 */}
-                        {drug.components && drug.components.length > 0 && (
-                          <div className="result2__medicine-components">
-                            <p className="result2__medicine-components-title">
-                              ⚗️ 주요 성분별 위험도
-                            </p>
-                            <MedicineComponentRiskCard
-                              medicine={{ name: drug.medicine_name }}
-                              components={drug.components}
-                              interactions={
-                                detailedAnalysis.medicalAnalysis
-                                  .drug_food_interactions
-                              }
-                            />
-                          </div>
-                        )}
-                      </div>
-                    ))}
-                </div>
-              </div>
-            )}
-          </div>
-        )}
-
-      {/* 주요 분석 내용 */}
-      <div className="result2__main-content">
-        {/* 분석 데이터 없음 처리 */}
-        {!isStreaming && !detailedAnalysis && !streamError && (
-          <div className="result2__error-section">
-            <p className="result2__error-message">
-              ⚠️ 분석 결과를 불러오지 못했습니다.
-            </p>
-            <button
-              className="result2__retry-btn"
-              onClick={() => startStreamingAnalysis(foodName)}
-            >
-              다시 시도
-            </button>
-          </div>
-        )}
-
-        {/* 🆕 시각적 분석 대시보드 (이런 점이 좋아요 위로 이동) */}
-        {!isStreaming && detailedAnalysis && (
+      {!isStreaming && detailedAnalysis && (
+        <div className="result2__main-content">
+          {/* 1. 영양 정보 대시보드 (기존 컴포넌트 활용 또는 업데이트) */}
           <AnalysisDashboard detailedAnalysis={detailedAnalysis} />
-        )}
 
-        {/* 좋은 점 (Accordion) */}
-        {detailedAnalysis?.goodPoints &&
-          Array.isArray(detailedAnalysis.goodPoints) &&
-          detailedAnalysis.goodPoints.length > 0 && (
+          {/* 2. 장점/단점 태그 */}
+          <AnalysisTags
+            pros={detailedAnalysis.pros || detailedAnalysis.goodPoints}
+            cons={detailedAnalysis.cons || detailedAnalysis.badPoints}
+          />
+
+          {/* 3. 스마트 레시피 카드 */}
+          <SmartRecipeCard recipe={detailedAnalysis.recipe} />
+
+          {/* 4. 대체 음식 추천 */}
+          <AlternativeFoodCarousel
+            alternatives={detailedAnalysis.alternatives}
+          />
+
+          {/* 5. 약물 상호작용 (위험할 때만 표시) */}
+          {detailedAnalysis.medicalAnalysis?.drug_food_interactions?.some(
+            (d) => d.risk_level === "danger" || d.risk_level === "caution"
+          ) && (
             <div className="result2__accordion">
               <button
-                className={`result2__accordion-toggle result2__accordion-toggle--good`}
-                onClick={() => toggleSection("goodPoints")}
-              >
-                <span className="result2__accordion-icon">✅</span>
-                <span className="result2__accordion-title">
-                  이런 점이 좋아요
-                </span>
-                <span
-                  className={`result2__accordion-chevron ${
-                    expandedSections.goodPoints ? "expanded" : ""
-                  }`}
-                >
-                  ▼
-                </span>
-              </button>
-
-              {expandedSections.goodPoints && (
-                <div className="result2__accordion-content">
-                  <ul className="result2__analysis-list">
-                    {detailedAnalysis.goodPoints.map((point, idx) => (
-                      <li key={idx}>{point.replace(/^✅\s*/, "")}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-        {/* 주의할 점 (Accordion) */}
-        {detailedAnalysis?.badPoints &&
-          Array.isArray(detailedAnalysis.badPoints) &&
-          detailedAnalysis.badPoints.length > 0 && (
-            <div className="result2__accordion">
-              <button
-                className={`result2__accordion-toggle result2__accordion-toggle--bad`}
-                onClick={() => toggleSection("badPoints")}
+                className={`result2__accordion-toggle result2__accordion-toggle--medicines`}
+                onClick={() => toggleSection("medicines")}
               >
                 <span className="result2__accordion-icon">⚠️</span>
                 <span className="result2__accordion-title">
-                  주의할 점이 있어요
+                  약물 상호작용 주의
                 </span>
                 <span
                   className={`result2__accordion-chevron ${
-                    expandedSections.badPoints ? "expanded" : ""
+                    expandedSections.medicines ? "expanded" : ""
                   }`}
                 >
                   ▼
                 </span>
               </button>
 
-              {expandedSections.badPoints && (
+              {expandedSections.medicines && (
                 <div className="result2__accordion-content">
-                  <ul className="result2__analysis-list">
-                    {detailedAnalysis.badPoints.map((point, idx) => (
-                      <li key={idx}>{point.replace(/^⚠️\s*/, "")}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-        {/* 경고 사항 (Accordion) */}
-        {detailedAnalysis?.warnings &&
-          Array.isArray(detailedAnalysis.warnings) &&
-          detailedAnalysis.warnings.length > 0 && (
-            <div className="result2__accordion">
-              <button
-                className={`result2__accordion-toggle result2__accordion-toggle--warning`}
-                onClick={() => toggleSection("warnings")}
-              >
-                <span className="result2__accordion-icon">🚨</span>
-                <span className="result2__accordion-title">특별 경고</span>
-                <span
-                  className={`result2__accordion-chevron ${
-                    expandedSections.warnings ? "expanded" : ""
-                  }`}
-                >
-                  ▼
-                </span>
-              </button>
-
-              {expandedSections.warnings && (
-                <div className="result2__accordion-content">
-                  <ul className="result2__analysis-list">
-                    {detailedAnalysis.warnings.map((warning, idx) => (
-                      <li key={idx}>{warning.replace(/^🚨\s*/, "")}</li>
-                    ))}
-                  </ul>
-                </div>
-              )}
-            </div>
-          )}
-
-        {/* 전문가 조언 제거 - summary와 중복되어 삭제 */}
-
-        {/* 건강 조리법 (Accordion) */}
-        {detailedAnalysis?.cookingTips &&
-          Array.isArray(detailedAnalysis.cookingTips) &&
-          detailedAnalysis.cookingTips.length > 0 && (
-            <div className="result2__accordion">
-              <button
-                className={`result2__accordion-toggle result2__accordion-toggle--tips`}
-                onClick={() => toggleSection("cookingTips")}
-              >
-                <span className="result2__accordion-icon">👨‍🍳</span>
-                <span className="result2__accordion-title">
-                  이렇게 먹으면 더 좋아요!
-                </span>
-                <span
-                  className={`result2__accordion-chevron ${
-                    expandedSections.cookingTips ? "expanded" : ""
-                  }`}
-                >
-                  ▼
-                </span>
-              </button>
-
-              {expandedSections.cookingTips && (
-                <div className="result2__accordion-content">
-                  <div className="result2__tips-list">
-                    {detailedAnalysis.cookingTips.map((tipItem, idx) => {
-                      const tipText =
-                        typeof tipItem === "object"
-                          ? `${
-                              tipItem.category ? tipItem.category + ": " : ""
-                            }${tipItem.tip || ""}`
-                          : tipItem;
-                      return (
-                        <div key={idx} className="result2__tip-item">
-                          <span className="result2__tip-number">{idx + 1}</span>
-                          <span className="result2__tip-text">{tipText}</span>
+                  <div className="result2__medicine-list">
+                    {detailedAnalysis.medicalAnalysis.drug_food_interactions
+                      .filter(
+                        (d) =>
+                          d.risk_level === "danger" ||
+                          d.risk_level === "caution"
+                      )
+                      .map((drug, idx) => (
+                        <div
+                          key={idx}
+                          className={`result2__medicine-card result2__medicine-card--${drug.risk_level}`}
+                        >
+                          <div className="result2__medicine-header">
+                            <span className="result2__medicine-name">
+                              {drug.medicine_name}
+                            </span>
+                            <span
+                              className={`result2__risk-badge result2__risk-badge--${drug.risk_level}`}
+                            >
+                              {drug.risk_level === "danger" ? "위험" : "주의"}
+                            </span>
+                          </div>
+                          {drug.description && (
+                            <p className="result2__medicine-desc">
+                              {drug.description}
+                            </p>
+                          )}
+                          {drug.recommendation && (
+                            <p className="result2__medicine-recommend">
+                              💡 {drug.recommendation}
+                            </p>
+                          )}
                         </div>
-                      );
-                    })}
+                      ))}
                   </div>
                 </div>
               )}
             </div>
           )}
 
-        {/* 위험 성분 시각화 */}
-        {riskFactorEntries.length > 0 && (
-          <div className="result2__risk-visualization">
-            <div className="result2__risk-chart-container">
-              {riskFactorEntries
-                .filter((entry) => entry.active)
-                .map((entry) => (
-                  <div key={entry.key} className="result2__risk-chart-item">
-                    <div className="result2__risk-chart-label">
-                      <span className="result2__risk-chart-icon">⚠️</span>
-                      <span className="result2__risk-chart-name">
-                        {entry.label}
-                      </span>
-                    </div>
-                    <div className="result2__risk-chart-bar">
-                      <div
-                        className="result2__risk-chart-fill"
-                        style={{ width: "100%" }}
-                      ></div>
-                    </div>
-                  </div>
-                ))}
-              {riskFactorEntries.filter((entry) => entry.active).length ===
-                0 && (
-                <div className="result2__risk-chart-empty">
-                  <span className="result2__risk-chart-empty-icon">✅</span>
-                  <span className="result2__risk-chart-empty-text">
-                    위험 성분이 검출되지 않았습니다
-                  </span>
-                </div>
-              )}
-            </div>
+          {/* 6. 종합 분석 (Expert Advice) */}
+          <div className="result2__summary-section">
+            <h3 className="result2__summary-title">
+              <span className="result2__summary-icon">🎓</span>
+              종합 분석
+            </h3>
+            <p className="result2__summary-content">
+              {detailedAnalysis.summary || detailedAnalysis.expertAdvice}
+            </p>
           </div>
-        )}
 
-        {/* 종합 분석 (Accordion) */}
-        {(detailedAnalysis?.summary || analysis) && (
-          <div className="result2__accordion">
-            <button
-              className={`result2__accordion-toggle result2__accordion-toggle--summary`}
-              onClick={() => toggleSection("summary")}
-            >
-              <span className="result2__accordion-icon">📋</span>
-              <span className="result2__accordion-title">종합 분석</span>
-              <span
-                className={`result2__accordion-chevron ${
-                  expandedSections.summary ? "expanded" : ""
-                }`}
-              >
-                ▼
-              </span>
-            </button>
-
-            {expandedSections.summary && (
-              <div className="result2__accordion-content">
-                <p className="result2__summary-content">
-                  {(detailedAnalysis?.summary || analysis).replace(
-                    /^🔬\s*/,
-                    ""
-                  )}
-                </p>
-              </div>
-            )}
+          <div className="result2__disclaimer">
+            <p>
+              ※ 본 결과는 AI 분석 및 공공데이터를 기반으로 하며, 의학적 진단을
+              대체할 수 없습니다.
+            </p>
           </div>
-        )}
-
-        {/* 데이터 출처 */}
-        <div className="result2__source-section">
-          <p className="result2__source-label">데이터 출처</p>
-          <p className="result2__source-value">{getDataSources()}</p>
         </div>
-
-        {/* 추천 카드 */}
-        <div className="result2__recommendations">
-          <RecommendationCard
-            image={img_travel}
-            title="하루하루 세계 민간요법"
-            alt="하루하루 세계 민간요법"
-          />
-          <RecommendationCard
-            image={img_run}
-            title="하루하루 추천 운동법"
-            alt="하루하루 추천 운동법"
-          />
-        </div>
-
-        {/* 면책 조항 */}
-        <div className="result2__disclaimer">
-          <p>
-            본 앱은 의료 조언을 제공하지 않으며, 모든 건강 관련 결정은 반드시
-            전문의와 상의해야 합니다.
-          </p>
-          <p>본 앱의 정보는 참고용으로만 제공됩니다.</p>
-        </div>
-      </div>
+      )}
     </div>
   );
 };
