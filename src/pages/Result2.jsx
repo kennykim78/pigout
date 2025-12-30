@@ -56,7 +56,8 @@ const SmartRecipeCard = ({ recipe }) => {
   return (
     <div className="smart-recipe-card">
       <h3 className="smart-recipe-card__title">🥗 스마트 레시피</h3>
-      {recipe.videoId ? (
+      {/* 관련 영상이 있을 때만 표시 */}
+      {recipe.videoId && (
         <div className="smart-recipe-card__video-wrapper">
           <iframe
             className="smart-recipe-card__video"
@@ -66,11 +67,6 @@ const SmartRecipeCard = ({ recipe }) => {
             allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
             allowFullScreen
           ></iframe>
-        </div>
-      ) : (
-        <div className="smart-recipe-card__video-placeholder">
-          <span className="material-symbols-rounded">play_circle</span>
-          <p>관련 영상을 찾을 수 없습니다.</p>
         </div>
       )}
       <div className="smart-recipe-card__content">
@@ -748,24 +744,16 @@ const Result2 = () => {
 
       {!isStreaming && detailedAnalysis && (
         <div className="result2__main-content">
-          {/* 1. 영양 정보 대시보드 (기존 컴포넌트 활용 또는 업데이트) */}
+          {/* 1. 영양성분정보 + 2. 분석결과요약 + 3. 약물상호작용현황 + 3-2. 위험성분분석 (AnalysisDashboard) */}
           <AnalysisDashboard detailedAnalysis={detailedAnalysis} />
 
-          {/* 2. 장점/단점 태그 */}
+          {/* 2-1. 장단점 (이래서좋아요, 이건조심하세요) */}
           <AnalysisTags
             pros={detailedAnalysis.pros || detailedAnalysis.goodPoints}
             cons={detailedAnalysis.cons || detailedAnalysis.badPoints}
           />
 
-          {/* 3. 스마트 레시피 카드 */}
-          <SmartRecipeCard recipe={detailedAnalysis.recipe} />
-
-          {/* 4. 대체 음식 추천 */}
-          <AlternativeFoodCarousel
-            alternatives={detailedAnalysis.alternatives}
-          />
-
-          {/* 5. 약물 상호작용 (위험할 때만 표시) */}
+          {/* 3-1. 약물 상호작용 주의 (상세 목록 - 위험할 때만 표시) */}
           {detailedAnalysis.medicalAnalysis?.drug_food_interactions?.some(
             (d) => d.risk_level === "danger" || d.risk_level === "caution"
           ) && (
@@ -829,7 +817,15 @@ const Result2 = () => {
             </div>
           )}
 
-          {/* 6. 종합 분석 (Expert Advice) */}
+          {/* 4. 스마트 레시피 */}
+          <SmartRecipeCard recipe={detailedAnalysis.recipe} />
+
+          {/* 5. 대신 이건 어때요? */}
+          <AlternativeFoodCarousel
+            alternatives={detailedAnalysis.alternatives}
+          />
+
+          {/* 6. 종합 분석 */}
           <div className="result2__summary-section">
             <h3 className="result2__summary-title">
               <span className="result2__summary-icon">🎓</span>
