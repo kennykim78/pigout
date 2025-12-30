@@ -94,7 +94,7 @@ export class ImageService {
    */
   async searchYoutubeContent(
     keyword: string
-  ): Promise<{ link: string; imageUrl: string } | null> {
+  ): Promise<{ link: string; imageUrl: string; videoId?: string } | null> {
     const apiKey = this.configService.get<string>("GOOGLE_SEARCH_API_KEY");
     const cx = this.configService.get<string>("GOOGLE_SEARCH_CX");
 
