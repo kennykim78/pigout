@@ -297,7 +297,7 @@ JSON만 출력하세요.
           translatedExercise,
           "exercise"
         ),
-        this.generateContentResult(remedyKeyword, "", "food"), // remedy도 YouTube 검색
+        this.generateRemedyContentResult(remedyKeyword), // remedy는 Google 검색(블로그/기사)
       ]);
 
       // 🏳️ 국가 국기 매핑
@@ -462,6 +462,61 @@ JSON만 출력하세요.
     } catch (e) {
       this.logger.error(`[Image/Link] Pipeline failed for ${keyword}`, e);
       return { imageUrl: "", link: defaultLinks[type], videoId: null };
+    }
+  }
+
+  /**
+   * 민간요법 전용 콘텐츠 결과 생성 (Google 검색 - 블로그/기사)
+   * YouTube 검색을 하지 않고 Google 검색으로 블로그/기사 링크를 찾음
+   */
+  private async generateRemedyContentResult(
+    keyword: string
+  ): Promise<{ imageUrl: string; link: string; videoId: string | null }> {
+    const searchKeyword = `${keyword} 효능`;
+    const fallbackLink = `https://www.google.com/search?q=${encodeURIComponent(
+      searchKeyword
+    )}`;
+
+    try {
+      this.logger.log(`[Remedy] Google searching for: ${searchKeyword}`);
+
+      // 1. Google에서 크롤링 가능한 URL 검색 (블로그/기사)
+      const realUrl = await this.imageService.searchCrawlableUrl(searchKeyword);
+
+      if (realUrl) {
+        this.logger.log(`[Remedy] Found article: ${realUrl}`);
+
+        // 2. 해당 URL에서 OG 이미지 추출
+        const ogImageUrl = await this.imageService.fetchOgImage(realUrl);
+
+        let imageUrl = "";
+        if (ogImageUrl) {
+          // 이미지 최적화 후 업로드
+          imageUrl =
+            (await this.imageService.processAndUploadImage(
+              ogImageUrl,
+              `remedy_og_${Date.now()}`
+            )) || "";
+          this.logger.log(`[Remedy] OG Image: ${imageUrl || "none"}`);
+        }
+
+        return {
+          imageUrl,
+          link: realUrl, // 블로그/기사 직접 링크
+          videoId: null, // YouTube 없음
+        };
+      }
+
+      // 3. 검색 결과 없으면 Google 검색 링크로 폴백
+      this.logger.warn(`[Remedy] No crawlable URL found for: ${keyword}`);
+      return {
+        imageUrl: "",
+        link: fallbackLink,
+        videoId: null,
+      };
+    } catch (e) {
+      this.logger.error(`[Remedy] Search failed for ${keyword}`, e);
+      return { imageUrl: "", link: fallbackLink, videoId: null };
     }
   }
 }

@@ -164,14 +164,14 @@ const MyRecommendation = () => {
             <p className="summary-text">
               {remedy.summary || remedy.description}
             </p>
-            {remedy.relatedLink && !remedy.videoId && (
+            {remedy.relatedLink && (
               <a
                 href={remedy.relatedLink}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="related-link-btn"
               >
-                🔗 더 알아보기
+                📰 관련 글 보기
               </a>
             )}
           </div>
