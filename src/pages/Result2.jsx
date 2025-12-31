@@ -113,102 +113,477 @@ const TagCloudSection = ({
   );
 };
 
-// 🆕 2. 장단점 분석결과 컴포넌트
-const AnalysisSummarySection = ({
-  goodPoints = [],
-  badPoints = [],
-  warnings = [],
+// 🆕 2. 섭취 타이밍 가이드 컴포넌트
+const TimingGuideSection = ({
+  nutrition = {},
+  riskFactors = {},
+  interactions = [],
+  medicines = [],
   userProfile = {},
   diseases = [],
+  foodName = "",
 }) => {
-  const goodCount = goodPoints?.length || 0;
-  const badCount = badPoints?.length || 0;
-  const warningCount = warnings?.length || 0;
-  const total = goodCount + badCount + warningCount || 1;
-  const positiveRatio = Math.round((goodCount / total) * 100);
+  // 최적 섭취 시간대 계산
+  const getOptimalTiming = () => {
+    const timings = [];
 
-  const data = [
-    { name: "좋은 점", value: goodCount, color: "#22c55e" },
-    { name: "주의 점", value: badCount, color: "#f97316" },
-    { name: "경고", value: warningCount, color: "#ef4444" },
-  ].filter((item) => item.value > 0);
-
-  const statusIcon =
-    positiveRatio >= 70 ? "😊" : positiveRatio >= 40 ? "😐" : "😟";
-
-  // 🆕 친근하고 위트있는 분석 코멘트
-  const getBalanceAnalysis = () => {
-    const diseaseText = diseases?.length > 0 ? diseases[0] : "";
-
-    if (goodCount === 0 && badCount === 0) {
-      return "아직 분석 중이에요~ 조금만 기다려주세요! 🔍";
+    // 카페인 함유 음식
+    if (riskFactors?.caffeine) {
+      timings.push({
+        time: "오전",
+        icon: "☀️",
+        reason: "카페인이 있어 오후 늦게 드시면 수면에 영향을 줄 수 있어요",
+        recommended: true,
+      });
+      timings.push({
+        time: "저녁",
+        icon: "🌙",
+        reason: "수면 방해 가능성",
+        recommended: false,
+      });
     }
 
-    if (positiveRatio >= 80) {
-      return `대박! 장점이 ${goodCount}개로 압승이에요! 🎉 ${
-        diseaseText ? diseaseText + " 있어도 " : ""
-      }맘 놓고 드셔도 될 것 같아요~`;
-    } else if (positiveRatio >= 60) {
-      return `장점이 ${goodCount}개로 우세해요~ 👍 ${badCount}개 주의점만 살짝 신경 쓰시면 OK!`;
-    } else if (positiveRatio >= 40) {
-      return `음, 반반이네요! ${
-        warningCount > 0 ? `경고 ${warningCount}개는 꼭 확인하세요~ ` : ""
-      }균형있게 드시면 괜찮아요 ⚖️`;
-    } else {
-      return `주의점(${badCount}개)이 좀 많아요 😅 ${
-        diseaseText ? diseaseText + " 환자분은 특히 " : ""
-      }조심해서 드세요!`;
+    // 고탄수화물/고당류 음식 (당뇨 고려)
+    if (
+      diseases?.includes("당뇨") &&
+      (nutrition?.carbs > 40 || nutrition?.sugar > 10)
+    ) {
+      timings.push({
+        time: "식후",
+        icon: "🍽️",
+        reason: "공복 시 혈당 급상승 방지를 위해 다른 음식과 함께 드세요",
+        recommended: true,
+      });
+      timings.push({
+        time: "공복",
+        icon: "🚫",
+        reason: "혈당 급상승 위험",
+        recommended: false,
+      });
     }
+
+    // 고지방 음식
+    if (riskFactors?.highFat || nutrition?.fat > 20) {
+      timings.push({
+        time: "점심",
+        icon: "🌤️",
+        reason: "활동량이 많은 낮에 드시면 에너지로 소비되기 좋아요",
+        recommended: true,
+      });
+      timings.push({
+        time: "야식",
+        icon: "🌙",
+        reason: "소화에 부담, 체지방 축적 위험",
+        recommended: false,
+      });
+    }
+
+    // 고나트륨 음식 (고혈압 고려)
+    if (
+      diseases?.includes("고혈압") &&
+      (riskFactors?.highSodium || nutrition?.sodium > 500)
+    ) {
+      timings.push({
+        time: "점심",
+        icon: "🌤️",
+        reason: "낮 동안 수분 섭취로 나트륨 배출이 용이해요",
+        recommended: true,
+      });
+    }
+
+    // 기본 타이밍 (아무 특이사항 없을 때)
+    if (timings.length === 0) {
+      timings.push({
+        time: "언제든",
+        icon: "✅",
+        reason: "특별한 제한 없이 언제 드셔도 괜찮아요",
+        recommended: true,
+      });
+    }
+
+    return timings;
   };
 
+  // 약물 복용 시간과의 간격 가이드
+  const getMedicineTimingGuide = () => {
+    if (!interactions || interactions.length === 0) return null;
+
+    const guides = [];
+    const dangerDrugs = interactions.filter((d) => d.risk_level === "danger");
+    const cautionDrugs = interactions.filter((d) => d.risk_level === "caution");
+
+    if (dangerDrugs.length > 0) {
+      guides.push({
+        type: "danger",
+        icon: "🚨",
+        medicines: dangerDrugs.map((d) => d.medicine_name).join(", "),
+        guide: "이 약을 드시는 동안은 섭취를 피해주세요",
+        interval: "섭취 금지",
+      });
+    }
+
+    if (cautionDrugs.length > 0) {
+      guides.push({
+        type: "caution",
+        icon: "⚠️",
+        medicines: cautionDrugs.map((d) => d.medicine_name).join(", "),
+        guide: "약 복용 전후 2시간 이상 간격을 두세요",
+        interval: "2시간+",
+      });
+    }
+
+    return guides.length > 0 ? guides : null;
+  };
+
+  // 분석 코멘트
+  const getTimingComment = () => {
+    const timings = getOptimalTiming();
+    const recommended = timings.filter((t) => t.recommended);
+    const notRecommended = timings.filter((t) => !t.recommended);
+    const medicineGuides = getMedicineTimingGuide();
+
+    if (medicineGuides && medicineGuides.some((g) => g.type === "danger")) {
+      return `⚠️ 복용 중인 약과 상호작용이 있어요! 시간 조절보다 섭취 여부를 먼저 확인하세요.`;
+    }
+
+    if (notRecommended.length > 0) {
+      const avoid = notRecommended[0].time;
+      const best = recommended[0]?.time || "적절한 시간";
+      return `${best}에 드시는 게 좋고, ${avoid}은 피하시는 게 좋겠어요! 🕐`;
+    }
+
+    if (userProfile?.age >= 60) {
+      return `어르신은 소화를 위해 천천히, 충분한 시간을 두고 드시는 게 좋아요~ 💝`;
+    }
+
+    return `시간 제한 없이 편하게 드셔도 괜찮아요! 😊`;
+  };
+
+  const timings = getOptimalTiming();
+  const medicineGuides = getMedicineTimingGuide();
+
   return (
-    <div className="result2-card result2-card--summary">
-      <h2 className="result2-card__title">장단점 분석결과</h2>
-      <div className="summary-chart">
-        <div className="summary-chart__graph">
-          <ResponsiveContainer width="100%" height={180}>
-            <PieChart>
-              <Pie
-                data={
-                  data.length > 0
-                    ? data
-                    : [{ name: "없음", value: 1, color: "#e5e7eb" }]
-                }
-                cx="50%"
-                cy="50%"
-                innerRadius={50}
-                outerRadius={75}
-                paddingAngle={3}
-                dataKey="value"
-              >
-                {(data.length > 0 ? data : [{ color: "#e5e7eb" }]).map(
-                  (entry, index) => (
-                    <Cell key={`cell-${index}`} fill={entry.color} />
-                  )
-                )}
-              </Pie>
-            </PieChart>
-          </ResponsiveContainer>
-          <div className="summary-chart__center">
-            <span className="summary-chart__icon">{statusIcon}</span>
-            <span className="summary-chart__percent">{positiveRatio}%</span>
-          </div>
+    <div className="result2-card result2-card--timing">
+      <h2 className="result2-card__title">🕐 섭취 타이밍 가이드</h2>
+      <div className="timing-section">
+        {/* 추천/비추천 시간대 */}
+        <div className="timing-grid">
+          {timings.map((timing, idx) => (
+            <div
+              key={idx}
+              className={`timing-item ${
+                timing.recommended ? "timing-item--good" : "timing-item--bad"
+              }`}
+            >
+              <div className="timing-item__header">
+                <span className="timing-item__icon">{timing.icon}</span>
+                <span className="timing-item__time">{timing.time}</span>
+                <span
+                  className={`timing-item__badge ${
+                    timing.recommended
+                      ? "timing-item__badge--good"
+                      : "timing-item__badge--bad"
+                  }`}
+                >
+                  {timing.recommended ? "추천" : "비추천"}
+                </span>
+              </div>
+              <p className="timing-item__reason">{timing.reason}</p>
+            </div>
+          ))}
         </div>
-        <div className="summary-chart__legend">
-          <span className="legend-item legend-item--good">
-            ✅ 장점 {goodCount}개
-          </span>
-          <span className="legend-item legend-item--bad">
-            ⚠️ 주의 {badCount}개
-          </span>
-          {warningCount > 0 && (
-            <span className="legend-item legend-item--warning">
-              🚨 경고 {warningCount}개
-            </span>
+
+        {/* 약물 복용 간격 가이드 */}
+        {medicineGuides && (
+          <div className="timing-medicine">
+            <h3 className="timing-medicine__title">💊 약 복용 시 주의</h3>
+            {medicineGuides.map((guide, idx) => (
+              <div
+                key={idx}
+                className={`timing-medicine__item timing-medicine__item--${guide.type}`}
+              >
+                <div className="timing-medicine__header">
+                  <span className="timing-medicine__icon">{guide.icon}</span>
+                  <span className="timing-medicine__interval">
+                    {guide.interval}
+                  </span>
+                </div>
+                <div className="timing-medicine__content">
+                  <p className="timing-medicine__drugs">{guide.medicines}</p>
+                  <p className="timing-medicine__guide">{guide.guide}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        )}
+      </div>
+      <p className="result2-card__analysis">{getTimingComment()}</p>
+    </div>
+  );
+};
+
+// 🆕 3. 개인 맞춤 권장 섭취량 컴포넌트
+const PersonalizedPortionSection = ({
+  nutrition = {},
+  servingSize = {},
+  userProfile = {},
+  diseases = [],
+  foodName = "",
+}) => {
+  // 사용자 맞춤 권장량 계산
+  const calculateRecommendedPortion = () => {
+    const baseAmount = servingSize?.amount || 100;
+    const baseUnit = servingSize?.unit || "g";
+    let multiplier = 1;
+    let reasons = [];
+
+    // 나이별 조정
+    if (userProfile?.age >= 65) {
+      multiplier *= 0.8;
+      reasons.push("어르신 소화력 고려");
+    } else if (userProfile?.age >= 50) {
+      multiplier *= 0.9;
+      reasons.push("대사량 감소 고려");
+    }
+
+    // 질병별 조정
+    if (
+      diseases?.includes("당뇨") &&
+      (nutrition?.carbs > 30 || nutrition?.sugar > 10)
+    ) {
+      multiplier *= 0.7;
+      reasons.push("혈당 관리");
+    }
+
+    if (diseases?.includes("고혈압") && nutrition?.sodium > 500) {
+      multiplier *= 0.7;
+      reasons.push("나트륨 제한");
+    }
+
+    if (diseases?.includes("고지혈증") && nutrition?.fat > 15) {
+      multiplier *= 0.7;
+      reasons.push("지방 제한");
+    }
+
+    if (diseases?.includes("신장질환") && nutrition?.potassium > 300) {
+      multiplier *= 0.6;
+      reasons.push("칼륨 제한");
+    }
+
+    const recommendedAmount = Math.round(baseAmount * multiplier);
+
+    return {
+      amount: recommendedAmount,
+      unit: baseUnit,
+      multiplier,
+      reasons,
+      originalAmount: baseAmount,
+    };
+  };
+
+  // 주간 권장 빈도 계산
+  const getRecommendedFrequency = () => {
+    let frequency = "매일";
+    let icon = "🟢";
+    let note = "";
+
+    // 위험 요소 체크
+    const hasHighSodium = nutrition?.sodium > 800;
+    const hasHighFat = nutrition?.fat > 20;
+    const hasHighSugar = nutrition?.sugar > 15;
+    const hasHighCalories = nutrition?.calories > 500;
+
+    const riskCount = [
+      hasHighSodium,
+      hasHighFat,
+      hasHighSugar,
+      hasHighCalories,
+    ].filter(Boolean).length;
+
+    if (riskCount >= 3) {
+      frequency = "주 1회";
+      icon = "🔴";
+      note = "특별한 날에만 드세요";
+    } else if (riskCount >= 2) {
+      frequency = "주 2-3회";
+      icon = "🟡";
+      note = "적당히 즐기세요";
+    } else if (riskCount >= 1) {
+      frequency = "주 3-4회";
+      icon = "🟢";
+      note = "괜찮은 편이에요";
+    } else {
+      frequency = "매일 OK";
+      icon = "✅";
+      note = "규칙적으로 드셔도 좋아요";
+    }
+
+    // 질병이 있으면 한 단계 낮춤
+    if (diseases?.length > 0 && riskCount >= 1) {
+      if (frequency === "매일 OK") {
+        frequency = "주 3-4회";
+        icon = "🟢";
+      } else if (frequency === "주 3-4회") {
+        frequency = "주 2-3회";
+        icon = "🟡";
+      } else if (frequency === "주 2-3회") {
+        frequency = "주 1-2회";
+        icon = "🟡";
+      }
+    }
+
+    return { frequency, icon, note };
+  };
+
+  // 일일 권장 영양소 대비 비율 계산
+  const getDailyValuePercent = () => {
+    // 성인 기준 일일 권장량 (근사치)
+    const dailyValues = {
+      calories: 2000,
+      protein: 50,
+      carbs: 300,
+      fat: 65,
+      sodium: 2000,
+      sugar: 50,
+      fiber: 25,
+    };
+
+    const percentages = [];
+
+    if (nutrition?.calories) {
+      percentages.push({
+        name: "열량",
+        percent: Math.round((nutrition.calories / dailyValues.calories) * 100),
+        icon: "🔥",
+      });
+    }
+    if (nutrition?.protein) {
+      percentages.push({
+        name: "단백질",
+        percent: Math.round((nutrition.protein / dailyValues.protein) * 100),
+        icon: "💪",
+      });
+    }
+    if (nutrition?.carbs) {
+      percentages.push({
+        name: "탄수화물",
+        percent: Math.round((nutrition.carbs / dailyValues.carbs) * 100),
+        icon: "🍚",
+      });
+    }
+    if (nutrition?.sodium) {
+      percentages.push({
+        name: "나트륨",
+        percent: Math.round((nutrition.sodium / dailyValues.sodium) * 100),
+        icon: "🧂",
+      });
+    }
+
+    return percentages;
+  };
+
+  // 분석 코멘트
+  const getPortionComment = () => {
+    const portion = calculateRecommendedPortion();
+    const freq = getRecommendedFrequency();
+    const genderText =
+      userProfile?.gender === "male"
+        ? "남성"
+        : userProfile?.gender === "female"
+        ? "여성"
+        : "";
+    const ageText = userProfile?.age ? `${userProfile.age}세` : "";
+
+    if (portion.multiplier < 0.7) {
+      return `${ageText} ${genderText}분의 건강 상태를 고려해 일반 섭취량의 ${Math.round(
+        portion.multiplier * 100
+      )}%만 드시길 권해요! 🙏`;
+    }
+
+    if (portion.reasons.length > 0) {
+      return `${portion.reasons.join(", ")}를 위해 ${portion.amount}${
+        portion.unit
+      }이 적당해요~ 👍`;
+    }
+
+    if (freq.frequency === "매일 OK") {
+      return `${ageText} ${genderText}분께 적합한 음식이에요! 부담 없이 즐기세요~ 😊`;
+    }
+
+    return `권장량을 지키면서 ${freq.frequency} 정도로 즐기시면 좋겠어요! 💪`;
+  };
+
+  const portion = calculateRecommendedPortion();
+  const freq = getRecommendedFrequency();
+  const dailyValues = getDailyValuePercent();
+
+  return (
+    <div className="result2-card result2-card--portion">
+      <h2 className="result2-card__title">📏 맞춤 권장 섭취량</h2>
+      <div className="portion-section">
+        {/* 권장 1회 섭취량 */}
+        <div className="portion-main">
+          <div className="portion-main__amount">
+            <span className="portion-main__number">{portion.amount}</span>
+            <span className="portion-main__unit">{portion.unit}</span>
+          </div>
+          <p className="portion-main__label">1회 권장량</p>
+          {portion.multiplier < 1 && (
+            <p className="portion-main__note">
+              일반 기준({portion.originalAmount}
+              {portion.unit})의
+              {Math.round(portion.multiplier * 100)}%
+            </p>
+          )}
+          {portion.reasons.length > 0 && (
+            <div className="portion-main__reasons">
+              {portion.reasons.map((reason, idx) => (
+                <span key={idx} className="portion-main__reason-tag">
+                  {reason}
+                </span>
+              ))}
+            </div>
           )}
         </div>
-        <p className="result2-card__analysis">{getBalanceAnalysis()}</p>
+
+        {/* 주간 권장 빈도 */}
+        <div className="portion-frequency">
+          <div className="portion-frequency__header">
+            <span className="portion-frequency__icon">{freq.icon}</span>
+            <span className="portion-frequency__value">{freq.frequency}</span>
+          </div>
+          <p className="portion-frequency__note">{freq.note}</p>
+        </div>
+
+        {/* 일일 영양소 대비 비율 */}
+        {dailyValues.length > 0 && (
+          <div className="portion-daily">
+            <h3 className="portion-daily__title">일일 권장량 대비</h3>
+            <div className="portion-daily__grid">
+              {dailyValues.map((item, idx) => (
+                <div key={idx} className="portion-daily__item">
+                  <span className="portion-daily__icon">{item.icon}</span>
+                  <span className="portion-daily__name">{item.name}</span>
+                  <div className="portion-daily__bar">
+                    <div
+                      className="portion-daily__fill"
+                      style={{ width: `${Math.min(item.percent, 100)}%` }}
+                    />
+                  </div>
+                  <span
+                    className={`portion-daily__percent ${
+                      item.percent > 50 ? "portion-daily__percent--high" : ""
+                    }`}
+                  >
+                    {item.percent}%
+                  </span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
+      <p className="result2-card__analysis">{getPortionComment()}</p>
     </div>
   );
 };
@@ -1025,7 +1400,7 @@ const Result2 = () => {
       // 현재 어느 카드가 보이는지 계산
       const currentIndex = Math.min(
         Math.floor(scrollTop / cardHeight),
-        4 // 최대 5개 카드 (인덱스 0-4)
+        5 // 최대 6개 카드 (인덱스 0-5)
       );
       setActiveCardIndex(currentIndex);
     };
@@ -1085,7 +1460,7 @@ const Result2 = () => {
         <div className="result2__content" ref={containerRef}>
           {/* 인디케이터 */}
           <div className="result2-stack__indicator">
-            {activeCardIndex + 1}/5
+            {activeCardIndex + 1}/6
           </div>
 
           {/* 1-5: 카드 스택킹 섹션 */}
@@ -1108,12 +1483,14 @@ const Result2 = () => {
                 activeCardIndex === 1 ? " active" : ""
               }${activeCardIndex > 1 ? " passed" : ""}`}
             >
-              <AnalysisSummarySection
-                goodPoints={detailedAnalysis.goodPoints}
-                badPoints={detailedAnalysis.badPoints}
-                warnings={detailedAnalysis.warnings}
+              <TimingGuideSection
+                nutrition={detailedAnalysis.nutrition}
+                riskFactors={detailedAnalysis.riskFactors}
+                interactions={detailedAnalysis.medicalAnalysis?.drug_food_interactions}
+                medicines={medicines}
                 userProfile={userProfile}
                 diseases={diseases}
+                foodName={foodName}
               />
             </div>
 
@@ -1121,6 +1498,20 @@ const Result2 = () => {
               className={`result2-stack__card${
                 activeCardIndex === 2 ? " active" : ""
               }${activeCardIndex > 2 ? " passed" : ""}`}
+            >
+              <PersonalizedPortionSection
+                nutrition={detailedAnalysis.nutrition}
+                servingSize={detailedAnalysis.servingSize}
+                userProfile={userProfile}
+                diseases={diseases}
+                foodName={foodName}
+              />
+            </div>
+
+            <div
+              className={`result2-stack__card${
+                activeCardIndex === 3 ? " active" : ""
+              }${activeCardIndex > 3 ? " passed" : ""}`}
             >
               <NutritionSection
                 nutrition={detailedAnalysis.nutrition}
@@ -1133,8 +1524,8 @@ const Result2 = () => {
 
             <div
               className={`result2-stack__card${
-                activeCardIndex === 3 ? " active" : ""
-              }${activeCardIndex > 3 ? " passed" : ""}`}
+                activeCardIndex === 4 ? " active" : ""
+              }${activeCardIndex > 4 ? " passed" : ""}`}
             >
               <DrugInteractionSection
                 interactions={
@@ -1148,7 +1539,7 @@ const Result2 = () => {
 
             <div
               className={`result2-stack__card${
-                activeCardIndex === 4 ? " active" : ""
+                activeCardIndex === 5 ? " active" : ""
               }`}
             >
               <ComponentAnalysisSection

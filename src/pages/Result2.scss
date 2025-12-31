@@ -179,7 +179,7 @@ $card-gap: 20px;
     z-index: 1;
 
     // 각 카드마다 z-index 증가 (나중 카드가 위로)
-    @for $i from 1 through 5 {
+    @for $i from 1 through 6 {
       &:nth-child(#{$i}) {
         z-index: $i;
       }
@@ -834,5 +834,304 @@ $card-gap: 20px;
   to {
     opacity: 1;
     transform: translateY(0);
+  }
+}
+
+// ==========================================
+// 🆕 2. 섭취 타이밍 가이드
+// ==========================================
+.timing-section {
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.timing-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.timing-item {
+  padding: 16px;
+  border-radius: 16px;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: translateX(4px);
+  }
+
+  &--good {
+    background: linear-gradient(135deg, #f0fdf4 0%, #dcfce7 100%);
+    border: 1px solid #86efac;
+  }
+
+  &--bad {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    border: 1px solid #fecaca;
+  }
+
+  &__header {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    margin-bottom: 8px;
+  }
+
+  &__icon {
+    font-size: 24px;
+  }
+
+  &__time {
+    font-size: $result2-font-medium;
+    font-weight: 700;
+    color: $result2-accent;
+  }
+
+  &__badge {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 4px 10px;
+    border-radius: 12px;
+    margin-left: auto;
+
+    &--good {
+      background: #22c55e;
+      color: #fff;
+    }
+
+    &--bad {
+      background: #ef4444;
+      color: #fff;
+    }
+  }
+
+  &__reason {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+    margin: 0;
+    line-height: 1.5;
+  }
+}
+
+.timing-medicine {
+  margin-top: 8px;
+
+  &__title {
+    font-size: $result2-font-base;
+    font-weight: 600;
+    color: $result2-text-primary;
+    margin: 0 0 12px;
+    text-align: center;
+  }
+
+  &__item {
+    display: flex;
+    gap: 12px;
+    padding: 14px;
+    border-radius: 12px;
+    margin-bottom: 8px;
+
+    &--danger {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border: 1px solid $color-danger;
+    }
+
+    &--caution {
+      background: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+      border: 1px solid $color-caution;
+    }
+  }
+
+  &__header {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    min-width: 60px;
+  }
+
+  &__icon {
+    font-size: 24px;
+  }
+
+  &__interval {
+    font-size: 12px;
+    font-weight: 700;
+    color: $result2-accent;
+  }
+
+  &__content {
+    flex: 1;
+  }
+
+  &__drugs {
+    font-size: $result2-font-small;
+    font-weight: 600;
+    color: $result2-accent;
+    margin: 0 0 4px;
+  }
+
+  &__guide {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+    margin: 0;
+    line-height: 1.4;
+  }
+}
+
+// ==========================================
+// 🆕 3. 개인 맞춤 권장 섭취량
+// ==========================================
+.portion-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+.portion-main {
+  text-align: center;
+  padding: 24px;
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-radius: 20px;
+  border: 1px solid #bae6fd;
+
+  &__amount {
+    display: flex;
+    align-items: baseline;
+    justify-content: center;
+    gap: 4px;
+  }
+
+  &__number {
+    font-size: 56px;
+    font-weight: 800;
+    color: $result2-accent;
+    line-height: 1;
+  }
+
+  &__unit {
+    font-size: $result2-font-large;
+    font-weight: 600;
+    color: $result2-text-secondary;
+  }
+
+  &__label {
+    font-size: $result2-font-base;
+    color: $result2-text-secondary;
+    margin: 8px 0 0;
+  }
+
+  &__note {
+    font-size: $result2-font-small;
+    color: $color-caution;
+    margin: 8px 0 0;
+    font-weight: 500;
+  }
+
+  &__reasons {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  &__reason-tag {
+    font-size: 12px;
+    font-weight: 600;
+    padding: 6px 12px;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 20px;
+    color: $result2-text-secondary;
+  }
+}
+
+.portion-frequency {
+  text-align: center;
+  padding: 20px;
+  background: #f9fafb;
+  border-radius: 16px;
+
+  &__header {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    margin-bottom: 8px;
+  }
+
+  &__icon {
+    font-size: 28px;
+  }
+
+  &__value {
+    font-size: $result2-font-large;
+    font-weight: 700;
+    color: $result2-accent;
+  }
+
+  &__note {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+    margin: 0;
+  }
+}
+
+.portion-daily {
+  &__title {
+    font-size: $result2-font-base;
+    font-weight: 600;
+    color: $result2-text-primary;
+    margin: 0 0 16px;
+    text-align: center;
+  }
+
+  &__grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+
+  &__item {
+    display: grid;
+    grid-template-columns: 28px 60px 1fr 45px;
+    align-items: center;
+    gap: 10px;
+  }
+
+  &__icon {
+    font-size: 20px;
+    text-align: center;
+  }
+
+  &__name {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
+  }
+
+  &__bar {
+    height: 8px;
+    background: #e5e7eb;
+    border-radius: 4px;
+    overflow: hidden;
+  }
+
+  &__fill {
+    height: 100%;
+    background: linear-gradient(90deg, #3b82f6 0%, #60a5fa 100%);
+    border-radius: 4px;
+    transition: width 0.5s ease;
+  }
+
+  &__percent {
+    font-size: $result2-font-small;
+    font-weight: 600;
+    color: $result2-text-primary;
+    text-align: right;
+
+    &--high {
+      color: $color-caution;
+    }
   }
 }
