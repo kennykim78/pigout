@@ -118,7 +118,6 @@ $color-safe: #3b82f6;
     height: calc(100vh - 80px);
     overflow-y: auto;
     scroll-behavior: smooth;
-    // scroll-snap을 proximity로 변경 - 스크롤 끝에서 자연스럽게 풀림
     scroll-snap-type: y proximity;
 
     // 스크롤바 스타일링
@@ -132,56 +131,13 @@ $color-safe: #3b82f6;
     }
   }
 
-  // 슬라이딩 카드 섹션 (1-5번)
-  &__slide-section {
-    .result2-card--slide {
-      min-height: 100vh;
-      scroll-snap-align: start;
-      scroll-snap-stop: normal; // always에서 normal로 변경 - 빠른 스크롤 시 건너뛰기 허용
-      padding: 20px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      position: relative;
-
-      // 겹쳐서 올라오는 효과
-      &::before {
-        content: "";
-        position: absolute;
-        top: 0;
-        left: 0;
-        right: 0;
-        height: 60px;
-        background: linear-gradient(
-          to bottom,
-          rgba(255, 255, 255, 1),
-          rgba(255, 255, 255, 0)
-        );
-        pointer-events: none;
-        z-index: 1;
-      }
-
-      &.active {
-        .result2-card {
-          transform: translateY(0);
-          opacity: 1;
-        }
-      }
-
-      // 마지막 슬라이드에서 scroll-snap 해제
-      &:last-child {
-        scroll-snap-align: none;
-      }
-    }
-  }
-
-  // 일반 스크롤 섹션 (6-8번) - scroll-snap 적용 안함
+  // 일반 스크롤 섹션
   &__scroll-section {
     padding: 20px;
     display: flex;
     flex-direction: column;
     gap: 24px;
-    scroll-snap-align: none; // 스냅 해제
+    scroll-snap-align: none;
   }
 
   // 면책 조항
@@ -197,6 +153,61 @@ $color-safe: #3b82f6;
       text-align: center;
       margin: 0;
       line-height: 1.5;
+    }
+  }
+}
+
+// ==========================================
+// 카드 스택킹 구조
+// ==========================================
+.result2-stack {
+  position: relative;
+
+  &__card {
+    min-height: 100vh;
+    scroll-snap-align: start;
+    scroll-snap-stop: normal;
+    padding: 20px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+
+    // 겹쳐서 올라오는 효과
+    &::before {
+      content: "";
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 60px;
+      background: linear-gradient(
+        to bottom,
+        rgba(255, 255, 255, 1),
+        rgba(255, 255, 255, 0)
+      );
+      pointer-events: none;
+      z-index: 1;
+    }
+
+    &.active {
+      .result2-card {
+        transform: translateY(0) scale(1);
+        opacity: 1;
+        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+      }
+    }
+
+    // 비활성 카드 스타일
+    .result2-card {
+      transform: translateY(20px) scale(0.98);
+      opacity: 0.9;
+      transition: all 0.4s ease-out;
+    }
+
+    // 마지막 슬라이드에서 scroll-snap 해제
+    &:last-child {
+      scroll-snap-align: none;
     }
   }
 }
@@ -218,6 +229,18 @@ $color-safe: #3b82f6;
     color: $result2-accent;
     margin: 0 0 24px;
     text-align: center;
+  }
+
+  // 🆕 공통 분석 코멘트 스타일
+  &__analysis {
+    font-size: $result2-font-base;
+    color: $result2-text-secondary;
+    text-align: center;
+    line-height: 1.6;
+    margin: 20px 0 0;
+    padding: 16px;
+    background: #f9fafb;
+    border-radius: 12px;
   }
 }
 
@@ -297,13 +320,13 @@ $color-safe: #3b82f6;
 }
 
 // ==========================================
-// 2. 분석 결과 요약
+// 2. 장단점 분석결과
 // ==========================================
 .summary-chart {
   display: flex;
   flex-direction: column;
   align-items: center;
-  gap: 20px;
+  gap: 16px;
 
   &__graph {
     position: relative;
@@ -324,7 +347,7 @@ $color-safe: #3b82f6;
   }
 
   &__icon {
-    font-size: 40px;
+    font-size: 36px;
   }
 
   &__percent {
@@ -333,45 +356,39 @@ $color-safe: #3b82f6;
     color: $result2-accent;
   }
 
-  &__status {
+  // 🆕 범례
+  &__legend {
     display: flex;
+    flex-wrap: wrap;
     justify-content: center;
-  }
+    gap: 12px;
 
-  &__badge {
-    padding: 10px 28px;
-    border-radius: 30px;
-    font-size: $result2-font-base;
-    font-weight: 700;
+    .legend-item {
+      font-size: $result2-font-small;
+      font-weight: 600;
+      padding: 6px 12px;
+      border-radius: 20px;
 
-    &--good {
-      background: #dcfce7;
-      color: #166534;
+      &--good {
+        background: #dcfce7;
+        color: #166534;
+      }
+
+      &--bad {
+        background: #fef3c7;
+        color: #92400e;
+      }
+
+      &--warning {
+        background: #fef2f2;
+        color: #991b1b;
+      }
     }
-
-    &--normal {
-      background: #fef3c7;
-      color: #92400e;
-    }
-
-    &--bad {
-      background: #fef2f2;
-      color: #991b1b;
-    }
-  }
-
-  &__text {
-    font-size: $result2-font-base;
-    color: $result2-text-secondary;
-    text-align: center;
-    line-height: 1.6;
-    margin: 0;
-    padding: 0 8px;
   }
 }
 
 // ==========================================
-// 3. 영양성분 정보
+// 3. 영양성분 정보 (2column)
 // ==========================================
 .nutrition {
   &__serving {
@@ -381,50 +398,53 @@ $color-safe: #3b82f6;
     margin: -16px 0 20px;
   }
 
-  &__grid {
+  // 🆕 2column 그리드
+  &__grid--2col {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(2, 1fr);
     gap: 12px;
-
-    @media (max-width: 360px) {
-      grid-template-columns: repeat(2, 1fr);
-    }
   }
 
   &__item {
     display: flex;
-    flex-direction: column;
     align-items: center;
-    padding: 16px 12px;
+    gap: 12px;
+    padding: 16px;
     background: #f9fafb;
     border-radius: 16px;
-    text-align: center;
     transition: transform 0.2s;
 
     &:hover {
       transform: translateY(-2px);
     }
 
-    // 5번째 나트륨은 전체 너비로
-    &:nth-child(5) {
-      grid-column: span 3;
-
-      @media (max-width: 360px) {
-        grid-column: span 2;
-      }
+    // 🆕 위험 성분 하이라이트
+    &--warning {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      border: 1px solid #fecaca;
     }
   }
 
   &__icon {
-    font-size: 28px;
-    margin-bottom: 8px;
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  &__info {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  &__name {
+    font-size: $result2-font-small;
+    color: $result2-text-secondary;
   }
 
   &__value {
     display: flex;
     align-items: baseline;
     gap: 2px;
-    margin-bottom: 4px;
   }
 
   &__number {
@@ -435,18 +455,6 @@ $color-safe: #3b82f6;
   }
 
   &__unit {
-    font-size: $result2-font-small;
-    color: $result2-text-secondary;
-  }
-
-  &__name {
-    font-size: $result2-font-base;
-    font-weight: 600;
-    color: $result2-text-primary;
-    margin-bottom: 2px;
-  }
-
-  &__desc {
     font-size: $result2-font-small;
     color: $result2-text-secondary;
   }
@@ -527,57 +535,55 @@ $color-safe: #3b82f6;
 }
 
 // ==========================================
-// 4. 위험 성분 분석
+// 5. 성분 분석 (위험 + 좋은 성분)
 // ==========================================
-.risk-section {
-  &__list {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    justify-content: center;
-    margin-bottom: 20px;
-  }
+.component-section {
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
 
-  &__empty {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 8px;
-    padding: 24px;
-    background: #f0fdf4;
-    border-radius: 16px;
-    color: #166534;
+.component-group {
+  &__title {
     font-size: $result2-font-base;
     font-weight: 600;
-    margin-bottom: 20px;
-  }
-
-  &__check {
-    font-size: 24px;
-  }
-
-  &__comment {
-    font-size: $result2-font-base;
-    color: $result2-text-secondary;
+    color: $result2-text-primary;
+    margin: 0 0 12px;
     text-align: center;
-    line-height: 1.6;
-    margin: 0;
-    padding: 16px;
-    background: #f9fafb;
-    border-radius: 12px;
   }
 }
 
-.risk-item {
+.component-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+
+.component-item {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 12px 18px;
-  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
-  border: 1px solid #fecaca;
   border-radius: 30px;
   font-weight: 600;
-  color: #991b1b;
+  transition: transform 0.2s;
+
+  &:hover {
+    transform: scale(1.05);
+  }
+
+  &--good {
+    background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+    color: #166534;
+    border: 1px solid #86efac;
+  }
+
+  &--risk {
+    background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+    color: #991b1b;
+    border: 1px solid #fecaca;
+  }
 
   &__icon {
     font-size: 20px;
@@ -588,8 +594,25 @@ $color-safe: #3b82f6;
   }
 }
 
+.component-empty {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 24px;
+  background: #f0fdf4;
+  border-radius: 16px;
+  color: #166534;
+  font-size: $result2-font-base;
+  font-weight: 600;
+
+  &__check {
+    font-size: 24px;
+  }
+}
+
 // ==========================================
-// 5. 스마트 레시피
+// 6. 스마트 레시피
 // ==========================================
 .result2-card--recipe {
   .recipe-video {
@@ -638,7 +661,7 @@ $color-safe: #3b82f6;
 }
 
 // ==========================================
-// 6. 대체 음식 추천
+// 7. 대체 음식 추천
 // ==========================================
 .alternative-list {
   display: flex;
@@ -707,7 +730,7 @@ $color-safe: #3b82f6;
 }
 
 // ==========================================
-// 7. 종합 분석
+// 8. 종합 분석
 // ==========================================
 .final-content {
   padding: 24px;
