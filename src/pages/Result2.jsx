@@ -1441,6 +1441,7 @@ const Result2 = () => {
 
           {/* 1-5: 카드 스택킹 섹션 */}
           <div className="result2-stack">
+            {/* 1. 장단점 워드클라우드 */}
             <div
               className={`result2-stack__card${
                 activeCardIndex === 0 ? " active" : ""
@@ -1454,10 +1455,43 @@ const Result2 = () => {
               />
             </div>
 
+            {/* 2. 영양 성분 분석 (원래 4번) */}
             <div
               className={`result2-stack__card${
                 activeCardIndex === 1 ? " active" : ""
               }${activeCardIndex > 1 ? " passed" : ""}`}
+            >
+              <NutritionSection
+                nutrition={detailedAnalysis.nutrition}
+                servingSize={detailedAnalysis.servingSize}
+                riskFactors={detailedAnalysis.riskFactors}
+                userProfile={userProfile}
+                diseases={diseases}
+              />
+            </div>
+
+            {/* 3. 약물 상호작용 (원래 5번) */}
+            <div
+              className={`result2-stack__card${
+                activeCardIndex === 2 ? " active" : ""
+              }${activeCardIndex > 2 ? " passed" : ""}`}
+            >
+              <DrugInteractionSection
+                interactions={
+                  detailedAnalysis.medicalAnalysis?.drug_food_interactions
+                }
+                medicines={medicines}
+                riskFactors={detailedAnalysis.riskFactors}
+                userProfile={userProfile}
+                diseases={diseases}
+              />
+            </div>
+
+            {/* 4. 섭취 타이밍 가이드 (원래 2번) */}
+            <div
+              className={`result2-stack__card${
+                activeCardIndex === 3 ? " active" : ""
+              }${activeCardIndex > 3 ? " passed" : ""}`}
             >
               <TimingGuideSection
                 nutrition={detailedAnalysis.nutrition}
@@ -1472,10 +1506,11 @@ const Result2 = () => {
               />
             </div>
 
+            {/* 5. 맞춤 권장 섭취량 (원래 3번) */}
             <div
               className={`result2-stack__card${
-                activeCardIndex === 2 ? " active" : ""
-              }${activeCardIndex > 2 ? " passed" : ""}`}
+                activeCardIndex === 4 ? " active" : ""
+              }`}
             >
               <PersonalizedPortionSection
                 nutrition={detailedAnalysis.nutrition}
@@ -1483,36 +1518,6 @@ const Result2 = () => {
                 userProfile={userProfile}
                 diseases={diseases}
                 foodName={foodName}
-              />
-            </div>
-
-            <div
-              className={`result2-stack__card${
-                activeCardIndex === 3 ? " active" : ""
-              }${activeCardIndex > 3 ? " passed" : ""}`}
-            >
-              <NutritionSection
-                nutrition={detailedAnalysis.nutrition}
-                servingSize={detailedAnalysis.servingSize}
-                riskFactors={detailedAnalysis.riskFactors}
-                userProfile={userProfile}
-                diseases={diseases}
-              />
-            </div>
-
-            <div
-              className={`result2-stack__card${
-                activeCardIndex === 4 ? " active" : ""
-              }`}
-            >
-              <DrugInteractionSection
-                interactions={
-                  detailedAnalysis.medicalAnalysis?.drug_food_interactions
-                }
-                medicines={medicines}
-                riskFactors={detailedAnalysis.riskFactors}
-                userProfile={userProfile}
-                diseases={diseases}
               />
             </div>
           </div>
