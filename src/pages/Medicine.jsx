@@ -17,7 +17,7 @@ import MedicineCorrelationSummary from "../components/MedicineCorrelationSummary
 import MedicineInteractionNetwork from "../components/MedicineInteractionNetwork";
 import MedicineTimingOptimizer from "../components/MedicineTimingOptimizer";
 import DosageBasedRiskAnalyzer from "../components/DosageBasedRiskAnalyzer";
-import MedicineDetailPopup from "../components/MedicineDetailPopup";
+// MedicineDetailPopup 제거됨 - 별도 페이지로 이동
 import ImageSourceModal from "../components/ImageSourceModal";
 import MedicineAnalyzedInfo from "../components/MedicineAnalyzedInfo";
 import StreamingPopup from "../components/StreamingPopup";
@@ -71,8 +71,7 @@ const Medicine = () => {
   const [imageAnalysisResult, setImageAnalysisResult] = useState(null);
   const [selectedMedicines, setSelectedMedicines] = useState([]);
   const [showMedicineSelectPopup, setShowMedicineSelectPopup] = useState(false);
-  const [selectedMedicineDetail, setSelectedMedicineDetail] = useState(null);
-  const [showMedicineDetailPopup, setShowMedicineDetailPopup] = useState(false);
+  // selectedMedicineDetail, showMedicineDetailPopup 제거됨 - 별도 페이지로 이동
   const [showImageSourceModal, setShowImageSourceModal] = useState(false);
   // 약 추가 진행 상태 오버레이
   const [isAdding, setIsAdding] = useState(false);
@@ -1165,8 +1164,10 @@ const Medicine = () => {
                       key={med.id}
                       className={`medicine__tag medicine__tag--${medicineType}`}
                       onClick={() => {
-                        setSelectedMedicineDetail(med);
-                        setShowMedicineDetailPopup(true);
+                        // 🆕 팝업 대신 별도 페이지로 이동
+                        navigate("/medicine/detail", {
+                          state: { medicine: med },
+                        });
                       }}
                     >
                       <span className="medicine__tag-icon">
@@ -1194,16 +1195,7 @@ const Medicine = () => {
         </div>
       </div>
 
-      {/* 약품 상세 정보 팝업 */}
-      {showMedicineDetailPopup && (
-        <MedicineDetailPopup
-          medicine={selectedMedicineDetail}
-          onClose={() => {
-            setShowMedicineDetailPopup(false);
-            setSelectedMedicineDetail(null);
-          }}
-        />
-      )}
+      {/* 🆕 약품 상세 정보는 별도 페이지(/medicine/detail)로 이동됨 */}
 
       {/* 이미지 소스 선택 모달 */}
       <ImageSourceModal
