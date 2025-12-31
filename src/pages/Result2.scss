@@ -179,7 +179,7 @@ $card-gap: 20px;
     z-index: 1;
 
     // 각 카드마다 z-index 증가 (나중 카드가 위로)
-    @for $i from 1 through 6 {
+    @for $i from 1 through 5 {
       &:nth-child(#{$i}) {
         z-index: $i;
       }
@@ -505,6 +505,61 @@ $card-gap: 20px;
     font-size: $result2-font-small;
     color: $result2-text-secondary;
   }
+
+  // 🆕 좋은 성분 / 주의 성분 태그
+  &__tags {
+    margin-top: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+  }
+
+  &__tag-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  &__tag-label {
+    font-size: $result2-font-small;
+    font-weight: 600;
+    color: $result2-text-secondary;
+    text-align: center;
+  }
+
+  &__tag-list {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  &__tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: $result2-font-small;
+    font-weight: 600;
+    padding: 8px 14px;
+    border-radius: 20px;
+    transition: transform 0.2s;
+
+    &:hover {
+      transform: scale(1.05);
+    }
+
+    &--good {
+      background: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+      color: #166534;
+      border: 1px solid #86efac;
+    }
+
+    &--caution {
+      background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+      color: #991b1b;
+      border: 1px solid #fecaca;
+    }
+  }
 }
 
 // ==========================================
@@ -578,6 +633,62 @@ $card-gap: 20px;
     color: $result2-text-secondary;
     margin: 0;
     line-height: 1.5;
+  }
+}
+
+// 🆕 약물 관련 위험 성분 표시
+.drug-risks {
+  margin-bottom: 20px;
+  padding: 16px;
+  background: linear-gradient(135deg, #fef2f2 0%, #fee2e2 100%);
+  border-radius: 16px;
+  border: 1px solid #fecaca;
+
+  &__title {
+    font-size: $result2-font-small;
+    font-weight: 600;
+    color: #991b1b;
+    margin: 0 0 12px;
+    text-align: center;
+  }
+
+  &__list {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  &__item {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    padding: 10px 14px;
+    background: rgba(255, 255, 255, 0.8);
+    border-radius: 12px;
+  }
+
+  &__icon {
+    font-size: 24px;
+    flex-shrink: 0;
+  }
+
+  &__content {
+    flex: 1;
+    min-width: 0;
+  }
+
+  &__label {
+    font-size: $result2-font-small;
+    font-weight: 600;
+    color: $result2-accent;
+    display: block;
+  }
+
+  &__warning {
+    font-size: 12px;
+    color: $result2-text-secondary;
+    display: block;
+    margin-top: 2px;
   }
 }
 

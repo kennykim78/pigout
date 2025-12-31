@@ -588,7 +588,7 @@ const PersonalizedPortionSection = ({
   );
 };
 
-// 🆕 3. 영양성분정보 컴포넌트
+// 🆕 4. 영양성분정보 + 성분 분석 통합 컴포넌트
 const NutritionSection = ({
   nutrition,
   servingSize,
@@ -640,52 +640,114 @@ const NutritionSection = ({
     },
   ].filter((item) => item.value !== undefined);
 
-  // 🆕 친근하고 위트있는 영양 분석 코멘트
-  const getNutritionAnalysis = () => {
-    const issues = [];
+  // 🆕 좋은 성분 감지
+  const getGoodComponents = () => {
+    const goods = [];
 
-    if (diseases?.includes("고혈압") && sodium && sodium > 500) {
-      issues.push("나트륨 좀 높아요(고혈압 주의!)");
+    if (protein && protein >= 15) {
+      goods.push({ key: "highProtein", label: "고단백", icon: "💪" });
     }
-    if (diseases?.includes("당뇨") && (carbs > 50 || sugar > 10)) {
-      issues.push("탄수화물 많아요(당뇨 주의!)");
+    if (fiber && fiber >= 5) {
+      goods.push({ key: "highFiber", label: "고식이섬유", icon: "🌾" });
     }
-    if (diseases?.includes("고지혈증") && fat > 15) {
-      issues.push("지방 좀 있어요(고지혈증 주의!)");
+    if (calories && calories <= 200) {
+      goods.push({ key: "lowCalorie", label: "저칼로리", icon: "🪶" });
+    }
+    if (sodium !== undefined && sodium < 300) {
+      goods.push({ key: "lowSodium", label: "저나트륨", icon: "✨" });
+    }
+    if (fat !== undefined && fat < 5) {
+      goods.push({ key: "lowFat", label: "저지방", icon: "🥗" });
     }
 
-    if (riskFactors?.highSodium || (sodium && sodium >= 1000)) {
-      if (!issues.some((i) => i.includes("나트륨"))) issues.push("나트륨 높음");
+    return goods;
+  };
+
+  // 🆕 주의 성분 감지 (영양 기반)
+  const getCautionComponents = () => {
+    const cautions = [];
+
+    if (riskFactors?.highSodium || (sodium && sodium >= 800)) {
+      cautions.push({ key: "highSodium", label: "고나트륨", icon: "🧂" });
     }
     if (riskFactors?.highFat || (fat && fat >= 20)) {
-      if (!issues.some((i) => i.includes("지방"))) issues.push("지방 높음");
+      cautions.push({ key: "highFat", label: "고지방", icon: "🥓" });
+    }
+    if (riskFactors?.highSugar || (sugar && sugar >= 15)) {
+      cautions.push({ key: "highSugar", label: "고당류", icon: "🍬" });
+    }
+    if (riskFactors?.highCholesterol) {
+      cautions.push({
+        key: "highCholesterol",
+        label: "고콜레스테롤",
+        icon: "🥚",
+      });
     }
 
-    if (issues.length === 0) {
-      if (protein && protein > 15) {
-        return `고단백이라 좋아요! 💪 ${
-          userProfile?.age >= 50
-            ? "근육 건강에 딱이에요~"
-            : "운동하시는 분께 추천!"
-        }`;
-      }
-      return `영양 균형 괜찮아요! 😊 맛있게 드세요~`;
-    } else if (issues.length === 1) {
-      return `${issues[0]} 🤔 근데 다른 건 괜찮으니까 적당히 드시면 OK!`;
-    } else {
-      return `${issues.slice(0, 2).join(", ")} ⚠️ 양 조절하면서 드세요~`;
+    return cautions;
+  };
+
+  const goodComponents = getGoodComponents();
+  const cautionComponents = getCautionComponents();
+
+  // 🆕 친근하고 위트있는 영양 분석 코멘트
+  const getNutritionAnalysis = () => {
+    const diseaseText = diseases?.length > 0 ? diseases[0] : "";
+
+    // 질병별 특수 경고
+    const diseaseWarnings = [];
+    if (diseases?.includes("고혈압") && sodium && sodium > 500) {
+      diseaseWarnings.push("나트륨+고혈압");
     }
+    if (diseases?.includes("당뇨") && (carbs > 50 || sugar > 10)) {
+      diseaseWarnings.push("탄수화물+당뇨");
+    }
+    if (diseases?.includes("고지혈증") && fat > 15) {
+      diseaseWarnings.push("지방+고지혈증");
+    }
+
+    if (diseaseWarnings.length > 0) {
+      return `앗, ${diseaseWarnings.join(", ")} 조합이에요! � ${
+        userProfile?.age >= 50
+          ? "건강 생각해서 조금만 드세요~"
+          : "조심하면서 드세요!"
+      }`;
+    }
+
+    if (cautionComponents.length === 0 && goodComponents.length > 0) {
+      return `우와~ ${goodComponents
+        .map((g) => g.label)
+        .join(", ")} 좋은 성분이 가득! 🌟 맛있게 드세요~`;
+    }
+
+    if (cautionComponents.length === 0) {
+      return `주의할 성분 없어요! ✅ 마음 편히 드셔도 됩니다~`;
+    }
+
+    if (cautionComponents.length <= 2 && goodComponents.length > 0) {
+      return `${goodComponents
+        .map((g) => g.label)
+        .join(", ")} 좋지만, ${cautionComponents
+        .map((c) => c.label)
+        .join(", ")}만 주의하세요! 😊`;
+    }
+
+    return `${cautionComponents
+      .map((c) => c.label)
+      .join(", ")} 있어요~ 적당히 드시는 게 좋겠어요! ⚠️`;
   };
 
   return (
     <div className="result2-card result2-card--nutrition">
-      <h2 className="result2-card__title">영양 성분 정보</h2>
+      <h2 className="result2-card__title">🍽️ 영양 성분 분석</h2>
       {servingSize && (
         <p className="nutrition__serving">
           {servingSize.amount}
           {servingSize.unit} 기준
         </p>
       )}
+
+      {/* 영양 성분 수치 그리드 */}
       <div className="nutrition__grid nutrition__grid--2col">
         {nutritionData.map((item) => (
           <div
@@ -705,23 +767,106 @@ const NutritionSection = ({
           </div>
         ))}
       </div>
+
+      {/* 🆕 좋은 성분 / 주의 성분 태그 */}
+      {(goodComponents.length > 0 || cautionComponents.length > 0) && (
+        <div className="nutrition__tags">
+          {goodComponents.length > 0 && (
+            <div className="nutrition__tag-group">
+              <span className="nutrition__tag-label">👍 좋은 점</span>
+              <div className="nutrition__tag-list">
+                {goodComponents.map((item) => (
+                  <span
+                    key={item.key}
+                    className="nutrition__tag nutrition__tag--good"
+                  >
+                    {item.icon} {item.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+          {cautionComponents.length > 0 && (
+            <div className="nutrition__tag-group">
+              <span className="nutrition__tag-label">⚠️ 주의할 점</span>
+              <div className="nutrition__tag-list">
+                {cautionComponents.map((item) => (
+                  <span
+                    key={item.key}
+                    className="nutrition__tag nutrition__tag--caution"
+                  >
+                    {item.icon} {item.label}
+                  </span>
+                ))}
+              </div>
+            </div>
+          )}
+        </div>
+      )}
+
       <p className="result2-card__analysis">{getNutritionAnalysis()}</p>
     </div>
   );
 };
 
-// 🆕 4. 약물 상호작용 현황 컴포넌트
+// 🆕 5. 약물 상호작용 + 약물 관련 위험 성분 통합 컴포넌트
 const DrugInteractionSection = ({
   interactions = [],
   medicines = [],
+  riskFactors = {},
   userProfile = {},
   diseases = [],
 }) => {
-  // 🆕 친근하고 위트있는 분석 코멘트
+  // 약물 관련 위험 성분 (약과 상호작용 가능성 있는 식품 성분)
+  const drugRelatedRisks = {
+    alcohol: {
+      label: "알코올",
+      icon: "�",
+      warning: "대부분의 약물과 상호작용 위험",
+    },
+    caffeine: {
+      label: "카페인",
+      icon: "☕",
+      warning: "심혈관계 약물, 수면제와 상호작용",
+    },
+    grapefruit: {
+      label: "자몽",
+      icon: "🍊",
+      warning: "고혈압약, 스타틴과 상호작용",
+    },
+    citrus: { label: "감귤류", icon: "🍋", warning: "일부 약물 흡수에 영향" },
+    dairy: { label: "유제품", icon: "🥛", warning: "항생제 흡수 방해 가능" },
+    vitaminK: {
+      label: "비타민K",
+      icon: "🥬",
+      warning: "와파린 효과 감소 가능",
+    },
+    tyramine: { label: "티라민", icon: "🧀", warning: "MAO억제제와 상호작용" },
+    highPotassium: {
+      label: "고칼륨",
+      icon: "🍌",
+      warning: "ACE억제제와 함께 주의",
+    },
+  };
+
+  // 음식에 포함된 약물 관련 위험 성분 감지
+  const detectedDrugRisks = Object.entries(riskFactors || {})
+    .filter(([key, value]) => value && drugRelatedRisks[key])
+    .map(([key]) => ({
+      key,
+      ...drugRelatedRisks[key],
+    }));
+
+  // �🆕 친근하고 위트있는 분석 코멘트
   const getInteractionAnalysis = () => {
     const medicineCount = medicines?.length || interactions?.length || 0;
 
     if (!interactions || interactions.length === 0) {
+      if (detectedDrugRisks.length > 0 && medicineCount > 0) {
+        return `${detectedDrugRisks
+          .map((r) => r.label)
+          .join(", ")} 성분이 있어요! 복용 약과 시간 간격을 두세요~ ⏰`;
+      }
       if (medicineCount === 0) {
         return `약 등록이 안 되어 있네요! 복용 중인 약이 있다면 등록해주세요~ 📝`;
       }
@@ -751,10 +896,13 @@ const DrugInteractionSection = ({
     }
   };
 
-  if (!interactions || interactions.length === 0) {
+  const hasAnyInteraction = interactions && interactions.length > 0;
+  const hasDrugRisks = detectedDrugRisks.length > 0;
+
+  if (!hasAnyInteraction && !hasDrugRisks) {
     return (
       <div className="result2-card result2-card--drug">
-        <h2 className="result2-card__title">약물 상호작용 현황</h2>
+        <h2 className="result2-card__title">💊 약물 상호작용</h2>
         <div className="drug-section drug-section--empty">
           <span className="drug-section__icon">✅</span>
           <p className="drug-section__text">
@@ -766,253 +914,81 @@ const DrugInteractionSection = ({
     );
   }
 
-  const dangerDrugs = interactions.filter((d) => d.risk_level === "danger");
-  const cautionDrugs = interactions.filter((d) => d.risk_level === "caution");
-  const safeDrugs = interactions.filter((d) => d.risk_level === "safe");
+  const dangerDrugs =
+    interactions?.filter((d) => d.risk_level === "danger") || [];
+  const cautionDrugs =
+    interactions?.filter((d) => d.risk_level === "caution") || [];
+  const safeDrugs = interactions?.filter((d) => d.risk_level === "safe") || [];
 
   return (
     <div className="result2-card result2-card--drug">
-      <h2 className="result2-card__title">약물 상호작용 현황</h2>
-      <div className="drug-section">
-        {dangerDrugs.map((drug, idx) => (
-          <div key={`danger-${idx}`} className="drug-item drug-item--danger">
-            <div className="drug-item__header">
-              <span className="drug-item__badge">🚨 위험</span>
-              <span className="drug-item__name">{drug.medicine_name}</span>
-            </div>
-            <p className="drug-item__message">
-              {drug.interaction_description ||
-                drug.recommendation ||
-                "섭취를 피해주세요."}
-            </p>
+      <h2 className="result2-card__title">💊 약물 상호작용</h2>
+
+      {/* 🆕 약물 관련 위험 성분 표시 */}
+      {hasDrugRisks && (
+        <div className="drug-risks">
+          <h3 className="drug-risks__title">⚠️ 이 음식에 포함된 주의 성분</h3>
+          <div className="drug-risks__list">
+            {detectedDrugRisks.map((risk) => (
+              <div key={risk.key} className="drug-risks__item">
+                <span className="drug-risks__icon">{risk.icon}</span>
+                <div className="drug-risks__content">
+                  <span className="drug-risks__label">{risk.label}</span>
+                  <span className="drug-risks__warning">{risk.warning}</span>
+                </div>
+              </div>
+            ))}
           </div>
-        ))}
-        {cautionDrugs.map((drug, idx) => (
-          <div key={`caution-${idx}`} className="drug-item drug-item--caution">
-            <div className="drug-item__header">
-              <span className="drug-item__badge">⚠️ 주의</span>
-              <span className="drug-item__name">{drug.medicine_name}</span>
+        </div>
+      )}
+
+      {/* 약물별 상호작용 */}
+      {hasAnyInteraction && (
+        <div className="drug-section">
+          {dangerDrugs.map((drug, idx) => (
+            <div key={`danger-${idx}`} className="drug-item drug-item--danger">
+              <div className="drug-item__header">
+                <span className="drug-item__badge">🚨 위험</span>
+                <span className="drug-item__name">{drug.medicine_name}</span>
+              </div>
+              <p className="drug-item__message">
+                {drug.interaction_description ||
+                  drug.recommendation ||
+                  "섭취를 피해주세요."}
+              </p>
             </div>
-            <p className="drug-item__message">
-              {drug.interaction_description ||
-                drug.recommendation ||
-                "주의해서 섭취하세요."}
-            </p>
-          </div>
-        ))}
-        {safeDrugs.map((drug, idx) => (
-          <div key={`safe-${idx}`} className="drug-item drug-item--safe">
-            <div className="drug-item__header">
-              <span className="drug-item__badge">✅ 안전</span>
-              <span className="drug-item__name">{drug.medicine_name}</span>
+          ))}
+          {cautionDrugs.map((drug, idx) => (
+            <div
+              key={`caution-${idx}`}
+              className="drug-item drug-item--caution"
+            >
+              <div className="drug-item__header">
+                <span className="drug-item__badge">⚠️ 주의</span>
+                <span className="drug-item__name">{drug.medicine_name}</span>
+              </div>
+              <p className="drug-item__message">
+                {drug.interaction_description ||
+                  drug.recommendation ||
+                  "주의해서 섭취하세요."}
+              </p>
             </div>
-            <p className="drug-item__message">
-              {drug.interaction_description || "안전하게 섭취할 수 있습니다."}
-            </p>
-          </div>
-        ))}
-      </div>
+          ))}
+          {safeDrugs.map((drug, idx) => (
+            <div key={`safe-${idx}`} className="drug-item drug-item--safe">
+              <div className="drug-item__header">
+                <span className="drug-item__badge">✅ 안전</span>
+                <span className="drug-item__name">{drug.medicine_name}</span>
+              </div>
+              <p className="drug-item__message">
+                {drug.interaction_description || "안전하게 섭취할 수 있습니다."}
+              </p>
+            </div>
+          ))}
+        </div>
+      )}
+
       <p className="result2-card__analysis">{getInteractionAnalysis()}</p>
-    </div>
-  );
-};
-
-// 🆕 5. 성분 분석 컴포넌트
-const ComponentAnalysisSection = ({
-  riskFactors = {},
-  riskFactorNotes = {},
-  nutrition = {},
-  userProfile = {},
-  diseases = [],
-}) => {
-  const riskLabels = {
-    alcohol: "알코올",
-    highSodium: "고나트륨",
-    highPotassium: "고칼륨",
-    caffeine: "카페인",
-    citrus: "감귤류",
-    grapefruit: "자몽",
-    dairy: "유제품",
-    highFat: "고지방",
-    vitaminK: "비타민K",
-    tyramine: "티라민",
-    highSugar: "고당류",
-    highCholesterol: "콜레스테롤",
-  };
-
-  const riskIcons = {
-    alcohol: "🍺",
-    highSodium: "🧂",
-    highPotassium: "🍌",
-    caffeine: "☕",
-    citrus: "🍊",
-    grapefruit: "🍊",
-    dairy: "🥛",
-    highFat: "🥓",
-    vitaminK: "🥬",
-    tyramine: "🧀",
-    highSugar: "🍬",
-    highCholesterol: "🥚",
-  };
-
-  // 영양 데이터 기반으로 위험 성분 직접 판단
-  const calculateRiskFromNutrition = () => {
-    const risks = { ...riskFactors };
-
-    if (nutrition?.sodium && nutrition.sodium >= 1000) {
-      risks.highSodium = true;
-    } else if (nutrition?.sodium !== undefined && nutrition.sodium < 500) {
-      risks.highSodium = false;
-    }
-
-    if (nutrition?.fat && nutrition.fat >= 20) {
-      risks.highFat = true;
-    }
-
-    if (nutrition?.sugar && nutrition.sugar >= 15) {
-      risks.highSugar = true;
-    }
-
-    return risks;
-  };
-
-  const correctedRiskFactors = calculateRiskFromNutrition();
-
-  const detectedRisks = Object.entries(correctedRiskFactors || {})
-    .filter(([key, value]) => value && riskLabels[key])
-    .map(([key]) => ({
-      key,
-      label: riskLabels[key],
-      icon: riskIcons[key] || "⚠️",
-      note: riskFactorNotes?.[key] || "",
-      type: "risk",
-    }));
-
-  const detectedGoods = [];
-
-  if (nutrition?.protein && nutrition.protein >= 15) {
-    detectedGoods.push({
-      key: "highProtein",
-      label: "고단백",
-      icon: "💪",
-      type: "good",
-    });
-  }
-  if (nutrition?.fiber && nutrition.fiber >= 5) {
-    detectedGoods.push({
-      key: "highFiber",
-      label: "고식이섬유",
-      icon: "🌾",
-      type: "good",
-    });
-  }
-  if (nutrition?.calories && nutrition.calories <= 200) {
-    detectedGoods.push({
-      key: "lowCalorie",
-      label: "저칼로리",
-      icon: "🪶",
-      type: "good",
-    });
-  }
-  if (nutrition?.sodium !== undefined && nutrition.sodium < 300) {
-    detectedGoods.push({
-      key: "lowSodium",
-      label: "저나트륨",
-      icon: "✨",
-      type: "good",
-    });
-  }
-
-  // 🆕 친근하고 위트있는 분석 코멘트
-  const getAnalysisComment = () => {
-    const diseaseText = diseases?.length > 0 ? diseases[0] : "";
-
-    // 질병별 특수 경고
-    const diseaseWarnings = [];
-    if (diseases?.includes("고혈압") && correctedRiskFactors.highSodium) {
-      diseaseWarnings.push("나트륨+고혈압");
-    }
-    if (diseases?.includes("당뇨") && correctedRiskFactors.highSugar) {
-      diseaseWarnings.push("당류+당뇨");
-    }
-    if (diseases?.includes("고지혈증") && correctedRiskFactors.highFat) {
-      diseaseWarnings.push("지방+고지혈증");
-    }
-
-    if (diseaseWarnings.length > 0) {
-      return `앗, ${diseaseWarnings.join(", ")} 조합이에요! 😬 ${
-        userProfile?.age >= 50
-          ? "건강 생각해서 조금만 드세요~"
-          : "조심하면서 드세요!"
-      }`;
-    }
-
-    if (detectedRisks.length === 0 && detectedGoods.length > 0) {
-      return `우와~ ${detectedGoods
-        .map((g) => g.label)
-        .join(", ")} 좋은 성분이 가득! 🌟 맛있게 드세요~`;
-    }
-    if (detectedRisks.length === 0) {
-      return `주의할 성분 없어요! ✅ 마음 편히 드셔도 됩니다~`;
-    }
-    if (detectedRisks.length <= 2 && detectedGoods.length > 0) {
-      return `${detectedGoods
-        .map((g) => g.label)
-        .join(", ")} 좋지만, ${detectedRisks
-        .map((r) => r.label)
-        .join(", ")}만 주의하세요! 😊`;
-    }
-    return `${detectedRisks
-      .map((r) => r.label)
-      .join(", ")} 있어요~ 적당히 드시는 게 좋겠어요! ⚠️`;
-  };
-
-  return (
-    <div className="result2-card result2-card--component">
-      <h2 className="result2-card__title">성분 분석</h2>
-      <div className="component-section">
-        {detectedGoods.length > 0 && (
-          <div className="component-group">
-            <h3 className="component-group__title">👍 좋은 성분</h3>
-            <div className="component-list">
-              {detectedGoods.map((item) => (
-                <div
-                  key={item.key}
-                  className="component-item component-item--good"
-                >
-                  <span className="component-item__icon">{item.icon}</span>
-                  <span className="component-item__label">{item.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        )}
-
-        {detectedRisks.length > 0 ? (
-          <div className="component-group">
-            <h3 className="component-group__title">⚠️ 주의 성분</h3>
-            <div className="component-list">
-              {detectedRisks.map((factor) => (
-                <div
-                  key={factor.key}
-                  className="component-item component-item--risk"
-                >
-                  <span className="component-item__icon">{factor.icon}</span>
-                  <span className="component-item__label">{factor.label}</span>
-                </div>
-              ))}
-            </div>
-          </div>
-        ) : (
-          <div className="component-group">
-            <div className="component-empty">
-              <span className="component-empty__check">✅</span>
-              <span>주의 성분 없음</span>
-            </div>
-          </div>
-        )}
-      </div>
-      <p className="result2-card__analysis">{getAnalysisComment()}</p>
     </div>
   );
 };
@@ -1400,7 +1376,7 @@ const Result2 = () => {
       // 현재 어느 카드가 보이는지 계산
       const currentIndex = Math.min(
         Math.floor(scrollTop / cardHeight),
-        5 // 최대 6개 카드 (인덱스 0-5)
+        4 // 최대 5개 카드 (인덱스 0-4)
       );
       setActiveCardIndex(currentIndex);
     };
@@ -1460,7 +1436,7 @@ const Result2 = () => {
         <div className="result2__content" ref={containerRef}>
           {/* 인디케이터 */}
           <div className="result2-stack__indicator">
-            {activeCardIndex + 1}/6
+            {activeCardIndex + 1}/5
           </div>
 
           {/* 1-5: 카드 스택킹 섹션 */}
@@ -1486,7 +1462,9 @@ const Result2 = () => {
               <TimingGuideSection
                 nutrition={detailedAnalysis.nutrition}
                 riskFactors={detailedAnalysis.riskFactors}
-                interactions={detailedAnalysis.medicalAnalysis?.drug_food_interactions}
+                interactions={
+                  detailedAnalysis.medicalAnalysis?.drug_food_interactions
+                }
                 medicines={medicines}
                 userProfile={userProfile}
                 diseases={diseases}
@@ -1525,27 +1503,14 @@ const Result2 = () => {
             <div
               className={`result2-stack__card${
                 activeCardIndex === 4 ? " active" : ""
-              }${activeCardIndex > 4 ? " passed" : ""}`}
+              }`}
             >
               <DrugInteractionSection
                 interactions={
                   detailedAnalysis.medicalAnalysis?.drug_food_interactions
                 }
                 medicines={medicines}
-                userProfile={userProfile}
-                diseases={diseases}
-              />
-            </div>
-
-            <div
-              className={`result2-stack__card${
-                activeCardIndex === 5 ? " active" : ""
-              }`}
-            >
-              <ComponentAnalysisSection
                 riskFactors={detailedAnalysis.riskFactors}
-                riskFactorNotes={detailedAnalysis.riskFactorNotes}
-                nutrition={detailedAnalysis.nutrition}
                 userProfile={userProfile}
                 diseases={diseases}
               />
