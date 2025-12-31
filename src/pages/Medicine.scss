@@ -780,6 +780,32 @@
     }
   }
 
+  &__reanalyze-btn {
+    width: 100%;
+    margin-top: 12px;
+    padding: 14px;
+    background: $color-white;
+    color: $color-black;
+    border: 2px solid $color-black;
+    border-radius: 12px;
+    font-size: 14px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+
+    &:hover {
+      background: rgba($color-black, 0.05);
+    }
+
+    &:active {
+      transform: scale(0.98);
+    }
+  }
+
   &__view-result-btn {
     width: 100%;
     margin-top: 12px;

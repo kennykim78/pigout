@@ -937,7 +937,20 @@ const Medicine = () => {
               <div className="medicine__analyze-section">
                 <button
                   className="medicine__analyze-all-btn"
-                  onClick={handleAnalyzeAll}
+                  onClick={() => {
+                    if (analysisResult) {
+                      // 🆕 기존 분석 결과가 있으면 바로 새 페이지로 이동
+                      navigate("/medicine/analysis", {
+                        state: {
+                          analysisResult: analysisResult,
+                          medicines: medicines,
+                        },
+                      });
+                    } else {
+                      // 분석 결과가 없으면 새로 분석
+                      handleAnalyzeAll();
+                    }
+                  }}
                   disabled={isAnalyzing}
                 >
                   {isAnalyzing
@@ -946,6 +959,15 @@ const Medicine = () => {
                     ? "🔬 상세분석 다시보기"
                     : "🔬 AI 약물 상호작용 상세 분석"}
                 </button>
+                {/* 🆕 분석 결과가 있을 때 '다시 분석하기' 버튼 추가 */}
+                {analysisResult && !isAnalyzing && (
+                  <button
+                    className="medicine__reanalyze-btn"
+                    onClick={handleAnalyzeAll}
+                  >
+                    🔄 다시 분석하기
+                  </button>
+                )}
                 <p className="medicine__analyze-desc">
                   {analysisResult
                     ? "분석 결과를 다시 확인하거나 업데이트할 수 있습니다"
@@ -980,7 +1002,8 @@ const Medicine = () => {
                 </div>
               )}
 
-              {showAnalysis && analysisResult && (
+              {/* 🆕 분석 결과는 별도 페이지(/medicine/analysis)로 이동됨 - 아래 팝업은 표시되지 않음 */}
+              {false && showAnalysis && analysisResult && (
                 <div className="medicine__analysis-modal">
                   <div className="medicine__analysis-content">
                     <div className="medicine__analysis-header">

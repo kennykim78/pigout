@@ -5,6 +5,7 @@ import SelectOption from "./pages/SelectOption";
 import Main from "./pages/Main";
 import Medicine from "./pages/Medicine";
 import MedicineAdd from "./pages/MedicineAdd";
+import MedicineAnalysis from "./pages/MedicineAnalysis";
 import MyStatus from "./pages/MyStatus";
 import MyRecommendation from "./pages/MyRecommendation";
 import MyPage from "./pages/MyPage";
@@ -37,6 +38,9 @@ function App() {
 
         {/* 내약 추가 페이지 (네비게이션 바 없음) */}
         <Route path="/medicine/add" element={<MedicineAdd />} />
+
+        {/* 🆕 약물 상호작용 분석 결과 페이지 (네비게이션 바 없음) */}
+        <Route path="/medicine/analysis" element={<MedicineAnalysis />} />
 
         {/* 결과 페이지 (네비게이션 바 없음) */}
         <Route path="/result01" element={<Result01 />} />
