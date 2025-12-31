@@ -175,7 +175,7 @@ $card-gap: 20px;
     align-items: center;
     justify-content: center;
     padding: 20px;
-    background: $result2-bg;
+    // background: $result2-bg;
     z-index: 1;
 
     // 각 카드마다 z-index 증가 (나중 카드가 위로)
@@ -208,7 +208,7 @@ $card-gap: 20px;
     // 이미 지나간 카드 스타일 (scaled 상태)
     &.passed {
       .result2-card {
-        transform: scale(0.92);
+        transform: scale(0.8);
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
       }
     }
@@ -229,11 +229,11 @@ $card-gap: 20px;
       left: 0;
       right: 0;
       height: 40px;
-      background: linear-gradient(
-        to bottom,
-        rgba(255, 255, 255, 0.95),
-        rgba(255, 255, 255, 0)
-      );
+      // background: linear-gradient(
+      //   to bottom,
+      //   rgba(255, 255, 255, 0.95),
+      //   rgba(255, 255, 255, 0)
+      // );
       pointer-events: none;
       z-index: 10;
     }
