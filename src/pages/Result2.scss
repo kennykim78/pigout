@@ -730,7 +730,7 @@ $color-safe: #3b82f6;
 }
 
 // ==========================================
-// 8. 종합 분석
+// 8. 종합 분석 (상세 총평)
 // ==========================================
 .final-content {
   padding: 24px;
@@ -744,6 +744,26 @@ $color-safe: #3b82f6;
     line-height: 1.7;
     margin: 0;
     text-align: center;
+  }
+
+  // 🆕 종합 분석 텍스트 (pre 태그)
+  &__text {
+    font-family: $font-family;
+    font-size: $result2-font-small;
+    color: $result2-text-primary;
+    line-height: 1.8;
+    white-space: pre-wrap;
+    word-wrap: break-word;
+    margin: 0;
+    text-align: left;
+    background: transparent;
+
+    // 섹션 구분선
+    hr {
+      border: none;
+      border-top: 1px dashed rgba(0, 0, 0, 0.1);
+      margin: 16px 0;
+    }
   }
 }
 
