@@ -60,7 +60,12 @@ export class RecommendationService {
 
   async getDailyContent(userId: string) {
     const client = this.supabaseService.getClient();
-    const today = new Date().toISOString().split("T")[0];
+
+    // 한국 시간(KST, UTC+9) 기준으로 오늘 날짜 계산
+    const now = new Date();
+    const kstOffset = 9 * 60 * 60 * 1000; // 9시간을 밀리초로
+    const kstDate = new Date(now.getTime() + kstOffset);
+    const today = kstDate.toISOString().split("T")[0];
 
     // 1. 사용자 프로필 조회
     const { data: userProfile } = await client
