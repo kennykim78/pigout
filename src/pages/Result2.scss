@@ -292,8 +292,60 @@ $card-gap: 20px;
 }
 
 // ==========================================
-// 1. 워드클라우드 섹션 (Slido 스타일)
+// 1. 워드클라우드 섹션 (Slido 스타일 + Pulse/Float 애니메이션)
 // ==========================================
+
+// 🆕 Pulse + Float 복합 애니메이션
+@keyframes tagPulseFloat {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.08);
+  }
+  25% {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+  50% {
+    transform: translateY(-6px) scale(1.06);
+    box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+  }
+  75% {
+    transform: translateY(-3px) scale(1.02);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.12);
+  }
+}
+
+// 좋은 태그용 강조 애니메이션 (살짝 더 밝게)
+@keyframes tagPulseFloatGood {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 2px 6px rgba(34, 197, 94, 0.2);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(34, 197, 94, 0.3);
+    filter: brightness(1.05);
+  }
+}
+
+// 나쁜 태그용 강조 애니메이션 (살짝 더 붉게)
+@keyframes tagPulseFloatBad {
+  0%,
+  100% {
+    transform: translateY(0) scale(1);
+    box-shadow: 0 2px 6px rgba(239, 68, 68, 0.2);
+    filter: brightness(1);
+  }
+  50% {
+    transform: translateY(-5px) scale(1.05);
+    box-shadow: 0 6px 16px rgba(239, 68, 68, 0.3);
+    filter: brightness(1.05);
+  }
+}
+
 .wordcloud {
   display: flex;
   flex-wrap: wrap;
@@ -302,6 +354,23 @@ $card-gap: 20px;
   gap: 10px;
   padding: 16px 0;
   min-height: 200px;
+
+  // 🆕 애니메이션 활성화된 버전
+  &--animated {
+    .wordcloud__tag {
+      animation-name: tagPulseFloat;
+      animation-timing-function: ease-in-out;
+      animation-iteration-count: infinite;
+
+      &--good {
+        animation-name: tagPulseFloatGood;
+      }
+
+      &--bad {
+        animation-name: tagPulseFloatBad;
+      }
+    }
+  }
 
   &__tag {
     display: inline-flex;
@@ -312,10 +381,14 @@ $card-gap: 20px;
     white-space: nowrap;
     transition: transform 0.2s, box-shadow 0.2s;
     cursor: default;
+    will-change: transform, box-shadow; // 성능 최적화
 
+    // 호버 시 애니메이션 일시정지 + 강조
     &:hover {
-      transform: scale(1.08);
-      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+      animation-play-state: paused;
+      transform: scale(1.12) !important;
+      box-shadow: 0 6px 20px rgba(0, 0, 0, 0.2) !important;
+      z-index: 10;
     }
 
     &--good {

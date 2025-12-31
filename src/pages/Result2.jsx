@@ -32,7 +32,7 @@ const formatUserContext = (userProfile, diseases) => {
   return parts.join(" ");
 };
 
-// 🆕 1. 장단점 워드클라우드 컴포넌트
+// 🆕 1. 장단점 워드클라우드 컴포넌트 (Pulse + Float 애니메이션)
 const TagCloudSection = ({
   pros = [],
   cons = [],
@@ -57,6 +57,19 @@ const TagCloudSection = ({
   const getSize = (idx, text) => {
     const seed = text.length + idx;
     return sizes[seed % sizes.length];
+  };
+
+  // 🆕 랜덤 애니메이션 딜레이/지속시간 생성
+  const getAnimationStyle = (idx, text) => {
+    // 텍스트 길이와 인덱스를 기반으로 의사 랜덤 생성 (일관성 유지)
+    const seed = text.length * 7 + idx * 13;
+    const delay = (seed % 50) / 10; // 0 ~ 5초 딜레이
+    const duration = 3 + (seed % 30) / 10; // 3 ~ 6초 지속시간
+
+    return {
+      animationDelay: `${delay}s`,
+      animationDuration: `${duration}s`,
+    };
   };
 
   const shuffledTags = [...allTags].sort(
@@ -93,13 +106,14 @@ const TagCloudSection = ({
   return (
     <div className="result2-card result2-card--tagcloud">
       <h2 className="result2-card__title">장단점 분석</h2>
-      <div className="wordcloud">
+      <div className="wordcloud wordcloud--animated">
         {shuffledTags.map((tag, idx) => (
           <div
             key={tag.id}
             className={`wordcloud__tag wordcloud__tag--${
               tag.type
             } wordcloud__tag--${getSize(idx, tag.text)}`}
+            style={getAnimationStyle(idx, tag.text)}
           >
             <span className="wordcloud__icon">
               {tag.type === "good" ? "👍" : "👎"}
