@@ -1013,29 +1013,27 @@ const Result2 = () => {
     }
   }, [location.state]);
 
-  // 스크롤 이벤트 핸들러
+  // 스크롤 이벤트 핸들러 (Sticky Card Stack용)
   useEffect(() => {
     const container = containerRef.current;
     if (!container) return;
 
     const handleScroll = () => {
-      const cards = container.querySelectorAll(".result2-stack__card");
-      const containerTop = container.scrollTop;
-      const viewportHeight = window.innerHeight;
-
-      cards.forEach((card, index) => {
-        const cardTop = card.offsetTop - containerTop;
-        const cardHeight = card.offsetHeight;
-
-        if (cardTop < viewportHeight * 0.3 && cardTop > -cardHeight * 0.5) {
-          setActiveCardIndex(index);
-        }
-      });
+      const scrollTop = container.scrollTop;
+      // 80vh를 픽셀로 변환
+      const cardHeight = window.innerHeight * 0.8;
+      // 현재 어느 카드가 보이는지 계산
+      const currentIndex = Math.min(
+        Math.floor(scrollTop / cardHeight),
+        4 // 최대 5개 카드 (인덱스 0-4)
+      );
+      setActiveCardIndex(currentIndex);
     };
 
     container.addEventListener("scroll", handleScroll);
+    handleScroll(); // 초기 상태 설정
     return () => container.removeEventListener("scroll", handleScroll);
-  }, []);
+  }, [detailedAnalysis]);
 
   return (
     <div className="result2">
@@ -1085,12 +1083,17 @@ const Result2 = () => {
       {/* 메인 컨텐츠 */}
       {!isStreaming && detailedAnalysis && (
         <div className="result2__content" ref={containerRef}>
+          {/* 인디케이터 */}
+          <div className="result2-stack__indicator">
+            {activeCardIndex + 1}/5
+          </div>
+
           {/* 1-5: 카드 스택킹 섹션 */}
           <div className="result2-stack">
             <div
-              className={`result2-stack__card ${
-                activeCardIndex === 0 ? "active" : ""
-              }`}
+              className={`result2-stack__card${
+                activeCardIndex === 0 ? " active" : ""
+              }${activeCardIndex > 0 ? " passed" : ""}`}
             >
               <TagCloudSection
                 pros={detailedAnalysis.pros || detailedAnalysis.goodPoints}
@@ -1101,9 +1104,9 @@ const Result2 = () => {
             </div>
 
             <div
-              className={`result2-stack__card ${
-                activeCardIndex === 1 ? "active" : ""
-              }`}
+              className={`result2-stack__card${
+                activeCardIndex === 1 ? " active" : ""
+              }${activeCardIndex > 1 ? " passed" : ""}`}
             >
               <AnalysisSummarySection
                 goodPoints={detailedAnalysis.goodPoints}
@@ -1115,9 +1118,9 @@ const Result2 = () => {
             </div>
 
             <div
-              className={`result2-stack__card ${
-                activeCardIndex === 2 ? "active" : ""
-              }`}
+              className={`result2-stack__card${
+                activeCardIndex === 2 ? " active" : ""
+              }${activeCardIndex > 2 ? " passed" : ""}`}
             >
               <NutritionSection
                 nutrition={detailedAnalysis.nutrition}
@@ -1129,9 +1132,9 @@ const Result2 = () => {
             </div>
 
             <div
-              className={`result2-stack__card ${
-                activeCardIndex === 3 ? "active" : ""
-              }`}
+              className={`result2-stack__card${
+                activeCardIndex === 3 ? " active" : ""
+              }${activeCardIndex > 3 ? " passed" : ""}`}
             >
               <DrugInteractionSection
                 interactions={
@@ -1144,8 +1147,8 @@ const Result2 = () => {
             </div>
 
             <div
-              className={`result2-stack__card ${
-                activeCardIndex === 4 ? "active" : ""
+              className={`result2-stack__card${
+                activeCardIndex === 4 ? " active" : ""
               }`}
             >
               <ComponentAnalysisSection

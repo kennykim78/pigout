@@ -118,7 +118,6 @@ $color-safe: #3b82f6;
     height: calc(100vh - 80px);
     overflow-y: auto;
     scroll-behavior: smooth;
-    scroll-snap-type: y proximity;
 
     // 스크롤바 스타일링
     &::-webkit-scrollbar {
@@ -137,7 +136,6 @@ $color-safe: #3b82f6;
     display: flex;
     flex-direction: column;
     gap: 24px;
-    scroll-snap-align: none;
   }
 
   // 면책 조항
@@ -158,57 +156,106 @@ $color-safe: #3b82f6;
 }
 
 // ==========================================
-// 카드 스택킹 구조
+// 카드 스택킹 구조 (Sticky Card Stack)
+// 참고: 포트폴리오 진단 앱 스타일
 // ==========================================
+$card-height: 80vh;
+$card-gap: 20px;
+
 .result2-stack {
   position: relative;
+  // 각 카드가 80vh + gap만큼 공간 확보
+  // 5개 카드 기준
 
   &__card {
-    min-height: 100vh;
-    scroll-snap-align: start;
-    scroll-snap-stop: normal;
-    padding: 20px;
+    position: sticky;
+    top: 0;
+    height: $card-height;
     display: flex;
     align-items: center;
     justify-content: center;
-    position: relative;
+    padding: 20px;
+    background: $result2-bg;
+    z-index: 1;
 
-    // 겹쳐서 올라오는 효과
+    // 각 카드마다 z-index 증가 (나중 카드가 위로)
+    @for $i from 1 through 5 {
+      &:nth-child(#{$i}) {
+        z-index: $i;
+      }
+    }
+
+    // 카드 내부 컨텐츠
+    .result2-card {
+      width: 100%;
+      max-width: 440px;
+      max-height: calc(#{$card-height} - 40px);
+      overflow-y: auto;
+      transform: scale(1);
+      transition: transform 0.4s ease, box-shadow 0.4s ease;
+      box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+
+      // 스크롤바 숨김 (내부 스크롤)
+      &::-webkit-scrollbar {
+        width: 3px;
+      }
+      &::-webkit-scrollbar-thumb {
+        background: rgba(0, 0, 0, 0.15);
+        border-radius: 2px;
+      }
+    }
+
+    // 이미 지나간 카드 스타일 (scaled 상태)
+    &.passed {
+      .result2-card {
+        transform: scale(0.92);
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+      }
+    }
+
+    // 현재 활성 카드
+    &.active {
+      .result2-card {
+        transform: scale(1);
+        box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+      }
+    }
+
+    // 카드 상단 그라데이션 오버레이 (덮이는 효과)
     &::before {
       content: "";
       position: absolute;
       top: 0;
       left: 0;
       right: 0;
-      height: 60px;
+      height: 40px;
       background: linear-gradient(
         to bottom,
-        rgba(255, 255, 255, 1),
+        rgba(255, 255, 255, 0.95),
         rgba(255, 255, 255, 0)
       );
       pointer-events: none;
-      z-index: 1;
+      z-index: 10;
     }
 
-    &.active {
-      .result2-card {
-        transform: translateY(0) scale(1);
-        opacity: 1;
-        box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
-      }
+    // 첫 번째 카드는 그라데이션 불필요
+    &:first-child::before {
+      display: none;
     }
+  }
 
-    // 비활성 카드 스타일
-    .result2-card {
-      transform: translateY(20px) scale(0.98);
-      opacity: 0.9;
-      transition: all 0.4s ease-out;
-    }
-
-    // 마지막 슬라이드에서 scroll-snap 해제
-    &:last-child {
-      scroll-snap-align: none;
-    }
+  // 카드 번호 인디케이터
+  &__indicator {
+    position: fixed;
+    top: 100px;
+    right: 20px;
+    background: rgba(0, 0, 0, 0.8);
+    color: #fff;
+    padding: 8px 16px;
+    border-radius: 20px;
+    font-size: 14px;
+    font-weight: 600;
+    z-index: 100;
   }
 }
 
