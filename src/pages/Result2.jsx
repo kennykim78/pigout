@@ -78,27 +78,19 @@ const TagCloudSection = ({
   );
 
   // 🆕 친근하고 위트있는 분석 코멘트
+  // 🆕 하이브리드: AI 멘트 + 룰베이스 보완 (간결화)
   const getAnalysisComment = () => {
+    // 1-2줄로 간결하게 축약
     const goodCount = (pros || []).length;
     const badCount = (cons || []).length;
     const diseaseText = diseases?.length > 0 ? diseases[0] : "";
-    const ageNote = userProfile?.age >= 50 ? ", 건강 챙기세요! 💪" : " 😊";
-
-    if (goodCount === 0 && badCount === 0) return "";
 
     if (goodCount > badCount * 2) {
-      return `와~ 장점이 ${goodCount}개나! ${
-        diseaseText ? diseaseText + " 있으셔도 " : ""
-      }괜찮은 음식이네요${ageNote}`;
+      return `장점이 ${goodCount}개나 되네요! ${diseaseText ? "환자분께도 " : ""}좋은 선택이 될 수 있어요.`;
     } else if (badCount > goodCount) {
-      return `음... 주의할 점이 좀 있어요. ${
-        diseaseText ? diseaseText + " 환자분은 " : ""
-      }조심해서 드세요! ⚠️`;
-    } else {
-      return `장단점이 반반이에요. ${
-        diseaseText ? diseaseText + " 고려하시면서 " : ""
-      }적당히 즐기세요~${ageNote}`;
+      return `주의할 점이 더 많아요. ${diseaseText ? "특히 " : ""}섭취에 주의가 필요합니다.`;
     }
+    return "장단점이 분명하네요. 적절히 조절해서 드세요.";
   };
 
   if (allTags.length === 0) return null;
@@ -249,28 +241,23 @@ const TimingGuideSection = ({
     return guides.length > 0 ? guides : null;
   };
 
-  // 분석 코멘트
+  // 🆕 하이브리드 코멘트
   const getTimingComment = () => {
-    const timings = getOptimalTiming();
-    const recommended = timings.filter((t) => t.recommended);
-    const notRecommended = timings.filter((t) => !t.recommended);
     const medicineGuides = getMedicineTimingGuide();
-
     if (medicineGuides && medicineGuides.some((g) => g.type === "danger")) {
-      return `⚠️ 복용 중인 약과 상호작용이 있어요! 시간 조절보다 섭취 여부를 먼저 확인하세요.`;
+      return "⚠️ 약물 상호작용 주의! 섭취 전 전문가와 상의하세요.";
     }
+
+    const timings = getOptimalTiming();
+    const notRecommended = timings.filter((t) => !t.recommended);
+    const recommended = timings.filter((t) => t.recommended);
 
     if (notRecommended.length > 0) {
-      const avoid = notRecommended[0].time;
-      const best = recommended[0]?.time || "적절한 시간";
-      return `${best}에 드시는 게 좋고, ${avoid}은 피하시는 게 좋겠어요! 🕐`;
+      const best = recommended[0]?.time || "다른 시간";
+      return `${best} 섭취를 권장합니다.`;
     }
 
-    if (userProfile?.age >= 60) {
-      return `어르신은 소화를 위해 천천히, 충분한 시간을 두고 드시는 게 좋아요~ 💝`;
-    }
-
-    return `시간 제한 없이 편하게 드셔도 괜찮아요! 😊`;
+    return "특별한 시간 제한 없이 드셔도 됩니다.";
   };
 
   const timings = getOptimalTiming();
@@ -496,35 +483,17 @@ const PersonalizedPortionSection = ({
     return percentages;
   };
 
-  // 분석 코멘트
+  // 🆕 하이브리드 코멘트
   const getPortionComment = () => {
     const portion = calculateRecommendedPortion();
-    const freq = getRecommendedFrequency();
-    const genderText =
-      userProfile?.gender === "male"
-        ? "남성"
-        : userProfile?.gender === "female"
-        ? "여성"
-        : "";
-    const ageText = userProfile?.age ? `${userProfile.age}세` : "";
 
     if (portion.multiplier < 0.7) {
-      return `${ageText} ${genderText}분의 건강 상태를 고려해 일반 섭취량의 ${Math.round(
-        portion.multiplier * 100
-      )}%만 드시길 권해요! 🙏`;
+      return `건강 상태를 고려해 ${Math.round(portion.multiplier * 100)}% 정도로 줄여 드시는 게 좋습니다.`;
     }
-
     if (portion.reasons.length > 0) {
-      return `${portion.reasons.join(", ")}를 위해 ${portion.amount}${
-        portion.unit
-      }이 적당해요~ 👍`;
+      return `${portion.reasons.join(", ")} 관리를 위해 권장량을 지켜주세요.`;
     }
-
-    if (freq.frequency === "매일 OK") {
-      return `${ageText} ${genderText}분께 적합한 음식이에요! 부담 없이 즐기세요~ 😊`;
-    }
-
-    return `권장량을 지키면서 ${freq.frequency} 정도로 즐기시면 좋겠어요! 💪`;
+    return `적당량 맛있게 즐기세요.`;
   };
 
   const portion = calculateRecommendedPortion();
@@ -704,52 +673,18 @@ const NutritionSection = ({
   const goodComponents = getGoodComponents();
   const cautionComponents = getCautionComponents();
 
-  // 🆕 친근하고 위트있는 영양 분석 코멘트
-  const getNutritionAnalysis = () => {
-    const diseaseText = diseases?.length > 0 ? diseases[0] : "";
-
-    // 질병별 특수 경고
-    const diseaseWarnings = [];
-    if (diseases?.includes("고혈압") && sodium && sodium > 500) {
-      diseaseWarnings.push("나트륨+고혈압");
-    }
-    if (diseases?.includes("당뇨") && (carbs > 50 || sugar > 10)) {
-      diseaseWarnings.push("탄수화물+당뇨");
-    }
-    if (diseases?.includes("고지혈증") && fat > 15) {
-      diseaseWarnings.push("지방+고지혈증");
-    }
-
-    if (diseaseWarnings.length > 0) {
-      return `앗, ${diseaseWarnings.join(", ")} 조합이에요! � ${
-        userProfile?.age >= 50
-          ? "건강 생각해서 조금만 드세요~"
-          : "조심하면서 드세요!"
-      }`;
-    }
-
-    if (cautionComponents.length === 0 && goodComponents.length > 0) {
-      return `우와~ ${goodComponents
-        .map((g) => g.label)
-        .join(", ")} 좋은 성분이 가득! 🌟 맛있게 드세요~`;
-    }
-
-    if (cautionComponents.length === 0) {
-      return `주의할 성분 없어요! ✅ 마음 편히 드셔도 됩니다~`;
-    }
-
-    if (cautionComponents.length <= 2 && goodComponents.length > 0) {
-      return `${goodComponents
-        .map((g) => g.label)
-        .join(", ")} 좋지만, ${cautionComponents
-        .map((c) => c.label)
-        .join(", ")}만 주의하세요! 😊`;
-    }
-
+  if (diseaseWarnings.length > 0) {
+    return `⚠️ ${diseaseWarnings.join(", ")} 주의가 필요합니다.`;
+  }
+  if (cautionComponents.length > 0) {
     return `${cautionComponents
       .map((c) => c.label)
-      .join(", ")} 있어요~ 적당히 드시는 게 좋겠어요! ⚠️`;
-  };
+      .join(", ")} 함량이 높으니 주의하세요.`;
+  }
+  if (goodComponents.length > 0) {
+    return "좋은 영양 성분이 풍부하네요!";
+  }
+  return "영양 성분을 참고하여 섭취하세요.";
 
   return (
     <div className="result2-card result2-card--nutrition">
@@ -871,20 +806,13 @@ const DrugInteractionSection = ({
       ...drugRelatedRisks[key],
     }));
 
-  // �🆕 친근하고 위트있는 분석 코멘트
+  // 🆕 하이브리드 코멘트: 데이터 기반 팩트 위주 + 간결함
   const getInteractionAnalysis = () => {
-    const medicineCount = medicines?.length || interactions?.length || 0;
-
     if (!interactions || interactions.length === 0) {
-      if (detectedDrugRisks.length > 0 && medicineCount > 0) {
-        return `${detectedDrugRisks
-          .map((r) => r.label)
-          .join(", ")} 성분이 있어요! 복용 약과 시간 간격을 두세요~ ⏰`;
+      if (detectedDrugRisks.length > 0) {
+        return "약물 상호작용 위험 성분이 있습니다. 복용 약과 간격을 두세요.";
       }
-      if (medicineCount === 0) {
-        return `약 등록이 안 되어 있네요! 복용 중인 약이 있다면 등록해주세요~ 📝`;
-      }
-      return `${medicineCount}개 약 확인했는데, 이 음식이랑 문제없어요! 안심하고 드세요~ ✅`;
+      return "발견된 약물 상호작용 위험이 없습니다. (등록된 약 기준)";
     }
 
     const dangerCount = interactions.filter(
@@ -893,21 +821,13 @@ const DrugInteractionSection = ({
     const cautionCount = interactions.filter(
       (d) => d.risk_level === "caution"
     ).length;
-    const safeCount = interactions.filter(
-      (d) => d.risk_level === "safe"
-    ).length;
 
     if (dangerCount > 0) {
-      return `앗! 위험한 조합이 ${dangerCount}개 있어요! 🚨 꼭 의사/약사 선생님께 확인하세요!`;
+      return `🚨 위험한 상호작용이 ${dangerCount}건 있습니다. 섭취를 자제하세요!`;
     } else if (cautionCount > 0) {
-      return `${cautionCount}개 약은 좀 조심해야 해요~ ${
-        userProfile?.age >= 60
-          ? "어르신은 특히 시간/양 조절하세요!"
-          : "시간 간격 두고 드세요!"
-      } ⚠️`;
-    } else {
-      return `${safeCount}개 약 모두 OK! 맘 편히 드셔도 돼요~ 😊`;
+      return `⚠️ 주의가 필요한 상호작용이 ${cautionCount}건 있습니다. 시간 간격을 두세요.`;
     }
+    return "약물 상호작용 문제 없이 드실 수 있습니다.";
   };
 
   const hasAnyInteraction = interactions && interactions.length > 0;
@@ -1092,128 +1012,35 @@ const FinalAnalysisSection = ({
   medicines = [],
   detailedAnalysis = {},
 }) => {
-  // 🆕 최종 총평만 생성 (요약 부분 제거)
+  // 🆕 하이브리드: AI 멘트 우선 + 중요 안전 경고 덧붙이기
   const generateFinalAdvice = () => {
-    const genderKo =
-      userProfile?.gender === "male"
-        ? "남성"
-        : userProfile?.gender === "female"
-        ? "여성"
-        : "";
+    // 1. AI 생성 멘트 (최우선) -- 1~2줄로 짧게 축약됨을 가정
+    let mainAdvice = expertAdvice || summary || "전반적으로 무난한 음식입니다.";
+
+    // 2. 룰베이스: 치명적인 위험 요소만 짧고 굵게 추가 (안전 장치)
+    const criticalWarnings = [];
     const interactions =
       detailedAnalysis?.medicalAnalysis?.drug_food_interactions || [];
-    const riskFactors = detailedAnalysis?.riskFactors || {};
-    const nutrition = detailedAnalysis?.nutrition || {};
-
-    const parts = [];
-
-    // 1. 질병별 맞춤 권고
-    if (diseases?.length > 0) {
-      const diseaseAdvices = [];
-
-      if (diseases.includes("고혈압")) {
-        if (
-          riskFactors.highSodium ||
-          (nutrition?.sodium && nutrition.sodium > 500)
-        ) {
-          diseaseAdvices.push(
-            "고혈압이 있으시니 나트륨 함량이 좀 걱정돼요. 국물은 남기시는 게 좋겠어요"
-          );
-        } else {
-          diseaseAdvices.push("고혈압 환자분께 나트륨 면에서는 괜찮아 보여요");
-        }
-      }
-
-      if (diseases.includes("당뇨")) {
-        if (nutrition?.carbs > 50 || nutrition?.sugar > 10) {
-          diseaseAdvices.push(
-            "당뇨가 있으시면 탄수화물/당류가 좀 많아서 양 조절이 필요해요"
-          );
-        } else {
-          diseaseAdvices.push("당뇨 환자분께 비교적 안전한 편이에요");
-        }
-      }
-
-      if (diseases.includes("고지혈증")) {
-        if (riskFactors.highFat || (nutrition?.fat && nutrition.fat > 15)) {
-          diseaseAdvices.push(
-            "고지혈증이 있으시면 지방 함량이 조금 높은 편이에요"
-          );
-        }
-      }
-
-      if (diseases.includes("신장질환")) {
-        if (riskFactors.highPotassium) {
-          diseaseAdvices.push("신장질환이 있으시면 칼륨 함량을 주의하세요");
-        }
-      }
-
-      if (diseaseAdvices.length > 0) {
-        parts.push(diseaseAdvices.join(". ") + ".");
-      }
-    }
-
-    // 2. 나이별 권고
-    if (userProfile?.age >= 65) {
-      parts.push(
-        `\n\n${userProfile.age}세 어르신이시니까, 소화도 생각해서 천천히 소량씩 드시는 게 좋겠어요~ 💝`
-      );
-    } else if (userProfile?.age >= 50) {
-      parts.push(
-        `\n\n${userProfile.age}세 중년의 건강을 위해, 균형 잡힌 식사와 함께 드시면 더 좋아요! 🥗`
-      );
-    }
-
-    // 3. 약물 관련 최종 권고
     const dangerDrugs = interactions.filter((d) => d.risk_level === "danger");
-    const cautionDrugs = interactions.filter((d) => d.risk_level === "caution");
 
+    // 약물 충돌 경고
     if (dangerDrugs.length > 0) {
-      parts.push(
-        `\n\n⚠️ 중요! ${dangerDrugs
-          .map((d) => d.medicine_name)
-          .join(
-            ", "
-          )}을(를) 드시고 계시니까 이 음식은 조심하셔야 해요. 꼭 의사/약사 선생님과 상담하세요!`
+      criticalWarnings.push(
+        `🚨 [경고] ${dangerDrugs[0].medicine_name} 등 복용 약과 충돌 위험!`
       );
-    } else if (cautionDrugs.length > 0) {
-      parts.push(
-        `\n\n💊 ${cautionDrugs
-          .map((d) => d.medicine_name)
-          .join(", ")} 약과는 시간 간격을 두고 드시는 게 좋겠어요~`
-      );
-    }
-
-    // 4. 기본 권고 (expertAdvice 활용 또는 기본 메시지)
-    if (parts.length === 0) {
-      if (expertAdvice) {
-        parts.push(expertAdvice);
-      } else if (summary) {
-        parts.push(summary);
-      } else {
-        parts.push(
-          `${foodName}은(는) 전반적으로 괜찮은 음식이에요! 😊 적당량 맛있게 드세요~`
-        );
-      }
     } else if (
-      expertAdvice &&
-      !parts.some((p) => p.includes(expertAdvice.substring(0, 20)))
+      diseases?.includes("당뇨") &&
+      detailedAnalysis?.nutrition?.sugar > 10
     ) {
-      parts.push(`\n\n${expertAdvice}`);
+      // 질병 관련 핵심 경고 예시
+      criticalWarnings.push("⚠️ 당뇨 관리: 당류 주의");
     }
 
-    // 5. 마무리 멘트
-    if (diseases?.length > 0 || medicines?.length > 0) {
-      parts.push(
-        `\n\n${
-          userProfile?.age >= 50
-            ? "건강하게 오래오래 맛있는 거 드세요! 화이팅! 💪"
-            : "맛있게 드시고, 건강 챙기세요~! 😊"
-        }`
-      );
+    if (criticalWarnings.length > 0) {
+      return `${mainAdvice}\n\n${criticalWarnings.join("\n")}`;
     }
 
-    return parts.join("");
+    return mainAdvice;
   };
 
   const finalContent = generateFinalAdvice();
@@ -1240,7 +1067,7 @@ const Result2 = () => {
   // 🆕 사용자 프로필 상태
   const [userProfile, setUserProfile] = useState({});
   const [diseases, setDiseases] = useState([]);
-  const [medicines, setMedicines] = useState([]);
+  // const [medicines, setMedicines] = useState([]); // 제거 최적화
 
   // 스트리밍 관련 상태
   const [isStreaming, setIsStreaming] = useState(false);
@@ -1265,15 +1092,10 @@ const Result2 = () => {
       setDiseases(JSON.parse(savedDiseases));
     }
 
-    getMyMedicines(true)
-      .then((res) => {
-        if (res?.data) {
-          setMedicines(res.data.map((m) => m.name || m.item_name));
-        }
-      })
-      .catch((err) => {
-        console.log("약물 정보 로드 실패:", err);
-      });
+    // 🆕 최적화: getMyMedicines 호출 제거
+    // 약물 개수나 리스트가 필요하다면 API 응답(detailedAnalysis)에
+    // userMedicineCount 등을 포함시키는 것이 더 효율적입니다.
+    // 현재는 상호작용 결과(interactions)에 의존합니다.
   }, []);
 
   // 스트리밍 분석 시작 함수
@@ -1494,7 +1316,7 @@ const Result2 = () => {
                 interactions={
                   detailedAnalysis.medicalAnalysis?.drug_food_interactions
                 }
-                medicines={medicines}
+                // medicines={medicines} // 제거
                 riskFactors={detailedAnalysis.riskFactors}
                 userProfile={userProfile}
                 diseases={diseases}
@@ -1513,7 +1335,7 @@ const Result2 = () => {
                 interactions={
                   detailedAnalysis.medicalAnalysis?.drug_food_interactions
                 }
-                medicines={medicines}
+                // medicines={medicines} // 제거
                 userProfile={userProfile}
                 diseases={diseases}
                 foodName={foodName}
@@ -1548,7 +1370,7 @@ const Result2 = () => {
               foodName={foodName}
               userProfile={userProfile}
               diseases={diseases}
-              medicines={medicines}
+              // medicines={medicines} // 제거
               detailedAnalysis={detailedAnalysis}
             />
 
