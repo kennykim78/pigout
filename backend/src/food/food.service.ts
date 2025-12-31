@@ -997,22 +997,14 @@ export class FoodService {
 
       const score = aiAnalysis.suitabilityScore || 60;
 
-      // 간결한 분석 텍스트 생성 (각 항목 1줄씩)
-      const parts = [aiAnalysis.summary || `${normalizedFoodName} 분석 결과`];
-      if (aiAnalysis.pros) parts.push(`✅ ${aiAnalysis.pros}`);
-      if (aiAnalysis.cons) parts.push(`⚠️ ${aiAnalysis.cons}`);
-      if (aiAnalysis.warnings) parts.push(`🚨 ${aiAnalysis.warnings}`);
-      if (aiAnalysis.expertAdvice) parts.push(`💊 ${aiAnalysis.expertAdvice}`);
-
-      const analysis = parts.join("\n");
+      // 🆕 위트있는 2-3줄 요약만 사용 (장점/단점 나열 제거)
+      const analysis =
+        aiAnalysis.briefSummary ||
+        `${normalizedFoodName}은(는) 적당량 드시면 괜찮아요! 😊`;
 
       // 경량 결과 구성 (공공데이터 출처 없음)
       const lightweightDetails = {
-        pros: aiAnalysis.pros || "",
-        cons: aiAnalysis.cons || "",
-        summary: aiAnalysis.summary || analysis,
-        warnings: aiAnalysis.warnings || "",
-        expertAdvice: aiAnalysis.expertAdvice || "",
+        briefSummary: aiAnalysis.briefSummary || analysis,
         // 공공데이터 미사용 표시
         dataSources: ["AI 전문가 분석 (Gemini)"],
         mode: "quick-ai",

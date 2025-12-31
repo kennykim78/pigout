@@ -600,7 +600,7 @@ JSON 형식으로만 응답:
 
   /**
    * 공공데이터 없이 순수 AI 지식만으로 빠른 분석 수행
-   * Result01용 - 간략한 정보만 제공 (각 항목 1줄씩)
+   * Result01용 - 위트있는 2-3줄 요약
    * 🆕 enhancedMedicineInfo 추가: 토큰 절약을 위한 미리 생성된 약 정보
    */
   async quickAIAnalysis(
@@ -623,11 +623,7 @@ JSON 형식으로만 응답:
     userProfile?: { age?: number; gender?: string }
   ): Promise<{
     suitabilityScore: number;
-    pros: string;
-    cons: string;
-    summary: string;
-    warnings: string;
-    expertAdvice: string;
+    briefSummary: string;
   }> {
     const maxRetries = 2;
     let lastError: any;
@@ -687,8 +683,7 @@ JSON 형식으로만 응답:
           patientInfo = `\n환자 정보: ${userProfile.age}세, ${genderKo} (${ageGroup})`;
         }
 
-        const prompt = `당신은 Pigout AI입니다. 임상 약학, 영양학, 공공데이터를 종합하여 분석합니다.
-빠르고 간결하게 분석해주세요.${patientInfo}
+        const prompt = `당신은 Pigout AI입니다. 친근한 의사 친구처럼 음식 분석을 해주세요.${patientInfo}
 
 【환자 정보】
 - 음식: ${foodName}
@@ -696,26 +691,32 @@ JSON 형식으로만 응답:
 - 복용 약: ${medicineInfo}
 
 【요청】
-각 항목을 정확히 1줄(50자 이내)로 작성하세요. 길게 쓰지 마세요.
+**briefSummary**에 집중하세요! 장점/단점을 나열하지 말고, 친근하고 위트있는 말투로 2-3줄 요약문을 작성하세요.
+- 마치 친한 의사 친구가 한마디 해주는 것처럼
+- 환자의 질병과 약을 고려한 실용적인 조언 포함
+- 이모지 1-2개 자연스럽게 사용 가능
+- 80-120자 정도
 
 JSON 형식:
 {
   "suitabilityScore": 0-100 정수,
-  "pros": "장점 1줄 (50자 이내)",
-  "cons": "주의사항 1줄 (50자 이내)",
-  "summary": "한줄 요약 (50자 이내)",
-  "warnings": "경고 1줄 (50자 이내, 없으면 빈 문자열)",
-  "expertAdvice": "전문가 조언 1줄 (50자 이내)"
+  "briefSummary": "위트있고 친근한 2-3줄 요약 (80-120자)"
 }
 
 예시:
 {
   "suitabilityScore": 75,
-  "pros": "단백질이 풍부하여 근육 유지에 도움됩니다",
-  "cons": "나트륨이 높아 혈압 관리가 필요합니다",
-  "summary": "적당량 섭취 시 건강에 좋은 음식입니다",
-  "warnings": "고혈압 환자는 국물 섭취를 줄이세요",
-  "expertAdvice": "채소와 함께 드시면 더욱 균형잡힌 식사가 됩니다"
+  "briefSummary": "고혈압이시라면 국물은 살짝 남기시는 게 좋겠어요. 그래도 단백질 보충엔 딱이죠! 건더기 위주로 드시면 완벽해요 👍"
+}
+
+{
+  "suitabilityScore": 85,
+  "briefSummary": "당뇨 환자분께 현미밥은 정말 좋은 선택이에요! 식이섬유가 혈당 상승을 늦춰주거든요. 다만 양 조절은 필수입니다 😊"
+}
+
+{
+  "suitabilityScore": 45,
+  "briefSummary": "바나나는 맛있지만 신장질환이 있으시면 칼륨이 좀 걱정돼요. 반 개 정도만 드시거나, 사과로 대체하시는 건 어떨까요? 🍎"
 }`;
 
         let rawText: string;
@@ -756,16 +757,10 @@ JSON 형식:
 
     // 실패 시 기본값
     console.warn("quickAIAnalysis 실패, 기본값 반환");
+    const diseaseNote = diseases.length > 0 ? `${diseases[0]}이 있으시니 ` : "";
     return {
       suitabilityScore: 60,
-      pros: `${foodName}은(는) 적절히 섭취하면 영양을 공급합니다`,
-      cons: "과다 섭취는 피하시는 것이 좋습니다",
-      summary: `${foodName}은(는) 적당량 섭취를 권장합니다`,
-      warnings:
-        diseases.length > 0
-          ? `${diseases[0]} 환자는 섭취량 조절이 필요합니다`
-          : "",
-      expertAdvice: "균형 잡힌 식단의 일부로 섭취하세요",
+      briefSummary: `${foodName}은(는) ${diseaseNote}적당량 드시면 괜찮아요! 균형 잡힌 식단과 함께 하시면 더 좋습니다 😊`,
     };
   }
 
