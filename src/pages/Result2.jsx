@@ -1224,7 +1224,8 @@ const Result2 = () => {
   const abortRef = useRef(null);
 
   // 현재 활성 카드 인덱스
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  // 현재 활성 카드 인덱스
+  const [activeCardIndex, setActiveCardIndex] = useState(-1);
   const containerRef = useRef(null);
 
   // 🆕 사용자 정보 로드
@@ -1470,14 +1471,22 @@ const Result2 = () => {
 
     const handleScroll = () => {
       const scrollTop = container.scrollTop;
-      // 80vh를 픽셀로 변환
-      const cardHeight = window.innerHeight * 0.8;
-      // 현재 어느 카드가 보이는지 계산
-      const currentIndex = Math.min(
-        Math.floor(scrollTop / cardHeight),
-        4 // 최대 5개 카드 (인덱스 0-4)
+      const viewportHeight = container.clientHeight; // 100vh
+
+      // 인트로 섹션 체크
+      if (scrollTop < viewportHeight * 0.5) {
+        setActiveCardIndex(-1);
+        return;
+      }
+
+      // 카드 섹션 인덱스 계산
+      // 인트로(100vh) 지난 후부터 카드 시작
+      const relativeScroll = scrollTop - viewportHeight;
+      const currentIndex = Math.floor(
+        (relativeScroll + viewportHeight * 0.5) / viewportHeight
       );
-      setActiveCardIndex(currentIndex);
+
+      setActiveCardIndex(Math.max(0, Math.min(currentIndex, 4)));
     };
 
     container.addEventListener("scroll", handleScroll);
@@ -1551,8 +1560,45 @@ const Result2 = () => {
       {/* 메인 컨텐츠 */}
       {!isStreaming && detailedAnalysis && (
         <div className="result2__content" ref={containerRef}>
-          {/* 인디케이터 */}
-          <div className="result2-stack__indicator">
+          {/* 인트로 섹션 */}
+          <div className="result2-intro">
+            <div className="result2-intro__circle-wrapper">
+              {mainImage ? (
+                <img
+                  src={mainImage}
+                  alt={foodName}
+                  className="result2-intro__image"
+                />
+              ) : (
+                <span style={{ fontSize: "60px" }}>🍽️</span>
+              )}
+              <h1 className="result2-intro__food-name">{foodName}</h1>
+            </div>
+
+            <p className="result2-intro__text">
+              <span className="highlight">분석을 꼼꼼하게</span>
+              <br />
+              하나씩 확인해볼까요?
+            </p>
+
+            <div className="result2-intro__line"></div>
+
+            <div className="result2-intro__scroll-down">
+              <span>Scroll Down</span>
+              <span className="material-symbols-rounded">
+                keyboard_double_arrow_down
+              </span>
+            </div>
+          </div>
+
+          {/* 인디케이터 (인트로 아닐 때만 표시) */}
+          <div
+            className="result2-stack__indicator"
+            style={{
+              opacity: activeCardIndex >= 0 ? 1 : 0,
+              transition: "opacity 0.3s",
+            }}
+          >
             {Array.from({ length: 5 }).map((_, idx) => (
               <span
                 key={idx}
@@ -1565,7 +1611,7 @@ const Result2 = () => {
           <div className="result2-stack">
             {/* 1. 장단점 워드클라우드 */}
             <div
-              className={`result2-stack__card${
+              className={`result2-stack__card start-card${
                 activeCardIndex === 0 ? " active" : ""
               }${activeCardIndex > 0 ? " passed" : ""}`}
             >

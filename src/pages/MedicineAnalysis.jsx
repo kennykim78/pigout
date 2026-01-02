@@ -7,7 +7,7 @@ const MedicineAnalysis = () => {
   const location = useLocation();
   const [analysisResult, setAnalysisResult] = useState(null);
   const [medicines, setMedicines] = useState([]);
-  const [activeCardIndex, setActiveCardIndex] = useState(0);
+  const [activeCardIndex, setActiveCardIndex] = useState(-1);
   const containerRef = useRef(null);
 
   useEffect(() => {
@@ -27,12 +27,22 @@ const MedicineAnalysis = () => {
 
     const handleScroll = () => {
       const scrollTop = container.scrollTop;
-      const cardHeight = window.innerHeight * 0.7;
-      const currentIndex = Math.min(
-        Math.floor(scrollTop / cardHeight),
-        5 // 최대 6개 카드
+      const viewportHeight = container.clientHeight; // 100vh
+
+      // 인트로 섹션 체크
+      if (scrollTop < viewportHeight * 0.5) {
+        setActiveCardIndex(-1);
+        return;
+      }
+
+      // 카드 섹션 인덱스 계산
+      // 인트로(100vh) 지난 후부터 카드 시작
+      const relativeScroll = scrollTop - viewportHeight;
+      const currentIndex = Math.floor(
+        (relativeScroll + viewportHeight * 0.5) / viewportHeight
       );
-      setActiveCardIndex(currentIndex);
+
+      setActiveCardIndex(Math.max(0, Math.min(currentIndex, 5)));
     };
 
     container.addEventListener("scroll", handleScroll);
@@ -136,19 +146,57 @@ const MedicineAnalysis = () => {
         </button>
         <div
           className="medicine-analysis__header-info"
-          style={{ marginLeft: "10px" }}
+          style={{ display: "none" }}
         >
-          <h1 className="medicine-analysis__title">💊 약물 상호작용 분석</h1>
-          <p className="medicine-analysis__subtitle">
-            {medicines.length}개 약물 분석 완료
-          </p>
+          {/* 타이틀 숨김 */}
         </div>
       </header>
 
       {/* 메인 컨텐츠 - 스크롤 영역 */}
       <div className="medicine-analysis__content" ref={containerRef}>
-        {/* 인디케이터 */}
-        <div className="medicine-analysis__indicator">
+        {/* 인트로 섹션 */}
+        <div className="medicine-intro">
+          <div className="medicine-intro__wordcloud-wrapper">
+            <div className="wordcloud wordcloud--animated">
+              {medicines.map((med, idx) => (
+                <span
+                  key={idx}
+                  className={`wordcloud__tag wordcloud__tag--${
+                    ["md", "lg", "xl"][idx % 3]
+                  }`}
+                >
+                  {typeof med === "string"
+                    ? med
+                    : med.item_name || med.itemName || "약물"}
+                </span>
+              ))}
+            </div>
+          </div>
+
+          <p className="medicine-intro__text">
+            <span className="highlight">모두모두 모아서</span>
+            <br />
+            분석한것을 볼까요?
+          </p>
+
+          <div className="medicine-intro__line"></div>
+
+          <div className="medicine-intro__scroll-down">
+            <span>Scroll Down</span>
+            <span className="material-symbols-rounded">
+              keyboard_double_arrow_down
+            </span>
+          </div>
+        </div>
+
+        {/* 인디케이터 (인트로 아닐 때만 표시) */}
+        <div
+          className="medicine-analysis__indicator"
+          style={{
+            opacity: activeCardIndex >= 0 ? 1 : 0,
+            transition: "opacity 0.3s",
+          }}
+        >
           {Array.from({ length: 6 }).map((_, idx) => (
             <span
               key={idx}
@@ -161,9 +209,9 @@ const MedicineAnalysis = () => {
         <div className="medicine-analysis__stack">
           {/* 1. 전체 안전도 카드 */}
           <div
-            className={`medicine-analysis__card ${
-              activeCardIndex === 0 ? "active" : ""
-            } ${activeCardIndex > 0 ? "passed" : ""}`}
+            className={`medicine-analysis__card${
+              activeCardIndex === 0 ? " active" : ""
+            }${activeCardIndex > 0 ? " passed" : ""}`}
           >
             <div className="analysis-card analysis-card--safety">
               <h2 className="analysis-card__title">🎯 종합 안전도</h2>

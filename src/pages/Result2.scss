@@ -36,20 +36,21 @@ $color-safe: #3b82f6;
     position: sticky;
     top: 0;
     z-index: 100;
-    background: $result2-bg;
+    background: transparent; // 배경 투명으로 변경
     padding: 16px 20px;
     text-align: center;
-    border-bottom: 1px solid $result2-border;
+    // border-bottom: 1px solid $result2-border; // 보더 제거
+    height: 60px;
+    display: flex;
+    align-items: center;
+    pointer-events: none; // 클릭 통과 (버튼 제외)
   }
 
   &__back-btn {
-    position: absolute;
-    left: 16px;
-    top: 50%;
-    transform: translateY(-50%);
+    pointer-events: auto; // 버튼 클릭 가능
     width: 44px;
     height: 44px;
-    background-color: $color-black;
+    background-color: rgba(0, 0, 0, 0.6); // 배경 반투명
     border: none;
     border-radius: 50%;
     display: flex;
@@ -58,6 +59,10 @@ $color-safe: #3b82f6;
     cursor: pointer;
     transition: all 0.2s ease;
     color: $color-white;
+    position: relative;
+    left: 0;
+    top: 0;
+    transform: none;
 
     .material-symbols-rounded {
       font-size: 24px;
@@ -65,7 +70,7 @@ $color-safe: #3b82f6;
     }
 
     &:hover {
-      background-color: lighten($color-black, 10%);
+      background-color: rgba(0, 0, 0, 0.8);
     }
 
     &:active {
@@ -73,17 +78,9 @@ $color-safe: #3b82f6;
     }
   }
 
-  &__food-title {
-    font-size: $result2-font-large;
-    font-weight: 700;
-    color: $result2-accent;
-    margin: 0 0 4px;
-  }
-
+  &__food-title,
   &__subtitle {
-    font-size: $result2-font-small;
-    color: $result2-text-secondary;
-    margin: 0;
+    display: none; // 타이틀 숨김
   }
 
   &__food-image {
