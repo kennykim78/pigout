@@ -923,7 +923,17 @@ const Medicine = () => {
           ) : (
             <div>
               {/* 상호작용 요약 문구 (Result2 스타일) */}
-              <div className="medicine__status-banner">
+              <div
+                className={`medicine__status-banner ${
+                  medicines.some(
+                    (m) =>
+                      m.drug_class?.includes("주의") ||
+                      m.drug_class?.includes("경고")
+                  )
+                    ? "medicine__status-banner--warning"
+                    : ""
+                }`}
+              >
                 {medicines.some(
                   (m) =>
                     m.drug_class?.includes("주의") ||

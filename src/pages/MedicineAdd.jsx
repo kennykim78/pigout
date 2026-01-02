@@ -603,14 +603,21 @@ const MedicineAdd = () => {
                 onChange={handleImageFileSelect}
               />
 
-              <button
-                className="medicine__capture-btn"
-                onClick={() => setShowImageSourceModal(true)}
-                disabled={isAnalyzingImage}
-              >
-                <span className="material-symbols-rounded">photo_camera</span>
-                <span>촬영하기</span>
-              </button>
+              <div className="medicine__capture-container">
+                <button
+                  className="medicine__capture-btn"
+                  onClick={() => setShowImageSourceModal(true)}
+                  disabled={isAnalyzingImage}
+                >
+                  <span className="material-symbols-rounded">photo_camera</span>
+                  <div className="medicine__capture-btn-text">
+                    <span className="medicine__capture-label">AI 약 촬영</span>
+                    <span className="medicine__capture-sub">
+                      봉지, 처방전, 알약 등
+                    </span>
+                  </div>
+                </button>
+              </div>
 
               {isAnalyzingImage && (
                 <div className="medicine__analyzing">
@@ -801,25 +808,27 @@ const MedicineAdd = () => {
                       .map((result, index) => (
                         <div
                           key={result.itemSeq || index}
-                          className="medicine__result-card"
+                          className="medicine__search-result-row"
                           ref={
                             index === displayCount - 1 ? medicineLastRef : null
                           }
                         >
-                          <div className="medicine__result-header">
-                            <h3 className="medicine__result-name">
-                              {result.itemName}
-                            </h3>
-                            <span className="medicine__result-company">
+                          <div className="medicine__search-result-info">
+                            <span className="medicine__search-result-company">
                               {result.entpName}
                             </span>
+                            <h4 className="medicine__search-result-name">
+                              {result.itemName}
+                            </h4>
                           </div>
                           <button
-                            className="medicine__result-add-btn"
+                            className="medicine__search-result-add"
                             onClick={() => handleAddMedicine(result)}
                             disabled={isAdding}
                           >
-                            추가
+                            <span className="material-symbols-rounded">
+                              add
+                            </span>
                           </button>
                         </div>
                       ))}
@@ -936,27 +945,29 @@ const MedicineAdd = () => {
                       .map((result, index) => (
                         <div
                           key={result.itemSeq || index}
-                          className="medicine__result-card medicine__result-card--healthfood"
+                          className="medicine__search-result-row medicine__search-result-row--healthfood"
                           ref={
                             index === healthFoodDisplayCount - 1
                               ? healthFoodLastRef
                               : null
                           }
                         >
-                          <div className="medicine__result-header">
-                            <h3 className="medicine__result-name">
-                              {result.itemName}
-                            </h3>
-                            <span className="medicine__result-company">
+                          <div className="medicine__search-result-info">
+                            <span className="medicine__search-result-company">
                               {result.entpName}
                             </span>
+                            <h4 className="medicine__search-result-name">
+                              {result.itemName}
+                            </h4>
                           </div>
                           <button
-                            className="medicine__result-add-btn"
+                            className="medicine__search-result-add"
                             onClick={() => handleAddMedicine(result)}
                             disabled={isAdding}
                           >
-                            추가
+                            <span className="material-symbols-rounded">
+                              add
+                            </span>
                           </button>
                         </div>
                       ))}
