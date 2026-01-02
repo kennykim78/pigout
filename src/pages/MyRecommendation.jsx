@@ -1,5 +1,11 @@
 import { useState, useEffect } from "react";
-import { getDailyRecommendation, logActivity } from "../services/api";
+import {
+  getDailyRecommendation,
+  logActivity,
+  getFoodRanking,
+  getBalanceGame,
+  submitBalanceVote,
+} from "../services/api";
 import { useRecommendationStore } from "../store/recommendationStore";
 import "./MyRecommendation.scss";
 
@@ -22,12 +28,10 @@ const YouTubeEmbed = ({ videoId, title }) => {
 
 // 미디어 컴포넌트 (비디오 우선, 없으면 이미지, 둘 다 없으면 링크 버튼)
 const MediaContent = ({ videoId, imageUrl, title, relatedLink }) => {
-  // 1. YouTube 비디오가 있으면 embed
   if (videoId) {
     return <YouTubeEmbed videoId={videoId} title={title} />;
   }
 
-  // 2. 비디오 없고 이미지만 있으면 이미지 표시
   if (imageUrl) {
     return (
       <div className="card-image">
@@ -36,49 +40,185 @@ const MediaContent = ({ videoId, imageUrl, title, relatedLink }) => {
     );
   }
 
-  // 3. 둘 다 없으면 null (링크 버튼은 card-body에서 별도 처리)
   return null;
 };
 
-// PigRanking 컴포넌트
+// PigRanking 컴포넌트 (실제 API 연동)
 const PigRanking = () => {
+  const [rankings, setRankings] = useState([]);
+  const [balanceGame, setBalanceGame] = useState(null);
+  const [isVoting, setIsVoting] = useState(false);
+  const [loadingRanking, setLoadingRanking] = useState(true);
+  const [loadingGame, setLoadingGame] = useState(true);
+
+  useEffect(() => {
+    loadRanking();
+    loadBalanceGame();
+  }, []);
+
+  const loadRanking = async () => {
+    try {
+      const data = await getFoodRanking(5);
+      setRankings(data || []);
+    } catch (error) {
+      console.error("Failed to load ranking:", error);
+      // 폴백 데이터
+      setRankings([
+        { rank: 1, food_name: "마라탕", count: 0 },
+        { rank: 2, food_name: "치킨", count: 0 },
+        { rank: 3, food_name: "삼겹살", count: 0 },
+      ]);
+    } finally {
+      setLoadingRanking(false);
+    }
+  };
+
+  const loadBalanceGame = async () => {
+    try {
+      const data = await getBalanceGame();
+      setBalanceGame(data);
+    } catch (error) {
+      console.error("Failed to load balance game:", error);
+      // 폴백 데이터
+      setBalanceGame({
+        id: "fallback",
+        question: "다이어트 중 참을 수 없는 유혹은?",
+        optionA: { emoji: "🍕", label: "피자 한 조각", percentage: 50 },
+        optionB: { emoji: "🍺", label: "맥주 한 잔", percentage: 50 },
+        totalVotes: 0,
+        userVote: null,
+      });
+    } finally {
+      setLoadingGame(false);
+    }
+  };
+
+  const handleVote = async (option) => {
+    if (!balanceGame || balanceGame.userVote || isVoting) return;
+
+    setIsVoting(true);
+    try {
+      const result = await submitBalanceVote(balanceGame.id, option);
+      if (result.success) {
+        // 투표 후 게임 데이터 새로고침
+        await loadBalanceGame();
+      } else {
+        alert(result.message || "투표에 실패했습니다.");
+      }
+    } catch (error) {
+      console.error("Vote failed:", error);
+      // 오프라인 모드 지원: 로컬에서 UI만 업데이트
+      setBalanceGame((prev) => ({
+        ...prev,
+        userVote: option,
+        optionA: {
+          ...prev.optionA,
+          percentage: option === "A" ? 55 : 45,
+        },
+        optionB: {
+          ...prev.optionB,
+          percentage: option === "B" ? 55 : 45,
+        },
+        totalVotes: prev.totalVotes + 1,
+      }));
+    } finally {
+      setIsVoting(false);
+    }
+  };
+
+  const formatCount = (count) => {
+    if (count >= 1000) {
+      return `${(count / 1000).toFixed(1)}K`;
+    }
+    return count.toLocaleString();
+  };
+
   return (
     <div className="pig-ranking-section">
+      {/* 랭킹 카드 */}
       <div className="ranking-card">
-        <h3 className="section-title">🔥 이번 주 인기 음식 TOP 3</h3>
-        <div className="ranking-list">
-          <div className="ranking-item">
-            <span className="rank-badge rank-1">1</span>
-            <span className="food-name">마라탕</span>
-            <span className="count">1,204회 분석</span>
+        <h3 className="section-title">🔥 이번 주 인기 음식 TOP 5</h3>
+        {loadingRanking ? (
+          <div className="loading-placeholder">불러오는 중...</div>
+        ) : rankings.length > 0 ? (
+          <div className="ranking-list">
+            {rankings.map((item) => (
+              <div key={item.rank} className="ranking-item">
+                <span className={`rank-badge rank-${item.rank}`}>
+                  {item.rank}
+                </span>
+                <span className="food-name">{item.food_name}</span>
+                <span className="count">{formatCount(item.count)}회 분석</span>
+              </div>
+            ))}
           </div>
-          <div className="ranking-item">
-            <span className="rank-badge rank-2">2</span>
-            <span className="food-name">치킨</span>
-            <span className="count">982회 분석</span>
+        ) : (
+          <div className="empty-ranking">
+            <p>아직 분석된 음식이 없어요 🥲</p>
           </div>
-          <div className="ranking-item">
-            <span className="rank-badge rank-3">3</span>
-            <span className="food-name">삼겹살</span>
-            <span className="count">856회 분석</span>
-          </div>
-        </div>
+        )}
       </div>
 
+      {/* 밸런스 게임 카드 */}
       <div className="vs-game-card">
         <h3 className="section-title">⚖️ 밸런스 게임</h3>
-        <p className="vs-question">다이어트 중 참을 수 없는 유혹은?</p>
-        <div className="vs-options">
-          <button className="vs-option">
-            <span className="emoji">🍕</span>
-            <span className="label">피자 한 조각</span>
-          </button>
-          <div className="vs-divider">VS</div>
-          <button className="vs-option">
-            <span className="emoji">🍺</span>
-            <span className="label">맥주 한 잔</span>
-          </button>
-        </div>
+        {loadingGame ? (
+          <div className="loading-placeholder">불러오는 중...</div>
+        ) : balanceGame ? (
+          <>
+            <p className="vs-question">{balanceGame.question}</p>
+            <div className="vs-options">
+              <button
+                className={`vs-option ${
+                  balanceGame.userVote === "A" ? "selected" : ""
+                } ${balanceGame.userVote ? "voted" : ""}`}
+                onClick={() => handleVote("A")}
+                disabled={!!balanceGame.userVote || isVoting}
+              >
+                <span className="emoji">{balanceGame.optionA.emoji}</span>
+                <span className="label">{balanceGame.optionA.label}</span>
+                {balanceGame.userVote && (
+                  <div className="vote-bar">
+                    <div
+                      className="vote-fill"
+                      style={{ width: `${balanceGame.optionA.percentage}%` }}
+                    />
+                    <span className="vote-percent">
+                      {balanceGame.optionA.percentage}%
+                    </span>
+                  </div>
+                )}
+              </button>
+              <div className="vs-divider">VS</div>
+              <button
+                className={`vs-option ${
+                  balanceGame.userVote === "B" ? "selected" : ""
+                } ${balanceGame.userVote ? "voted" : ""}`}
+                onClick={() => handleVote("B")}
+                disabled={!!balanceGame.userVote || isVoting}
+              >
+                <span className="emoji">{balanceGame.optionB.emoji}</span>
+                <span className="label">{balanceGame.optionB.label}</span>
+                {balanceGame.userVote && (
+                  <div className="vote-bar">
+                    <div
+                      className="vote-fill"
+                      style={{ width: `${balanceGame.optionB.percentage}%` }}
+                    />
+                    <span className="vote-percent">
+                      {balanceGame.optionB.percentage}%
+                    </span>
+                  </div>
+                )}
+              </button>
+            </div>
+            {balanceGame.totalVotes > 0 && (
+              <p className="total-votes">
+                총 {balanceGame.totalVotes.toLocaleString()}명 참여
+              </p>
+            )}
+          </>
+        ) : null}
       </div>
     </div>
   );

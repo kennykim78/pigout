@@ -563,6 +563,29 @@ export const getDailyRecommendation = async () => {
   return response.data;
 };
 
+// [NEW] 🔥 음식 랭킹 조회 (최근 7일 인기 음식)
+export const getFoodRanking = async (limit: number = 5) => {
+  const response = await apiClient.get("/recommendation/ranking", {
+    params: { limit },
+  });
+  return response.data;
+};
+
+// [NEW] ⚖️ 주간 밸런스 게임 조회
+export const getBalanceGame = async () => {
+  const response = await apiClient.get("/recommendation/balance-game");
+  return response.data;
+};
+
+// [NEW] ⚖️ 밸런스 게임 투표
+export const submitBalanceVote = async (gameId: string, option: "A" | "B") => {
+  const response = await apiClient.post("/recommendation/balance-game/vote", {
+    gameId,
+    option,
+  });
+  return response.data;
+};
+
 // ============================================
 // AI 종합 분석 API (신규)
 // ============================================

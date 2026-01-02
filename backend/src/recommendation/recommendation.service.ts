@@ -524,4 +524,264 @@ JSON만 출력하세요.
       return { imageUrl: "", link: fallbackLink, videoId: null };
     }
   }
+
+  // ==========================================
+  // 🔥 음식 랭킹 (최근 7일 분석 횟수 기준)
+  // ==========================================
+  async getFoodRanking(limit: number = 5) {
+    const client = this.supabaseService.getClient();
+    const today = new Date().toISOString().split("T")[0];
+
+    // 1. 오늘의 캐시 확인
+    const { data: cached } = await client
+      .from("food_ranking_cache")
+      .select("rankings")
+      .eq("cache_date", today)
+      .single();
+
+    if (cached) {
+      this.logger.log("[Food Ranking] Cache hit for today");
+      return cached.rankings;
+    }
+
+    // 2. 캐시 미스 → 7일간 분석 데이터 집계
+    this.logger.log("[Food Ranking] Cache miss, aggregating...");
+    const sevenDaysAgo = new Date(
+      Date.now() - 7 * 24 * 60 * 60 * 1000
+    ).toISOString();
+
+    const { data: analyses, error } = await client
+      .from("food_analysis")
+      .select("food_name")
+      .gte("created_at", sevenDaysAgo)
+      .not("food_name", "is", null);
+
+    if (error) {
+      this.logger.error("[Food Ranking] Query failed", error);
+      return [];
+    }
+
+    // 3. 음식별 카운트 집계
+    const countMap: Record<string, number> = {};
+    (analyses || []).forEach((a) => {
+      const name = a.food_name?.trim();
+      if (name) {
+        countMap[name] = (countMap[name] || 0) + 1;
+      }
+    });
+
+    // 4. 정렬 및 상위 N개 추출
+    const rankings = Object.entries(countMap)
+      .sort((a, b) => b[1] - a[1])
+      .slice(0, limit)
+      .map(([food_name, count], index) => ({
+        rank: index + 1,
+        food_name,
+        count,
+      }));
+
+    // 5. 캐시 저장 (오늘 날짜로)
+    await client.from("food_ranking_cache").upsert({
+      cache_date: today,
+      rankings: rankings,
+    });
+
+    this.logger.log(`[Food Ranking] Cached ${rankings.length} items`);
+    return rankings;
+  }
+
+  // ==========================================
+  // ⚖️ 밸런스 게임 (주간 질문)
+  // ==========================================
+  async getWeeklyBalanceGame(userId: string) {
+    const client = this.supabaseService.getClient();
+
+    // 현재 주차 계산 (YYYY-WW)
+    const now = new Date();
+    const startOfYear = new Date(now.getFullYear(), 0, 1);
+    const days = Math.floor(
+      (now.getTime() - startOfYear.getTime()) / (24 * 60 * 60 * 1000)
+    );
+    const weekNumber = Math.ceil((days + startOfYear.getDay() + 1) / 7);
+    const weekKey = `${now.getFullYear()}-${String(weekNumber).padStart(
+      2,
+      "0"
+    )}`;
+
+    this.logger.log(`[Balance Game] Week key: ${weekKey}`);
+
+    // 1. 이번 주 게임 조회
+    let { data: game } = await client
+      .from("balance_games")
+      .select("*")
+      .eq("week_key", weekKey)
+      .single();
+
+    // 2. 게임이 없으면 AI로 새 질문 생성
+    if (!game) {
+      this.logger.log("[Balance Game] No game found, generating new one...");
+      game = await this.generateBalanceGame(weekKey);
+    }
+
+    // 3. 사용자의 투표 여부 확인
+    const { data: userVote } = await client
+      .from("balance_votes")
+      .select("selected_option")
+      .eq("game_id", game.id)
+      .eq("user_id", userId)
+      .single();
+
+    // 4. 투표 비율 계산
+    const totalVotes = game.option_a_votes + game.option_b_votes;
+    const percentageA =
+      totalVotes > 0
+        ? Math.round((game.option_a_votes / totalVotes) * 100)
+        : 50;
+    const percentageB = 100 - percentageA;
+
+    return {
+      id: game.id,
+      question: game.question,
+      optionA: {
+        emoji: game.option_a_emoji,
+        label: game.option_a_label,
+        votes: game.option_a_votes,
+        percentage: percentageA,
+      },
+      optionB: {
+        emoji: game.option_b_emoji,
+        label: game.option_b_label,
+        votes: game.option_b_votes,
+        percentage: percentageB,
+      },
+      totalVotes,
+      userVote: userVote?.selected_option || null,
+      weekKey,
+    };
+  }
+
+  // AI로 밸런스 게임 질문 생성
+  private async generateBalanceGame(weekKey: string) {
+    const client = this.supabaseService.getClient();
+
+    // 캐싱을 위해 미리 정의된 질문 풀 사용 (AI 토큰 절약)
+    const questionPool = [
+      {
+        question: "다이어트 중 참을 수 없는 유혹은?",
+        optionA: { emoji: "🍕", label: "피자 한 조각" },
+        optionB: { emoji: "🍺", label: "맥주 한 잔" },
+      },
+      {
+        question: "야식으로 고르라면?",
+        optionA: { emoji: "🍗", label: "치킨" },
+        optionB: { emoji: "🍜", label: "라면" },
+      },
+      {
+        question: "아침식사로 더 좋은 건?",
+        optionA: { emoji: "🥣", label: "시리얼" },
+        optionB: { emoji: "🍳", label: "계란프라이" },
+      },
+      {
+        question: "스트레스 받을 때 먹는 음식은?",
+        optionA: { emoji: "🍫", label: "초콜릿" },
+        optionB: { emoji: "🍟", label: "감자튀김" },
+      },
+      {
+        question: "여름에 더 땡기는 건?",
+        optionA: { emoji: "🍦", label: "아이스크림" },
+        optionB: { emoji: "🍉", label: "수박" },
+      },
+      {
+        question: "건강을 위해 포기할 수 있는 건?",
+        optionA: { emoji: "☕", label: "커피" },
+        optionB: { emoji: "🍬", label: "단 음식" },
+      },
+      {
+        question: "회식 메뉴로 더 좋은 건?",
+        optionA: { emoji: "🥩", label: "고기구이" },
+        optionB: { emoji: "🍣", label: "회/초밥" },
+      },
+      {
+        question: "운동 후 간식으로 고르라면?",
+        optionA: { emoji: "🍌", label: "바나나" },
+        optionB: { emoji: "🥜", label: "프로틴바" },
+      },
+      {
+        question: "라면에 필수로 넣는 건?",
+        optionA: { emoji: "🥚", label: "계란" },
+        optionB: { emoji: "🧀", label: "치즈" },
+      },
+      {
+        question: "한 달 동안 하나만 먹는다면?",
+        optionA: { emoji: "🍚", label: "밥" },
+        optionB: { emoji: "🍞", label: "빵" },
+      },
+    ];
+
+    // 주차 기반으로 질문 선택 (같은 주 = 같은 질문)
+    const weekNum = parseInt(weekKey.split("-")[1]);
+    const selected = questionPool[weekNum % questionPool.length];
+
+    // 다음 주 월요일까지 유효
+    const nextMonday = new Date();
+    nextMonday.setDate(
+      nextMonday.getDate() + ((8 - nextMonday.getDay()) % 7 || 7)
+    );
+    nextMonday.setHours(0, 0, 0, 0);
+
+    const { data: newGame, error } = await client
+      .from("balance_games")
+      .insert({
+        week_key: weekKey,
+        question: selected.question,
+        option_a_emoji: selected.optionA.emoji,
+        option_a_label: selected.optionA.label,
+        option_b_emoji: selected.optionB.emoji,
+        option_b_label: selected.optionB.label,
+        option_a_votes: 0,
+        option_b_votes: 0,
+        expires_at: nextMonday.toISOString(),
+      })
+      .select()
+      .single();
+
+    if (error) {
+      this.logger.error("[Balance Game] Failed to create game", error);
+      throw error;
+    }
+
+    this.logger.log(`[Balance Game] Created new game for week ${weekKey}`);
+    return newGame;
+  }
+
+  // 투표 제출
+  async submitBalanceVote(userId: string, gameId: string, option: "A" | "B") {
+    const client = this.supabaseService.getClient();
+
+    // 중복 투표 체크 (DB unique constraint도 있지만 사전 체크)
+    const { data: existing } = await client
+      .from("balance_votes")
+      .select("id")
+      .eq("game_id", gameId)
+      .eq("user_id", userId)
+      .single();
+
+    if (existing) {
+      return { success: false, message: "이미 투표하셨습니다!" };
+    }
+
+    const { error } = await client.from("balance_votes").insert({
+      game_id: gameId,
+      user_id: userId,
+      selected_option: option,
+    });
+
+    if (error) {
+      this.logger.error("[Balance Vote] Failed", error);
+      return { success: false, message: "투표에 실패했습니다." };
+    }
+
+    this.logger.log(`[Balance Vote] User ${userId} voted ${option}`);
+    return { success: true };
+  }
 }

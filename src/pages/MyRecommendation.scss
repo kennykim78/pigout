@@ -146,7 +146,7 @@
 
       .vs-options {
         display: flex;
-        align-items: center;
+        align-items: stretch;
         justify-content: space-between;
         gap: 10px;
 
@@ -154,6 +154,8 @@
           font-weight: 900;
           color: #ddd;
           font-size: 14px;
+          display: flex;
+          align-items: center;
         }
 
         .vs-option {
@@ -168,22 +170,101 @@
           gap: 6px;
           cursor: pointer;
           box-shadow: 0 4px 10px rgba(0, 0, 0, 0.05);
-          transition: transform 0.1s;
+          transition: all 0.2s;
+          position: relative;
+          overflow: hidden;
 
-          &:active {
+          &:hover:not(:disabled) {
+            transform: scale(1.02);
+            border-color: #667eea;
+          }
+
+          &:active:not(:disabled) {
             transform: scale(0.95);
+          }
+
+          &:disabled {
+            cursor: default;
+          }
+
+          &.voted {
+            padding-bottom: 40px;
+          }
+
+          &.selected {
+            border-color: #667eea;
+            background: linear-gradient(135deg, #f0f4ff 0%, #e8ecff 100%);
+
+            .emoji {
+              transform: scale(1.2);
+            }
           }
 
           .emoji {
             font-size: 24px;
+            transition: transform 0.2s;
           }
+
           .label {
             font-size: 12px;
             font-weight: 600;
             color: #333;
           }
+
+          .vote-bar {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 28px;
+            background: #f0f0f0;
+            display: flex;
+            align-items: center;
+
+            .vote-fill {
+              height: 100%;
+              background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+              transition: width 0.5s ease-out;
+              border-radius: 0 0 0 10px;
+            }
+
+            .vote-percent {
+              position: absolute;
+              width: 100%;
+              text-align: center;
+              font-size: 11px;
+              font-weight: 700;
+              color: #333;
+            }
+          }
         }
       }
+
+      .total-votes {
+        margin-top: 12px;
+        font-size: 12px;
+        color: #888;
+      }
+
+      .loading-placeholder {
+        padding: 20px;
+        color: #999;
+        font-size: 14px;
+      }
+    }
+
+    .empty-ranking {
+      padding: 20px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
+    }
+
+    .loading-placeholder {
+      padding: 16px;
+      text-align: center;
+      color: #999;
+      font-size: 14px;
     }
   }
 
