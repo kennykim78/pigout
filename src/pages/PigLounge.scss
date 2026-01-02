@@ -38,18 +38,117 @@
 
       .badge {
         position: absolute;
-        top: 0;
-        right: 0;
+        top: -2px;
+        right: -2px;
         background-color: #ff3b30;
         color: white;
         font-size: 10px;
-        width: 14px;
-        height: 14px;
-        border-radius: 50%;
+        min-width: 16px;
+        height: 16px;
+        padding: 0 4px;
+        border-radius: 8px;
         display: flex;
         align-items: center;
         justify-content: center;
         font-weight: 700;
+      }
+    }
+
+    .pig-lounge__actions {
+      position: relative;
+    }
+
+    // 알림 패널
+    .notification-panel {
+      position: absolute;
+      top: 100%;
+      right: 0;
+      margin-top: 8px;
+      width: 320px;
+      max-height: 400px;
+      background: white;
+      border-radius: 16px;
+      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+      overflow: hidden;
+      z-index: 200;
+
+      &__header {
+        padding: 16px;
+        border-bottom: 1px solid #f0f0f0;
+
+        h3 {
+          margin: 0;
+          font-size: 16px;
+          font-weight: 700;
+        }
+      }
+
+      &__list {
+        max-height: 340px;
+        overflow-y: auto;
+      }
+
+      .notification-loading,
+      .notification-empty {
+        padding: 40px 20px;
+        text-align: center;
+        color: #999;
+
+        .emoji {
+          font-size: 40px;
+          display: block;
+          margin-bottom: 12px;
+        }
+
+        p {
+          margin: 0;
+          font-size: 14px;
+        }
+      }
+
+      .notification-item {
+        display: flex;
+        align-items: flex-start;
+        gap: 12px;
+        padding: 14px 16px;
+        border-bottom: 1px solid #f5f5f5;
+        cursor: pointer;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #f9f9f9;
+        }
+
+        &.unread {
+          background: #fff8f0;
+
+          &:hover {
+            background: #fff3e6;
+          }
+        }
+
+        .notification-icon {
+          font-size: 20px;
+          flex-shrink: 0;
+        }
+
+        .notification-content {
+          flex: 1;
+          min-width: 0;
+
+          .notification-message {
+            margin: 0 0 4px 0;
+            font-size: 13px;
+            line-height: 1.4;
+            color: #333;
+            word-break: break-word;
+          }
+
+          .notification-time {
+            font-size: 11px;
+            color: #999;
+          }
+        }
       }
     }
   }

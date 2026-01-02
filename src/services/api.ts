@@ -882,4 +882,39 @@ export const createGeneralPost = async (postData: {
   return response.data;
 };
 
+// ============================================
+// 🔔 알림 API
+// ============================================
+
+// 알림 목록 조회
+export const getNotifications = async (
+  limit: number = 20,
+  offset: number = 0
+) => {
+  const response = await apiClient.get("/lounge/notifications", {
+    params: { limit, offset },
+  });
+  return response.data;
+};
+
+// 읽지 않은 알림 개수
+export const getUnreadNotificationCount = async () => {
+  const response = await apiClient.get("/lounge/notifications/unread-count");
+  return response.data;
+};
+
+// 전체 알림 읽음 처리
+export const markAllNotificationsAsRead = async () => {
+  const response = await apiClient.post("/lounge/notifications/read-all");
+  return response.data;
+};
+
+// 특정 알림 읽음 처리
+export const markNotificationAsRead = async (notificationId: string) => {
+  const response = await apiClient.post(
+    `/lounge/notifications/${notificationId}/read`
+  );
+  return response.data;
+};
+
 export default apiClient;

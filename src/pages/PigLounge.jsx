@@ -8,6 +8,9 @@ import {
   getComments,
   createComment,
   deletePost,
+  getNotifications,
+  getUnreadNotificationCount,
+  markAllNotificationsAsRead,
 } from "../services/api";
 import { getDeviceId } from "../utils/deviceId";
 import "./PigLounge.scss";
@@ -21,6 +24,7 @@ const PigLounge = () => {
   // 드롭다운 메뉴 상태
   const [openMenuId, setOpenMenuId] = useState(null);
   const menuRef = useRef(null);
+  const notificationRef = useRef(null);
 
   // 댓글 관련 상태
   const [expandedComments, setExpandedComments] = useState({});
@@ -28,11 +32,28 @@ const PigLounge = () => {
   const [commentInputs, setCommentInputs] = useState({});
   const [loadingComments, setLoadingComments] = useState({});
 
-  // 현재 사용자 ID 가져오기
+  // 알림 관련 상태
+  const [showNotifications, setShowNotifications] = useState(false);
+  const [notifications, setNotifications] = useState([]);
+  const [unreadCount, setUnreadCount] = useState(0);
+  const [loadingNotifications, setLoadingNotifications] = useState(false);
+
+  // 현재 사용자 ID 가져오기 & 알림 개수 로드
   useEffect(() => {
     const deviceId = getDeviceId();
     setCurrentUserId(deviceId);
+    loadUnreadCount();
   }, []);
+
+  // 읽지 않은 알림 개수 로드
+  const loadUnreadCount = async () => {
+    try {
+      const result = await getUnreadNotificationCount();
+      setUnreadCount(result.count || 0);
+    } catch (error) {
+      console.error("Failed to load unread count:", error);
+    }
+  };
 
   // 메뉴 외부 클릭 감지
   useEffect(() => {
@@ -40,10 +61,55 @@ const PigLounge = () => {
       if (menuRef.current && !menuRef.current.contains(event.target)) {
         setOpenMenuId(null);
       }
+      if (
+        notificationRef.current &&
+        !notificationRef.current.contains(event.target)
+      ) {
+        setShowNotifications(false);
+      }
     };
     document.addEventListener("mousedown", handleClickOutside);
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
+
+  // 알림 패널 토글
+  const handleNotificationClick = async () => {
+    if (!showNotifications) {
+      setShowNotifications(true);
+      setLoadingNotifications(true);
+      try {
+        const data = await getNotifications(20, 0);
+        setNotifications(data || []);
+        // 전체 읽음 처리
+        if (unreadCount > 0) {
+          await markAllNotificationsAsRead();
+          setUnreadCount(0);
+        }
+      } catch (error) {
+        console.error("Failed to load notifications:", error);
+      } finally {
+        setLoadingNotifications(false);
+      }
+    } else {
+      setShowNotifications(false);
+    }
+  };
+
+  // 알림 시간 포맷
+  const formatNotificationTime = (dateString) => {
+    const date = new Date(dateString);
+    const now = new Date();
+    const diffMs = now - date;
+    const diffMins = Math.floor(diffMs / 60000);
+    const diffHours = Math.floor(diffMs / 3600000);
+    const diffDays = Math.floor(diffMs / 86400000);
+
+    if (diffMins < 1) return "방금 전";
+    if (diffMins < 60) return `${diffMins}분 전`;
+    if (diffHours < 24) return `${diffHours}시간 전`;
+    if (diffDays < 7) return `${diffDays}일 전`;
+    return date.toLocaleDateString();
+  };
 
   // Load feed from API or fallback
   const loadFeed = async () => {
@@ -351,11 +417,65 @@ const PigLounge = () => {
     <div className="pig-lounge">
       <header className="pig-lounge__header">
         <h1 className="pig-lounge__title">피그라운지</h1>
-        <div className="pig-lounge__actions">
-          <button className="pig-lounge__icon-btn">
+        <div className="pig-lounge__actions" ref={notificationRef}>
+          <button
+            className="pig-lounge__icon-btn"
+            onClick={handleNotificationClick}
+          >
             <span className="material-symbols-rounded">notifications</span>
-            <span className="badge">N</span>
+            {unreadCount > 0 && (
+              <span className="badge">
+                {unreadCount > 9 ? "9+" : unreadCount}
+              </span>
+            )}
           </button>
+
+          {/* 알림 패널 */}
+          {showNotifications && (
+            <div className="notification-panel">
+              <div className="notification-panel__header">
+                <h3>알림</h3>
+              </div>
+              <div className="notification-panel__list">
+                {loadingNotifications ? (
+                  <div className="notification-loading">불러오는 중...</div>
+                ) : notifications.length > 0 ? (
+                  notifications.map((noti) => (
+                    <div
+                      key={noti.id}
+                      className={`notification-item ${
+                        noti.is_read ? "" : "unread"
+                      }`}
+                      onClick={() => {
+                        if (noti.post_id) {
+                          setShowNotifications(false);
+                          // 해당 게시물로 스크롤 또는 상세 보기
+                        }
+                      }}
+                    >
+                      <div className="notification-icon">
+                        {noti.type === "like" && "❤️"}
+                        {noti.type === "comment" && "💬"}
+                        {noti.type === "bookmark" && "⭐"}
+                        {noti.type === "system" && "📢"}
+                      </div>
+                      <div className="notification-content">
+                        <p className="notification-message">{noti.message}</p>
+                        <span className="notification-time">
+                          {formatNotificationTime(noti.created_at)}
+                        </span>
+                      </div>
+                    </div>
+                  ))
+                ) : (
+                  <div className="notification-empty">
+                    <span className="emoji">🐷</span>
+                    <p>아직 알림이 없어요!</p>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
         </div>
       </header>
 

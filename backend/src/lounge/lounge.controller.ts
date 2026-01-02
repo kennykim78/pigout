@@ -198,4 +198,71 @@ export class LoungeController {
 
     return this.loungeService.createPost(userId, postData);
   }
+
+  // ==========================================
+  // 🔔 알림 API
+  // ==========================================
+
+  // 알림 목록 조회
+  @Get("notifications")
+  async getNotifications(
+    @Headers("X-Device-Id") deviceId: string,
+    @Query("limit") limit: number = 20,
+    @Query("offset") offset: number = 0
+  ) {
+    if (!deviceId)
+      throw new HttpException("Device ID missing", HttpStatus.BAD_REQUEST);
+
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    return this.loungeService.getNotifications(
+      userId,
+      Number(limit),
+      Number(offset)
+    );
+  }
+
+  // 읽지 않은 알림 개수
+  @Get("notifications/unread-count")
+  async getUnreadCount(@Headers("X-Device-Id") deviceId: string) {
+    if (!deviceId)
+      throw new HttpException("Device ID missing", HttpStatus.BAD_REQUEST);
+
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    return this.loungeService.getUnreadCount(userId);
+  }
+
+  // 전체 알림 읽음 처리
+  @Post("notifications/read-all")
+  async markAllAsRead(@Headers("X-Device-Id") deviceId: string) {
+    if (!deviceId)
+      throw new HttpException("Device ID missing", HttpStatus.BAD_REQUEST);
+
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    return this.loungeService.markAllAsRead(userId);
+  }
+
+  // 특정 알림 읽음 처리
+  @Post("notifications/:id/read")
+  async markAsRead(
+    @Headers("X-Device-Id") deviceId: string,
+    @Param("id") notificationId: string
+  ) {
+    if (!deviceId)
+      throw new HttpException("Device ID missing", HttpStatus.BAD_REQUEST);
+
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    return this.loungeService.markAsRead(userId, notificationId);
+  }
 }

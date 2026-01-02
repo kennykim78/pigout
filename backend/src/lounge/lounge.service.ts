@@ -409,4 +409,73 @@ export class LoungeService {
 
     return { success: true };
   }
+
+  // ==========================================
+  // 🔔 알림 기능
+  // ==========================================
+
+  // 알림 목록 조회
+  async getNotifications(
+    userId: string,
+    limit: number = 20,
+    offset: number = 0
+  ) {
+    const { data: notifications, error } = await this.supabase
+      .from("notifications")
+      .select("*")
+      .eq("user_id", userId)
+      .order("created_at", { ascending: false })
+      .range(offset, offset + limit - 1);
+
+    if (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return notifications || [];
+  }
+
+  // 읽지 않은 알림 개수
+  async getUnreadCount(userId: string) {
+    const { count, error } = await this.supabase
+      .from("notifications")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .eq("is_read", false);
+
+    if (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return { count: count || 0 };
+  }
+
+  // 알림 읽음 처리 (전체)
+  async markAllAsRead(userId: string) {
+    const { error } = await this.supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("user_id", userId)
+      .eq("is_read", false);
+
+    if (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return { success: true };
+  }
+
+  // 특정 알림 읽음 처리
+  async markAsRead(userId: string, notificationId: string) {
+    const { error } = await this.supabase
+      .from("notifications")
+      .update({ is_read: true })
+      .eq("id", notificationId)
+      .eq("user_id", userId);
+
+    if (error) {
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+    }
+
+    return { success: true };
+  }
 }
