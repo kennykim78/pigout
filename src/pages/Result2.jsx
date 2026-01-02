@@ -1027,7 +1027,9 @@ const FinalAnalysisSection = ({
     // 2. 룰베이스: 치명적인 위험 요소만 짧고 굵게 추가 (안전 장치)
     const criticalWarnings = [];
     const interactions =
-      detailedAnalysis?.medicalAnalysis?.drug_food_interactions || [];
+      detailedAnalysis?.medicalAnalysis?.drug_food_interactions ||
+      detailedAnalysis?.drug_food_interactions ||
+      [];
     const dangerDrugs = interactions.filter((d) => d.risk_level === "danger");
 
     // 약물 충돌 경고
@@ -1147,8 +1149,10 @@ const Result2 = () => {
       },
       onResult: (data) => {
         if (data.success && data.data) {
-          setAnalysis(data.data.analysis);
-          setDetailedAnalysis(data.data.detailedAnalysis);
+          // 🆕 백엔드 응답 구조 수정: data.data 자체가 상세 분석 데이터
+          const result = data.data;
+          setAnalysis(result.briefSummary || result.analysis || result.summary);
+          setDetailedAnalysis(result); // data.data 전체를 detailedAnalysis로 사용
 
           // 🆕 캐시에 저장
           const profile = getUserProfile();
@@ -1161,7 +1165,7 @@ const Result2 = () => {
           );
           useAnalysisStore
             .getState()
-            .setAnalysis(foodNameParam, data.data.detailedAnalysis, userHash);
+            .setAnalysis(foodNameParam, result, userHash);
         }
         setStreamProgress(100);
         setIsStreaming(false);
@@ -1197,6 +1201,7 @@ const Result2 = () => {
       }
 
       const da = location.state.detailedAnalysis;
+      // 🆕 백엔드 응답 구조에 맞게 수정: drug_food_interactions가 최상위에 있을 수도 있음
       const hasRealDetailedAnalysis =
         da &&
         ((da.goodPoints &&
@@ -1205,7 +1210,8 @@ const Result2 = () => {
           (da.badPoints &&
             Array.isArray(da.badPoints) &&
             da.badPoints.length > 0) ||
-          da.medicalAnalysis?.drug_food_interactions?.length > 0);
+          da.medicalAnalysis?.drug_food_interactions?.length > 0 ||
+          da.drug_food_interactions?.length > 0);
 
       if (hasRealDetailedAnalysis) {
         setDetailedAnalysis(da);
@@ -1352,7 +1358,8 @@ const Result2 = () => {
             >
               <DrugInteractionSection
                 interactions={
-                  detailedAnalysis.medicalAnalysis?.drug_food_interactions
+                  detailedAnalysis.medicalAnalysis?.drug_food_interactions ||
+                  detailedAnalysis.drug_food_interactions
                 }
                 // medicines={medicines} // 제거
                 riskFactors={detailedAnalysis.riskFactors}
@@ -1371,7 +1378,8 @@ const Result2 = () => {
                 nutrition={detailedAnalysis.nutrition}
                 riskFactors={detailedAnalysis.riskFactors}
                 interactions={
-                  detailedAnalysis.medicalAnalysis?.drug_food_interactions
+                  detailedAnalysis.medicalAnalysis?.drug_food_interactions ||
+                  detailedAnalysis.drug_food_interactions
                 }
                 // medicines={medicines} // 제거
                 userProfile={userProfile}
