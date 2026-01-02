@@ -347,7 +347,7 @@ const PigLoungeWrite = () => {
                       <span className="material-symbols-rounded">
                         add_photo_alternate
                       </span>
-                      <span>사진 추가 (최대 50KB)</span>
+                      <span>사진 추가 (자동 50KB 압축)</span>
                     </>
                   )}
                 </div>

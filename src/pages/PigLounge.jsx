@@ -3,7 +3,6 @@ import { useNavigate } from "react-router-dom";
 import {
   getFeed,
   toggleLike,
-  toggleLoungeBookmark,
   reportPost,
   getComments,
   createComment,
@@ -229,29 +228,6 @@ const PigLounge = () => {
       }
     } catch (e) {
       console.error("Like failed", e);
-    }
-  };
-
-  const handleBookmark = async (id) => {
-    setFeedItems((prev) =>
-      prev.map((item) => {
-        if (item.id === id) {
-          return { ...item, isBookmarked: !item.isBookmarked };
-        }
-        return item;
-      })
-    );
-
-    try {
-      if (
-        typeof id === "string" &&
-        !id.toString().startsWith("mock") &&
-        !id.toString().match(/^\d+$/)
-      ) {
-        await toggleLoungeBookmark(id);
-      }
-    } catch (e) {
-      console.error("Bookmark failed", e);
     }
   };
 
@@ -579,9 +555,12 @@ const PigLounge = () => {
               !item.food_name &&
               !item.foodName && (
                 <div className="feed-card__content general">
-                  {item.image_url && item.image_url.startsWith("http") && (
+                  {(item.image_url || item.imageUrl) && (
                     <div className="feed-card__image">
-                      <img src={item.image_url} alt="피드 이미지" />
+                      <img
+                        src={item.image_url || item.imageUrl}
+                        alt="피드 이미지"
+                      />
                     </div>
                   )}
                   <div className="feed-card__details">
@@ -623,16 +602,6 @@ const PigLounge = () => {
                 onClick={() => handleShare(item)}
               >
                 <span className="material-symbols-rounded">share</span>
-              </button>
-              <button
-                className={`action-btn bookmark ${
-                  item.isBookmarked ? "active" : ""
-                }`}
-                onClick={() => handleBookmark(item.id)}
-              >
-                <span className="material-symbols-rounded">
-                  {item.isBookmarked ? "bookmark" : "bookmark_border"}
-                </span>
               </button>
             </div>
 
