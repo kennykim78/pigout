@@ -502,14 +502,56 @@ export class FoodService {
 
       // 🆕 공공데이터에서 상호작용 경고 추출 (정확도 향상)
       const publicInteractionWarnings: string[] = [];
-      drugDetails.forEach(d => {
-        if (d.publicData) {
-          const warnings = this.extractInteractionsFromPublicData(d.name, d.publicData);
-          if (warnings.length > 0) {
-            console.log(`[상호작용 파싱] ${d.name} -> ${warnings.length}건 발견:`, warnings[0]);
-            publicInteractionWarnings.push(...warnings);
+      drugDetails.forEach((drug) => {
+        if (!drug.publicData) return;
+
+        const targetText = [
+          drug.publicData.intrcQesitm,
+          drug.publicData.atpnQesitm,
+          drug.publicData.atpnWarnQesitm,
+        ]
+          .filter(Boolean)
+          .join(" ");
+
+        if (!targetText) return;
+
+        const patterns = [
+          {
+            keywords: ["술", "알코올", "음주"],
+            msg: "알코올과 함께 복용 시 주의",
+          },
+          {
+            keywords: ["우유", "유제품", "칼슘"],
+            msg: "칼슘 함유 식품 섭취 시 간격 필요",
+          },
+          { keywords: ["자몽", "오렌지"], msg: "자몽/감귤류 섭취 시 주의" },
+          {
+            keywords: ["카페인", "커피", "녹차"],
+            msg: "카페인 과다 섭취 주의",
+          },
+          {
+            keywords: ["고지방"],
+            msg: "고지방 식사와 함께 복용 시 흡수율 변화",
+          },
+          { keywords: ["칼륨", "바나나"], msg: "고칼륨 식품 섭취 시 주의" },
+          {
+            keywords: ["비타민K", "녹색채소"],
+            msg: "비타민K 함유 식품 섭취 시 주의",
+          },
+          {
+            keywords: ["치즈", "초콜릿", "티라민"],
+            msg: "티라민 함유 식품 주의",
+          },
+        ];
+
+        patterns.forEach(({ keywords, msg }) => {
+          if (keywords.some((k) => targetText.includes(k))) {
+            publicInteractionWarnings.push(
+              `[식약처 데이터] ${drug.name}: ${msg}`
+            );
+            console.log(`[상호작용 파싱] ${drug.name} -> ${msg}`);
           }
-        }
+        });
       });
 
       // 보강 데이터: 식품영양성분 + 건강기능식품 API 조회
@@ -558,10 +600,10 @@ export class FoodService {
           items: healthFoodRows || [],
         },
         diseaseInfo: { source: "AI 지식 기반", items: [] },
-        
+
         // 🆕 파싱된 약물 상호작용 경고 전달
         publicInteractionWarnings,
-        
+
         publicDataFailed, // 공공데이터 전체 실패 여부
       };
 
@@ -2172,20 +2214,21 @@ export class FoodService {
         nutrition: finalAnalysis.nutrition,
         recipe: finalAnalysis.recipe,
         alternatives: finalAnalysis.alternatives,
-        
+
         // Medical Analysis (FE 호환성: drug_food_interactions 필드 필수)
         medicalAnalysis: {
-            ...interactionAnalysis,
-            drug_food_interactions: (interactionAnalysis.interactions || []).map(
-                (i: any) => ({
-                    ...i,
-                    description: i.interaction_description // FE 호환 필드
-                })
-            )
+          ...interactionAnalysis,
+          drug_food_interactions: (interactionAnalysis.interactions || []).map(
+            (i: any) => ({
+              ...i,
+              description: i.interaction_description, // FE 호환 필드
+            })
+          ),
         },
-        
+
         foodComponents: foodAnalysis.components || [],
-        riskFactors: finalAnalysis.riskFactors || foodAnalysis.riskFactors || {},
+        riskFactors:
+          finalAnalysis.riskFactors || foodAnalysis.riskFactors || {},
         riskFactorNotes: foodAnalysis.riskFactorNotes || {},
         publicDatasets: supplementalPublicData,
         dataSources: Array.from(dataSourceSet),
@@ -2194,10 +2237,12 @@ export class FoodService {
       // 🆕 [데이터 보정] 공공데이터가 있으면 AI 추론치보다 우선 적용 (정확도 100% 보장)
       if (nutritionRows && nutritionRows.length > 0) {
         const pData = nutritionRows[0]; // 공공데이터
-        
+
         // 1. 칼로리 보정 (AI가 틀릴 수 있음)
         if (pData.AMT_NUM1 && detailedAnalysis.nutrition) {
-          detailedAnalysis.nutrition.calories = Math.round(parseFloat(pData.AMT_NUM1));
+          detailedAnalysis.nutrition.calories = Math.round(
+            parseFloat(pData.AMT_NUM1)
+          );
         }
 
         // 2. 리스크 팩터 보정
@@ -2212,7 +2257,9 @@ export class FoodService {
 
         // 3. UI 시각화 데이터 주입
         (detailedAnalysis.nutrition as any).details = {
-          sodium, sugar, fat,
+          sodium,
+          sugar,
+          fat,
           protein: parseFloat(pData.AMT_NUM3 || "0"),
           carbs: parseFloat(pData.AMT_NUM5 || "0"),
         };
@@ -2257,51 +2304,5 @@ export class FoodService {
         message: error.message || "분석 중 오류가 발생했습니다.",
       });
     }
-    }
-  }
-
-  /**
-   * 🆕 공공데이터(e약은요) 텍스트에서 음식 상호작용 정보 추출
-   * AI 토큰 절약 및 정확도 향상 목적
-   * @param drugName 약물명
-   * @param publicData API 응답 데이터
-   */
-  private extractInteractionsFromPublicData(drugName: string, publicData: any): string[] {
-    if (!publicData) return [];
-
-    const interactions: string[] = [];
-    // 상호작용 필드 (intrcQesitm) + 주의사항 필드 (atpnQesitm) + 경고 (atpnWarnQesitm)
-    const targetText = [
-      publicData.intrcQesitm,
-      publicData.atpnQesitm,
-      publicData.atpnWarnQesitm
-    ].filter(Boolean).join(" ");
-
-    if (!targetText) return [];
-
-    // 파싱 키워드 매핑
-    const keywordMap = [
-      { keywords: ["술", "음주", "알코올", "알콜", "맥주", "소주"], msg: "음주 금지 (간 손상/위장 출혈 위험)" },
-      { keywords: ["우유", "유제품", "칼슘", "치즈", "요거트"], msg: "우유/유제품과 함께 복용 시 흡수율 저하 가능성" },
-      { keywords: ["자몽", "주스"], msg: "자몽주스와 함께 복용 금지 (약효 과다 발현 위험)" },
-      { keywords: ["카페인", "커피", "콜라", "초콜릿", "에너지음료", "홍차", "녹차"], msg: "카페인 섭취 주의 (부작용 증가 위험)" },
-      { keywords: ["고지방", "기름진"], msg: "고지방 식사 직후 복용 시 흡수율 변화 주의" },
-      { keywords: ["칼륨", "바나나", "오렌지", "토마토", "감자"], msg: "칼륨 비축 약물이므로 고칼륨 식품 섭취 주의 (심장 부담)" },
-      { keywords: ["비타민K", "녹색 채소", "시금치", "브로콜리", "양배추", "상추"], msg: "혈액응고제 복용 중 녹색 채소 과다 섭취 주의 (약효 감소)" },
-      { keywords: ["tyramine", "티라민", "치즈", "와인", "훈제"], msg: "티라민 함유 음식(치즈, 와인 등) 섭취 주의 (혈압 상승)" },
-      { keywords: ["공복", "식전"], msg: "식사 전 공복 상태에서 복용 권장" },
-      { keywords: ["식후"], msg: "식사 후 복용 권장 (위장 장애 예방)" },
-      { keywords: ["졸음", "운전"], msg: "복용 후 졸음 유발 가능 (운전/기계조작 주의)" },
-      { keywords: ["건조", "입마름"], msg: "입마름 발생 가능 (수분 섭취 권장)" },
-    ];
-
-    keywordMap.forEach(({ keywords, msg }) => {
-      // 키워드가 포함되어 있는지 확인
-      if (keywords.some(k => targetText.includes(k))) {
-        interactions.push(`[${drugName}] ${msg}`);
-      }
-    });
-
-    return interactions;
   }
 }
