@@ -117,13 +117,25 @@ $card-height: 70vh;
     position: fixed;
     top: 90px;
     right: 20px;
-    background: rgba(0, 0, 0, 0.8);
-    color: #fff;
-    font-size: 13px;
-    font-weight: 600;
-    padding: 6px 14px;
-    border-radius: 20px;
+    display: flex;
+    flex-direction: column; // 세로로 배치
+    gap: 8px;
     z-index: 50;
+
+    // 점 스타일
+    .dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background: rgba(0, 0, 0, 0.2);
+      transition: all 0.3s ease;
+
+      &.active {
+        background: $ma-accent;
+        height: 24px; // 활성화되면 길어짐 (pill 형태)
+        border-radius: 4px;
+      }
+    }
   }
 
   // 카드 스택

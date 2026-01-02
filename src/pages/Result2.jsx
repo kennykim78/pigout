@@ -1553,7 +1553,12 @@ const Result2 = () => {
         <div className="result2__content" ref={containerRef}>
           {/* 인디케이터 */}
           <div className="result2-stack__indicator">
-            {activeCardIndex + 1}/5
+            {Array.from({ length: 5 }).map((_, idx) => (
+              <span
+                key={idx}
+                className={`dot ${activeCardIndex === idx ? "active" : ""}`}
+              />
+            ))}
           </div>
 
           {/* 1-5: 카드 스택킹 섹션 */}

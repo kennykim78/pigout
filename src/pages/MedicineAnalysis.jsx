@@ -149,7 +149,12 @@ const MedicineAnalysis = () => {
       <div className="medicine-analysis__content" ref={containerRef}>
         {/* 인디케이터 */}
         <div className="medicine-analysis__indicator">
-          {activeCardIndex + 1}/6
+          {Array.from({ length: 6 }).map((_, idx) => (
+            <span
+              key={idx}
+              className={`dot ${activeCardIndex === idx ? "active" : ""}`}
+            />
+          ))}
         </div>
 
         {/* 카드 스택 */}
