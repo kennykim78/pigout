@@ -32,7 +32,7 @@ export class LoungeController {
       throw new HttpException("Device ID missing", HttpStatus.BAD_REQUEST);
 
     // 사용자 식별 (로그인 안했으면 익명 처리 또는 에러, 여기선 deviceId로 조회)
-    const userId = await this.usersService.getUserIdFromDeviceId(deviceId);
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
 
     return this.loungeService.getFeed(userId, limit, offset, sort);
   }
@@ -51,7 +51,7 @@ export class LoungeController {
       tags?: string[];
     }
   ) {
-    const userId = await this.usersService.getUserIdFromDeviceId(deviceId);
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
     if (!userId)
       throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
 
@@ -64,7 +64,7 @@ export class LoungeController {
     @Headers("X-Device-Id") deviceId: string,
     @Param("id") postId: string
   ) {
-    const userId = await this.usersService.getUserIdFromDeviceId(deviceId);
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
     if (!userId)
       throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
 
@@ -77,7 +77,7 @@ export class LoungeController {
     @Headers("X-Device-Id") deviceId: string,
     @Param("id") postId: string
   ) {
-    const userId = await this.usersService.getUserIdFromDeviceId(deviceId);
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
     if (!userId)
       throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
 
@@ -91,7 +91,7 @@ export class LoungeController {
     @Param("id") postId: string,
     @Body("reason") reason: string
   ) {
-    const userId = await this.usersService.getUserIdFromDeviceId(deviceId);
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
     if (!userId)
       throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
 

@@ -115,7 +115,7 @@ export class LoungeService {
     }
 
     // 닉네임 조회
-    const user = await this.usersService.getUserProfile(userId);
+    const user = await this.usersService.findById(userId);
     const nickname = user?.nickname || "익명 돼지";
 
     const { data: post, error } = await this.supabase
