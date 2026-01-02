@@ -98,4 +98,104 @@ export class LoungeController {
     // 익명 신고라도 유저 식별은 필요
     return this.loungeService.reportPost(userId, postId, reason || "기타");
   }
+
+  // 게시글 수정
+  @Post("feed/:id/update")
+  async updatePost(
+    @Headers("X-Device-Id") deviceId: string,
+    @Param("id") postId: string,
+    @Body() body: { comment?: string; tags?: string[]; imageUrl?: string }
+  ) {
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    return this.loungeService.updatePost(userId, postId, body);
+  }
+
+  // 게시글 삭제
+  @Delete("feed/:id")
+  async deletePost(
+    @Headers("X-Device-Id") deviceId: string,
+    @Param("id") postId: string
+  ) {
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    return this.loungeService.deletePost(userId, postId);
+  }
+
+  // 댓글 목록 조회
+  @Get("feed/:id/comments")
+  async getComments(
+    @Param("id") postId: string,
+    @Query("limit") limit: number = 20,
+    @Query("offset") offset: number = 0
+  ) {
+    return this.loungeService.getComments(postId, limit, offset);
+  }
+
+  // 댓글 작성
+  @Post("feed/:id/comments")
+  async createComment(
+    @Headers("X-Device-Id") deviceId: string,
+    @Param("id") postId: string,
+    @Body("content") content: string
+  ) {
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    if (!content || !content.trim()) {
+      throw new HttpException(
+        "댓글 내용을 입력해주세요.",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    return this.loungeService.createComment(userId, postId, content.trim());
+  }
+
+  // 댓글 삭제
+  @Delete("comments/:id")
+  async deleteComment(
+    @Headers("X-Device-Id") deviceId: string,
+    @Param("id") commentId: string
+  ) {
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    return this.loungeService.deleteComment(userId, commentId);
+  }
+
+  // 일반 피드 작성 (음식 무관)
+  @Post("feed/general")
+  async createGeneralPost(
+    @Headers("X-Device-Id") deviceId: string,
+    @Body()
+    body: {
+      comment: string;
+      imageUrl?: string;
+      tags?: string[];
+    }
+  ) {
+    const userId = await this.usersService.getUserIdByDeviceId(deviceId);
+    if (!userId)
+      throw new HttpException("User not found", HttpStatus.UNAUTHORIZED);
+
+    // 일반 피드용 데이터로 변환
+    const postData = {
+      foodName: null, // 음식 없음
+      score: null,
+      lifeChange: null,
+      comment: body.comment,
+      imageUrl: body.imageUrl,
+      tags: body.tags || [],
+      postType: "general", // 일반 피드 타입
+    };
+
+    return this.loungeService.createPost(userId, postData);
+  }
 }

@@ -92,7 +92,10 @@ export class LoungeService {
 
   async createPost(userId: string, data: any) {
     // 1. 비속어 필터링
-    if (containsProfanity(data.comment) || containsProfanity(data.foodName)) {
+    if (
+      containsProfanity(data.comment) ||
+      (data.foodName && containsProfanity(data.foodName))
+    ) {
       throw new HttpException(
         "바르고 고운 말을 써주세요! 비속어가 포함되어 있습니다. 🚫",
         HttpStatus.BAD_REQUEST
@@ -118,18 +121,25 @@ export class LoungeService {
     const user = await this.usersService.findById(userId);
     const nickname = user?.nickname || "익명 돼지";
 
+    const postData: any = {
+      user_id: userId,
+      nickname: nickname,
+      comment: data.comment,
+      image_url: data.imageUrl,
+      tags: data.tags || [],
+      post_type: data.postType || "food", // 'food' or 'general'
+    };
+
+    // 음식 관련 피드인 경우에만 음식 정보 추가
+    if (data.foodName) {
+      postData.food_name = data.foodName;
+      postData.score = data.score;
+      postData.life_change = data.lifeChange;
+    }
+
     const { data: post, error } = await this.supabase
       .from("feed_posts")
-      .insert({
-        user_id: userId,
-        nickname: nickname,
-        food_name: data.foodName,
-        score: data.score,
-        life_change: data.lifeChange,
-        comment: data.comment,
-        image_url: data.imageUrl,
-        tags: data.tags || [],
-      })
+      .insert(postData)
       .select()
       .single();
 
@@ -211,5 +221,176 @@ export class LoungeService {
     }
 
     return report;
+  }
+
+  // 게시글 수정
+  async updatePost(userId: string, postId: string, data: any) {
+    // 본인 글인지 확인
+    const { data: post, error: fetchError } = await this.supabase
+      .from("feed_posts")
+      .select("user_id")
+      .eq("id", postId)
+      .single();
+
+    if (fetchError || !post) {
+      throw new HttpException(
+        "게시글을 찾을 수 없습니다.",
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+    if (post.user_id !== userId) {
+      throw new HttpException(
+        "본인 글만 수정할 수 있습니다.",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    // 비속어 필터링
+    if (containsProfanity(data.comment)) {
+      throw new HttpException(
+        "바르고 고운 말을 써주세요! 비속어가 포함되어 있습니다. 🚫",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    const updateData: any = { updated_at: new Date().toISOString() };
+    if (data.comment !== undefined) updateData.comment = data.comment;
+    if (data.tags !== undefined) updateData.tags = data.tags;
+    if (data.imageUrl !== undefined) updateData.image_url = data.imageUrl;
+
+    const { data: updated, error } = await this.supabase
+      .from("feed_posts")
+      .update(updateData)
+      .eq("id", postId)
+      .select()
+      .single();
+
+    if (error)
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+
+    return updated;
+  }
+
+  // 게시글 삭제
+  async deletePost(userId: string, postId: string) {
+    const { data: post } = await this.supabase
+      .from("feed_posts")
+      .select("user_id")
+      .eq("id", postId)
+      .single();
+
+    if (!post) {
+      throw new HttpException(
+        "게시글을 찾을 수 없습니다.",
+        HttpStatus.NOT_FOUND
+      );
+    }
+
+    if (post.user_id !== userId) {
+      throw new HttpException(
+        "본인 글만 삭제할 수 있습니다.",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    await this.supabase.from("feed_posts").delete().eq("id", postId);
+    return { success: true };
+  }
+
+  // 댓글 목록 조회
+  async getComments(postId: string, limit: number = 20, offset: number = 0) {
+    const { data: comments, error } = await this.supabase
+      .from("feed_comments")
+      .select("*, user:user_id (nickname)")
+      .eq("post_id", postId)
+      .order("created_at", { ascending: true })
+      .range(offset, offset + limit - 1);
+
+    if (error)
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+
+    return comments.map((c) => ({
+      ...c,
+      user: c.nickname || c.user?.nickname || "익명",
+    }));
+  }
+
+  // 댓글 작성
+  async createComment(userId: string, postId: string, content: string) {
+    // 비속어 필터링
+    if (containsProfanity(content)) {
+      throw new HttpException(
+        "바르고 고운 말을 써주세요! 비속어가 포함되어 있습니다. 🚫",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
+    // 도배 방지
+    const oneMinuteAgo = new Date(Date.now() - 60 * 1000).toISOString();
+    const { count } = await this.supabase
+      .from("feed_comments")
+      .select("id", { count: "exact", head: true })
+      .eq("user_id", userId)
+      .gte("created_at", oneMinuteAgo);
+
+    if (count && count >= 5) {
+      throw new HttpException(
+        "잠시만요! 너무 빨리 댓글을 작성하고 계셔요. 🐷",
+        HttpStatus.TOO_MANY_REQUESTS
+      );
+    }
+
+    // 닉네임 조회
+    const user = await this.usersService.findById(userId);
+    const nickname = user?.nickname || "익명 돼지";
+
+    const { data: comment, error } = await this.supabase
+      .from("feed_comments")
+      .insert({
+        post_id: postId,
+        user_id: userId,
+        nickname: nickname,
+        content: content,
+      })
+      .select()
+      .single();
+
+    if (error)
+      throw new HttpException(error.message, HttpStatus.INTERNAL_SERVER_ERROR);
+
+    // 댓글 수 증가
+    await this.supabase.rpc("increment_comment_count", { post_id: postId });
+
+    return comment;
+  }
+
+  // 댓글 삭제
+  async deleteComment(userId: string, commentId: string) {
+    const { data: comment } = await this.supabase
+      .from("feed_comments")
+      .select("user_id, post_id")
+      .eq("id", commentId)
+      .single();
+
+    if (!comment) {
+      throw new HttpException("댓글을 찾을 수 없습니다.", HttpStatus.NOT_FOUND);
+    }
+
+    if (comment.user_id !== userId) {
+      throw new HttpException(
+        "본인 댓글만 삭제할 수 있습니다.",
+        HttpStatus.FORBIDDEN
+      );
+    }
+
+    await this.supabase.from("feed_comments").delete().eq("id", commentId);
+
+    // 댓글 수 감소
+    await this.supabase.rpc("decrement_comment_count", {
+      post_id: comment.post_id,
+    });
+
+    return { success: true };
   }
 }

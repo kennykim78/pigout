@@ -808,4 +808,55 @@ export const reportPost = async (postId: string, reason: string) => {
   return response.data;
 };
 
+// 게시글 수정
+export const updatePost = async (
+  postId: string,
+  data: { comment?: string; tags?: string[]; imageUrl?: string }
+) => {
+  const response = await apiClient.post(`/lounge/feed/${postId}/update`, data);
+  return response.data;
+};
+
+// 게시글 삭제
+export const deletePost = async (postId: string) => {
+  const response = await apiClient.delete(`/lounge/feed/${postId}`);
+  return response.data;
+};
+
+// 댓글 목록 조회
+export const getComments = async (
+  postId: string,
+  limit: number = 20,
+  offset: number = 0
+) => {
+  const response = await apiClient.get(`/lounge/feed/${postId}/comments`, {
+    params: { limit, offset },
+  });
+  return response.data;
+};
+
+// 댓글 작성
+export const createComment = async (postId: string, content: string) => {
+  const response = await apiClient.post(`/lounge/feed/${postId}/comments`, {
+    content,
+  });
+  return response.data;
+};
+
+// 댓글 삭제
+export const deleteComment = async (commentId: string) => {
+  const response = await apiClient.delete(`/lounge/comments/${commentId}`);
+  return response.data;
+};
+
+// 일반 피드 작성 (음식 무관)
+export const createGeneralPost = async (postData: {
+  comment: string;
+  imageUrl?: string;
+  tags?: string[];
+}) => {
+  const response = await apiClient.post("/lounge/feed/general", postData);
+  return response.data;
+};
+
 export default apiClient;

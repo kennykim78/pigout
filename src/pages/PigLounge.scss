@@ -106,16 +106,69 @@
         }
       }
 
+      .feed-card__menu-wrapper {
+        position: relative;
+      }
+
       .feed-card__more {
         background: none;
         border: none;
         color: #999;
         cursor: pointer;
+        padding: 4px;
+        border-radius: 50%;
+        transition: background 0.2s;
+
+        &:hover {
+          background: #f5f5f5;
+        }
+      }
+
+      .feed-card__dropdown {
+        position: absolute;
+        top: 100%;
+        right: 0;
+        background: white;
+        border-radius: 12px;
+        box-shadow: 0 4px 20px rgba(0, 0, 0, 0.15);
+        min-width: 140px;
+        z-index: 200;
+        overflow: hidden;
+
+        .dropdown-item {
+          display: flex;
+          align-items: center;
+          gap: 8px;
+          width: 100%;
+          padding: 12px 16px;
+          border: none;
+          background: none;
+          font-size: 14px;
+          color: #333;
+          cursor: pointer;
+          transition: background 0.2s;
+
+          .material-symbols-rounded {
+            font-size: 20px;
+          }
+
+          &:hover {
+            background: #f9f9f9;
+          }
+
+          &.delete {
+            color: #dc2626;
+          }
+
+          &.report {
+            color: #ea580c;
+          }
+        }
       }
     }
 
     &__content {
-      padding: 16px; // 이미지 없이 텍스트/이모지 중심일 때
+      padding: 16px;
 
       &.good {
         background: linear-gradient(180deg, #ffffff 0%, #f0fdf4 100%);
@@ -129,6 +182,10 @@
         .food-score-badge {
           background-color: #dc2626;
         }
+      }
+
+      &.general {
+        background: #fff;
       }
 
       .feed-card__main-visual {
@@ -163,6 +220,19 @@
             font-size: 11px;
             opacity: 0.9;
           }
+        }
+      }
+
+      .feed-card__image {
+        border-radius: 12px;
+        overflow: hidden;
+        margin-bottom: 16px;
+
+        img {
+          width: 100%;
+          height: auto;
+          max-height: 300px;
+          object-fit: cover;
         }
       }
 
@@ -236,6 +306,120 @@
         }
         &.bookmark {
           margin-left: 0;
+
+          &.active {
+            color: #f59e0b;
+          }
+        }
+      }
+    }
+
+    &__comments {
+      border-top: 1px solid #f0f0f0;
+      background: #fafafa;
+      padding: 12px 16px;
+
+      .comments-loading,
+      .comments-empty {
+        text-align: center;
+        color: #999;
+        font-size: 13px;
+        padding: 12px 0;
+      }
+
+      .comments-list {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        margin-bottom: 12px;
+        max-height: 200px;
+        overflow-y: auto;
+
+        .comment-item {
+          display: flex;
+          align-items: flex-start;
+          gap: 10px;
+
+          .comment-avatar {
+            width: 28px;
+            height: 28px;
+            border-radius: 50%;
+            background: #e5e7eb;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 12px;
+            font-weight: 700;
+            color: #666;
+            flex-shrink: 0;
+          }
+
+          .comment-content {
+            flex: 1;
+            background: white;
+            padding: 8px 12px;
+            border-radius: 12px;
+            font-size: 13px;
+            line-height: 1.4;
+
+            .comment-user {
+              font-weight: 700;
+              margin-right: 6px;
+              color: #333;
+            }
+
+            .comment-text {
+              color: #555;
+            }
+          }
+        }
+      }
+
+      .comment-input-wrapper {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        background: white;
+        border-radius: 24px;
+        padding: 4px 4px 4px 16px;
+        border: 1px solid #e5e7eb;
+
+        input {
+          flex: 1;
+          border: none;
+          outline: none;
+          font-size: 14px;
+          background: transparent;
+
+          &::placeholder {
+            color: #999;
+          }
+        }
+
+        .comment-submit {
+          width: 36px;
+          height: 36px;
+          border-radius: 50%;
+          background: $color-black;
+          border: none;
+          color: white;
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          cursor: pointer;
+          transition: transform 0.2s;
+
+          .material-symbols-rounded {
+            font-size: 18px;
+          }
+
+          &:hover {
+            transform: scale(1.05);
+          }
+
+          &:active {
+            transform: scale(0.95);
+          }
         }
       }
     }
