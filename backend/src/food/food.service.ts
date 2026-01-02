@@ -915,6 +915,20 @@ export class FoodService {
           };
         };
 
+        // 🆕 영양소 기반 위험 요소 자동 생성
+        const generateRiskFactors = (nutrients: any) => {
+          if (!nutrients) return {};
+          const n = parseNutrients(nutrients);
+          return {
+            highSodium: n.sodium > 400, // 400mg 이상이면 고나트륨
+            highSugar: n.sugar > 10, // 10g 이상이면 고당류
+            highFat: n.fat > 15, // 15g 이상이면 고지방
+            highCalories: n.calories > 300, // 300kcal 이상이면 고칼로리
+            highPotassium: n.potassium > 300, // 300mg 이상이면 고칼륨 (신장 주의)
+            lowFiber: n.fiber < 1, // 1g 미만이면 저섬유
+          };
+        };
+
         const responseData = {
           id: result[0].id,
           foodName: result[0].food_name,
@@ -934,6 +948,12 @@ export class FoodService {
 
             // 🆕 영양 정보 (Result2 NutritionSection 호환)
             nutrition: parseNutrients(foodRule.nutrients),
+
+            // 🆕 1회 제공량 (기본값: 100g)
+            servingSize: { amount: 100, unit: "g" },
+
+            // 🆕 위험 요소 플래그 (영양소 기반 자동 생성)
+            riskFactors: generateRiskFactors(foodRule.nutrients),
 
             // 🆕 약물 상호작용 (규칙 기반은 없음)
             medicalAnalysis: {
