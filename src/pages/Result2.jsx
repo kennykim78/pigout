@@ -1436,6 +1436,33 @@ const Result2 = () => {
     }
   }, [location.state]);
 
+  const handleShare = async () => {
+    // Result2 페이지에서 analysisId가 location.state에 있거나, detailedAnalysis에 포함되어 있다고 가정
+    const shareId = location.state?.analysisId || detailedAnalysis?.id;
+
+    if (!shareId) {
+      alert("공유할 분석 데이터가 없습니다.");
+      return;
+    }
+
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `[먹어도돼지] ${foodName} 상세 분석`,
+          text: `먹어도돼지? ${foodName} AI 상세 분석 결과를 확인해보세요!`,
+          url: `${window.location.origin}/share/food/${shareId}`,
+        });
+      } catch (err) {
+        console.log("Error sharing:", err);
+      }
+    } else {
+      navigator.clipboard.writeText(
+        `${window.location.origin}/share/food/${shareId}`
+      );
+      alert("링크가 복사되었습니다!");
+    }
+  };
+
   // 스크롤 이벤트 핸들러 (Sticky Card Stack용)
   useEffect(() => {
     const container = containerRef.current;
@@ -1464,6 +1491,24 @@ const Result2 = () => {
       <header className="result2__header">
         <button className="result2__back-btn" onClick={() => navigate(-1)}>
           <span className="material-symbols-rounded">arrow_back</span>
+        </button>
+        <button
+          className="result2__share-btn"
+          onClick={handleShare}
+          style={{
+            width: "44px",
+            height: "44px",
+            borderRadius: "50%",
+            background: "#000",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "white",
+          }}
+        >
+          <span className="material-symbols-rounded">share</span>
         </button>
         <h1 className="result2__food-title">[ {foodName} ]</h1>
         <p className="result2__subtitle">

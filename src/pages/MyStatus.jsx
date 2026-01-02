@@ -192,7 +192,15 @@ const MyStatus = () => {
     <div className="my-status">
       {/* 1. Header: Main Life Stats Card */}
       <header className="status-header">
-        <h1>내 상태</h1>
+        <div className="status-header__top">
+          <h1>내 상태</h1>
+          <button
+            className="status-header__settings-btn"
+            onClick={() => navigate("/settings")}
+          >
+            <span className="material-symbols-rounded">settings</span>
+          </button>
+        </div>
 
         <div className="life-card">
           {/* 총 수명변화 (메인) */}

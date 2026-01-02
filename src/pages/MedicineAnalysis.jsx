@@ -101,7 +101,43 @@ const MedicineAnalysis = () => {
         >
           <span className="material-symbols-rounded">arrow_back</span>
         </button>
-        <div className="medicine-analysis__header-info">
+        <button
+          className="medicine-analysis__share-btn"
+          onClick={() => {
+            if (navigator.share) {
+              navigator
+                .share({
+                  title: `[먹어도돼지] 약물 상호작용 분석`,
+                  text: `내 약물 (${medicines.length}개) 상호작용 분석 결과입니다.`,
+                  url: `${window.location.origin}/share/medicine/shared-id`,
+                })
+                .catch(console.error);
+            } else {
+              navigator.clipboard.writeText(
+                `${window.location.origin}/share/medicine/shared-id`
+              );
+              alert("링크가 복사되었습니다!");
+            }
+          }}
+          style={{
+            width: "44px",
+            height: "44px",
+            borderRadius: "50%",
+            background: "#000",
+            border: "none",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            cursor: "pointer",
+            color: "white",
+          }}
+        >
+          <span className="material-symbols-rounded">share</span>
+        </button>
+        <div
+          className="medicine-analysis__header-info"
+          style={{ marginLeft: "10px" }}
+        >
           <h1 className="medicine-analysis__title">💊 약물 상호작용 분석</h1>
           <p className="medicine-analysis__subtitle">
             {medicines.length}개 약물 분석 완료

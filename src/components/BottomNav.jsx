@@ -1,13 +1,13 @@
-import { NavLink } from 'react-router-dom';
-import './BottomNav.scss';
+import { NavLink } from "react-router-dom";
+import "./BottomNav.scss";
 
 const BottomNav = () => {
   const navItems = [
-    { path: '/main', label: 'Home', icon: '🏠' },
-    { path: '/medicine', label: '약', icon: '💊' },
-    { path: '/status', label: '내 상태', icon: '📊' },
-    { path: '/recommendation', label: '내 추천', icon: '🎁' },
-    { path: '/mypage', label: 'My', icon: '👤' },
+    { path: "/main", label: "Home", icon: "🏠" },
+    { path: "/medicine", label: "약", icon: "💊" },
+    { path: "/status", label: "내 상태", icon: "📊" },
+    { path: "/recommendation", label: "내 추천", icon: "🎁" },
+    { path: "/lounge", label: "라운지", icon: "💬" },
   ];
 
   return (
@@ -17,7 +17,7 @@ const BottomNav = () => {
           key={item.path}
           to={item.path}
           className={({ isActive }) =>
-            `bottom-nav__item ${isActive ? 'bottom-nav__item--active' : ''}`
+            `bottom-nav__item ${isActive ? "bottom-nav__item--active" : ""}`
           }
         >
           <span className="bottom-nav__icon">{item.icon}</span>

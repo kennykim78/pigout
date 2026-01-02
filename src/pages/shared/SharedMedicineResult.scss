@@ -1,0 +1,58 @@
+@import "../../styles/variables";
+
+.shared-medicine-result {
+  padding: 20px;
+  display: flex;
+  justify-content: center;
+
+  .result-card {
+    background: white;
+    border-radius: 20px;
+    padding: 30px 20px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+    max-width: 400px;
+    width: 100%;
+
+    .icon-header {
+      font-size: 60px;
+      margin-bottom: 20px;
+    }
+
+    h1 {
+      font-size: 22px;
+      font-weight: 700;
+      margin: 0 0 10px 0;
+      color: #222;
+    }
+
+    .description {
+      font-size: 14px;
+      color: #666;
+      margin: 0 0 24px 0;
+      line-height: 1.5;
+    }
+
+    .status-box {
+      background: #f0fdf4;
+      border: 1px solid #bbf7d0;
+      padding: 16px;
+      border-radius: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 8px;
+      &.safe {
+        color: #16a34a;
+      }
+
+      .status-icon {
+        font-size: 20px;
+      }
+      .status-text {
+        font-weight: 700;
+        font-size: 16px;
+      }
+    }
+  }
+}

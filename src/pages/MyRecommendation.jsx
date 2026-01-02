@@ -40,6 +40,50 @@ const MediaContent = ({ videoId, imageUrl, title, relatedLink }) => {
   return null;
 };
 
+// PigRanking 컴포넌트
+const PigRanking = () => {
+  return (
+    <div className="pig-ranking-section">
+      <div className="ranking-card">
+        <h3 className="section-title">🔥 이번 주 인기 음식 TOP 3</h3>
+        <div className="ranking-list">
+          <div className="ranking-item">
+            <span className="rank-badge rank-1">1</span>
+            <span className="food-name">마라탕</span>
+            <span className="count">1,204회 분석</span>
+          </div>
+          <div className="ranking-item">
+            <span className="rank-badge rank-2">2</span>
+            <span className="food-name">치킨</span>
+            <span className="count">982회 분석</span>
+          </div>
+          <div className="ranking-item">
+            <span className="rank-badge rank-3">3</span>
+            <span className="food-name">삼겹살</span>
+            <span className="count">856회 분석</span>
+          </div>
+        </div>
+      </div>
+
+      <div className="vs-game-card">
+        <h3 className="section-title">⚖️ 밸런스 게임</h3>
+        <p className="vs-question">다이어트 중 참을 수 없는 유혹은?</p>
+        <div className="vs-options">
+          <button className="vs-option">
+            <span className="emoji">🍕</span>
+            <span className="label">피자 한 조각</span>
+          </button>
+          <div className="vs-divider">VS</div>
+          <button className="vs-option">
+            <span className="emoji">🍺</span>
+            <span className="label">맥주 한 잔</span>
+          </button>
+        </div>
+      </div>
+    </div>
+  );
+};
+
 const MyRecommendation = () => {
   const {
     data,
@@ -113,6 +157,9 @@ const MyRecommendation = () => {
       </header>
 
       <div className="cards-container">
+        {/* 0. Ranking & VS Game Section */}
+        <PigRanking />
+
         {/* 1. Food Card */}
         <div className="card food-card">
           <div className="card-header">

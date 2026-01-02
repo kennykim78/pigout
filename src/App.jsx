@@ -11,6 +11,11 @@ import MyRecommendation from "./pages/MyRecommendation";
 import MyPage from "./pages/MyPage";
 import Result01 from "./pages/Result01";
 import Result2 from "./pages/Result2";
+import Settings from "./pages/Settings";
+import PigLounge from "./pages/PigLounge";
+import SharedLayout from "./layout/SharedLayout";
+import SharedFoodResult from "./pages/shared/SharedFoodResult";
+import SharedMedicineResult from "./pages/shared/SharedMedicineResult";
 import MainLayout from "./layout/MainLayout";
 import "./App.scss";
 
@@ -30,7 +35,9 @@ function App() {
           <Route path="/medicine" element={<Medicine />} />
           <Route path="/status" element={<MyStatus />} />
           <Route path="/recommendation" element={<MyRecommendation />} />
-          <Route path="/mypage" element={<MyPage />} />
+          <Route path="/status" element={<MyStatus />} />
+          <Route path="/recommendation" element={<MyRecommendation />} />
+          <Route path="/lounge" element={<PigLounge />} />
         </Route>
 
         {/* 내약 추가 페이지 (네비게이션 바 없음) */}
@@ -42,6 +49,14 @@ function App() {
         {/* 결과 페이지 (네비게이션 바 없음) */}
         <Route path="/result01" element={<Result01 />} />
         <Route path="/result2" element={<Result2 />} />
+        {/* 설정 페이지 */}
+        <Route path="/settings" element={<Settings />} />
+
+        {/* 🆕 소셜 공유 페이지 (Shared Layout 적용) */}
+        <Route path="/share" element={<SharedLayout />}>
+          <Route path="food/:id" element={<SharedFoodResult />} />
+          <Route path="medicine/:id" element={<SharedMedicineResult />} />
+        </Route>
       </Routes>
     </Router>
   );

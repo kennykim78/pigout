@@ -1,0 +1,71 @@
+@import "../styles/variables";
+
+.shared-layout {
+  min-height: 100vh;
+  padding-bottom: 80px;
+  background-color: #f8f9fa;
+
+  &__content {
+    /* Content specific styles if needed */
+  }
+
+  &__banner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    background-color: rgba(0, 0, 0, 0.9);
+    padding: 16px 20px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    z-index: 1000;
+    box-shadow: 0 -4px 10px rgba(0, 0, 0, 0.1);
+    backdrop-filter: blur(10px);
+
+    // 모바일 대응 max-width (앱 컨테이너 기준이 있다면 맞춤)
+    // max-width: 412px;
+    // margin: 0 auto;
+    // left: 50%;
+    // transform: translateX(-50%);
+
+    .banner-text {
+      color: white;
+
+      .main-text {
+        font-size: 15px;
+        font-weight: 700;
+        margin: 0;
+        margin-bottom: 2px;
+      }
+
+      .sub-text {
+        font-size: 12px;
+        color: #ccc;
+        margin: 0;
+      }
+    }
+
+    .download-btn {
+      background-color: $color-primary-yellow;
+      color: $color-black;
+      border: none;
+      padding: 10px 20px;
+      border-radius: 20px;
+      font-size: 14px;
+      font-weight: 700;
+      font-family: $font-family;
+      cursor: pointer;
+      transition: transform 0.2s;
+      white-space: nowrap;
+
+      &:hover {
+        transform: scale(1.05);
+      }
+
+      &:active {
+        transform: scale(0.95);
+      }
+    }
+  }
+}

@@ -109,6 +109,28 @@ const Result01 = () => {
     });
   };
 
+  const handleShare = async () => {
+    if (navigator.share) {
+      try {
+        await navigator.share({
+          title: `[먹어도돼지] ${foodName} 분석 결과`,
+          text: `${foodName} 점수는 ${score}점! 내 수명은 ${
+            lifeDays >= 0 ? "+" : ""
+          }${lifeDays}일?`,
+          url: `${window.location.origin}/share/food/${analysisId}`, // 실제 배포 URL로 변경 필요
+        });
+      } catch (err) {
+        console.log("Error sharing:", err);
+      }
+    } else {
+      // Fallback: Copy to clipboard
+      navigator.clipboard.writeText(
+        `${window.location.origin}/share/food/${analysisId}`
+      );
+      alert("링크가 복사되었습니다!");
+    }
+  };
+
   // 데이터가 없으면 로딩 또는 안내 표시
   if (!foodName && !score) {
     return (
@@ -130,6 +152,25 @@ const Result01 = () => {
       <div className="result01__header">
         <button className="result01__back-btn" onClick={() => navigate(-1)}>
           <span className="material-symbols-rounded">arrow_back</span>
+        </button>
+        <button
+          className="result01__share-btn"
+          onClick={handleShare}
+          style={{
+            position: "absolute",
+            right: "20px",
+            background: "none",
+            border: "none",
+            color: "white",
+            cursor: "pointer",
+          }}
+        >
+          <span
+            className="material-symbols-rounded"
+            style={{ fontSize: "28px" }}
+          >
+            share
+          </span>
         </button>
         <h1 className="result01__food-name">[ {foodName || "음식"} ]</h1>
         <p className="result01__question">드시고 싶은가유?</p>
