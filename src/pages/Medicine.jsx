@@ -11,7 +11,6 @@ import {
   analyzeAllMedicinesStream,
   logActivity,
 } from "../services/api";
-import MedicineRadarChart from "../components/MedicineRadarChart";
 import MedicineSchedule from "../components/MedicineSchedule";
 import MedicineCorrelationSummary from "../components/MedicineCorrelationSummary";
 import MedicineInteractionNetwork from "../components/MedicineInteractionNetwork";
@@ -881,38 +880,28 @@ const Medicine = () => {
 
   return (
     <div className="medicine">
-      {/* 심플한 헤더 - Main 스타일 */}
+      {/* 심플한 헤더 - + 추가 버튼 포함 */}
       <div className="medicine__header">
         <div className="medicine__header-content">
-          <h1 className="medicine__title">내 약 관리</h1>
-          <p className="medicine__medicine-count">{medicines.length}개 등록</p>
+          <div style={{ width: "40px" }}></div>
+          <div className="medicine__header-center">
+            <h1 className="medicine__title">내 약 관리</h1>
+            <p className="medicine__medicine-count">
+              {medicines.length}개 등록
+            </p>
+          </div>
+          <button
+            className="medicine__add-header-btn"
+            onClick={() => navigate("/medicine/add")}
+            aria-label="약 추가"
+          >
+            <span className="material-symbols-rounded">add</span>
+          </button>
         </div>
       </div>
 
       {/* 메인 컨텐츠 영역 */}
       <div className="medicine__content">
-        {/* 탭 버튼 - Main 스타일의 큰 버튼 */}
-        <div className="medicine__tabs">
-          <button
-            className={`medicine__tab ${
-              activeTab === "list" ? "medicine__tab--active" : ""
-            }`}
-            onClick={() => setActiveTab("list")}
-          >
-            <span className="material-symbols-rounded">list_alt</span>
-            <span>내 약 목록</span>
-          </button>
-          <button
-            className={`medicine__tab ${
-              activeTab === "add" ? "medicine__tab--active" : ""
-            }`}
-            onClick={() => navigate("/medicine/add")}
-          >
-            <span className="material-symbols-rounded">add_circle</span>
-            <span>약 추가</span>
-          </button>
-        </div>
-
         {/* 리스트 내용 */}
         <div className="medicine__list">
           {isLoading ? (
@@ -921,7 +910,8 @@ const Medicine = () => {
             <div className="medicine__empty">
               <p>
                 등록된 약이 없습니다.
-                <br />약 추가 버튼을 눌러 약을 등록해보세요!
+                <br />
+                우측 상단의 + 버튼을 눌러 약을 등록해보세요!
               </p>
               <button
                 onClick={() => navigate("/medicine/add")}
@@ -932,8 +922,45 @@ const Medicine = () => {
             </div>
           ) : (
             <div>
-              {/* 약품 종합 위험도 프로파일 (등록 즉시 생성) */}
-              <MedicineRadarChart medicines={medicines} />
+              {/* 상호작용 요약 문구 (Result2 스타일) */}
+              <div className="medicine__status-banner">
+                {medicines.some(
+                  (m) =>
+                    m.drug_class?.includes("주의") ||
+                    m.drug_class?.includes("경고")
+                ) ? (
+                  <>
+                    <span className="medicine__status-icon">⚠️</span>
+                    <p className="medicine__status-text">
+                      복용 중인 약에 <strong>주의가 필요한 조합</strong>이
+                      있어요!
+                      <br />
+                      <span className="medicine__status-sub">
+                        식사와 함께 복용 시 주의해주세요.
+                      </span>
+                    </p>
+                  </>
+                ) : medicines.length >= 3 ? (
+                  <>
+                    <span className="medicine__status-icon">📊</span>
+                    <p className="medicine__status-text">
+                      <strong>{medicines.length}개</strong>의 약을 관리
+                      중이에요.
+                      <br />
+                      <span className="medicine__status-sub">
+                        약물 상호작용 분석으로 안전하게 복용하세요!
+                      </span>
+                    </p>
+                  </>
+                ) : (
+                  <>
+                    <span className="medicine__status-icon">✅</span>
+                    <p className="medicine__status-text">
+                      복용 중인 약이 <strong>안전하게</strong> 관리되고 있어요!
+                    </p>
+                  </>
+                )}
+              </div>
 
               {/* 복용 시간표 (등록 데이터 기반) */}
               <MedicineSchedule

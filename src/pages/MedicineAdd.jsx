@@ -552,31 +552,29 @@ const MedicineAdd = () => {
 
       {/* 메인 컨텐츠 영역 */}
       <div className="medicine__content">
-        {/* 탭 버튼 - Main 스타일의 큰 버튼 */}
-        <div className="medicine__tabs">
+        {/* 컴팩트 세그먼트 컨트롤 */}
+        <div className="medicine__segment-control">
           <button
-            className={`medicine__tab ${
-              addSubTab === "medicine" ? "medicine__tab--active" : ""
+            className={`medicine__segment ${
+              addSubTab === "medicine" ? "medicine__segment--active" : ""
             }`}
             onClick={() => setAddSubTab("medicine")}
           >
-            <span className="material-symbols-rounded">medication</span>
-            <span>의약품</span>
+            💊 의약품
           </button>
           <button
-            className={`medicine__tab ${
-              addSubTab === "healthfood" ? "medicine__tab--active" : ""
+            className={`medicine__segment ${
+              addSubTab === "healthfood" ? "medicine__segment--active" : ""
             }`}
             onClick={() => setAddSubTab("healthfood")}
           >
-            <span className="material-symbols-rounded">nutrition</span>
-            <span>건강기능식품</span>
+            🥗 건강기능식품
           </button>
         </div>
 
         {/* 의약품 탭 */}
         {addSubTab === "medicine" && (
-          <div className="medicine__add">
+          <div className="medicine__add medicine__add--compact">
             {/* AI 촬영 섹션 */}
             <section className="medicine__section">
               <h2 className="medicine__section-title">

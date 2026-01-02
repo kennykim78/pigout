@@ -81,6 +81,140 @@
     }
   }
 
+  // 헤더 우측 + 추가 버튼
+  &__add-header-btn {
+    width: 40px;
+    height: 40px;
+    border-radius: 20px;
+    background: $color-black;
+    border: none;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    box-shadow: $shadow-default;
+
+    .material-symbols-rounded {
+      font-size: 24px;
+      color: $color-white;
+      font-variation-settings: "FILL" 0, "wght" 600, "GRAD" 0, "opsz" 48;
+    }
+
+    &:hover {
+      transform: scale(1.1);
+      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.2);
+    }
+
+    &:active {
+      transform: scale(0.95);
+    }
+  }
+
+  // 헤더 센터 정렬
+  &__header-center {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+  }
+
+  // 상태 배너 (Result2 스타일)
+  &__status-banner {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 20px;
+    background: $color-white;
+    border-radius: $border-radius-lg;
+    border: 2px solid $color-black;
+    margin-bottom: 20px;
+    box-shadow: $shadow-default;
+  }
+
+  &__status-icon {
+    font-size: 32px;
+    flex-shrink: 0;
+  }
+
+  &__status-text {
+    margin: 0;
+    font-size: $font-size-base;
+    color: $color-black;
+    line-height: 1.5;
+
+    strong {
+      font-weight: $font-weight-semibold;
+      color: $color-black;
+    }
+  }
+
+  &__status-sub {
+    font-size: $font-size-small;
+    color: rgba($color-black, 0.6);
+  }
+
+  // 컴팩트 세그먼트 컨트롤
+  &__segment-control {
+    display: flex;
+    background: rgba($color-black, 0.08);
+    border-radius: 12px;
+    padding: 4px;
+    margin-bottom: 20px;
+  }
+
+  &__segment {
+    flex: 1;
+    padding: 12px 16px;
+    background: transparent;
+    border: none;
+    border-radius: 10px;
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
+    color: rgba($color-black, 0.6);
+    cursor: pointer;
+    transition: all 0.2s ease;
+
+    &--active {
+      background: $color-white;
+      color: $color-black;
+      font-weight: $font-weight-semibold;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+    }
+  }
+
+  // 컴팩트 약 추가 레이아웃
+  &__add--compact {
+    .medicine__section {
+      padding: 16px;
+      margin-bottom: 16px;
+    }
+
+    .medicine__section-title {
+      font-size: $font-size-base;
+      margin-bottom: 12px;
+    }
+
+    .medicine__section-desc {
+      font-size: $font-size-small;
+      margin-bottom: 12px;
+    }
+
+    .medicine__capture-btn {
+      padding: 14px 24px;
+    }
+
+    .medicine__search {
+      gap: 8px;
+    }
+
+    .medicine__search-input {
+      padding: 12px 16px;
+      font-size: $font-size-small;
+    }
+  }
+
   // ==========================================
   // 메인 컨텐츠 영역
   // ==========================================
