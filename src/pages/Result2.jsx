@@ -1152,9 +1152,34 @@ const Result2 = () => {
           // 🆕 백엔드 응답 구조 수정: data.data 자체가 상세 분석 데이터
           const result = data.data;
           setAnalysis(result.briefSummary || result.analysis || result.summary);
-          setDetailedAnalysis(result); // data.data 전체를 detailedAnalysis로 사용
 
-          // 🆕 캐시에 저장
+          // 🆕 기존 규칙 기반 데이터와 AI 결과 병합
+          setDetailedAnalysis((prevData) => {
+            if (prevData?.mode === "rule-based") {
+              // 규칙 기반 데이터 유지 + AI 약물 상호작용 추가
+              console.log("[Result2] 규칙 기반 데이터와 AI 결과 병합");
+              return {
+                ...prevData,
+                // AI에서 가져온 약물 상호작용
+                drug_food_interactions: result.drug_food_interactions || [],
+                medicalAnalysis: result.medicalAnalysis || {
+                  drug_food_interactions: [],
+                },
+                // AI 요약/조언 보완
+                expertAdvice: result.expertAdvice || prevData.expertAdvice,
+                summary: result.summary || prevData.summary,
+                // 기타 AI 보완 데이터
+                cookingTips: result.cookingTips || prevData.cookingTips,
+                alternatives: result.alternatives || prevData.alternatives,
+                // 병합 표시
+                mode: "rule-based+ai",
+              };
+            }
+            // 규칙 기반이 아니면 AI 결과 그대로 사용
+            return result;
+          });
+
+          // 🆕 캐시에 저장 (병합된 결과)
           const profile = getUserProfile();
           const savedDiseases = localStorage.getItem("selectedDiseases");
           const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
@@ -1163,9 +1188,19 @@ const Result2 = () => {
             profile?.gender,
             diseases
           );
-          useAnalysisStore
-            .getState()
-            .setAnalysis(foodNameParam, result, userHash);
+          // 캐시 저장은 병합 후 별도로 처리 필요 (setDetailedAnalysis 콜백 후)
+          setTimeout(() => {
+            const mergedData =
+              useAnalysisStore.getState().cache[
+                foodNameParam.toLowerCase().trim()
+              ];
+            if (!mergedData) {
+              // 병합된 결과가 아직 없으면 AI 결과만 저장
+              useAnalysisStore
+                .getState()
+                .setAnalysis(foodNameParam, result, userHash);
+            }
+          }, 100);
         }
         setStreamProgress(100);
         setIsStreaming(false);
@@ -1213,10 +1248,28 @@ const Result2 = () => {
           da.medicalAnalysis?.drug_food_interactions?.length > 0 ||
           da.drug_food_interactions?.length > 0);
 
-      if (hasRealDetailedAnalysis) {
+      // 🆕 규칙 기반 분석인지 확인 (약물 상호작용이 없음)
+      const isRuleBasedWithoutDrugInteractions =
+        da?.mode === "rule-based" &&
+        (!da.drug_food_interactions ||
+          da.drug_food_interactions.length === 0) &&
+        (!da.medicalAnalysis?.drug_food_interactions ||
+          da.medicalAnalysis.drug_food_interactions.length === 0);
+
+      if (hasRealDetailedAnalysis && !isRuleBasedWithoutDrugInteractions) {
+        // 완전한 데이터가 있으면 그대로 사용
         setDetailedAnalysis(da);
       } else if (location.state.foodName) {
-        // 🆕 캐시 확인
+        // 🆕 규칙 기반 데이터가 있어도 약물 상호작용이 없으면 AI 보완 분석
+        if (isRuleBasedWithoutDrugInteractions) {
+          console.log(
+            "[Result2] 규칙 기반 데이터 있음, AI 약물 상호작용 보완 분석 시작"
+          );
+          // 규칙 기반 데이터를 기본으로 설정 (UI에 먼저 표시)
+          setDetailedAnalysis(da);
+        }
+
+        // 캐시 확인
         const profile = getUserProfile();
         const savedDiseases = localStorage.getItem("selectedDiseases");
         const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
@@ -1229,10 +1282,11 @@ const Result2 = () => {
           .getState()
           .getAnalysis(location.state.foodName, userHash);
 
-        if (cached) {
+        if (cached && !isRuleBasedWithoutDrugInteractions) {
           console.log("[Result2] 캐시 데이터 사용:", location.state.foodName);
           setDetailedAnalysis(cached);
         } else {
+          // AI 분석 시작 (규칙 기반 보완 또는 전체 분석)
           startStreamingAnalysis(location.state.foodName);
         }
       }
