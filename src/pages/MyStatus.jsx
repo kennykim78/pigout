@@ -53,8 +53,14 @@ const MyStatus = () => {
       ]);
 
       setStatusData(statusResult);
-      setHistoryList(historyResult.historyList || []);
-      setHasMore(historyResult.hasMore);
+
+      // Ensure historyResult.historyList is an array before setting
+      const initialHistory = Array.isArray(historyResult?.historyList)
+        ? historyResult.historyList
+        : [];
+      setHistoryList(initialHistory);
+
+      setHasMore(!!historyResult?.hasMore);
       setOffset(LIMIT);
     } catch (error) {
       console.error("Failed to load status:", error);
@@ -70,18 +76,34 @@ const MyStatus = () => {
       setLoadingMore(true);
       const result = await getActivityHistory(LIMIT, offset);
 
-      if (result.historyList && result.historyList.length > 0) {
+      if (
+        result &&
+        Array.isArray(result.historyList) &&
+        result.historyList.length > 0
+      ) {
         // 기존 날짜와 병합 (같은 날짜는 합침)
         setHistoryList((prev) => {
-          const merged = [...prev];
+          // Ensure prev is an array
+          const currentList = Array.isArray(prev) ? prev : [];
+          const merged = [...currentList];
+
           result.historyList.forEach((newDay) => {
-            const existingIdx = merged.findIndex((d) => d.date === newDay.date);
+            const existingIdx = merged.findIndex(
+              (d) => d && d.date === newDay.date
+            );
             if (existingIdx >= 0) {
               // 같은 날짜가 있으면 아이템 추가
               merged[existingIdx] = {
                 ...merged[existingIdx],
-                items: [...merged[existingIdx].items, ...newDay.items],
-                dailyTotal: merged[existingIdx].dailyTotal + newDay.dailyTotal,
+                items: [
+                  ...(Array.isArray(merged[existingIdx].items)
+                    ? merged[existingIdx].items
+                    : []),
+                  ...(Array.isArray(newDay.items) ? newDay.items : []),
+                ],
+                dailyTotal:
+                  (merged[existingIdx].dailyTotal || 0) +
+                  (newDay.dailyTotal || 0),
               };
             } else {
               merged.push(newDay);
@@ -92,13 +114,13 @@ const MyStatus = () => {
         setOffset((prev) => prev + LIMIT);
       }
 
-      setHasMore(result.hasMore);
+      setHasMore(!!result?.hasMore);
     } catch (error) {
       console.error("Failed to load more history:", error);
     } finally {
       setLoadingMore(false);
     }
-  }, [offset, loadingMore, hasMore]);
+  }, [offset, loadingMore, hasMore, setHistoryList, setHasMore, setOffset]);
 
   // Intersection Observer로 무한 스크롤 구현
   const lastElementRef = useCallback(
@@ -227,11 +249,11 @@ const MyStatus = () => {
         <h2>활동 히스토리</h2>
 
         <div className="history-list">
-          {historyList && historyList.length > 0 ? (
+          {Array.isArray(historyList) && historyList.length > 0 ? (
             <>
               {historyList.map((dayGroup, idx) => (
                 <div
-                  key={dayGroup.date}
+                  key={dayGroup?.date || idx}
                   className="day-group"
                   ref={idx === historyList.length - 1 ? lastElementRef : null}
                 >
@@ -250,34 +272,35 @@ const MyStatus = () => {
                   </div>
 
                   <div className="day-items">
-                    {dayGroup.items.map((item, itemIdx) => (
-                      <div
-                        key={`${item.id}-${itemIdx}`}
-                        className={`history-item ${
-                          item.type === "food_analysis" ? "clickable" : ""
-                        }`}
-                        onClick={() => handleHistoryItemClick(item)}
-                      >
-                        <span className="item-icon">
-                          {getActivityIcon(item.type)}
-                        </span>
-                        <div className="item-info">
-                          <span className="item-time">{item.time}</span>
-                          <span className="item-name">{item.name}</span>
-                        </div>
-                        <span
-                          className={`item-change ${
-                            item.lifeChangeDays >= 0 ? "positive" : "negative"
+                    {Array.isArray(dayGroup?.items) &&
+                      dayGroup.items.map((item, itemIdx) => (
+                        <div
+                          key={`${item.id}-${itemIdx}`}
+                          className={`history-item ${
+                            item.type === "food_analysis" ? "clickable" : ""
                           }`}
+                          onClick={() => handleHistoryItemClick(item)}
                         >
-                          {item.lifeChangeDays > 0 ? "+" : ""}
-                          {item.lifeChangeDays}일
-                        </span>
-                        {item.type === "food_analysis" && (
-                          <span className="item-arrow">›</span>
-                        )}
-                      </div>
-                    ))}
+                          <span className="item-icon">
+                            {getActivityIcon(item.type)}
+                          </span>
+                          <div className="item-info">
+                            <span className="item-time">{item.time}</span>
+                            <span className="item-name">{item.name}</span>
+                          </div>
+                          <span
+                            className={`item-change ${
+                              item.lifeChangeDays >= 0 ? "positive" : "negative"
+                            }`}
+                          >
+                            {item.lifeChangeDays > 0 ? "+" : ""}
+                            {item.lifeChangeDays}일
+                          </span>
+                          {item.type === "food_analysis" && (
+                            <span className="item-arrow">›</span>
+                          )}
+                        </div>
+                      ))}
                   </div>
                 </div>
               ))}

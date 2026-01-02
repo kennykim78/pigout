@@ -49,22 +49,27 @@ $color-safe: #3b82f6;
     transform: translateY(-50%);
     width: 44px;
     height: 44px;
-    background: none;
+    background-color: $color-black;
     border: none;
     border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    transition: background 0.2s;
-
-    &:hover {
-      background: rgba(0, 0, 0, 0.05);
-    }
+    transition: all 0.2s ease;
+    color: $color-white;
 
     .material-symbols-rounded {
-      font-size: 28px;
-      color: $result2-accent;
+      font-size: 24px;
+      color: $color-white;
+    }
+
+    &:hover {
+      background-color: lighten($color-black, 10%);
+    }
+
+    &:active {
+      transform: scale(0.9);
     }
   }
 

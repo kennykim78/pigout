@@ -1,42 +1,51 @@
-@import '../styles/variables';
-@import '../styles/mixins';
+@import "../styles/variables";
+@import "../styles/mixins";
 
 .result01 {
-  width: 100%; min-height: 100vh; background-color: $color-primary-yellow;
+  width: 100%;
+  min-height: 100vh;
+  background-color: $color-primary-yellow;
 
   &__back-btn {
     position: absolute;
     top: 20px;
     left: 20px;
     z-index: 10;
-    background: transparent;
+    background-color: $color-black;
     border: none;
-    padding: 8px;
-    cursor: pointer;
+    border-radius: 50%;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 50%;
-    transition: background-color 0.2s ease;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: $color-white;
 
     .material-symbols-rounded {
-      font-size: $font-size-large;
+      font-size: 24px;
       color: $color-white;
     }
 
     &:hover {
-      background-color: rgba(255, 255, 255, 0.2);
+      background-color: lighten($color-black, 10%);
     }
 
     &:active {
-      background-color: rgba(255, 255, 255, 0.3);
+      transform: scale(0.9);
     }
   }
 
-  &__header { background-color: $color-black; padding: 70px 0 40px; border-radius: 0 0 $border-radius-md $border-radius-md; position: relative; z-index: 1;
-    
+  &__header {
+    background-color: $color-black;
+    padding: 70px 0 40px;
+    border-radius: 0 0 $border-radius-md $border-radius-md;
+    position: relative;
+    z-index: 1;
+
     &::before {
-      content: '';
+      content: "";
       position: absolute;
       top: 0;
       left: 0;
@@ -47,19 +56,44 @@
       border-radius: 0 0 $border-radius-md $border-radius-md;
     }
   }
-  &__food-name { font-family: $font-family; font-size: $font-size-xxlarge; font-weight: $font-weight-semibold; color: $color-white; text-align: center; line-height: 1.4; margin: 0 0 5px 0; position: relative; z-index: 2; }
-  &__question { font-family: $font-family; font-size: $font-size-large; font-weight: $font-weight-semibold; color: $color-white; text-align: center; margin: 0; position: relative; z-index: 2; }
-  &__content { padding: 40px 35px 20px; max-width: 412px; margin: 0 auto; position: relative; z-index: 2; }
-  &__header-bg { 
-    width: 100%; 
-    height: 400px; 
-    position: absolute; 
-    top: 0; 
-    left: 0; 
-    object-fit: cover; 
-    z-index: -1; 
+  &__food-name {
+    font-family: $font-family;
+    font-size: $font-size-xxlarge;
+    font-weight: $font-weight-semibold;
+    color: $color-white;
+    text-align: center;
+    line-height: 1.4;
+    margin: 0 0 5px 0;
+    position: relative;
+    z-index: 2;
+  }
+  &__question {
+    font-family: $font-family;
+    font-size: $font-size-large;
+    font-weight: $font-weight-semibold;
+    color: $color-white;
+    text-align: center;
+    margin: 0;
+    position: relative;
+    z-index: 2;
+  }
+  &__content {
+    padding: 40px 35px 20px;
+    max-width: 412px;
+    margin: 0 auto;
+    position: relative;
+    z-index: 2;
+  }
+  &__header-bg {
+    width: 100%;
+    height: 400px;
+    position: absolute;
+    top: 0;
+    left: 0;
+    object-fit: cover;
+    z-index: -1;
     border-radius: 0 0 $border-radius-md $border-radius-md;
-    
+
     &--placeholder {
       display: flex;
       align-items: center;
@@ -67,57 +101,225 @@
       background-color: #000;
     }
   }
-  &__score-section { position: relative; @include flex-center; flex-direction: column; margin-bottom: 75px; }
-  &__score-outer { width: 319px; height: 319px; background-color: $color-primary-yellow; border-radius: 50%; @include flex-center; position: relative; }
-  &__score-inner { 
-    width: 259px; height: 259px; background-color: $color-primary-orange; border-radius: 50%; @include flex-center; box-shadow: $shadow-default;
+  &__score-section {
+    position: relative;
+    @include flex-center;
+    flex-direction: column;
+    margin-bottom: 75px;
+  }
+  &__score-outer {
+    width: 319px;
+    height: 319px;
+    background-color: $color-primary-yellow;
+    border-radius: 50%;
+    @include flex-center;
+    position: relative;
+  }
+  &__score-inner {
+    width: 259px;
+    height: 259px;
+    background-color: $color-primary-orange;
+    border-radius: 50%;
+    @include flex-center;
+    box-shadow: $shadow-default;
     transition: background-color 0.3s ease;
-    
-    // 8단계 수명 일수 색상 클래스
-    &--life-perfect { background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%); } // 금색 (+70일 이상)
-    &--life-excellent { background-color: #1B5E20; } // 진한 초록 (+40~+69일)
-    &--life-great { background-color: #2E7D32; }     // 초록 (+15~+39일)
-    &--life-good { background-color: #7CB342; }      // 연두 (+1~+14일)
-    &--life-warning { background-color: #FFA000; }   // 노랑 (-1~-14일)
-    &--life-caution { background-color: #F57C00; }   // 주황 (-15~-39일)
-    &--life-danger { background-color: #D32F2F; }    // 빨강 (-40~-69일)
-    &--life-critical { background: linear-gradient(135deg, #4A148C 0%, #1A1A1A 100%); } // 보라/검정 (-70일 이하)
-  }
-  &__score-content { text-align: center; }
-  &__score-label { font-family: $font-family; font-size: $font-size-base; font-weight: $font-weight-medium; color: $color-white; margin: 0 0 8px 0; }
-  &__score-value { 
-    font-family: $font-family; font-size: $font-size-score; font-weight: $font-weight-black; color: $color-white; line-height: 1.2; margin: 0 0 12px 0;
-    
-    &--positive { 
-      color: #C8E6C9; // 연한 초록
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-    &--negative { 
-      color: #FFCDD2; // 연한 빨강
-      text-shadow: 0 2px 4px rgba(0,0,0,0.2);
-    }
-  }
-  &__score-comment { font-family: $font-family; font-size: $font-size-medium; font-weight: $font-weight-medium; color: $color-white; line-height: 1.4; margin: 0; white-space: pre-line; }
-  &__food-image { width: 160px; height: 160px; position: absolute; top: -120px; left:50%; transform: translateX(-50%); z-index: -1;  }
-  &__info-section { @include flex-column; gap: 40px; margin-bottom: 40px; position: relative; z-index: 3;}
-  &__info-card {
-    @include card-base; min-height: 160px; width: 342px;
 
-    p { font-family: $font-family; font-size: $font-size-medium; font-weight: $font-weight-medium; color: $color-black; line-height: 1.5; margin: 0; }
+    // 8단계 수명 일수 색상 클래스
+    &--life-perfect {
+      background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%);
+    } // 금색 (+70일 이상)
+    &--life-excellent {
+      background-color: #1b5e20;
+    } // 진한 초록 (+40~+69일)
+    &--life-great {
+      background-color: #2e7d32;
+    } // 초록 (+15~+39일)
+    &--life-good {
+      background-color: #7cb342;
+    } // 연두 (+1~+14일)
+    &--life-warning {
+      background-color: #ffa000;
+    } // 노랑 (-1~-14일)
+    &--life-caution {
+      background-color: #f57c00;
+    } // 주황 (-15~-39일)
+    &--life-danger {
+      background-color: #d32f2f;
+    } // 빨강 (-40~-69일)
+    &--life-critical {
+      background: linear-gradient(135deg, #4a148c 0%, #1a1a1a 100%);
+    } // 보라/검정 (-70일 이하)
   }
-  &__detail-button { @include button-base; width: 342px; height: 54px; background-color: $color-black; color: $color-white; }
-  &__recommendations { @include flex-column; gap: 20px; }
-  
+  &__score-content {
+    text-align: center;
+  }
+  &__score-label {
+    font-family: $font-family;
+    font-size: $font-size-base;
+    font-weight: $font-weight-medium;
+    color: $color-white;
+    margin: 0 0 8px 0;
+  }
+  &__score-value {
+    font-family: $font-family;
+    font-size: $font-size-score;
+    font-weight: $font-weight-black;
+    color: $color-white;
+    line-height: 1.2;
+    margin: 0 0 12px 0;
+
+    &--positive {
+      color: #c8e6c9; // 연한 초록
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+    &--negative {
+      color: #ffcdd2; // 연한 빨강
+      text-shadow: 0 2px 4px rgba(0, 0, 0, 0.2);
+    }
+  }
+  &__score-comment {
+    font-family: $font-family;
+    font-size: $font-size-medium;
+    font-weight: $font-weight-medium;
+    color: $color-white;
+    line-height: 1.4;
+    margin: 0;
+    white-space: pre-line;
+  }
+  &__food-image {
+    width: 160px;
+    height: 160px;
+    position: absolute;
+    top: -120px;
+    left: 50%;
+    transform: translateX(-50%);
+    z-index: -1;
+  }
+  &__info-section {
+    @include flex-column;
+    gap: 40px;
+    margin-bottom: 40px;
+    position: relative;
+    z-index: 3;
+  }
+  &__info-card {
+    @include card-base;
+    min-height: 160px;
+    width: 342px;
+
+    p {
+      font-family: $font-family;
+      font-size: $font-size-medium;
+      font-weight: $font-weight-medium;
+      color: $color-black;
+      line-height: 1.5;
+      margin: 0;
+    }
+  }
+  &__detail-button {
+    @include button-base;
+    width: 342px;
+    height: 54px;
+    background-color: $color-black;
+    color: $color-white;
+  }
+  &__recommendations {
+    @include flex-column;
+    gap: 20px;
+  }
+
   // Full analysis overlay styles
-  &__full-overlay { position: fixed; top:0; left:0; right:0; bottom:0; background: rgba(0,0,0,0.85); display:flex; justify-content:center; align-items:center; z-index:2000; animation: fadeIn 0.3s ease; }
-  &__full-modal { background: linear-gradient(135deg,#fff8e1 0%,#ffe0b2 100%); border-radius: $border-radius-lg; padding:36px 28px; width:90%; max-width:480px; box-shadow:0 8px 32px rgba(0,0,0,0.4); text-align:center; }
-  &__full-title { font-family:$font-family; font-size:$font-size-xlarge; font-weight:$font-weight-black; margin:0 0 24px 0; color:$color-black; animation:pulse 2s ease-in-out infinite; }
-  &__full-steps { display:flex; flex-direction:column; gap:12px; margin-bottom:28px; }
-  &__full-step { font-family:$font-family; font-size:$font-size-small; font-weight:$font-weight-medium; color:$color-black; background:rgba(255,255,255,0.7); padding:10px 16px; border-radius:$border-radius-sm; opacity:.5; transition:all .3s ease; &.active { opacity:1; background:#fff; box-shadow:0 0 0 2px rgba(0,0,0,0.05); } }
-  &__full-spinner { width:70px; height:70px; border:5px solid rgba($color-primary-red,0.2); border-top:5px solid $color-primary-red; border-radius:50%; margin:0 auto 24px auto; animation:spin 1s linear infinite; }
-  &__full-tip { font-family:$font-family; font-size:$font-size-small; color:$color-gray; margin:0; }
+  &__full-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.85);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 2000;
+    animation: fadeIn 0.3s ease;
+  }
+  &__full-modal {
+    background: linear-gradient(135deg, #fff8e1 0%, #ffe0b2 100%);
+    border-radius: $border-radius-lg;
+    padding: 36px 28px;
+    width: 90%;
+    max-width: 480px;
+    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.4);
+    text-align: center;
+  }
+  &__full-title {
+    font-family: $font-family;
+    font-size: $font-size-xlarge;
+    font-weight: $font-weight-black;
+    margin: 0 0 24px 0;
+    color: $color-black;
+    animation: pulse 2s ease-in-out infinite;
+  }
+  &__full-steps {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-bottom: 28px;
+  }
+  &__full-step {
+    font-family: $font-family;
+    font-size: $font-size-small;
+    font-weight: $font-weight-medium;
+    color: $color-black;
+    background: rgba(255, 255, 255, 0.7);
+    padding: 10px 16px;
+    border-radius: $border-radius-sm;
+    opacity: 0.5;
+    transition: all 0.3s ease;
+    &.active {
+      opacity: 1;
+      background: #fff;
+      box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.05);
+    }
+  }
+  &__full-spinner {
+    width: 70px;
+    height: 70px;
+    border: 5px solid rgba($color-primary-red, 0.2);
+    border-top: 5px solid $color-primary-red;
+    border-radius: 50%;
+    margin: 0 auto 24px auto;
+    animation: spin 1s linear infinite;
+  }
+  &__full-tip {
+    font-family: $font-family;
+    font-size: $font-size-small;
+    color: $color-gray;
+    margin: 0;
+  }
 }
 
-@keyframes fadeIn { from { opacity:0; } to { opacity:1; } }
-@keyframes pulse { 0%,100% { opacity:1; } 50% { opacity:.7; } }
-@keyframes spin { 0% { transform:rotate(0deg); } 100% { transform:rotate(360deg); } }
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+@keyframes pulse {
+  0%,
+  100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.7;
+  }
+}
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}

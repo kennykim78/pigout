@@ -1,27 +1,27 @@
-import './Contact.scss';
-import { useNavigate } from 'react-router-dom';
-import { useState } from 'react';
+import "./Contact.scss";
+import { useNavigate } from "react-router-dom";
+import { useState } from "react";
 
 const Contact = () => {
   const navigate = useNavigate();
   const [formData, setFormData] = useState({
-    name: '',
-    email: '',
-    message: ''
+    name: "",
+    email: "",
+    message: "",
   });
 
   const handleSubmit = (e) => {
     e.preventDefault();
     // TODO: 백엔드로 문의 전송
-    alert('문의가 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.');
+    alert("문의가 접수되었습니다. 빠른 시일 내에 답변드리겠습니다.");
     navigate(-1);
   };
 
   const handleChange = (e) => {
     const { name, value } = e.target;
-    setFormData(prev => ({
+    setFormData((prev) => ({
       ...prev,
-      [name]: value
+      [name]: value,
     }));
   };
 
@@ -29,10 +29,10 @@ const Contact = () => {
     <div className="contact">
       <div className="contact__header">
         <button className="contact__back-button" onClick={() => navigate(-1)}>
-          ←
+          <span className="material-symbols-rounded">arrow_back</span>
         </button>
         <h1 className="contact__title">Contact Us</h1>
-        <div style={{ width: '40px' }}></div>
+        <div style={{ width: "44px" }}></div>
       </div>
 
       <div className="contact__content">

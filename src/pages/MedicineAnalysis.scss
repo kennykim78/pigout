@@ -34,24 +34,29 @@ $card-height: 70vh;
   }
 
   &__back-btn {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    background: rgba(255, 255, 255, 0.15);
+    width: 44px;
+    height: 44px;
+    background-color: $color-black;
     border: none;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: #fff;
     cursor: pointer;
-    transition: background 0.2s;
-
-    &:hover {
-      background: rgba(255, 255, 255, 0.25);
-    }
+    transition: all 0.2s ease;
+    color: $color-white;
 
     .material-symbols-rounded {
       font-size: 24px;
+      color: $color-white;
+    }
+
+    &:hover {
+      background-color: lighten($color-black, 10%);
+    }
+
+    &:active {
+      transform: scale(0.9);
     }
   }
 

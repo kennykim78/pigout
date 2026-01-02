@@ -1,4 +1,4 @@
-@import '../styles/variables';
+@import "../styles/variables";
 
 .settings {
   min-height: 100vh;
@@ -17,22 +17,29 @@
   }
 
   &__back-button {
-    background: none;
+    width: 44px;
+    height: 44px;
+    background-color: $color-black;
     border: none;
-    color: white;
-    cursor: pointer;
-    padding: 0.5rem;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: transform 0.2s;
-
-    &:hover {
-      transform: scale(1.1);
-    }
+    cursor: pointer;
+    transition: all 0.2s ease;
+    color: $color-white;
 
     .material-symbols-rounded {
-      font-size: 1.5rem;
+      font-size: 24px;
+      color: $color-white;
+    }
+
+    &:hover {
+      background-color: lighten($color-black, 10%);
+    }
+
+    &:active {
+      transform: scale(0.9);
     }
   }
 
@@ -43,7 +50,7 @@
     font-size: 1.25rem;
     font-weight: 600;
     margin: 0;
-    padding-right: 2.5rem; // 뒤로가기 버튼과 균형 맞추기
+    padding-right: 44px; // 뒤로가기 버튼과 균형 맞추기
   }
 
   &__content {

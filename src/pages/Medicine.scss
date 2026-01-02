@@ -54,30 +54,29 @@
   }
 
   &__back-button {
-    width: 40px;
-    height: 40px;
-    border-radius: 20px;
-    background: $color-white;
-    border: 2px solid $color-black;
+    width: 44px;
+    height: 44px;
+    background-color: $color-black;
+    border: none;
+    border-radius: 50%;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    box-shadow: $shadow-default;
+    color: $color-white;
 
     .material-symbols-rounded {
       font-size: 24px;
-      color: $color-black;
+      color: $color-white;
     }
 
     &:hover {
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0, 0, 0, 0.15);
+      background-color: lighten($color-black, 10%);
     }
 
     &:active {
-      transform: translateY(0);
+      transform: scale(0.9);
     }
   }
 

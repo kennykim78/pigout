@@ -1,5 +1,5 @@
-@import '../styles/variables';
-@import '../styles/mixins';
+@import "../styles/variables";
+@import "../styles/mixins";
 
 .history {
   min-height: 100vh;
@@ -24,15 +24,18 @@
     background-color: $color-black;
     border: none;
     border-radius: 50%;
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
     transition: all 0.2s ease;
-    font-size: 20px;
     color: $color-white;
+
+    .material-symbols-rounded {
+      font-size: 24px;
+    }
 
     &:hover {
       background-color: lighten($color-black, 10%);
@@ -137,71 +140,71 @@
     flex-shrink: 0;
     padding: 4px 12px;
     border-radius: 20px;
-    
+
     // 8단계 수명 일수 색상 클래스
     &--life-perfect {
-      background: linear-gradient(135deg, #FFD700 0%, #FFA000 100%);
-      color: #1A1A1A;
+      background: linear-gradient(135deg, #ffd700 0%, #ffa000 100%);
+      color: #1a1a1a;
     }
-    
+
     &--life-excellent {
-      background-color: #1B5E20;
+      background-color: #1b5e20;
       color: white;
     }
-    
+
     &--life-great {
-      background-color: #2E7D32;
+      background-color: #2e7d32;
       color: white;
     }
-    
+
     &--life-good {
-      background-color: #7CB342;
+      background-color: #7cb342;
       color: white;
     }
-    
+
     &--life-warning {
-      background-color: #FFA000;
+      background-color: #ffa000;
       color: white;
     }
-    
+
     &--life-caution {
-      background-color: #F57C00;
+      background-color: #f57c00;
       color: white;
     }
-    
+
     &--life-danger {
-      background-color: #D32F2F;
+      background-color: #d32f2f;
       color: white;
     }
-    
+
     &--life-critical {
-      background: linear-gradient(135deg, #4A148C 0%, #1A1A1A 100%);
+      background: linear-gradient(135deg, #4a148c 0%, #1a1a1a 100%);
       color: white;
     }
-    
+
     // 기존 호환성 유지
     &--great {
-      background-color: #4CAF50;
+      background-color: #4caf50;
       color: white;
     }
-    
+
     &--good {
-      background-color: #8BC34A;
+      background-color: #8bc34a;
       color: white;
     }
-    
+
     &--neutral {
-      background-color: #FF9800;
+      background-color: #ff9800;
       color: white;
     }
-    
+
     &--caution {
-      background-color: #FF5722;
+      background-color: #ff5722;
       color: white;
     }
-    
+
     &--bad {
-      background-color: #F44336;
+      background-color: #f44336;
       color: white;
     }
   }

@@ -56,7 +56,8 @@ export const useStatusStore = create<StatusStore>((set, get) => ({
       lastFetchTime: Date.now(),
     }),
 
-  setHistoryList: (historyList) => set({ historyList }),
+  setHistoryList: (historyList) =>
+    set({ historyList: Array.isArray(historyList) ? historyList : [] }),
 
   appendHistory: (items) =>
     set((state) => ({

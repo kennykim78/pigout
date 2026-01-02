@@ -546,7 +546,7 @@ const MedicineAdd = () => {
             <span className="material-symbols-rounded">arrow_back</span>
           </button>
           <h1 className="medicine__title">약 추가하기</h1>
-          <div style={{ width: "40px" }}></div>
+          <div style={{ width: "44px" }}></div>
         </div>
       </div>
 
