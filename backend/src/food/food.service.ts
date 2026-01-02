@@ -877,9 +877,23 @@ export class FoodService {
           analysisMode: "quick", // Result01 빠른 분석
         });
 
+        // 🆕 규칙 기반 분석에서도 기존 이미지 URL 조회
+        let ruleBasedImageUrl = null;
+        try {
+          ruleBasedImageUrl = await this.supabaseService.findExistingFoodImage(
+            normalizedFoodName
+          );
+          if (ruleBasedImageUrl) {
+            console.log("[규칙 기반] 기존 이미지 재활용:", ruleBasedImageUrl);
+          }
+        } catch (imgErr) {
+          console.warn("[규칙 기반] 이미지 조회 실패:", imgErr.message);
+        }
+
         const responseData = {
           id: result[0].id,
           foodName: result[0].food_name,
+          imageUrl: ruleBasedImageUrl, // 🆕 이미지 URL 추가
           score: result[0].score,
           analysis: result[0].analysis,
           detailedAnalysis: {
@@ -939,9 +953,23 @@ export class FoodService {
           cachedResult.detailed_analysis
         );
 
+        // 🆕 캐시 히트 시에도 기존 이미지 URL 조회
+        let cachedImageUrl = null;
+        try {
+          cachedImageUrl = await this.supabaseService.findExistingFoodImage(
+            cachedResult.food_name
+          );
+          if (cachedImageUrl) {
+            console.log("[Cache] 기존 이미지 재활용:", cachedImageUrl);
+          }
+        } catch (imgErr) {
+          console.warn("[Cache] 이미지 조회 실패:", imgErr.message);
+        }
+
         const responseData = {
           id: result[0].id,
           foodName: result[0].food_name,
+          imageUrl: cachedImageUrl, // 🆕 이미지 URL 추가
           score: result[0].score,
           analysis: result[0].analysis,
           detailedAnalysis: {
