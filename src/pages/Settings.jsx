@@ -1,5 +1,7 @@
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
+import { getCurrentUser } from "../services/api";
 import "./Settings.scss";
 
 const Settings = () => {
@@ -7,12 +9,88 @@ const Settings = () => {
   const { user, logout } = useAuthStore();
   const deviceId = localStorage.getItem("pigout_device_id");
 
+  // 사용자 프로필 데이터
+  const [profile, setProfile] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // 설정 상태
+  const [notificationsEnabled, setNotificationsEnabled] = useState(true);
+  const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+
+  // 프로필 로드
+  useEffect(() => {
+    loadProfile();
+    loadSettings();
+  }, []);
+
+  const loadProfile = async () => {
+    try {
+      const data = await getCurrentUser();
+      setProfile(data);
+    } catch (error) {
+      console.error("Failed to load profile:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const loadSettings = () => {
+    // localStorage에서 설정 불러오기
+    const savedNotifications = localStorage.getItem("pigout_notifications");
+    const savedDarkMode = localStorage.getItem("pigout_darkmode");
+
+    if (savedNotifications !== null) {
+      setNotificationsEnabled(savedNotifications === "true");
+    }
+    if (savedDarkMode !== null) {
+      setDarkModeEnabled(savedDarkMode === "true");
+    }
+  };
+
+  const handleNotificationToggle = () => {
+    const newValue = !notificationsEnabled;
+    setNotificationsEnabled(newValue);
+    localStorage.setItem("pigout_notifications", String(newValue));
+  };
+
+  const handleDarkModeToggle = () => {
+    const newValue = !darkModeEnabled;
+    setDarkModeEnabled(newValue);
+    localStorage.setItem("pigout_darkmode", String(newValue));
+
+    // 다크모드 CSS 적용 (추후 확장 가능)
+    if (newValue) {
+      document.documentElement.classList.add("dark-mode");
+    } else {
+      document.documentElement.classList.remove("dark-mode");
+    }
+  };
+
   const handleLogout = () => {
     if (confirm("정말 로그아웃 하시겠습니까?")) {
       logout();
       navigate("/");
     }
   };
+
+  const handleDeleteAccount = () => {
+    if (
+      confirm(
+        "정말 회원 탈퇴를 하시겠습니까?\n\n모든 데이터가 삭제되며 복구할 수 없습니다."
+      )
+    ) {
+      // TODO: 회원 탈퇴 API 호출
+      alert("회원 탈퇴 기능은 준비 중입니다.");
+    }
+  };
+
+  // 사용자 정보 표시
+  const displayName =
+    profile?.nickname || user?.full_name || user?.nickname || "먹어도돼지";
+  const displayAge = profile?.age || user?.age || "-";
+  const displayGender = profile?.gender || user?.gender || "-";
+  const displayDiseases =
+    (profile?.diseases || user?.diseases || []).join(", ") || "없음";
 
   return (
     <div className="settings">
@@ -27,57 +105,104 @@ const Settings = () => {
       <div className="settings__content">
         <section className="settings__section">
           <h2 className="settings__section-title">내 정보</h2>
-          <div className="settings__profile-info">
-            <div className="settings__info-row">
-              <span className="label">이름</span>
-              <span className="value">{user?.full_name || "먹어도돼지"}</span>
+
+          {loading ? (
+            <div className="settings__loading">불러오는 중...</div>
+          ) : (
+            <div className="settings__profile-info">
+              <div className="settings__info-row">
+                <span className="label">닉네임</span>
+                <span className="value">{displayName}</span>
+              </div>
+              <div className="settings__info-row">
+                <span className="label">나이</span>
+                <span className="value">
+                  {displayAge !== "-" ? `${displayAge}세` : "-"}
+                </span>
+              </div>
+              <div className="settings__info-row">
+                <span className="label">성별</span>
+                <span className="value">{displayGender}</span>
+              </div>
+              <div className="settings__info-row">
+                <span className="label">보유 질환</span>
+                <span className="value diseases">{displayDiseases}</span>
+              </div>
+              <div className="settings__info-row">
+                <span className="label">기기 ID</span>
+                <span className="value device-id">
+                  {deviceId?.substring(0, 8) || "-"}
+                </span>
+              </div>
             </div>
-            <div className="settings__info-row">
-              <span className="label">기기 ID</span>
-              <span className="value">{deviceId?.substring(0, 8) || "-"}</span>
-            </div>
-          </div>
+          )}
+
           <button
             className="settings__menu-item"
             onClick={() => navigate("/selectoption")}
           >
-            <span className="icon">edit_square</span>
+            <span className="material-symbols-rounded icon">edit_square</span>
             <span className="text">프로필 및 건강 정보 수정</span>
-            <span className="arrow">chevron_right</span>
+            <span className="material-symbols-rounded arrow">
+              chevron_right
+            </span>
           </button>
         </section>
 
         <section className="settings__section">
           <h2 className="settings__section-title">앱 설정</h2>
-          <button className="settings__menu-item">
-            <span className="icon">notifications</span>
+          <div
+            className="settings__menu-item"
+            onClick={handleNotificationToggle}
+          >
+            <span className="material-symbols-rounded icon">notifications</span>
             <span className="text">알림 설정</span>
             <div className="toggle">
-              <input type="checkbox" id="noti-toggle" />
+              <input
+                type="checkbox"
+                id="noti-toggle"
+                checked={notificationsEnabled}
+                onChange={handleNotificationToggle}
+              />
               <label htmlFor="noti-toggle"></label>
             </div>
-          </button>
-          <button className="settings__menu-item">
-            <span className="icon">dark_mode</span>
+          </div>
+          <div className="settings__menu-item" onClick={handleDarkModeToggle}>
+            <span className="material-symbols-rounded icon">dark_mode</span>
             <span className="text">다크 모드</span>
             <div className="toggle">
-              <input type="checkbox" id="dark-toggle" />
+              <input
+                type="checkbox"
+                id="dark-toggle"
+                checked={darkModeEnabled}
+                onChange={handleDarkModeToggle}
+              />
               <label htmlFor="dark-toggle"></label>
             </div>
-          </button>
+          </div>
         </section>
 
         <section className="settings__section">
           <h2 className="settings__section-title">정보</h2>
-          <button className="settings__menu-item">
-            <span className="icon">description</span>
+          <button
+            className="settings__menu-item"
+            onClick={() => window.open("/terms", "_blank")}
+          >
+            <span className="material-symbols-rounded icon">description</span>
             <span className="text">서비스 이용약관</span>
-            <span className="arrow">chevron_right</span>
+            <span className="material-symbols-rounded arrow">
+              chevron_right
+            </span>
           </button>
-          <button className="settings__menu-item">
-            <span className="icon">lock</span>
+          <button
+            className="settings__menu-item"
+            onClick={() => window.open("/privacy", "_blank")}
+          >
+            <span className="material-symbols-rounded icon">lock</span>
             <span className="text">개인정보 처리방침</span>
-            <span className="arrow">chevron_right</span>
+            <span className="material-symbols-rounded arrow">
+              chevron_right
+            </span>
           </button>
           <div className="settings__version">
             <span>현재 버전</span>
@@ -86,9 +211,16 @@ const Settings = () => {
         </section>
 
         <button className="settings__logout-btn" onClick={handleLogout}>
+          <span className="material-symbols-rounded">logout</span>
           로그아웃
         </button>
-        <button className="settings__delete-account-btn">회원 탈퇴</button>
+
+        <button
+          className="settings__delete-account-btn"
+          onClick={handleDeleteAccount}
+        >
+          회원 탈퇴
+        </button>
       </div>
     </div>
   );
