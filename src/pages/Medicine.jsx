@@ -798,7 +798,7 @@ const Medicine = () => {
         console.log("[Medicine 스트리밍] 최종 결과:", data);
         if (data.success && data.data) {
           setAnalysisResult(data.data);
-          setShowAnalysis(true);
+          // setShowAnalysis(true); // 제거 - 팝업 대신 페이지 전환
 
           // 활동 로그 기록 (약물 상호작용 분석 +20일)
           try {
@@ -806,6 +806,14 @@ const Medicine = () => {
           } catch (e) {
             console.log("[Medicine] 활동 로그 기록 실패:", e);
           }
+
+          // 🆕 분석 완료 후 페이지 전환
+          navigate("/medicine/analysis", {
+            state: {
+              analysisResult: data.data,
+              medicines: medicines,
+            },
+          });
         }
         setStreamProgress(100);
         setIsAnalyzing(false);
