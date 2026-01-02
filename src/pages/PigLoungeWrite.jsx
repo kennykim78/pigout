@@ -365,15 +365,23 @@ const PigLoungeWrite = () => {
 
         {/* 공통: 텍스트 입력 */}
         <section className="input-section">
-          <textarea
-            placeholder={
-              postType === "food"
-                ? "이 음식은 어땠나요? 솔직한 후기를 남겨보세요! (예: 역시 야식은 치킨이지!)"
-                : "오늘의 이야기를 들려주세요! 🐷"
-            }
-            value={comment}
-            onChange={(e) => setComment(e.target.value)}
-          />
+          <div className="textarea-wrapper">
+            <textarea
+              placeholder={
+                postType === "food"
+                  ? "이 음식은 어땠나요? 솔직한 후기를 남겨보세요! (예: 역시 야식은 치킨이지!)"
+                  : "오늘의 이야기를 들려주세요! 🐷"
+              }
+              value={comment}
+              onChange={(e) => setComment(e.target.value.slice(0, 200))}
+              maxLength={200}
+            />
+            <span
+              className={`char-count ${comment.length >= 200 ? "limit" : ""}`}
+            >
+              {comment.length}/200
+            </span>
+          </div>
           <input
             type="text"
             className="tag-input"

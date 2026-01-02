@@ -549,18 +549,28 @@ const PigLounge = () => {
                     <div className="comment-input-wrapper">
                       <input
                         type="text"
-                        placeholder="댓글을 입력하세요..."
+                        placeholder="댓글을 입력하세요... (100자)"
                         value={commentInputs[item.id] || ""}
                         onChange={(e) =>
                           setCommentInputs((prev) => ({
                             ...prev,
-                            [item.id]: e.target.value,
+                            [item.id]: e.target.value.slice(0, 100),
                           }))
                         }
+                        maxLength={100}
                         onKeyPress={(e) =>
                           e.key === "Enter" && handleSubmitComment(item.id)
                         }
                       />
+                      <span
+                        className={`comment-char-count ${
+                          (commentInputs[item.id]?.length || 0) >= 100
+                            ? "limit"
+                            : ""
+                        }`}
+                      >
+                        {commentInputs[item.id]?.length || 0}/100
+                      </span>
                       <button
                         className="comment-submit"
                         onClick={() => handleSubmitComment(item.id)}

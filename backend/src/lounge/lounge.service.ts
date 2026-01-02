@@ -91,6 +91,14 @@ export class LoungeService {
   }
 
   async createPost(userId: string, data: any) {
+    // 0. 글자수 제한 (200자)
+    if (data.comment && data.comment.length > 200) {
+      throw new HttpException(
+        "게시글은 200자까지 작성할 수 있어요! 🐷",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
     // 1. 비속어 필터링
     if (
       containsProfanity(data.comment) ||
@@ -318,6 +326,14 @@ export class LoungeService {
 
   // 댓글 작성
   async createComment(userId: string, postId: string, content: string) {
+    // 글자수 제한 (100자)
+    if (content && content.length > 100) {
+      throw new HttpException(
+        "댓글은 100자까지 작성할 수 있어요! 🐷",
+        HttpStatus.BAD_REQUEST
+      );
+    }
+
     // 비속어 필터링
     if (containsProfanity(content)) {
       throw new HttpException(
