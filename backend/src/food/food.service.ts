@@ -890,6 +890,31 @@ export class FoodService {
           console.warn("[규칙 기반] 이미지 조회 실패:", imgErr.message);
         }
 
+        // 🆕 pros/cons 문자열을 배열로 변환하는 헬퍼
+        const toArray = (str: string | string[]): string[] => {
+          if (Array.isArray(str)) return str;
+          if (!str) return [];
+          return str
+            .split(/[,，]/)
+            .map((s) => s.trim())
+            .filter(Boolean);
+        };
+
+        // 🆕 nutrients 객체를 숫자로 변환 (Result2 호환)
+        const parseNutrients = (nutrients: any) => {
+          if (!nutrients) return null;
+          return {
+            calories: parseFloat(nutrients.calories) || 0,
+            protein: parseFloat(nutrients.protein) || 0,
+            carbs: parseFloat(nutrients.carbs) || 0,
+            fat: parseFloat(nutrients.fat) || 0,
+            fiber: parseFloat(nutrients.fiber) || 0,
+            sodium: parseFloat(nutrients.sodium) || 0,
+            potassium: parseFloat(nutrients.potassium) || 0,
+            sugar: parseFloat(nutrients.sugar) || 0,
+          };
+        };
+
         const responseData = {
           id: result[0].id,
           foodName: result[0].food_name,
@@ -897,11 +922,25 @@ export class FoodService {
           score: result[0].score,
           analysis: result[0].analysis,
           detailedAnalysis: {
-            pros: foodRule.pros,
-            cons: foodRule.cons,
+            // 🆕 Result2 호환 필드 (배열)
+            goodPoints: toArray(foodRule.pros),
+            badPoints: toArray(foodRule.cons),
+            pros: toArray(foodRule.pros),
+            cons: toArray(foodRule.cons),
+
             summary: foodRule.summary,
-            warnings: warnings.join(", "),
+            warnings: warnings, // 이미 배열
             expertAdvice: foodRule.expertAdvice,
+
+            // 🆕 영양 정보 (Result2 NutritionSection 호환)
+            nutrition: parseNutrients(foodRule.nutrients),
+
+            // 🆕 약물 상호작용 (규칙 기반은 없음)
+            medicalAnalysis: {
+              drug_food_interactions: [],
+            },
+            drug_food_interactions: [],
+
             dataSources: ["규칙 기반 DB"],
             mode: "rule-based",
           },
