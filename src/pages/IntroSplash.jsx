@@ -33,7 +33,7 @@ const IntroSplash = () => {
         console.log("[IntroSplash] 온보딩 완료 → Main 이동");
         navigate("/main");
       }
-    }, 3000); // 3초로 단축
+    }, 5000); // 5초로 단축
 
     return () => clearTimeout(timer);
   }, [navigate]);

@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuthStore } from "../store/authStore";
-import { getCurrentUser } from "../services/api";
+import { getCurrentUser, updateUserProfile } from "../services/api";
 import "./Settings.scss";
 
 const Settings = () => {
@@ -16,6 +16,8 @@ const Settings = () => {
   // 설정 상태
   const [notificationsEnabled, setNotificationsEnabled] = useState(true);
   const [darkModeEnabled, setDarkModeEnabled] = useState(false);
+  const [showNicknameModal, setShowNicknameModal] = useState(false);
+  const [newNickname, setNewNickname] = useState("");
 
   // 프로필 로드
   useEffect(() => {
@@ -84,6 +86,27 @@ const Settings = () => {
     }
   };
 
+  // 닉네임 수정 핸들러
+  const handleEditNickname = () => {
+    setNewNickname(profile?.nickname || user?.nickname || "");
+    setShowNicknameModal(true);
+  };
+
+  const handleSaveNickname = async () => {
+    if (!newNickname.trim()) {
+      alert("닉네임을 입력해주세요.");
+      return;
+    }
+    try {
+      await updateUserProfile({ nickname: newNickname });
+      await loadProfile(); // 프로필 새로고침
+      setShowNicknameModal(false);
+    } catch (error) {
+      console.error("Failed to update nickname:", error);
+      alert("닉네임 변경에 실패했습니다.");
+    }
+  };
+
   // 사용자 정보 표시
   const displayName =
     profile?.nickname || user?.full_name || user?.nickname || "먹어도돼지";
@@ -137,12 +160,39 @@ const Settings = () => {
             </div>
           )}
 
+          <button className="settings__menu-item" onClick={handleEditNickname}>
+            <span className="material-symbols-rounded icon">edit</span>
+            <span className="text">닉네임 수정</span>
+            <span className="material-symbols-rounded arrow">
+              chevron_right
+            </span>
+          </button>
+
           <button
             className="settings__menu-item"
-            onClick={() => navigate("/selectoption")}
+            onClick={() =>
+              navigate("/profile", { state: { fromSettings: true } })
+            }
           >
-            <span className="material-symbols-rounded icon">edit_square</span>
-            <span className="text">프로필 및 건강 정보 수정</span>
+            <span className="material-symbols-rounded icon">
+              accessibility_new
+            </span>
+            <span className="text">나이/성별 수정</span>
+            <span className="material-symbols-rounded arrow">
+              chevron_right
+            </span>
+          </button>
+
+          <button
+            className="settings__menu-item"
+            onClick={() =>
+              navigate("/select", { state: { fromSettings: true } })
+            }
+          >
+            <span className="material-symbols-rounded icon">
+              medical_information
+            </span>
+            <span className="text">질병 정보 수정</span>
             <span className="material-symbols-rounded arrow">
               chevron_right
             </span>
@@ -222,6 +272,39 @@ const Settings = () => {
           회원 탈퇴
         </button>
       </div>
+
+      {/* 닉네임 수정 모달 */}
+      {showNicknameModal && (
+        <div
+          className="settings__modal-overlay"
+          onClick={() => setShowNicknameModal(false)}
+        >
+          <div
+            className="settings__modal-content"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <h3>닉네임 변경</h3>
+            <input
+              type="text"
+              value={newNickname}
+              onChange={(e) => setNewNickname(e.target.value)}
+              placeholder="새로운 닉네임 입력"
+              maxLength={10}
+            />
+            <div className="modal-actions">
+              <button
+                className="cancel"
+                onClick={() => setShowNicknameModal(false)}
+              >
+                취소
+              </button>
+              <button className="confirm" onClick={handleSaveNickname}>
+                변경
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
