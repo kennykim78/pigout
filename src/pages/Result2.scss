@@ -124,6 +124,9 @@ $color-safe: #3b82f6;
     overflow-y: auto;
     scroll-behavior: smooth;
 
+    // 부모 컨테이너에 스냅 적용
+    scroll-snap-type: y mandatory;
+
     // 스크롤바 스타일링
     &::-webkit-scrollbar {
       width: 4px;
@@ -167,24 +170,33 @@ $color-safe: #3b82f6;
 $card-height: 80vh;
 $card-gap: 20px;
 
+// ==========================================
+// 카드 스택킹 구조 (Sticky Card Stack)
+// ==========================================
+$card-height: 85vh; // 카드 최대 높이 증가
+$card-gap: 20px;
+
 .result2-stack {
   position: relative;
-  // 각 카드가 80vh + gap만큼 공간 확보
-  // 5개 카드 기준
+  width: 100%;
+  // 스크롤 스냅을 위한 설정 (부모 컨테이너가 아닌 개별 카드 감싸는 래퍼 역할)
 
   &__card {
     position: sticky;
-    top: 0;
-    height: $card-height;
+    top: 0; // 상단 고정
+    height: 100vh; // 화면 전체 높이 차지 (스냅을 위해)
     display: flex;
-    align-items: center;
+    align-items: center; // 중앙 정렬
     justify-content: center;
     padding: 20px;
-    // background: $result2-bg;
     z-index: 1;
 
+    // 강력한 스냅 효과
+    scroll-snap-align: start;
+    scroll-snap-stop: always;
+
     // 각 카드마다 z-index 증가 (나중 카드가 위로)
-    @for $i from 1 through 5 {
+    @for $i from 1 through 6 {
       &:nth-child(#{$i}) {
         z-index: $i;
       }
@@ -194,13 +206,18 @@ $card-gap: 20px;
     .result2-card {
       width: 100%;
       max-width: 440px;
-      max-height: calc(#{$card-height} - 40px);
-      overflow-y: auto;
+      height: 80vh; // 실제 카드 높이 고정
+      max-height: 80vh;
+      overflow-y: auto; // 내부 스크롤 허용
       transform: scale(1);
       transition: transform 0.4s ease, box-shadow 0.4s ease;
       box-shadow: 0 8px 40px rgba(0, 0, 0, 0.12);
+      background: $result2-card-bg;
+      border-radius: 24px;
+      display: flex;
+      flex-direction: column;
 
-      // 스크롤바 숨김 (내부 스크롤)
+      // 스크롤바 커스텀
       &::-webkit-scrollbar {
         width: 3px;
       }
@@ -213,8 +230,9 @@ $card-gap: 20px;
     // 이미 지나간 카드 스타일 (scaled 상태)
     &.passed {
       .result2-card {
-        transform: scale(0.8);
+        transform: scale(0.85); // 축소 비율 조정
         box-shadow: 0 4px 20px rgba(0, 0, 0, 0.08);
+        opacity: 0.5; // 지나간 카드는 흐릿하게
       }
     }
 
@@ -223,30 +241,12 @@ $card-gap: 20px;
       .result2-card {
         transform: scale(1);
         box-shadow: 0 12px 48px rgba(0, 0, 0, 0.15);
+        opacity: 1;
       }
     }
 
     // 카드 상단 그라데이션 오버레이 (덮이는 효과)
-    &::before {
-      content: "";
-      position: absolute;
-      top: 0;
-      left: 0;
-      right: 0;
-      height: 40px;
-      // background: linear-gradient(
-      //   to bottom,
-      //   rgba(255, 255, 255, 0.95),
-      //   rgba(255, 255, 255, 0)
-      // );
-      pointer-events: none;
-      z-index: 10;
-    }
-
-    // 첫 번째 카드는 그라데이션 불필요
-    &:first-child::before {
-      display: none;
-    }
+    // &::before { ... } // 제거 (불필요)
   }
 
   // 카드 번호 인디케이터
@@ -256,9 +256,9 @@ $card-gap: 20px;
     right: 20px;
     background: rgba(0, 0, 0, 0.8);
     color: #fff;
-    padding: 8px 16px;
+    padding: 6px 14px;
     border-radius: 20px;
-    font-size: 14px;
+    font-size: 13px;
     font-weight: 600;
     z-index: 100;
   }
