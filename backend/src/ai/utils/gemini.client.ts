@@ -1188,7 +1188,8 @@ JSON만 반환:
       enhancedInfo?: any;
     }>,
     diseases: string[],
-    userProfile?: { age?: number; gender?: string }
+    userProfile?: { age?: number; gender?: string },
+    publicInteractionWarnings?: string[] // 🆕 파싱된 공공데이터 경고
   ): Promise<{
     interactions: Array<{
       medicine_name: string;
@@ -1214,6 +1215,14 @@ JSON만 반환:
         : "정보 없음";
       const components = foodAnalysis.components || [];
       const riskFactors = foodAnalysis.riskFactors || {};
+
+      // 🆕 식약처 경고 컨텍스트 생성 (강력한 우선순위 부여)
+      const warningContext =
+        publicInteractionWarnings && publicInteractionWarnings.length > 0
+          ? `\n🚨 [식약처 공공데이터 경고 (최우선 반영 필수)]:\n${publicInteractionWarnings.join(
+              "\n"
+            )}\n(위 경고에 해당하는 약물은 반드시 risk_level을 'danger' 또는 'caution'으로 설정하세요.)`
+          : "";
 
       // 약품 정보를 요약 형식으로 변환 (캐시된 AI 분석 우선 사용)
       const medicinesSummary = drugDetails.map((drug) => {
@@ -1253,7 +1262,7 @@ JSON만 반환:
       const prompt = `# 약물-음식 상호작용 분석
 
 **입력 데이터:**
-음식: ${foodName} | 질병: ${diseaseList} | 사용자: ${profileInfo}
+음식: ${foodName} | 질병: ${diseaseList} | 사용자: ${profileInfo}${warningContext}
 
 **음식 성분:**
 ${components.map((c) => c.name).join(", ")}

@@ -588,8 +588,32 @@ const NutritionSection = ({
 }) => {
   if (!nutrition) return null;
 
+  // 🆕 공공데이터 상세 정보(details)가 있으면 우선 사용
+  const finalNutrition = nutrition.details || nutrition;
   const { calories, protein, carbs, fat, sodium, fiber, sugar, potassium } =
-    nutrition;
+    finalNutrition;
+
+  // 🆕 영양소 신호등 판단 로직
+  const getStatus = (key, val) => {
+    // 1. 질병 관련 위험 (최우선)
+    if ((key === "sodium" || key === "nacl") && riskFactors?.highSodium)
+      return "bad";
+    if (key === "sugar" && riskFactors?.highSugar) return "bad";
+    if (key === "fat" && riskFactors?.highFat) return "bad";
+
+    // 2. 수치 기준 (일반적 과다 섭취 주의)
+    if (key === "sodium" && val >= 800) return "bad";
+    if (key === "sugar" && val >= 20) return "bad";
+    if (key === "fat" && val >= 15) return "bad";
+    if (key === "calories" && val >= 600) return "bad";
+
+    // 3. 긍정적 기준
+    if (key === "protein" && val >= 20) return "good";
+    if (key === "fiber" && val >= 5) return "good";
+    if (key === "calories" && val <= 200) return "good";
+
+    return "neutral";
+  };
 
   const nutritionData = [
     {
@@ -703,25 +727,73 @@ const NutritionSection = ({
         </p>
       )}
 
-      {/* 영양 성분 수치 그리드 */}
+      {/* 영양 성분 수치 그리드 - 신호등 UI 적용 */}
       <div className="nutrition__grid nutrition__grid--2col">
-        {nutritionData.map((item) => (
-          <div
-            key={item.name}
-            className={`nutrition__item ${
-              item.highlight ? "nutrition__item--warning" : ""
-            }`}
-          >
-            <span className="nutrition__icon">{item.icon}</span>
-            <div className="nutrition__info">
-              <span className="nutrition__name">{item.name}</span>
-              <div className="nutrition__value">
-                <span className="nutrition__number">{item.value || 0}</span>
-                <span className="nutrition__unit">{item.unit}</span>
+        {nutritionData.map((item) => {
+          // Status가 없으면 즉석 계산 (기존 데이터 호환)
+          const status =
+            item.status ||
+            getStatus(
+              item.name === "칼로리"
+                ? "calories"
+                : item.name === "나트륨"
+                ? "sodium"
+                : item.name === "당류"
+                ? "sugar"
+                : item.name === "지방"
+                ? "fat"
+                : "neutral",
+              item.value
+            );
+
+          return (
+            <div
+              key={item.name}
+              className={`nutrition__item ${
+                status === "bad"
+                  ? "nutrition__item--danger"
+                  : status === "good"
+                  ? "nutrition__item--safe"
+                  : ""
+              } ${item.highlight ? "nutrition__item--warning" : ""}`}
+              style={
+                status === "bad"
+                  ? { backgroundColor: "#fff5f5", border: "1px solid #ffc9c9" }
+                  : status === "good"
+                  ? { backgroundColor: "#f0fff4", border: "1px solid #c6f6d5" }
+                  : {}
+              }
+            >
+              <span className="nutrition__icon">{item.icon}</span>
+              <div className="nutrition__info">
+                <span className="nutrition__name">{item.name}</span>
+                <div className="nutrition__value">
+                  <span className="nutrition__number">{item.value || 0}</span>
+                  <span className="nutrition__unit">{item.unit}</span>
+                </div>
               </div>
+              {/* 상태 뱃지 */}
+              {status === "bad" && (
+                <span
+                  style={{ fontSize: "12px", color: "red", marginLeft: "auto" }}
+                >
+                  🔴
+                </span>
+              )}
+              {status === "good" && (
+                <span
+                  style={{
+                    fontSize: "12px",
+                    color: "green",
+                    marginLeft: "auto",
+                  }}
+                >
+                  🟢
+                </span>
+              )}
             </div>
-          </div>
-        ))}
+          );
+        })}
       </div>
 
       {/* 🆕 좋은 성분 / 주의 성분 태그 */}
@@ -861,9 +933,75 @@ const DrugInteractionSection = ({
     interactions?.filter((d) => d.risk_level === "caution") || [];
   const safeDrugs = interactions?.filter((d) => d.risk_level === "safe") || [];
 
+  // 🆕 상호작용 요약 배너 로직
+  const getInteractionSummary = () => {
+    if (interactions.some((d) => d.risk_level === "danger")) {
+      return {
+        status: "danger",
+        icon: "🚫",
+        title: "함께 드시면 위험해요!",
+        desc: "심각한 상호작용이 발견되었습니다.",
+      };
+    }
+    if (
+      interactions.some((d) => d.risk_level === "caution") ||
+      detectedDrugRisks.length > 0
+    ) {
+      return {
+        status: "caution",
+        icon: "⚠️",
+        title: "주의가 필요해요",
+        desc: "시간 간격을 두고 섭취하는 것이 좋습니다.",
+      };
+    }
+    return {
+      status: "safe",
+      icon: "✅",
+      title: "괜찮아요",
+      desc: "특별한 상호작용이 발견되지 않았습니다.",
+    };
+  };
+  const summary = getInteractionSummary();
+
   return (
     <div className="result2-card result2-card--drug">
       <h2 className="result2-card__title">💊 약물 상호작용</h2>
+
+      {/* 🆕 요약 배너 */}
+      <div
+        className={`interaction-banner interaction-banner--${summary.status}`}
+        style={{
+          padding: "16px",
+          borderRadius: "12px",
+          marginBottom: "20px",
+          display: "flex",
+          alignItems: "center",
+          gap: "12px",
+          backgroundColor:
+            summary.status === "danger"
+              ? "#fff5f5"
+              : summary.status === "caution"
+              ? "#fffbeb"
+              : "#f0fdf4",
+          border: `1px solid ${
+            summary.status === "danger"
+              ? "#ffc9c9"
+              : summary.status === "caution"
+              ? "#fde68a"
+              : "#bbf7d0"
+          }`,
+        }}
+      >
+        <span style={{ fontSize: "24px" }}>{summary.icon}</span>
+        <div>
+          <strong style={{ display: "block", color: "#333", fontSize: "16px" }}>
+            {summary.title}
+          </strong>
+          <span style={{ fontSize: "14px", color: "#666" }}>
+            {summary.desc}
+          </span>
+        </div>
+      </div>
 
       {/* 🆕 약물 관련 위험 성분 표시 */}
       {hasDrugRisks && (
