@@ -312,12 +312,13 @@
     }
 
     .video-embed {
-      margin: -24px -24px 16px -24px;
+      margin-bottom: 20px;
       position: relative;
-      padding-bottom: 56.25%; // 16:9 aspect ratio
-      height: 0;
+      width: 100%;
+      aspect-ratio: 16 / 9;
       overflow: hidden;
       background: #000;
+      border-radius: 20px;
 
       iframe {
         position: absolute;
