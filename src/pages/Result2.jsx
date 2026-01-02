@@ -4,10 +4,11 @@ import imghappy from "../assets/images/img_happy.png";
 import imgcook from "../assets/images/img_cook.png";
 import { useLocation, useNavigate } from "react-router-dom";
 import { useState, useEffect, useRef } from "react";
-import { analyzeFoodByTextStream, getMyMedicines } from "../services/api";
+import { analyzeFoodByTextStream } from "../services/api";
 import { getDeviceId, getUserProfile } from "../utils/deviceId";
 import StreamingPopup from "../components/StreamingPopup";
 import { ResponsiveContainer, PieChart, Pie, Cell } from "recharts";
+import { useAnalysisStore, createUserHash } from "../store/analysisStore";
 
 // 🆕 사용자 프로필 컨텍스트 생성 헬퍼
 const formatUserContext = (userProfile, diseases) => {
@@ -86,9 +87,13 @@ const TagCloudSection = ({
     const diseaseText = diseases?.length > 0 ? diseases[0] : "";
 
     if (goodCount > badCount * 2) {
-      return `장점이 ${goodCount}개나 되네요! ${diseaseText ? "환자분께도 " : ""}좋은 선택이 될 수 있어요.`;
+      return `장점이 ${goodCount}개나 되네요! ${
+        diseaseText ? "환자분께도 " : ""
+      }좋은 선택이 될 수 있어요.`;
     } else if (badCount > goodCount) {
-      return `주의할 점이 더 많아요. ${diseaseText ? "특히 " : ""}섭취에 주의가 필요합니다.`;
+      return `주의할 점이 더 많아요. ${
+        diseaseText ? "특히 " : ""
+      }섭취에 주의가 필요합니다.`;
     }
     return "장단점이 분명하네요. 적절히 조절해서 드세요.";
   };
@@ -488,7 +493,9 @@ const PersonalizedPortionSection = ({
     const portion = calculateRecommendedPortion();
 
     if (portion.multiplier < 0.7) {
-      return `건강 상태를 고려해 ${Math.round(portion.multiplier * 100)}% 정도로 줄여 드시는 게 좋습니다.`;
+      return `건강 상태를 고려해 ${Math.round(
+        portion.multiplier * 100
+      )}% 정도로 줄여 드시는 게 좋습니다.`;
     }
     if (portion.reasons.length > 0) {
       return `${portion.reasons.join(", ")} 관리를 위해 권장량을 지켜주세요.`;
@@ -1142,6 +1149,19 @@ const Result2 = () => {
         if (data.success && data.data) {
           setAnalysis(data.data.analysis);
           setDetailedAnalysis(data.data.detailedAnalysis);
+
+          // 🆕 캐시에 저장
+          const profile = getUserProfile();
+          const savedDiseases = localStorage.getItem("selectedDiseases");
+          const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
+          const userHash = createUserHash(
+            profile?.age,
+            profile?.gender,
+            diseases
+          );
+          useAnalysisStore
+            .getState()
+            .setAnalysis(foodNameParam, data.data.detailedAnalysis, userHash);
         }
         setStreamProgress(100);
         setIsStreaming(false);
@@ -1190,7 +1210,25 @@ const Result2 = () => {
       if (hasRealDetailedAnalysis) {
         setDetailedAnalysis(da);
       } else if (location.state.foodName) {
-        startStreamingAnalysis(location.state.foodName);
+        // 🆕 캐시 확인
+        const profile = getUserProfile();
+        const savedDiseases = localStorage.getItem("selectedDiseases");
+        const diseases = savedDiseases ? JSON.parse(savedDiseases) : [];
+        const userHash = createUserHash(
+          profile?.age,
+          profile?.gender,
+          diseases
+        );
+        const cached = useAnalysisStore
+          .getState()
+          .getAnalysis(location.state.foodName, userHash);
+
+        if (cached) {
+          console.log("[Result2] 캐시 데이터 사용:", location.state.foodName);
+          setDetailedAnalysis(cached);
+        } else {
+          startStreamingAnalysis(location.state.foodName);
+        }
       }
 
       return () => {
