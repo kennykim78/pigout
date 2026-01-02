@@ -9,6 +9,7 @@ import { StatsModule } from "./stats/stats.module";
 import { OpenDataModule } from "./opendata/opendata.module";
 import { UsersModule } from "./users/users.module";
 import { ImageModule } from "./image/image.module";
+import { LoungeModule } from "./lounge/lounge.module";
 
 @Module({
   imports: [
@@ -25,6 +26,7 @@ import { ImageModule } from "./image/image.module";
     MedicineModule,
     StatsModule,
     ImageModule,
+    LoungeModule,
   ],
 })
 export class AppModule {}

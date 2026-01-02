@@ -759,4 +759,53 @@ export const analyzeFoodByTextStream = (
   };
 };
 
+// ============================================
+// 🆕 피그라운지 (Lounge) API
+// ============================================
+
+// 피드 목록 조회
+export const getFeed = async (
+  limit: number = 20,
+  offset: number = 0,
+  sort: string = "latest"
+) => {
+  const response = await apiClient.get("/lounge/feed", {
+    params: { limit, offset, sort },
+  });
+  return response.data;
+};
+
+// 게시글 작성
+export const createPost = async (postData: {
+  foodName: string;
+  score: number;
+  lifeChange: number;
+  comment: string;
+  imageUrl?: string;
+  tags?: string[];
+}) => {
+  const response = await apiClient.post("/lounge/feed", postData);
+  return response.data;
+};
+
+// 좋아요 토글
+export const toggleLike = async (postId: string) => {
+  const response = await apiClient.post(`/lounge/feed/${postId}/like`);
+  return response.data;
+};
+
+// 북마크 토글
+export const toggleLoungeBookmark = async (postId: string) => {
+  const response = await apiClient.post(`/lounge/feed/${postId}/bookmark`);
+  return response.data;
+};
+
+// 신고하기
+export const reportPost = async (postId: string, reason: string) => {
+  const response = await apiClient.post(`/lounge/feed/${postId}/report`, {
+    reason,
+  });
+  return response.data;
+};
+
 export default apiClient;

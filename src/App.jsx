@@ -13,6 +13,7 @@ import Result01 from "./pages/Result01";
 import Result2 from "./pages/Result2";
 import Settings from "./pages/Settings";
 import PigLounge from "./pages/PigLounge";
+import PigLoungeWrite from "./pages/PigLoungeWrite";
 import SharedLayout from "./layout/SharedLayout";
 import SharedFoodResult from "./pages/shared/SharedFoodResult";
 import SharedMedicineResult from "./pages/shared/SharedMedicineResult";
@@ -37,8 +38,12 @@ function App() {
           <Route path="/recommendation" element={<MyRecommendation />} />
           <Route path="/status" element={<MyStatus />} />
           <Route path="/recommendation" element={<MyRecommendation />} />
+          <Route path="/recommendation" element={<MyRecommendation />} />
           <Route path="/lounge" element={<PigLounge />} />
         </Route>
+
+        {/* 피그라운지 글쓰기 */}
+        <Route path="/lounge/write" element={<PigLoungeWrite />} />
 
         {/* 내약 추가 페이지 (네비게이션 바 없음) */}
         <Route path="/medicine/add" element={<MedicineAdd />} />
